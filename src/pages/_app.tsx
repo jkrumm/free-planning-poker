@@ -5,9 +5,6 @@ import { SessionProvider } from "next-auth/react";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
-import { configureAbly } from "@ably-labs/react-hooks";
-
-configureAbly({ authUrl: "http://localhost:3000/api/ably-token" });
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,

@@ -4,18 +4,21 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
-import { useChannel } from "@ably-labs/react-hooks";
-import React, { useState } from "react";
-import { uuid } from "uuidv4";
+import React from "react";
+import { useStore } from "~/store/store";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
-  const [messages, setMessages] = useState([] as string[]);
+  const messages = useStore((store) => store.messages);
+  const isOnline = useStore((store) => store.ready);
+  const actions = useStore((store) => store.actions);
 
-  const [channel] = useChannel("test-ably", (message) => {
-    setMessages([...messages, String(message.data.text)]);
-  });
+  // const [messages, setMessages] = useState([] as string[]);
+  //
+  // const [channel] = useChannel("test-ably", (message) => {
+  //   setMessages([...messages, String(message.data.text)]);
+  // });
 
   return (
     <>
@@ -57,9 +60,12 @@ const Home: NextPage = () => {
             <p className="text-2xl text-white">
               {hello.data ? hello.data.greeting : "Loading tRPC query..."}
             </p>
-            <Messages messages={messages} />
+            <p>{JSON.stringify(messages)}</p>
+            {/*<Messages messages={messages} />*/}
             <button
-              onClick={() => channel.publish("test-ably", { text: uuid() })}
+              onClick={async () => {
+                await actions.sendMessage();
+              }}
             >
               SEND MESSAGE
             </button>
