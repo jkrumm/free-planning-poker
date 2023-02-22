@@ -4,9 +4,18 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
+import { useChannel } from "@ably-labs/react-hooks";
+import React, { useState } from "react";
+import { uuid } from "uuidv4";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+
+  const [messages, setMessages] = useState([] as string[]);
+
+  const [channel] = useChannel("test-ably", (message) => {
+    setMessages([...messages, String(message.data.text)]);
+  });
 
   return (
     <>
@@ -48,6 +57,12 @@ const Home: NextPage = () => {
             <p className="text-2xl text-white">
               {hello.data ? hello.data.greeting : "Loading tRPC query..."}
             </p>
+            <Messages messages={messages} />
+            <button
+              onClick={() => channel.publish("test-ably", { text: uuid() })}
+            >
+              SEND MESSAGE
+            </button>
             <AuthShowcase />
           </div>
         </div>
@@ -58,12 +73,22 @@ const Home: NextPage = () => {
 
 export default Home;
 
+const Messages: React.FC<{ messages: string[] }> = ({ messages }) => {
+  return (
+    <div>
+      {messages.map((item, index) => (
+        <div key={index}>{item}</div>
+      ))}
+    </div>
+  );
+};
+
 const AuthShowcase: React.FC = () => {
   const { data: sessionData } = useSession();
 
   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
     undefined, // no input
-    { enabled: sessionData?.user !== undefined },
+    { enabled: sessionData?.user !== undefined }
   );
 
   return (
