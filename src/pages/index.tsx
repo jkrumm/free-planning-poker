@@ -1,4 +1,3 @@
-import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
@@ -6,9 +5,11 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { api } from "~/utils/api";
 import React from "react";
 import { useStore } from "~/store/store";
+import dynamic from "next/dynamic";
 
-const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
+// const Home: NextPage = () => {
+const MyNotSsrComponent = () => {
+  // const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
   const messages = useStore((store) => store.messages);
   const isOnline = useStore((store) => store.ready);
@@ -58,7 +59,7 @@ const Home: NextPage = () => {
           </div>
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
-              {hello.data ? hello.data.greeting : "Loading tRPC query..."}
+              {/*{hello.data ? hello.data.greeting : "Loading tRPC query..."}*/}
             </p>
             <p>{JSON.stringify(messages)}</p>
             {/*<Messages messages={messages} />*/}
@@ -77,7 +78,19 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+// const MyNotSsrComponent = dynamic(() => , {
+//   ssr: false,
+// });
+
+// export default function Home() {
+//   return <MyNotSsrComponent />;
+// }
+
+export default dynamic(() => Promise.resolve(MyNotSsrComponent), {
+  ssr: false,
+});
+
+// export default Home;
 
 const Messages: React.FC<{ messages: string[] }> = ({ messages }) => {
   return (

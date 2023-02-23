@@ -1,13 +1,8 @@
 import { create } from "zustand";
 import { combine } from "zustand/middleware";
-import Ably from "ably/promises";
 import { v4 } from "uuid";
-
-// type Store = {
-//   messages: string[];
-//   ready: boolean;
-//   sendMessage: (message: string) => void;
-// };
+import Ably from "ably/promises";
+import { getClientId } from "~/store/local-storage";
 
 const initialState = {
   messages: [],
@@ -15,9 +10,10 @@ const initialState = {
 };
 
 const mutations = (setState: any, getState: any) => {
-  // configureAbly({ authUrl: "http://localhost:3000/api/ably-token" });
+  const prefix = process.env.API_ROOT || "http://localhost:3000/";
   const client = new Ably.Realtime.Promise({
-    authUrl: "http://localhost:3000/api/ably-token",
+    authUrl: `${prefix}api/ably-token`,
+    clientId: getClientId(),
   });
 
   client.connection.on("connected", function () {
