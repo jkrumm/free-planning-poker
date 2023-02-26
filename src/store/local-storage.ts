@@ -12,3 +12,19 @@ export function getClientId(): string {
     return clientId;
   }
 }
+
+export function getUsername(): string | null {
+  if (typeof window == "undefined") {
+    return null;
+  } else {
+    return localStorage.getItem("username");
+  }
+}
+
+export function setUsername(username: string): void {
+  if (typeof window == "undefined") {
+    throw new Error("not on local");
+  } else {
+    localStorage.setItem("username", username);
+  }
+}

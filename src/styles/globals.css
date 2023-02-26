@@ -1,3 +1,7 @@
 /*@tailwind base;*/
 @tailwind components;
 @tailwind utilities;
+
+.mantine-Autocomplete-label, .mantine-TextInput-label {
+    padding-bottom: 12px;
+}

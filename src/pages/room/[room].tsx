@@ -1,16 +1,27 @@
 import Head from "next/head";
 import React from "react";
-import { useStore } from "~/store/store";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useWsStore } from "~/store/ws-store";
+import { useRouter } from "next/router";
+import { api } from "~/utils/api";
 
 // const Home: NextPage = () => {
 const MyNotSsrComponent = () => {
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  let roomName = useRouter().query.room;
+  if (roomName == undefined) {
+    throw new Error("no room name given");
+  }
+  if (Array.isArray(roomName)) {
+    roomName = String(roomName[0]);
+  }
 
-  const messages = useStore((store) => store.messages);
-  const isOnline = useStore((store) => store.ready);
-  const actions = useStore((store) => store.actions);
+  const setRoom = api.room.setRoom.useQuery({ roomName });
+
+  const messages = useWsStore((store) => store.messages);
+  const isOnline = useWsStore((store) => store.ready);
+  const actions = useWsStore((store) => store.actions);
 
   // const [messages, setMessages] = useState([] as string[]);
   //

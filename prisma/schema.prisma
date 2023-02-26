@@ -21,6 +21,13 @@ model Example {
     updatedAt DateTime @updatedAt
 }
 
+model Room {
+    name       String   @id
+    lastUsed   DateTime @default(now())
+
+    @@unique([name])
+}
+
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())

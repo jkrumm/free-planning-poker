@@ -41,4 +41,4 @@ const mutations = (setState: any, getState: any) => {
   };
 };
 
-export const useStore = create(combine(initialState, mutations));
+export const useWsStore = create(combine(initialState, mutations));
