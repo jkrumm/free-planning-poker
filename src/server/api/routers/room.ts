@@ -36,14 +36,14 @@ export const roomRouter = createTRPCRouter({
     ).map((item) => item.name);
   }),
   setRoom: publicProcedure
-    .input(z.object({ roomName: z.string() }))
+    .input(z.object({ room: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.prisma.room.upsert({
         where: {
-          name: input.roomName,
+          name: input.room,
         },
         create: {
-          name: input.roomName,
+          name: input.room,
           lastUsed: DateTime.now().toJSDate(),
         },
         update: {

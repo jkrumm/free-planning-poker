@@ -37,9 +37,11 @@ export function getLocalstorageRoom(): string | null {
   }
 }
 
-export function setLocalstorageRoom(room: string): void {
+export function setLocalstorageRoom(room: string | null): void {
   if (typeof window == "undefined") {
     throw new Error("not on local");
+  } else if (room === null) {
+    localStorage.removeItem("room");
   } else {
     return localStorage.setItem("room", room);
   }

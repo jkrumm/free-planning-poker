@@ -8,7 +8,11 @@ import { Autocomplete, Button, TextInput } from "@mantine/core";
 import { Hero } from "~/components/hero";
 import randomWords from "random-words";
 import { usePageStore } from "~/store/page-store";
-import { getLocalstorageRoom, getUsername } from "~/store/local-storage";
+import {
+  getLocalstorageRoom,
+  getUsername,
+  setLocalstorageRoom,
+} from "~/store/local-storage";
 import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
@@ -30,7 +34,9 @@ const Home: NextPage = () => {
       setUsername(localstorageUsername);
     }
     const localStorageRoom = getLocalstorageRoom();
-    if (localStorageRoom) {
+    if (!localStorageRoom || localStorageRoom === "undefined") {
+      setLocalstorageRoom(null);
+    } else {
       router.push(`/room/${localStorageRoom}`);
     }
   }, []);

@@ -1,43 +1,47 @@
 import Head from "next/head";
-import React from "react";
-import dynamic from "next/dynamic";
+import React, { useEffect } from "react";
 import Link from "next/link";
-import { useWsStore } from "~/store/ws-store";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { setLocalstorageRoom } from "~/store/local-storage";
+import { configureAbly, useChannel } from "@ably-labs/react-hooks";
+import { v4 } from "uuid";
+import { useWsStore } from "~/store/ws-store";
 
-// const Home: NextPage = () => {
-const MyNotSsrComponent = () => {
-  // const hello = api.example.hello.useQuery({ text: "from tRPC" });
-  let roomName = useRouter().query.room;
-  if (roomName == undefined) {
-    throw new Error("no room name given");
-  }
-  if (Array.isArray(roomName)) {
-    roomName = String(roomName[0]);
-  }
+const Room = () => {
+  configureAbly({
+    authUrl: `${
+      process.env.API_ROOT || "http://localhost:3000/"
+    }api/ably-token`,
+    clientId: v4(),
+  });
 
-  const setRoom = api.room.setRoom.useQuery({ roomName });
-  setLocalstorageRoom(roomName);
+  const router = useRouter();
+  const room = router.query.room as string;
+
+  const setRoom = api.room.setRoom.useQuery({ room });
 
   const messages = useWsStore((store) => store.messages);
-  const presences = useWsStore((store) => store.presences);
-  const presencesMap = useWsStore((store) => store.presencesMap);
-  const isOnline = useWsStore((store) => store.ready);
-  const actions = useWsStore((store) => store.actions);
+  const addMessage = useWsStore((store) => store.addMessage);
+
+  useEffect(() => {
+    if (!room || room === "undefined") {
+      setLocalstorageRoom(null);
+      router.push(`/`);
+    }
+    setLocalstorageRoom(room);
+  }, []);
+
+  const [channel] = useChannel("your-channel-name", (message) => {
+    console.log(message);
+    addMessage(message.data.text);
+  });
 
   if (process.browser) {
-    window.onbeforeunload = () => {
-      actions.leaveChannel();
+    window.onbeforeunload = async () => {
+      await channel.presence.leave();
     };
   }
-
-  // const [messages, setMessages] = useState([] as string[]);
-  //
-  // const [channel] = useChannel("test-ably", (message) => {
-  //   setMessages([...messages, String(message.data.text)]);
-  // });
 
   return (
     <>
@@ -54,9 +58,9 @@ const MyNotSsrComponent = () => {
           <br />
           <h1>Presences</h1>
           <div>
-            {presences.map((item) => (
-              <div>{presencesMap.get(item)}</div>
-            ))}
+            {/*{presences.map((item) => (*/}
+            {/*  <div>{presencesMap.get(item)}</div>*/}
+            {/*))}*/}
             {/*{*/}
             {/*  () => {for (const item of presences) {*/}
             {/*  <div key={key}>{value}</div>*/}
@@ -69,10 +73,20 @@ const MyNotSsrComponent = () => {
           {/*<Messages messages={messages} />*/}
           <button
             onClick={async () => {
-              await actions.sendMessage();
+              // await actions.sendMessage();
+              channel.publish("test-message", { text: "message text" });
             }}
           >
             SEND MESSAGE
+          </button>
+
+          <button
+            onClick={async () => {
+              setLocalstorageRoom(null);
+              await router.push(`/`);
+            }}
+          >
+            LEAVE ROOM
           </button>
         </div>
       </main>
@@ -80,19 +94,7 @@ const MyNotSsrComponent = () => {
   );
 };
 
-// const MyNotSsrComponent = dynamic(() => , {
-//   ssr: false,
-// });
-
-// export default function Home() {
-//   return <MyNotSsrComponent />;
-// }
-
-export default dynamic(() => Promise.resolve(MyNotSsrComponent), {
-  ssr: false,
-});
-
-// export default Home;
+export default Room;
 
 const Messages: React.FC<{ messages: string[] }> = ({ messages }) => {
   return (
