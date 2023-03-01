@@ -8,14 +8,13 @@ import { Autocomplete, Button, TextInput } from "@mantine/core";
 import { Hero } from "~/components/hero";
 import randomWords from "random-words";
 import { usePageStore } from "~/store/page-store";
-import { getUsername } from "~/store/local-storage";
+import { getLocalstorageRoom, getUsername } from "~/store/local-storage";
 import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
   const router = useRouter();
-  const unusedRooms =
-    api.room.getRoomList.useQuery().data ||
-    randomWords({ exactly: 500, maxLength: 7 });
+  const randomRoom =
+    api.room.getRandomRoom.useQuery().data || randomWords({ exactly: 1 })[0];
   const activeRooms = api.room.getActiveRooms.useQuery().data || [];
 
   const username = usePageStore((store) => store.username);
@@ -30,13 +29,16 @@ const Home: NextPage = () => {
     if (localstorageUsername) {
       setUsername(localstorageUsername);
     }
-    console.log(username);
+    const localStorageRoom = getLocalstorageRoom();
+    if (localStorageRoom) {
+      router.push(`/room/${localStorageRoom}`);
+    }
   }, []);
 
   useEffect(() => {
-    if (roomName === unusedRooms[0] || roomName === "") {
+    if (roomName === randomRoom || roomName === "") {
       setButtonText(`Create random room: `);
-      setRoomName(unusedRooms[0] || "");
+      setRoomName(randomRoom || "");
     } else if (activeRooms.includes(roomName)) {
       setButtonText(`Join room: `);
     } else {

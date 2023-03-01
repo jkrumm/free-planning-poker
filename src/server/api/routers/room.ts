@@ -4,19 +4,24 @@ import randomWords from "random-words";
 import { z } from "zod";
 
 export const roomRouter = createTRPCRouter({
-  getRoomList: publicProcedure.query(async ({ ctx }) => {
+  getRandomRoom: publicProcedure.query(async ({ ctx }) => {
     const usedRooms = (
       (await ctx.prisma.room.findMany({
         where: {
           lastUsed: {
-            gte: DateTime.now().minus({ week: 1 }).toJSDate(),
+            gte: DateTime.now().minus({ days: 1 }).toJSDate(),
           },
         },
       })) || []
     ).map((item) => item.name);
-    return randomWords({ exactly: 500, maxLength: 7 }).filter(
-      (item) => !usedRooms.includes(item)
-    );
+    for (let i = 3; i <= 11; i++) {
+      const filtered = randomWords({ maxLength: i, exactly: 400 }).filter(
+        (item) => !usedRooms.includes(item)
+      );
+      if (filtered.length > 0) {
+        return filtered[0];
+      }
+    }
   }),
   getActiveRooms: publicProcedure.query(async ({ ctx }) => {
     return (

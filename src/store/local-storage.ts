@@ -28,3 +28,19 @@ export function setUsername(username: string): void {
     localStorage.setItem("username", username);
   }
 }
+
+export function getLocalstorageRoom(): string | null {
+  if (typeof window == "undefined") {
+    return null;
+  } else {
+    return localStorage.getItem("room");
+  }
+}
+
+export function setLocalstorageRoom(room: string): void {
+  if (typeof window == "undefined") {
+    throw new Error("not on local");
+  } else {
+    return localStorage.setItem("room", room);
+  }
+}
