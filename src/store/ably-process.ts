@@ -2,7 +2,9 @@ import * as Ably from "ably/promises";
 import { getClientId } from "~/store/local-storage";
 
 const client = new Ably.Realtime.Promise({
-  authUrl: `${process.env.API_ROOT || "http://localhost:3000/"}api/ably-token`,
+  authUrl: `${
+    process.env.NEXT_PUBLIC_API_ROOT || "http://localhost:3000/"
+  }api/ably-token`,
   clientId: getClientId(),
 });
 
