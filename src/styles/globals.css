@@ -5,3 +5,291 @@
 .mantine-Autocomplete-label, .mantine-TextInput-label {
     padding-bottom: 12px;
 }
+
+.table {
+    width: 1000px;
+    height: 400px;
+    background-color: #4aad4a;
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    transform: translateX(-50%) translateY(-50%);
+    border-radius: 150px;
+    border: 15px solid #a95555;
+}
+.table:before {
+    content: '';
+    border: 7px solid rgba(0,0,0,0.1);
+    display: block;
+    width: 1015px;
+    height: 415px;
+    border-radius: 150px;
+    position: absolute;
+    top: -15px;
+    left: -15px;
+}
+.table:after {
+    content: '';
+    border: 7px solid rgba(0,0,0,0.1);
+    display: block;
+    width: 985px;
+    height: 385px;
+    border-radius: 130px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.table .card-place {
+    border: 5px solid #63c763;
+    height: 100px;
+    width: 340px;
+    position: absolute;
+    border-radius: 10px;
+    padding: 10px;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    box-sizing: border-box;
+    display: flex;
+}
+.table .card-place .card:not(:last-child) {
+    margin-right: 15px;
+}
+.players {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
+.players .player {
+    position: absolute;
+}
+.players .player .avatar {
+    width: 120px;
+    height: 120px;
+    background-color: lightcoral;
+    border-radius: 100%;
+    position: relative;
+    box-shadow: 2px 10px 0px rgba(0,0,0,0.4);
+    z-index: 20;
+}
+.players .player .avatar:after {
+    content: '';
+    width: 70px;
+    height: 70px;
+    position: absolute;
+    background-color: rgba(0,0,0,0.1);
+    top: 50%;
+    left: 50%;
+    transform: translatex(-50%) translatey(-50%);
+    border-radius: 100%;
+    box-shadow: 0px 5px 0px rgba(0,0,0,0.2);
+}
+.players .player .name {
+    text-align: center;
+    width: 100px;
+    margin-left: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    position: absolute;
+    top: -40px;
+}
+.players .player.playing:before {
+    content: '...';
+    color: white;
+    font-size: 20px;
+    position: absolute;
+    background-color: #76daff;
+    display: inline-block;
+    line-height: 0px;
+    height: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 100;
+}
+.players .player.player-1 {
+    top: 0px;
+    left: 50%;
+    transform: translatex(-50%) translatey(-50%);
+}
+.players .player.player-2 {
+    bottom: 0px;
+    left: 50%;
+    transform: translatex(-50%) translatey(50%) rotatez(180deg);
+}
+.players .player.player-2 .name, .players .player.player-2 .card {
+    transform: rotatez(180deg);
+}
+.players .player.player-3 {
+    top: 50%;
+    left: 0px;
+    transform: translatex(-50%) translatey(-50%) rotatez(-90deg);
+}
+.players .player.player-3 .name {
+    transform: rotatez(0deg);
+}
+.players .player.player-4 {
+    top: 50%;
+    right: 0px;
+    transform: translatex(50%) translatey(-50%) rotatez(90deg);
+}
+.players .player.player-4 .name {
+    transform: rotatez(0deg);
+}
+.players .player.player-8 {
+    top: 0px;
+    left: 25%;
+    transform: translatex(-50%) translatey(-50%);
+}
+.players .player.player-6 {
+    bottom: 0px;
+    left: 75%;
+    transform: translatex(-50%) translatey(50%) rotatez(180deg);
+}
+.players .player.player-6 .name, .players .player.player-6 .card {
+    transform: rotatez(180deg);
+}
+.players .player.player-7 {
+    top: 0px;
+    left: 75%;
+    transform: translatex(-50%) translatey(-50%);
+}
+.players .player.player-5 {
+    bottom: 0px;
+    left: 25%;
+    transform: translatex(-50%) translatey(50%) rotatez(180deg);
+}
+.players .player.player-5 .name, .players .player.player-5 .card {
+    transform: rotatez(180deg);
+}
+
+.card {
+    height: 70px;
+    width: 50px;
+    border-radius: 6px;
+    display: inline-block;
+    position: relative;
+    background-color: white;
+    color: black;
+    font-size: 31px;
+    text-align: center;
+    padding-top: 9px;
+    left: 33px;
+    top: 15px;
+    border: 1px solid #202124;
+}
+
+.card-wrapper {
+    position: relative;
+    display: block;
+    width: 60px;
+}
+.card-place .average {
+    font-size: 31px;
+    color: white;
+    position: absolute;
+    right: 15px;
+    top: 20px;
+}
+.card-wrapper.amount-1 {
+    margin-left: 2px;
+    top: -2px;
+}
+.card-wrapper.amount-2 {
+    margin-left: 4px;
+    top: -4px;
+}
+.card-wrapper.amount-3 {
+    margin-left: 6px;
+    top: -6px;
+}
+.card-wrapper.amount-4 {
+    margin-left: 8px;
+    top: -8px;
+}
+.card-wrapper.amount-5 {
+    margin-left: 10px;
+    top: -10px;
+}
+.card-wrapper.amount-6 {
+    margin-left: 12px;
+    top: -12px;
+}
+.card-wrapper.amount-7 {
+    margin-left: 14px;
+    top: -14px;
+}
+.card-wrapper.amount-8 {
+    margin-left: 16px;
+    top: -16px;
+}
+
+.card-wrapper .card {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.card-wrapper .card:first-child {
+    z-index: 8;
+    left: 0;
+}
+.card-wrapper .card:nth-child(2) {
+    z-index: 7;
+    left: -2px;
+    top: 2px;
+}
+.card-wrapper .card:nth-child(3) {
+    z-index: 6;
+    left: -4px;
+    top: 4px;
+}
+.card-wrapper .card:nth-child(4) {
+    z-index: 5;
+    left: -6px;
+    top: 6px;
+}
+.card-wrapper .card:nth-child(5) {
+    z-index: 4;
+    left: -8px;
+    top: 8px;
+}
+.card-wrapper .card:nth-child(6) {
+    z-index: 3;
+    left: -10px;
+    top: 10px;
+}
+.card-wrapper .card:nth-child(7) {
+    z-index: 2;
+    left: -12px;
+    top: 12px;
+}
+.card-wrapper .card:nth-child(8) {
+    z-index: 1;
+    left: -14px;
+    top: 14px;
+}
+.card-wrapper .card:nth-child(9) {
+    z-index: 1;
+    left: -16px;
+    top: 16px;
+}
+
+
+.card.flipped:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border-radius: 5px;
+    background: #94040E;
+    background-size: 12px 12px;
+}
+
+.card.flipped.voted:after {
+    background: #003900;
+    background-size: 12px 12px;
+}
+
+
