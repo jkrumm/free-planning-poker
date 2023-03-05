@@ -10,7 +10,7 @@ import { usePageStore } from "~/store/page-store";
 import { Button, Switch } from "@mantine/core";
 
 function getByValue(map: Map<string, string>, searchValue: string) {
-  for (let [key, value] of map.entries()) {
+  for (const [key, value] of map.entries()) {
     if (value === searchValue) return key;
   }
 }
@@ -28,7 +28,9 @@ const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 const Room = () => {
   let clientId = v4();
   configureAbly({
-    authUrl: `${process.env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
+    authUrl: `${
+      process.env.NEXT_PUBLIC_API_ROOT || "http://localhost:3000/"
+    }api/ably-token`,
     clientId,
   });
 
@@ -145,7 +147,7 @@ const Room = () => {
                 }
                 size={"lg"}
                 key={number}
-                onClick={async () => {
+                onClick={() => {
                   if (!channel) return;
                   channel.presence.update({
                     username,
@@ -168,7 +170,7 @@ const Room = () => {
               variant={flipped ? "default" : "filled"}
               disabled={flipped}
               className={"mr-5"}
-              onClick={async () => {
+              onClick={() => {
                 channel.publish("reset", {});
               }}
             >
@@ -191,7 +193,7 @@ const Room = () => {
             disabled={!flipped}
             label="Spectator"
             checked={spectators.includes(clientId)}
-            onChange={async (event) =>
+            onChange={(event) =>
               channel.presence.update({
                 username,
                 voting: null,
@@ -203,7 +205,7 @@ const Room = () => {
             label="Auto Show"
             className="cursor-pointer"
             checked={autoShow}
-            onChange={async (event) =>
+            onChange={(event) =>
               channel.publish("auto-show", {
                 autoShow: event.currentTarget.checked,
               })
@@ -304,7 +306,7 @@ const Table = ({
       <div className="card-place">
         {!flipped &&
           voting.map((item, index) => (
-            <div className={`card-wrapper amount-${item.amount}`}>
+            <div key={index} className={`card-wrapper amount-${item.amount}`}>
               {(function () {
                 const cards = [];
                 for (let i = 0; i < item.amount; i++) {

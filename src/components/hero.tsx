@@ -1,9 +1,9 @@
-import { Container, createStyles, Text } from "@mantine/core";
+import { Container, createStyles, MantineTheme, Text } from "@mantine/core";
 // import { GithubIcon } from "@mantine/ds";
 
 const BREAKPOINT = "@media (max-width: 755px)";
 
-const useStyles = createStyles((theme) => ({
+const useStyles = createStyles((theme: MantineTheme) => ({
   wrapper: {
     position: "relative",
     boxSizing: "border-box",
@@ -21,7 +21,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   title: {
-    fontFamily: `Greycliff CF, ${theme.fontFamily}`,
+    fontFamily: `Greycliff CF, ${theme.fontFamily || ""}`,
     fontSize: 62,
     fontWeight: 900,
     lineHeight: 1.1,

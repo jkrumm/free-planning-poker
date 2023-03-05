@@ -37,7 +37,10 @@ const Home: NextPage = () => {
     if (!localStorageRoom || localStorageRoom === "undefined") {
       setLocalstorageRoom(null);
     } else {
-      router.push(`/room/${localStorageRoom}`);
+      router
+        .push(`/room/${localStorageRoom}`)
+        .then(() => ({}))
+        .catch(() => ({}));
     }
   }, []);
 

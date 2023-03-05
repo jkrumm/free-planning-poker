@@ -18,6 +18,8 @@ module.exports = {
   plugins: ["@typescript-eslint"],
   extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
   rules: {
+    "@typescript-eslint/no-misused-promises": ["warn"],
+    "@typescript-eslint/restrict-template-expressions": ["warn"],
     "@typescript-eslint/consistent-type-imports": [
       "warn",
       {
