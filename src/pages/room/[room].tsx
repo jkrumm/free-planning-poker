@@ -7,6 +7,13 @@ import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
 import { v4 } from "uuid";
 import { useWsStore } from "~/store/ws-store";
 import { usePageStore } from "~/store/page-store";
+import { Types } from "ably";
+import { jsx } from "@emotion/react";
+import { Button, Switch } from "@mantine/core";
+import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
+import IntrinsicAttributes = jsx.JSX.IntrinsicAttributes;
+
+const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 
 const Room = () => {
   configureAbly({
@@ -15,7 +22,7 @@ const Room = () => {
   });
 
   const router = useRouter();
-  // const room = router.query.room as string;
+  const room = router.query.room as string;
 
   // if (room || room !== "undefined") {
   //   api.room.setRoom.useQuery({ room });
@@ -24,6 +31,8 @@ const Room = () => {
   const messages = useWsStore((store) => store.messages);
   const addMessage = useWsStore((store) => store.addMessage);
   const votes = useWsStore((store) => store.votes);
+  const myVote = useWsStore((store) => store.myVote);
+  const setVote = useWsStore((store) => store.setVote);
   const presences = useWsStore((store) => store.presences);
   const presencesMap = useWsStore((store) => store.presencesMap);
   const updatePresences = useWsStore((store) => store.updatePresences);
@@ -85,64 +94,119 @@ const Room = () => {
       </Head>
       <main className="relative flex max-h-screen min-h-screen max-w-[100vw] flex-col items-center justify-center overscroll-none">
         <Link href={"/"}>HOME</Link>
-        {/*<Table />*/}
-        <h1>Messages</h1>
-        <p>{JSON.stringify(messages)}</p>
-        <br />
-        <h1>Presences</h1>
-        <div>
-          {presences.map((item) => (
-            <div key={`clientId-${item}`}>{presencesMap.get(item)}</div>
-          ))}
+        <Table />
+        <div className="voting-bar">
+          <Button.Group>
+            {fibonacci.map((number) => (
+              <Button
+                variant={myVote === number ? "filled" : "default"}
+                size={"lg"}
+                key={number}
+                onClick={async () => {
+                  if (!channel) return;
+                  setVote(number);
+                  channel.presence.update({ username, voting: number });
+                }}
+              >
+                {number}
+              </Button>
+            ))}
+          </Button.Group>
         </div>
-        <h1>Votes</h1>
-        <div>
-          {votes.map((item) => (
-            <div key={`clientId-${item}`}>
-              {presencesMap.get(item.clientId)} {item.number}
-            </div>
-          ))}
+        <div className="settings-bar">
+          <div>
+            <h2 className="uppercase">{room}</h2>
+          </div>
+          <Switch label="Auto Show" />
+          <Button
+            variant={"default"}
+            onClick={async () => {
+              setLocalstorageRoom(null);
+              await router.push(`/`);
+            }}
+          >
+            Leave Room
+          </Button>
         </div>
+        {/*<h1>Messages</h1>*/}
+        {/*<p>{JSON.stringify(messages)}</p>*/}
+        {/*<br />*/}
+        {/*<h1>Presences</h1>*/}
+        {/*<div>*/}
+        {/*  {presences.map((item) => (*/}
+        {/*    <div key={`clientId-${item}`}>{presencesMap.get(item)}</div>*/}
+        {/*  ))}*/}
+        {/*</div>*/}
+        {/*<h1>Votes</h1>*/}
+        {/*<div>*/}
+        {/*  {votes.map((item) => (*/}
+        {/*    <div key={`clientId-${item}`}>*/}
+        {/*      {presencesMap.get(item.clientId)} {item.number}*/}
+        {/*    </div>*/}
+        {/*  ))}*/}
+        {/*</div>*/}
         {/*<Messages messages={messages} />*/}
-        <button
-          onClick={async () => {
-            channel.presence.update({ username, voting: 3 });
-          }}
-        >
-          3
-        </button>
-        <button
-          onClick={async () => {
-            channel.presence.update({ username, voting: 5 });
-          }}
-        >
-          5
-        </button>
-        <button
-          onClick={async () => {
-            channel.presence.update({ username, voting: 8 });
-          }}
-        >
-          8
-        </button>
-        <button
-          onClick={async () => {
-            channel.publish("test-message", { text: username });
-          }}
-        >
-          SEND MESSAGE
-        </button>
+        {/*<button*/}
+        {/*  onClick={async () => {*/}
+        {/*    channel.presence.update({ username, voting: 3 });*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  3*/}
+        {/*</button>*/}
+        {/*<button*/}
+        {/*  onClick={async () => {*/}
+        {/*    channel.presence.update({ username, voting: 5 });*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  5*/}
+        {/*</button>*/}
+        {/*<button*/}
+        {/*  onClick={async () => {*/}
+        {/*    channel.presence.update({ username, voting: 8 });*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  8*/}
+        {/*</button>*/}
+        {/*<button*/}
+        {/*  onClick={async () => {*/}
+        {/*    channel.publish("test-message", { text: username });*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  SEND MESSAGE*/}
+        {/*</button>*/}
 
-        <button
-          onClick={async () => {
-            setLocalstorageRoom(null);
-            await router.push(`/`);
-          }}
-        >
-          LEAVE ROOM
-        </button>
+        {/*<button*/}
+        {/*  onClick={async () => {*/}
+        {/*    setLocalstorageRoom(null);*/}
+        {/*    await router.push(`/`);*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  LEAVE ROOM*/}
+        {/*</button>*/}
       </main>
     </>
+  );
+};
+
+const VotingBar = (
+  channel: IntrinsicAttributes & RealtimeChannelCallbacks,
+  username: string
+) => {
+  const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
+  return (
+    <div className="fixed bottom-2 flex w-full flex-col items-center justify-center">
+      {fibonacci.map((number) => (
+        <button
+          key={number}
+          onClick={async () => {
+            if (!channel) return;
+            channel.presence.update({ username, voting: number });
+          }}
+        >
+          {number}
+        </button>
+      ))}
+    </div>
   );
 };
 
@@ -160,15 +224,17 @@ const Messages: React.FC<{ messages: string[] }> = ({ messages }) => {
 
 const Table = () => {
   const players = [
-    { name: "Johannes", card: "1" },
-    { name: "Jasmin", card: "9", flipped: true, voted: true },
-    { name: "Niklas", card: "13", flipped: true, voted: false },
-    { name: "Laura", card: "31", flipped: true, voted: false },
-    { name: "Dennis", card: "51" },
-    { name: "Stephen", card: "16" },
-    { name: "John", card: "88", flipped: true, voted: true },
-    { name: "Thomas", card: "12", flipped: true, voted: false },
+    { name: "Johannes", card: "1", status: "voted" },
+    { name: "Jasmin", card: "9", status: "suspect" },
+    { name: "Niklas", card: "13", status: "pending" },
+    { name: "Laura", card: "31", status: "pending" },
+    { name: "Dennis", card: "51", status: "voted" },
+    { name: "Stephen", card: "16", status: "pending" },
+    { name: "John", card: "88", status: "voted" },
+    { name: "Thomas", card: "12", status: "voted" },
   ];
+
+  const flipped = true;
 
   let voting = [
     { number: 3, amount: 1 },
@@ -205,18 +271,15 @@ const Table = () => {
       </div>
 
       <div className="players">
-        {players.map((item, index) => (
+        {players.map(({ name, card, status }, index) => (
           <div key={index} className={`player player-${index + 1}`}>
-            <div className="avatar bg-gray-800" />
+            <div className={`avatar bg-gray-800 ${status}`} />
             <div className="name">
-              {item.name} {index + 1}
+              {name} {index + 1}
             </div>
-            <div
-              className={`card ${item.flipped && "flipped"} ${
-                item.voted && "voted"
-              }`}
-            >
-              {item.card}
+
+            <div className={`card ${flipped && "flipped"} ${status}`}>
+              {card}
             </div>
           </div>
         ))}

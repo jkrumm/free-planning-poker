@@ -6,13 +6,28 @@
     padding-bottom: 12px;
 }
 
+.voting-bar, .settings-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    width: 541px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.settings-bar {
+    bottom: 80px;
+}
+
 .table {
     width: 1000px;
     height: 400px;
     background-color: #4aad4a;
     position: absolute;
     left: 50%;
-    top: 45%;
+    top: 40%;
     transform: translateX(-50%) translateY(-50%);
     border-radius: 150px;
     border: 15px solid #a95555;
@@ -67,12 +82,20 @@
 .players .player .avatar {
     width: 120px;
     height: 120px;
-    background-color: lightcoral;
+    background-color: #C1C2C5;
     border-radius: 100%;
     position: relative;
-    box-shadow: 2px 10px 0px rgba(0,0,0,0.4);
+    box-shadow: 2px 10px 0 rgba(0,0,0,0.4);
     z-index: 20;
 }
+
+.players .player .avatar.pending {
+    background-color: rgb(224, 49, 49);
+}
+.players .player .avatar.voted {
+    background-color: rgb(47, 158, 68);
+}
+
 .players .player .avatar:after {
     content: '';
     width: 70px;
@@ -83,7 +106,7 @@
     left: 50%;
     transform: translatex(-50%) translatey(-50%);
     border-radius: 100%;
-    box-shadow: 0px 5px 0px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 0 rgba(0,0,0,0.2);
 }
 .players .player .name {
     text-align: center;
@@ -101,19 +124,19 @@
     position: absolute;
     background-color: #76daff;
     display: inline-block;
-    line-height: 0px;
+    line-height: 0;
     height: 10px;
     padding: 5px 10px;
     border-radius: 5px;
     z-index: 100;
 }
 .players .player.player-1 {
-    top: 0px;
+    top: 0;
     left: 50%;
     transform: translatex(-50%) translatey(-50%);
 }
 .players .player.player-2 {
-    bottom: 0px;
+    bottom: 0;
     left: 50%;
     transform: translatex(-50%) translatey(50%) rotatez(180deg);
 }
@@ -122,7 +145,7 @@
 }
 .players .player.player-3 {
     top: 50%;
-    left: 0px;
+    left: 0;
     transform: translatex(-50%) translatey(-50%) rotatez(-90deg);
 }
 .players .player.player-3 .name {
@@ -130,19 +153,19 @@
 }
 .players .player.player-4 {
     top: 50%;
-    right: 0px;
+    right: 0;
     transform: translatex(50%) translatey(-50%) rotatez(90deg);
 }
 .players .player.player-4 .name {
     transform: rotatez(0deg);
 }
 .players .player.player-8 {
-    top: 0px;
+    top: 0;
     left: 25%;
     transform: translatex(-50%) translatey(-50%);
 }
 .players .player.player-6 {
-    bottom: 0px;
+    bottom: 0;
     left: 75%;
     transform: translatex(-50%) translatey(50%) rotatez(180deg);
 }
@@ -150,12 +173,12 @@
     transform: rotatez(180deg);
 }
 .players .player.player-7 {
-    top: 0px;
+    top: 0;
     left: 75%;
     transform: translatex(-50%) translatey(-50%);
 }
 .players .player.player-5 {
-    bottom: 0px;
+    bottom: 0;
     left: 25%;
     transform: translatex(-50%) translatey(50%) rotatez(180deg);
 }
@@ -169,14 +192,17 @@
     border-radius: 6px;
     display: inline-block;
     position: relative;
-    background-color: white;
-    color: black;
-    font-size: 31px;
+    background-color: #2C2E33;
+    font-size: 29px;
     text-align: center;
-    padding-top: 9px;
+    padding-top: 10px;
     left: 33px;
     top: 15px;
-    border: 1px solid #202124;
+    border: 1px solid #373A40;
+}
+
+.card.suspect {
+    opacity: 0;
 }
 
 .card-wrapper {
@@ -283,12 +309,13 @@
     left: 0;
     top: 0;
     border-radius: 5px;
-    background: #94040E;
+    background: #2C2E33;
+    border: 2px solid rgb(224, 49, 49);
     background-size: 12px 12px;
 }
 
 .card.flipped.voted:after {
-    background: #003900;
+    border-color: rgb(47, 158, 68);
     background-size: 12px 12px;
 }
 

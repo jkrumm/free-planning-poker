@@ -11,6 +11,8 @@ type WsStore = {
   messages: string[];
   addMessage: (message: string) => void;
   votes: Voting[];
+  myVote: number | null;
+  setVote: (number: number | null) => void;
   presences: string[];
   presencesMap: Map<string, string>;
   updatePresences: (presenceMessage: PresenceMessage) => void;
@@ -22,6 +24,10 @@ export const useWsStore = create<WsStore>((set) => ({
     set((state) => ({ messages: [...state.messages, message] }));
   },
   votes: [],
+  myVote: null,
+  setVote: (number: number | null) => {
+    set((state) => ({ myVote: number }));
+  },
   presences: [],
   presencesMap: new Map(),
   updatePresences: (presenceMessage: PresenceMessage) => {
