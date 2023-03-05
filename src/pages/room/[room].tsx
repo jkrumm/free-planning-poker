@@ -23,6 +23,7 @@ const Room = () => {
 
   const messages = useWsStore((store) => store.messages);
   const addMessage = useWsStore((store) => store.addMessage);
+  const votes = useWsStore((store) => store.votes);
   const presences = useWsStore((store) => store.presences);
   const presencesMap = useWsStore((store) => store.presencesMap);
   const updatePresences = useWsStore((store) => store.updatePresences);
@@ -40,7 +41,13 @@ const Room = () => {
 
   const [channel] = useChannel("your-channel-name", (message) => {
     console.log("RECEIVED MESSAGE", message);
-    addMessage(message.data.text);
+    switch (message.name) {
+      case "test-message":
+        addMessage(message.data.text);
+        break;
+      // case "voting":
+      //   addVoting(message.data.number);
+    }
   });
 
   channel.presence.get((err, presenceUpdates) => {
@@ -78,7 +85,7 @@ const Room = () => {
       </Head>
       <main className="relative flex max-h-screen min-h-screen max-w-[100vw] flex-col items-center justify-center overscroll-none">
         <Link href={"/"}>HOME</Link>
-        <Table />
+        {/*<Table />*/}
         <h1>Messages</h1>
         <p>{JSON.stringify(messages)}</p>
         <br />
@@ -88,10 +95,38 @@ const Room = () => {
             <div key={`clientId-${item}`}>{presencesMap.get(item)}</div>
           ))}
         </div>
+        <h1>Votes</h1>
+        <div>
+          {votes.map((item) => (
+            <div key={`clientId-${item}`}>
+              {presencesMap.get(item.clientId)} {item.number}
+            </div>
+          ))}
+        </div>
         {/*<Messages messages={messages} />*/}
         <button
           onClick={async () => {
-            // await actions.sendMessage();
+            channel.presence.update({ username, voting: 3 });
+          }}
+        >
+          3
+        </button>
+        <button
+          onClick={async () => {
+            channel.presence.update({ username, voting: 5 });
+          }}
+        >
+          5
+        </button>
+        <button
+          onClick={async () => {
+            channel.presence.update({ username, voting: 8 });
+          }}
+        >
+          8
+        </button>
+        <button
+          onClick={async () => {
             channel.publish("test-message", { text: username });
           }}
         >
@@ -153,7 +188,6 @@ const Table = () => {
     ) / 10;
 
   return (
-    // <div className="relative min-h-screen">
     <div className="table">
       <div className="card-place">
         {voting.map((item, index) => (
