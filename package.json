@@ -1,5 +1,13 @@
 {
   "name": "planning-poker",
+  "url": "https://free-planning-poker.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jkrumm/planning-poker"
+  },
+  "author": "Johannes Krumm",
+  "description": "Free Planning Poker App",
+  "homepage": "https://free-planning-poker.com/",
   "version": "0.1.0",
   "private": true,
   "scripts": {

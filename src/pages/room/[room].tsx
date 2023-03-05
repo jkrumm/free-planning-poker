@@ -15,6 +15,12 @@ function getByValue(map: Map<string, string>, searchValue: string) {
   }
 }
 
+type PlausibleEvents = {
+  event1: { prop1: string };
+  event2: { prop2: string };
+  event3: never;
+};
+
 const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 
 // const Room = () => {
@@ -33,6 +39,8 @@ const Room = () => {
     }api/ably-token`,
     clientId,
   });
+
+  // const plausible = usePlausible<PlausibleEvents>();
 
   const router = useRouter();
   const room = router.query.room as string;
@@ -114,6 +122,7 @@ const Room = () => {
 
   function flip() {
     channel.publish("flip", {});
+    // plausible("voting");
   }
 
   return (

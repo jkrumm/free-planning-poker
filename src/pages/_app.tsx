@@ -12,7 +12,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
   pageProps: { session, ...pageProps },
 }) => {
   return (
-    <PlausibleProvider domain={"planning-poker-jkrumm.vercel.app"}>
+    <PlausibleProvider domain={"free-planning-poker.com"}>
       <MantineProvider
         withGlobalStyles
         withNormalizeCSS
