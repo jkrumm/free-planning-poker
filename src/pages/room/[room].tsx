@@ -5,20 +5,31 @@ import { useRouter } from "next/router";
 import { setLocalstorageRoom } from "~/store/local-storage";
 import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
 import { v4 } from "uuid";
-import { useWsStore } from "~/store/ws-store";
+import { useWsStore, Voting } from "~/store/ws-store";
 import { usePageStore } from "~/store/page-store";
-import { Types } from "ably";
-import { jsx } from "@emotion/react";
 import { Button, Switch } from "@mantine/core";
-import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
-import IntrinsicAttributes = jsx.JSX.IntrinsicAttributes;
+
+function getByValue(map: Map<string, string>, searchValue: string) {
+  for (let [key, value] of map.entries()) {
+    if (value === searchValue) return key;
+  }
+}
 
 const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 
+// const Room = () => {
+//
+// };
+//
+// const WsListener = () => {
+//
+// }
+
 const Room = () => {
+  let clientId = v4();
   configureAbly({
     authUrl: `${process.env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
-    clientId: v4(),
+    clientId,
   });
 
   const router = useRouter();
@@ -29,15 +40,19 @@ const Room = () => {
   // }
 
   const messages = useWsStore((store) => store.messages);
-  const addMessage = useWsStore((store) => store.addMessage);
+  const autoShow = useWsStore((store) => store.autoShow);
+  const flipped = useWsStore((store) => store.flipped);
+  const spectators = useWsStore((store) => store.spectators);
   const votes = useWsStore((store) => store.votes);
-  const myVote = useWsStore((store) => store.myVote);
-  const setVote = useWsStore((store) => store.setVote);
-  const presences = useWsStore((store) => store.presences);
+  const handleMessage = useWsStore((store) => store.handleMessage);
   const presencesMap = useWsStore((store) => store.presencesMap);
   const updatePresences = useWsStore((store) => store.updatePresences);
 
   const username = usePageStore((store) => store.username);
+
+  if (username) {
+    clientId = getByValue(presencesMap, username) || clientId;
+  }
 
   useEffect(() => {
     // if (!room || room === "undefined") {
@@ -50,39 +65,53 @@ const Room = () => {
 
   const [channel] = useChannel("your-channel-name", (message) => {
     console.log("RECEIVED MESSAGE", message);
-    switch (message.name) {
-      case "test-message":
-        addMessage(message.data.text);
-        break;
-      // case "voting":
-      //   addVoting(message.data.number);
-    }
+    handleMessage(message);
   });
 
-  channel.presence.get((err, presenceUpdates) => {
-    if (!presenceUpdates?.length) {
-      return;
-    }
-    console.log("FETCHED PRESENCE", presenceUpdates);
-    presenceUpdates.forEach((presenceUpdate) => {
-      updatePresences(presenceUpdate);
-    });
-  });
+  // channel.presence.get((err, presenceUpdates) => {
+  //   if (!presenceUpdates?.length) {
+  //     return;
+  //   }
+  //   console.log("FETCHED PRESENCE", presenceUpdates);
+  //   presenceUpdates.forEach((presenceUpdate) => {
+  //     updatePresences(presenceUpdate);
+  //   });
+  // });
 
   const [_, updateStatus] = usePresence(
     "your-channel-name",
     { username },
     (presenceUpdate) => {
+      if (presenceUpdate.action === "enter") {
+        channel.presence.update({
+          username,
+          voting:
+            votes.find((vote) => vote.clientId === clientId)?.number || null,
+          spectators: spectators.includes(clientId),
+        });
+      }
       console.log("RECEIVED PRESENCE", presenceUpdate);
       updatePresences(presenceUpdate);
     }
   );
+
+  // setInterval(function () {
+  //   channel.presence.update({
+  //     username,
+  //     voting: votes.find((vote) => vote.clientId === clientId)?.number || null,
+  //     spectators: spectators.includes(clientId),
+  //   });
+  // }, 2000);
 
   if (process.browser) {
     window.onbeforeunload = async () => {
       console.log("LEFT CHANNEL");
       await channel.presence.leave();
     };
+  }
+
+  function flip() {
+    channel.publish("flip", {});
   }
 
   return (
@@ -94,18 +123,35 @@ const Room = () => {
       </Head>
       <main className="relative flex max-h-screen min-h-screen max-w-[100vw] flex-col items-center justify-center overscroll-none">
         <Link href={"/"}>HOME</Link>
-        <Table />
+        <Table
+          votes={votes}
+          spectators={spectators}
+          flip={flip}
+          flipped={flipped}
+          username={username}
+        />
         <div className="voting-bar">
           <Button.Group>
             {fibonacci.map((number) => (
               <Button
-                variant={myVote === number ? "filled" : "default"}
+                disabled={spectators.includes(clientId) || !flipped}
+                variant={
+                  votes.some(
+                    (item) =>
+                      item.clientId === clientId && item.number === number
+                  )
+                    ? "filled"
+                    : "default"
+                }
                 size={"lg"}
                 key={number}
                 onClick={async () => {
                   if (!channel) return;
-                  setVote(number);
-                  channel.presence.update({ username, voting: number });
+                  channel.presence.update({
+                    username,
+                    voting: number,
+                    spectators: spectators.includes(clientId),
+                  });
                 }}
               >
                 {number}
@@ -117,96 +163,55 @@ const Room = () => {
           <div>
             <h2 className="uppercase">{room}</h2>
           </div>
-          <Switch label="Auto Show" />
-          <Button
-            variant={"default"}
-            onClick={async () => {
-              setLocalstorageRoom(null);
-              await router.push(`/`);
-            }}
-          >
-            Leave Room
-          </Button>
+          <div>
+            <Button
+              variant={flipped ? "default" : "filled"}
+              disabled={flipped}
+              className={"mr-5"}
+              onClick={async () => {
+                channel.publish("reset", {});
+              }}
+            >
+              New Round
+            </Button>
+            <Button
+              variant={"default"}
+              onClick={async () => {
+                setLocalstorageRoom(null);
+                await router.push(`/`);
+              }}
+            >
+              Leave Room
+            </Button>
+          </div>
         </div>
-        {/*<h1>Messages</h1>*/}
-        {/*<p>{JSON.stringify(messages)}</p>*/}
-        {/*<br />*/}
-        {/*<h1>Presences</h1>*/}
-        {/*<div>*/}
-        {/*  {presences.map((item) => (*/}
-        {/*    <div key={`clientId-${item}`}>{presencesMap.get(item)}</div>*/}
-        {/*  ))}*/}
-        {/*</div>*/}
-        {/*<h1>Votes</h1>*/}
-        {/*<div>*/}
-        {/*  {votes.map((item) => (*/}
-        {/*    <div key={`clientId-${item}`}>*/}
-        {/*      {presencesMap.get(item.clientId)} {item.number}*/}
-        {/*    </div>*/}
-        {/*  ))}*/}
-        {/*</div>*/}
-        {/*<Messages messages={messages} />*/}
-        {/*<button*/}
-        {/*  onClick={async () => {*/}
-        {/*    channel.presence.update({ username, voting: 3 });*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  3*/}
-        {/*</button>*/}
-        {/*<button*/}
-        {/*  onClick={async () => {*/}
-        {/*    channel.presence.update({ username, voting: 5 });*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  5*/}
-        {/*</button>*/}
-        {/*<button*/}
-        {/*  onClick={async () => {*/}
-        {/*    channel.presence.update({ username, voting: 8 });*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  8*/}
-        {/*</button>*/}
-        {/*<button*/}
-        {/*  onClick={async () => {*/}
-        {/*    channel.publish("test-message", { text: username });*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  SEND MESSAGE*/}
-        {/*</button>*/}
-
-        {/*<button*/}
-        {/*  onClick={async () => {*/}
-        {/*    setLocalstorageRoom(null);*/}
-        {/*    await router.push(`/`);*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  LEAVE ROOM*/}
-        {/*</button>*/}
+        <div className="switch-bar">
+          <Switch
+            className="mb-2 cursor-pointer"
+            disabled={!flipped}
+            label="Spectator"
+            checked={spectators.includes(clientId)}
+            onChange={async (event) =>
+              channel.presence.update({
+                username,
+                voting: null,
+                spectator: event.currentTarget.checked,
+              })
+            }
+          />
+          <Switch
+            label="Auto Show"
+            className="cursor-pointer"
+            checked={autoShow}
+            onChange={async (event) =>
+              channel.publish("auto-show", {
+                autoShow: event.currentTarget.checked,
+              })
+            }
+          />
+        </div>
       </main>
     </>
-  );
-};
-
-const VotingBar = (
-  channel: IntrinsicAttributes & RealtimeChannelCallbacks,
-  username: string
-) => {
-  const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
-  return (
-    <div className="fixed bottom-2 flex w-full flex-col items-center justify-center">
-      {fibonacci.map((number) => (
-        <button
-          key={number}
-          onClick={async () => {
-            if (!channel) return;
-            channel.presence.update({ username, voting: number });
-          }}
-        >
-          {number}
-        </button>
-      ))}
-    </div>
   );
 };
 
@@ -222,27 +227,63 @@ const Messages: React.FC<{ messages: string[] }> = ({ messages }) => {
   );
 };
 
-const Table = () => {
-  const players = [
-    { name: "Johannes", card: "1", status: "voted" },
-    { name: "Jasmin", card: "9", status: "suspect" },
-    { name: "Niklas", card: "13", status: "pending" },
-    { name: "Laura", card: "31", status: "pending" },
-    { name: "Dennis", card: "51", status: "voted" },
-    { name: "Stephen", card: "16", status: "pending" },
-    { name: "John", card: "88", status: "voted" },
-    { name: "Thomas", card: "12", status: "voted" },
-  ];
+const Table = ({
+  votes,
+  spectators,
+  flip,
+  flipped,
+  username,
+}: {
+  votes: Voting[];
+  spectators: string[];
+  flip: () => void;
+  flipped: boolean;
+  username: string | null;
+}) => {
+  const presences = useWsStore((store) => store.presences);
+  const presencesMap = useWsStore((store) => store.presencesMap);
 
-  const flipped = true;
+  // const players = [
+  //   { name: "Johannes", card: "1", status: "voted" },
+  //   { name: "Jasmin", card: "9", status: "suspect" },
+  //   { name: "Niklas", card: "13", status: "pending" },
+  //   { name: "Laura", card: "31", status: "pending" },
+  //   { name: "Dennis", card: "51", status: "voted" },
+  //   { name: "Stephen", card: "16", status: "pending" },
+  //   { name: "John", card: "88", status: "voted" },
+  //   { name: "Thomas", card: "12", status: "voted" },
+  // ];
 
-  let voting = [
-    { number: 3, amount: 1 },
-    { number: 5, amount: 1 },
-    { number: 8, amount: 8 },
-    { number: 13, amount: 1 },
-  ];
-  voting = voting.sort((a, b) => b.amount - a.amount).slice(0, 4);
+  console.log("presences", presences);
+  console.log("spectators", spectators);
+
+  const players = presences.map((item) => {
+    const vote = votes.find((vote) => vote.clientId === item);
+    let status = "pending";
+    if (spectators.includes(item)) {
+      status = "spectator";
+    } else if (vote) {
+      status = "voted";
+    }
+    return {
+      name: presencesMap.get(item),
+      card: vote?.number || null,
+      status,
+    };
+  });
+
+  let voting: { number: number; amount: number }[] = [];
+  votes.forEach((item) => {
+    if (!item.number) return;
+    const index = voting.findIndex((v) => v.number === item.number);
+    if (index === -1) {
+      voting.push({ number: item.number, amount: 1 });
+    } else if (index > -1) {
+      // @ts-ignore
+      voting[index].amount++;
+    }
+  });
+  voting = voting.filter((item) => item.number != null);
 
   const average =
     Math.round(
@@ -251,33 +292,54 @@ const Table = () => {
       }, 0) /
         voting.reduce((acc, item) => acc + item.amount, 0)) *
         10
-    ) / 10;
+    ) / 10 || null;
+
+  voting = voting.sort((a, b) => b.amount - a.amount).slice(0, 4);
+  if (average && average > 10) {
+    voting = voting.slice(0, 3);
+  }
 
   return (
     <div className="table">
       <div className="card-place">
-        {voting.map((item, index) => (
-          <div className={`card-wrapper amount-${item.amount}`}>
-            {(function () {
-              const cards = [];
-              for (let i = 0; i < item.amount; i++) {
-                cards.push(<div className="card">{item.number}</div>);
-              }
-              return cards;
-            })()}
-          </div>
-        ))}
-        <div className="average">{average}</div>
+        {!flipped &&
+          voting.map((item, index) => (
+            <div className={`card-wrapper amount-${item.amount}`}>
+              {(function () {
+                const cards = [];
+                for (let i = 0; i < item.amount; i++) {
+                  cards.push(<div className="card">{item.number}</div>);
+                }
+                return cards;
+              })()}
+            </div>
+          ))}
+        {!flipped && <div className="average">{average}</div>}
+        {flipped &&
+          players
+            .filter((item) => item.status !== "spectator")
+            .every((item) => item.status === "voted") && (
+            <div className="relative flex h-full w-full items-center justify-center">
+              <Button size="lg" className="center" onClick={flip}>
+                Show Votes
+              </Button>
+            </div>
+          )}
+        {flipped &&
+          !players
+            .filter((item) => item.status !== "spectator")
+            .every((item) => item.status === "voted") && (
+            <div className="vote">VOTE</div>
+          )}
       </div>
 
       <div className="players">
         {players.map(({ name, card, status }, index) => (
           <div key={index} className={`player player-${index + 1}`}>
             <div className={`avatar bg-gray-800 ${status}`} />
-            <div className="name">
-              {name} {index + 1}
+            <div className={`name ${name === username && "font-bold"}`}>
+              {name}
             </div>
-
             <div className={`card ${flipped && "flipped"} ${status}`}>
               {card}
             </div>

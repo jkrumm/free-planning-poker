@@ -1,40 +1,54 @@
 import { create } from "zustand";
 import { Types } from "ably";
 import PresenceMessage = Types.PresenceMessage;
+import Message = Types.Message;
 
-type Voting = {
+export type Voting = {
   clientId: string;
-  number: number;
+  number: number | null;
 };
 
 type WsStore = {
   messages: string[];
-  addMessage: (message: string) => void;
+  autoShow: boolean;
+  flipped: boolean;
+  spectators: string[];
   votes: Voting[];
-  myVote: number | null;
-  setVote: (number: number | null) => void;
   presences: string[];
   presencesMap: Map<string, string>;
+  handleMessage: (message: Message) => void;
   updatePresences: (presenceMessage: PresenceMessage) => void;
 };
 
 export const useWsStore = create<WsStore>((set) => ({
   messages: [],
-  addMessage: (message: string) => {
-    set((state) => ({ messages: [...state.messages, message] }));
-  },
+  autoShow: false,
+  flipped: true,
+  spectators: [],
   votes: [],
-  myVote: null,
-  setVote: (number: number | null) => {
-    set((state) => ({ myVote: number }));
-  },
   presences: [],
   presencesMap: new Map(),
+  handleMessage: (message: Message) => {
+    switch (message.name) {
+      case "test-message":
+        set((state) => ({ messages: [...state.messages, message.data.text] }));
+        break;
+      case "auto-show":
+        set({ autoShow: message.data.autoShow });
+        break;
+      case "flip":
+        set({ flipped: false });
+        break;
+      case "reset":
+        set({ votes: [], flipped: true });
+        break;
+    }
+  },
   updatePresences: (presenceMessage: PresenceMessage) => {
     const {
       action,
       clientId,
-      data: { username, voting },
+      data: { username, voting, spectator },
     } = presenceMessage;
     switch (action) {
       case "enter":
@@ -55,17 +69,35 @@ export const useWsStore = create<WsStore>((set) => ({
             ...state.votes.filter((voting) => voting.clientId !== clientId),
             {
               clientId,
-              number: Number(voting),
+              number: voting ? Number(voting) : null,
             },
-          ],
+          ].filter((voting) => voting.number != null),
         }));
+        if (spectator) {
+          set((state) => ({
+            spectators: [
+              ...new Set([...state.spectators, clientId].filter(Boolean)),
+            ],
+            votes: [
+              ...state.votes.filter((voting) => voting.clientId !== clientId),
+            ],
+          }));
+        } else {
+          set((state) => ({
+            spectators: [
+              ...state.spectators.filter((spectator) => spectator !== clientId),
+            ],
+          }));
+        }
         break;
       case "leave":
         set((state) => ({
-          presences: state.presences.filter(
-            (presence) => presence !== clientId
-          ),
-          votes: state.votes.filter((voting) => voting.clientId !== clientId),
+          presences: [
+            ...state.presences.filter((presence) => presence !== clientId),
+          ],
+          votes: [
+            ...state.votes.filter((voting) => voting.clientId !== clientId),
+          ],
         }));
         break;
     }

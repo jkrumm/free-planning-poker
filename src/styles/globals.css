@@ -21,6 +21,13 @@
     bottom: 80px;
 }
 
+.switch-bar {
+    position: fixed;
+    bottom: 20px;
+    left: calc(50% + 360px);
+    transform: translateX(-50%);
+}
+
 .table {
     width: 1000px;
     height: 400px;
@@ -66,6 +73,15 @@
     transform: translateX(-50%) translateY(-50%);
     box-sizing: border-box;
     display: flex;
+    z-index: 50;
+}
+.vote {
+    color: #63c763;
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    margin-top: 4px;
 }
 .table .card-place .card:not(:last-child) {
     margin-right: 15px;
@@ -74,7 +90,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    z-index: 100;
+    z-index: 30;
 }
 .players .player {
     position: absolute;
@@ -128,7 +144,7 @@
     height: 10px;
     padding: 5px 10px;
     border-radius: 5px;
-    z-index: 100;
+    z-index: 30;
 }
 .players .player.player-1 {
     top: 0;
@@ -201,7 +217,7 @@
     border: 1px solid #373A40;
 }
 
-.card.suspect {
+.card.spectator {
     opacity: 0;
 }
 
