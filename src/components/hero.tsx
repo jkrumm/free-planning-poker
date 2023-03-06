@@ -11,12 +11,12 @@ const useStyles = createStyles((theme: MantineTheme) => ({
 
   inner: {
     position: "relative",
-    paddingTop: 100,
+    paddingTop: 80,
     paddingBottom: 80,
 
     [BREAKPOINT]: {
       paddingBottom: 60,
-      paddingTop: 60,
+      paddingTop: 50,
     },
   },
 
@@ -71,23 +71,29 @@ export function Hero() {
 
   return (
     <div className={classes.wrapper}>
-      <Container size={700} className={classes.inner}>
-        <h1 className={classes.title}>
+      <Container size={820} className={classes.inner}>
+        <div className="logo" />
+        <h1 className={`${classes.title} mb-7 block`}>
           <Text
             component="span"
             variant="gradient"
             gradient={{ from: "blue", to: "cyan" }}
             inherit
+            className="mb-4 block"
           >
-            Planning-Poker
+            Free-Planning-Poker.com
           </Text>
-          <br /> free and easy to use
         </h1>
-
-        <Text className={classes.description} color="dimmed">
-          Build fully functional accessible web applications with ease – Mantine
-          includes more than 100 customizable components and hooks to cover you
-          in any situation
+        <h2 className="mb-12 text-center">
+          Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
+          Source <span>|</span> Privacy Focused
+        </h2>
+        <Text className={`${classes.description} text-center`} color="dimmed">
+          Say goodbye to overly complicated and costly planning poker tools with
+          this user-friendly app. Based on the Fibonacci sequence for story
+          point estimation, this tool is suitable for any agile project
+          management needs, whether you use Scrum, Kanban, or your own custom
+          Jira workflow.
         </Text>
 
         {/*<Group className={classes.controls}>*/}
