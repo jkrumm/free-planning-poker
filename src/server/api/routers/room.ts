@@ -37,18 +37,28 @@ export const roomRouter = createTRPCRouter({
   }),
   setRoom: publicProcedure
     .input(z.object({ room: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return await ctx.prisma.room.upsert({
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.prisma.room.findUnique({
         where: {
           name: input.room,
         },
-        create: {
-          name: input.room,
-          lastUsed: DateTime.now().toJSDate(),
-        },
-        update: {
-          lastUsed: DateTime.now().toJSDate(),
-        },
       });
+      if (room) {
+        ctx.prisma.room.update({
+          where: {
+            name: input.room,
+          },
+          data: {
+            lastUsed: DateTime.now().toJSDate(),
+          },
+        });
+      } else {
+        ctx.prisma.room.create({
+          data: {
+            name: input.room,
+            lastUsed: DateTime.now().toJSDate(),
+          },
+        });
+      }
     }),
 });

@@ -18,9 +18,9 @@ import { PlausibleEvents } from "~/utils/plausible.events";
 
 const Home: NextPage = () => {
   const router = useRouter();
-  const randomRoom =
+  let randomRoom =
     api.room.getRandomRoom.useQuery().data || randomWords({ exactly: 1 })[0];
-  const activeRooms = api.room.getActiveRooms.useQuery().data || [];
+  let activeRooms = api.room.getActiveRooms.useQuery().data || [];
 
   const username = usePageStore((store) => store.username);
   const setUsername = usePageStore((store) => store.setUsername);
@@ -115,83 +115,64 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center justify-center">
         <Hero />
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          {/*<Card withBorder radius="md" p="xl" className={classes.card}>*/}
-          {/*  <Text size="lg" className="mb-5" weight={500}>*/}
-          {/*    Create Room*/}
-          {/*  </Text>*/}
-
-          {/*<InputWrapper label="Your name">*/}
-          {/*  <Input />*/}
-          {/*</InputWrapper>*/}
-
           <form>
             <TextInput
-              label="Your Name"
+              label="Username"
               error={error && "Required"}
               size="xl"
               withAsterisk
               value={username || ""}
               onChange={(event) => {
                 setError(false);
-                setUsername(event.currentTarget.value);
+                setUsername(event.currentTarget.value.trim());
               }}
             />
 
             <Autocomplete
-              label="Your Room"
+              label="Room"
               placeholder={roomName}
               className="my-6"
               size="xl"
               limit={3}
               onChange={(e) => {
                 if (e.length <= 15) {
-                  setRoomName(e);
+                  setRoomName(e.toLowerCase().trim());
                 }
               }}
               value={roomName}
-              data={activeRooms}
+              data={roomName.length > 1 ? activeRooms : []}
             />
 
-            {/*<Link href={`/room/${roomName}`}>*/}
             <Button
               variant="gradient"
-              gradient={
-                username
-                  ? { from: "blue", to: "cyan" }
-                  : { from: "#373A40", to: "#373A40" }
-              }
+              gradient={{ from: "blue", to: "cyan" }}
               size="xl"
-              className={`my-8 w-[380px] px-0 ${!username && "text-gray-900"}`}
+              // className={`my-8 w-[380px] px-0 ${!username && "text-gray-900"}`}
+              className={`my-8 w-[380px] px-0`}
               type="submit"
               uppercase
-              // value={username || ""}
-              // disabled={!username}
+              disabled={!username && username?.length === 0}
               onClick={async (e) => {
                 e.preventDefault();
                 if (!username) {
                   setError(true);
                 } else {
-                  if (activeRooms.includes(roomName)) {
-                    plausible("joined", { props: { room: roomName } });
+                  if (activeRooms.includes(roomName.toLowerCase())) {
+                    plausible("joined", {
+                      props: { room: roomName.toLowerCase() },
+                    });
                   } else {
-                    plausible("created", { props: { room: roomName } });
+                    plausible("created", {
+                      props: { room: roomName.toLowerCase() },
+                    });
                   }
-                  await router.push(`/room/${roomName}`);
+                  await router.push(`/room/${roomName.toLowerCase()}`);
                 }
               }}
             >
               {buttonText}&nbsp;<strong>{roomName}</strong>
             </Button>
           </form>
-          {/*</Link>*/}
-
-          {/*</Card>*/}
-          {/*<div className="flex flex-col items-center gap-2">*/}
-          {/*  <p className="text-2xl">*/}
-          {/*    {hello.data ? hello.data.greeting : "Loading tRPC query..."}*/}
-          {/*  </p>*/}
-          {/*  <AuthShowcase />*/}
-          {/*</div>*/}
         </div>
       </main>
     </>

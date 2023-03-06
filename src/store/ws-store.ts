@@ -16,11 +16,12 @@ type WsStore = {
   votes: Voting[];
   presences: string[];
   presencesMap: Map<string, string>;
+  fullReset: () => void;
   handleMessage: (message: Message) => void;
   updatePresences: (presenceMessage: PresenceMessage) => void;
 };
 
-export const useWsStore = create<WsStore>((set) => ({
+export const useWsStore = create<WsStore>((set, get) => ({
   messages: [],
   autoShow: false,
   flipped: true,
@@ -28,6 +29,9 @@ export const useWsStore = create<WsStore>((set) => ({
   votes: [],
   presences: [],
   presencesMap: new Map(),
+  fullReset: () => {
+    set({ votes: [], flipped: true, presences: [], presencesMap: new Map() });
+  },
   handleMessage: (message: Message) => {
     switch (message.name) {
       case "test-message":
@@ -44,7 +48,7 @@ export const useWsStore = create<WsStore>((set) => ({
         break;
     }
   },
-  updatePresences: (presenceMessage: PresenceMessage) => {
+  updatePresences: (presenceMessage) => {
     const {
       action,
       clientId,
@@ -101,5 +105,22 @@ export const useWsStore = create<WsStore>((set) => ({
         }));
         break;
     }
+    // if (presencesLength > get().presences.length) {
+    //   notifications.show({
+    //     color: "red",
+    //     autoClose: 3000,
+    //     withCloseButton: true,
+    //     title: "Someone left the room",
+    //     message: `${username} left the room`,
+    //   });
+    // } else if (presencesLength < get().presences.length) {
+    //   notifications.show({
+    //     color: "green",
+    //     autoClose: 3000,
+    //     withCloseButton: true,
+    //     title: "Someone joined the room",
+    //     message: `${username} joined the room`,
+    //   });
+    // }
   },
 }));

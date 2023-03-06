@@ -22,7 +22,7 @@ model Example {
 }
 
 model Room {
-    name       String   @id
+    name       String   @id @default(cuid())
     lastUsed   DateTime @default(now())
 
     @@unique([name])
