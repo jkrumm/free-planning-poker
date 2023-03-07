@@ -1,6 +1,5 @@
 import { type AppType } from "next/app";
 import { type Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
@@ -21,10 +20,10 @@ const MyApp: AppType<{ session: Session | null }> = ({
           colorScheme: "dark",
         }}
       >
-        <SessionProvider session={session}>
-          <Notifications position="top-right" />
-          <Component {...pageProps} />
-        </SessionProvider>
+        {/*<SessionProvider session={session}>*/}
+        <Notifications position="top-right" />
+        <Component {...pageProps} />
+        {/*</SessionProvider>*/}
       </MantineProvider>
     </PlausibleProvider>
   );
