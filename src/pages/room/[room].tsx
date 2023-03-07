@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { setLocalstorageRoom } from "~/store/local-storage";
 import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
-import { v4 } from "uuid";
 import { useWsStore, Voting } from "~/store/ws-store";
 import { usePageStore } from "~/store/page-store";
 import { Button, Switch } from "@mantine/core";
@@ -11,6 +10,7 @@ import { usePlausible } from "next-plausible";
 import { PlausibleEvents } from "~/utils/plausible.events";
 import { api } from "~/utils/api";
 import { notifications } from "@mantine/notifications";
+import shortUUID from "short-uuid";
 
 function getByValue(map: Map<string, string>, searchValue: string) {
   for (const [key, value] of map.entries()) {
@@ -31,7 +31,7 @@ const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 const Room = () => {
   const setRoom = api.room.setRoom.useMutation();
 
-  let clientId = v4();
+  let clientId = shortUUID().generate().toString();
   configureAbly({
     authUrl: `${
       process.env.NEXT_PUBLIC_API_ROOT || "http://localhost:3000/"

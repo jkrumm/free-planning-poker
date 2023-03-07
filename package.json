@@ -1,5 +1,5 @@
 {
-  "name": "planning-poker",
+  "name": "free-planning-poker",
   "url": "https://free-planning-poker.com/",
   "repository": {
     "type": "git",
@@ -45,7 +45,6 @@
     "rxjs": "^7.8.0",
     "short-uuid": "^4.2.2",
     "superjson": "1.9.1",
-    "uuidv4": "^6.2.13",
     "zod": "^3.20.2",
     "zustand": "^4.3.3"
   },
