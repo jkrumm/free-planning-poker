@@ -6,7 +6,6 @@ import { NextPage } from "next";
 import { Autocomplete, Button, TextInput } from "@mantine/core";
 import { Hero } from "~/components/hero";
 import randomWords from "random-words";
-import { usePageStore } from "~/store/page-store";
 import {
   getLocalstorageRoom,
   getUsername,
@@ -15,6 +14,7 @@ import {
 import { useRouter } from "next/router";
 import { usePlausible } from "next-plausible";
 import { PlausibleEvents } from "~/utils/plausible.events";
+import { useWsStore } from "~/store/ws-store";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -22,8 +22,8 @@ const Home: NextPage = () => {
     api.room.getRandomRoom.useQuery().data || randomWords({ exactly: 1 })[0];
   let activeRooms = api.room.getActiveRooms.useQuery().data || [];
 
-  const username = usePageStore((store) => store.username);
-  const setUsername = usePageStore((store) => store.setUsername);
+  const username = useWsStore((store) => store.username);
+  const setUsername = useWsStore((store) => store.setUsername);
 
   const [roomName, setRoomName] = useState("");
   const [buttonText, setButtonText] = useState("Create random room");

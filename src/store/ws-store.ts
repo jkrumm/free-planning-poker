@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { Types } from "ably";
+import { getUsername, setUsername } from "~/store/local-storage";
+import { getByValue } from "~/utils/map.util";
 import PresenceMessage = Types.PresenceMessage;
 import Message = Types.Message;
+import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
 
 export type Voting = {
   clientId: string;
@@ -9,34 +12,52 @@ export type Voting = {
 };
 
 type WsStore = {
-  messages: string[];
+  clientId: string | null;
+  setClientId: (clientId: string) => void;
+  username: string | null;
+  setUsername: (username: string) => void;
+  channel: RealtimeChannelCallbacks | null;
+  setChannel: (client: RealtimeChannelCallbacks) => void;
   autoShow: boolean;
   flipped: boolean;
   spectators: string[];
   votes: Voting[];
   presences: string[];
   presencesMap: Map<string, string>;
+  myPresence: {
+    username: string | null;
+    voting: number | null;
+    spectator: boolean;
+  };
   fullReset: () => void;
   handleMessage: (message: Message) => void;
   updatePresences: (presenceMessage: PresenceMessage) => void;
 };
 
 export const useWsStore = create<WsStore>((set, get) => ({
-  messages: [],
+  clientId: null,
+  setClientId: (clientId) => set({ clientId }),
+  username: getUsername(),
+  setUsername: (username: string) => {
+    setUsername(username);
+    set({ username });
+  },
+  channel: null,
+  setChannel: (channel) => {
+    set({ channel });
+  },
   autoShow: false,
   flipped: true,
   spectators: [],
   votes: [],
   presences: [],
   presencesMap: new Map(),
+  myPresence: { username: getUsername(), voting: null, spectator: false },
   fullReset: () => {
     set({ votes: [], flipped: true, presences: [], presencesMap: new Map() });
   },
-  handleMessage: (message: Message) => {
+  handleMessage: (message) => {
     switch (message.name) {
-      case "test-message":
-        set((state) => ({ messages: [...state.messages, message.data.text] }));
-        break;
       case "auto-show":
         set({ autoShow: message.data.autoShow });
         break;
@@ -54,6 +75,10 @@ export const useWsStore = create<WsStore>((set, get) => ({
       clientId,
       data: { username, voting, spectator },
     } = presenceMessage;
+    if (!get().clientId) {
+      const newClientId = getByValue(get().presencesMap, username);
+      set({ clientId: newClientId });
+    }
     switch (action) {
       case "enter":
         set((state) => ({
@@ -92,6 +117,9 @@ export const useWsStore = create<WsStore>((set, get) => ({
               ...state.spectators.filter((spectator) => spectator !== clientId),
             ],
           }));
+        }
+        if (get().clientId === clientId) {
+          set({ myPresence: { username, voting, spectator } });
         }
         break;
       case "leave":

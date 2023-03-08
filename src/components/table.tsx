@@ -1,36 +1,37 @@
-import { useWsStore, Voting } from "~/store/ws-store";
+"use client";
+
+import { useWsStore } from "~/store/ws-store";
 import { Button } from "@mantine/core";
 import React from "react";
+import { usePlausible } from "next-plausible";
+import { PlausibleEvents } from "~/utils/plausible.events";
 
 export const Table = ({
-  votes,
-  spectators,
-  flip,
-  flipped,
+  room,
   username,
 }: {
-  votes: Voting[];
-  spectators: string[];
-  flip: () => void;
-  flipped: boolean;
-  username: string | null;
+  room: string;
+  username: string;
 }) => {
+  const channel = useWsStore((store) => store.channel);
+
+  const votes = useWsStore((store) => store.votes);
+  const flipped = useWsStore((store) => store.flipped);
+  const spectators = useWsStore((store) => store.spectators);
   const presences = useWsStore((store) => store.presences);
   const presencesMap = useWsStore((store) => store.presencesMap);
 
-  // const players = [
-  //   { name: "Johannes", card: "1", status: "voted" },
-  //   { name: "Jasmin", card: "9", status: "suspect" },
-  //   { name: "Niklas", card: "13", status: "pending" },
-  //   { name: "Laura", card: "31", status: "pending" },
-  //   { name: "Dennis", card: "51", status: "voted" },
-  //   { name: "Stephen", card: "16", status: "pending" },
-  //   { name: "John", card: "88", status: "voted" },
-  //   { name: "Thomas", card: "12", status: "voted" },
-  // ];
+  const plausible = usePlausible<PlausibleEvents>();
 
-  console.log("presences", presences);
-  console.log("spectators", spectators);
+  function flip() {
+    plausible("voted", {
+      props: { players: votes.length, room },
+    });
+    if (channel) {
+      console.debug("FLIPPED");
+      channel.publish("flip", {});
+    }
+  }
 
   const players = presences.map((item) => {
     const vote = votes.find((vote) => vote.clientId === item);
