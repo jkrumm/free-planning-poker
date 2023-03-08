@@ -1,139 +1,51 @@
-import dynamic from "next/dynamic";
 import Head from "next/head";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
-import { setLocalstorageRoom } from "~/store/local-storage";
-import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
-import { useWsStore } from "~/store/ws-store";
-import { usePageStore } from "~/store/page-store";
-import { Button, Switch } from "@mantine/core";
+import { getUsername, setLocalstorageRoom } from "~/store/local-storage";
+import { UsernameModel } from "~/components/username-model";
 import { usePlausible } from "next-plausible";
 import { PlausibleEvents } from "~/utils/plausible.events";
-import { api } from "~/utils/api";
-import { notifications } from "@mantine/notifications";
-import shortUUID from "short-uuid";
+import dynamic from "next/dynamic";
+import { useWsStore } from "~/store/ws-store";
 import { Table } from "~/components/table";
+import { WebsocketReceiver } from "~/components/websocket-receiver";
+import { Interactions } from "~/components/interactions";
 
-function getByValue(map: Map<string, string>, searchValue: string) {
-  for (const [key, value] of map.entries()) {
-    if (value === searchValue) return key;
-  }
-}
-
-const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
-
-// const Room = () => {
-//
-// };
-//
-// const WsListener = () => {
-//
-// }
-
-const Room = () => {
+const RoomPage = () => {
   const router = useRouter();
-  const setRoom = api.room.setRoom.useMutation();
-
-  let clientId = shortUUID().generate().toString();
-  configureAbly({
-    authUrl: `${
-      process.env.NEXT_PUBLIC_API_ROOT || "http://localhost:3000/"
-    }api/ably-token`,
-    clientId,
-  });
+  const room = router.query.room as string;
+  const [firstLoad, setFirstLoad] = React.useState(true);
 
   const plausible = usePlausible<PlausibleEvents>();
 
-  const roomRef = useRef(null);
-  const room = router.query.room as string | "error";
-
-  const autoShow = useWsStore((store) => store.autoShow);
-  const flipped = useWsStore((store) => store.flipped);
-  const spectators = useWsStore((store) => store.spectators);
-  const votes = useWsStore((store) => store.votes);
-  const fullReset = useWsStore((store) => store.fullReset);
-  const handleMessage = useWsStore((store) => store.handleMessage);
-  const presencesMap = useWsStore((store) => store.presencesMap);
-  const updatePresences = useWsStore((store) => store.updatePresences);
-
-  const username = usePageStore((store) => store.username);
-
-  if (username) {
-    clientId = getByValue(presencesMap, username) || clientId;
-  }
+  const username = useWsStore((store) => store.username);
+  const setUsername = useWsStore((store) => store.setUsername);
+  const [modelOpen, setModelOpen] = React.useState(false);
 
   useEffect(() => {
-    plausible("entered", { props: { room } });
-    if (!room || room === "undefined") {
+    if ((!room || room === "undefined") && !firstLoad) {
       setLocalstorageRoom(null);
       router.push(`/`).then(() => {
         return;
       });
-    } else {
-      fullReset();
-      setLocalstorageRoom(room);
-      try {
-        setRoom.mutate({ room });
-      } catch (e) {
-        console.error(e);
+    }
+    setFirstLoad(false);
+    plausible("entered", { props: { room } });
+
+    if (!username) {
+      const localStorageUsername = getUsername();
+      if (localStorageUsername) {
+        setUsername(localStorageUsername);
+      } else {
+        setModelOpen(true);
       }
     }
-  }, []);
-
-  const [channel] = useChannel(room, (message) => {
-    console.log("RECEIVED MESSAGE", message);
-    handleMessage(message);
-  });
-
-  if (presencesMap.size === 0) {
-    channel.presence.get((err, presenceUpdates) => {
-      if (!presenceUpdates?.length) {
-        return;
-      }
-      console.log("FETCHED PRESENCE", presenceUpdates);
-      presenceUpdates.forEach((presenceUpdate) => {
-        updatePresences(presenceUpdate);
-      });
-    });
-  }
-
-  const [_, updateStatus] = usePresence(
-    room,
-    { username },
-    (presenceUpdate) => {
-      if (presenceUpdate.action === "enter") {
-        channel.presence.update({
-          username,
-          voting:
-            votes.find((vote) => vote.clientId === clientId)?.number || null,
-          spectators: spectators.includes(clientId),
-        });
-      }
-      console.log("RECEIVED PRESENCE", presenceUpdate);
-      updatePresences(presenceUpdate);
-    }
-  );
-
-  if (process.browser) {
-    window.onbeforeunload = () => {
-      channel.presence.leave({}, () => {
-        console.log("LEFT CHANNEL");
-        return;
-      });
-    };
-  }
-
-  function flip() {
-    plausible("voted", {
-      props: { players: votes.length, room },
-    });
-    channel.publish("flip", {});
-  }
+  }, [room]);
 
   return (
     <>
       <Head>
-        <title>Planning Poker - {room}</title>
+        <title>Planning Poker - {room && room.toUpperCase()}</title>
         <meta
           name="description"
           content="Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused."
@@ -184,131 +96,36 @@ const Room = () => {
         <meta name="theme-color" content="#1a1b1e" />
       </Head>
       <main className="relative flex max-h-screen min-h-screen max-w-[100vw] flex-col items-center justify-center overscroll-none">
-        <Table
-          votes={votes}
-          spectators={spectators}
-          flip={flip}
-          flipped={flipped}
-          username={username}
-        />
-        <div className="voting-bar">
-          <Button.Group>
-            {fibonacci.map((number) => (
-              <Button
-                disabled={spectators.includes(clientId) || !flipped}
-                variant={
-                  votes.some(
-                    (item) =>
-                      item.clientId === clientId && item.number === number
-                  )
-                    ? "filled"
-                    : "default"
-                }
-                size={"lg"}
-                key={number}
-                onClick={() => {
-                  if (!channel) return;
-                  channel.presence.update({
-                    username,
-                    voting: number,
-                    spectators: spectators.includes(clientId),
-                  });
-                }}
-              >
-                {number}
-              </Button>
-            ))}
-          </Button.Group>
-        </div>
-        <div className="settings-bar">
-          <Button
-            variant="outline"
-            color="gray"
-            size="lg"
-            className="room-name"
-            compact
-          >
-            <h2
-              className="uppercase"
-              ref={roomRef}
-              onClick={async () => {
-                if (!window.location) {
-                  return;
-                }
-                if ("clipboard" in navigator) {
-                  await navigator.clipboard.writeText(
-                    window.location.toString()
-                  );
-                } else {
-                  document.execCommand(
-                    "copy",
-                    true,
-                    window.location.toString()
-                  );
-                }
-                notifications.show({
-                  color: "green",
-                  autoClose: 3000,
-                  withCloseButton: true,
-                  title: "Room url copied to clipboard",
-                  message: "Share it with your team!",
-                });
-              }}
-            >
-              {room}
-            </h2>
-          </Button>
-          <div>
-            <Button
-              variant={flipped ? "default" : "filled"}
-              disabled={flipped}
-              className={"mr-5"}
-              onClick={() => channel.publish("reset", {})}
-            >
-              New Round
-            </Button>
-            <Button
-              variant={"default"}
-              onClick={async () => {
-                setLocalstorageRoom(null);
-                await router.push(`/`);
-              }}
-            >
-              Leave Room
-            </Button>
-          </div>
-        </div>
-        <div className="switch-bar">
-          <Switch
-            className="mb-2 cursor-pointer"
-            disabled={!flipped}
-            label="Spectator"
-            checked={spectators.includes(clientId)}
-            onChange={(event) =>
-              channel.presence.update({
-                username,
-                voting: null,
-                spectator: event.currentTarget.checked,
-              })
+        <div>
+          {(function () {
+            if (!room) {
+              return "Loading...";
             }
-          />
-          <Switch
-            label="Auto Show"
-            disabled={true}
-            className="cursor-pointer"
-            checked={autoShow}
-            onChange={(event) =>
-              channel.publish("auto-show", {
-                autoShow: event.currentTarget.checked,
-              })
+            if (!username || modelOpen) {
+              return (
+                <UsernameModel
+                  modelOpen={modelOpen}
+                  setModelOpen={setModelOpen}
+                  room={room}
+                  username={username}
+                  setUsername={setUsername}
+                />
+              );
             }
-          />
+            return (
+              <>
+                <WebsocketReceiver username={username} room={room} />
+                <Table room={room} username={username} />
+                <Interactions room={room} username={username} />
+              </>
+            );
+          })()}
         </div>
       </main>
     </>
   );
 };
 
-export default dynamic(() => Promise.resolve(Room), {
+export default dynamic(() => Promise.resolve(RoomPage), {
   ssr: false,
 });
