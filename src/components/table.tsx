@@ -84,7 +84,11 @@ export const Table = ({
               {(function () {
                 const cards = [];
                 for (let i = 0; i < item.amount; i++) {
-                  cards.push(<div className="card">{item.number}</div>);
+                  cards.push(
+                    <div className="card" key={i}>
+                      {item.number}
+                    </div>
+                  );
                 }
                 return cards;
               })()}
