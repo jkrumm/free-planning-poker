@@ -5,6 +5,8 @@ import { useWsStore } from "~/store/ws-store";
 import { useEffect } from "react";
 import shortUUID from "short-uuid";
 import { Types } from "ably";
+import { api } from "~/utils/api";
+import { setLocalstorageRecentRoom } from "~/store/local-storage";
 import PresenceMessage = Types.PresenceMessage;
 
 const logPresence = (msg: string, presenceUpdate: PresenceMessage) => {
@@ -24,6 +26,8 @@ export const WebsocketReceiver = ({
   room: string;
   username: string;
 }) => {
+  const setRoom = api.room.setRoom.useMutation();
+
   configureAbly({
     authUrl: `${
       process.env.NEXT_PUBLIC_API_ROOT || "http://localhost:3000/"
@@ -52,6 +56,11 @@ export const WebsocketReceiver = ({
   if (!wsChannel && channel) {
     setChannel(channel);
   }
+
+  useEffect(() => {
+    setRoom.mutate({ room });
+    setLocalstorageRecentRoom(room);
+  }, []);
 
   useEffect(() => {
     channel.presence.get((err, presenceUpdates) => {
