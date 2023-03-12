@@ -7,6 +7,7 @@ import { Autocomplete, Button, TextInput } from "@mantine/core";
 import { Hero } from "~/components/hero";
 import randomWords from "random-words";
 import {
+  getLocalstorageRecentRoom,
   getLocalstorageRoom,
   getUsername,
   setLocalstorageRoom,
@@ -26,6 +27,7 @@ const Home: NextPage = () => {
   const setUsername = useWsStore((store) => store.setUsername);
 
   const [roomName, setRoomName] = useState("");
+  const [recentRoom, setRecentRoom] = useState<string | null>(null);
   const [buttonText, setButtonText] = useState("Create random room");
   const [error, setError] = useState(false);
 
@@ -45,7 +47,9 @@ const Home: NextPage = () => {
         .then(() => ({}))
         .catch(() => ({}));
     }
-  }, []);
+    setRecentRoom(getLocalstorageRecentRoom());
+    console.log("recentRoom", recentRoom);
+  }, [recentRoom]);
 
   useEffect(() => {
     if (roomName === randomRoom || roomName === "") {
@@ -56,7 +60,6 @@ const Home: NextPage = () => {
     } else {
       setButtonText(`Create room: `);
     }
-    console.log(activeRooms);
   }, [roomName]);
 
   return (
@@ -115,6 +118,34 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center justify-center">
         <Hero />
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
+          {recentRoom && (
+            <Button
+              variant="gradient"
+              gradient={{ from: "blue", to: "cyan" }}
+              size="xl"
+              className={`my-8 mb-12 w-[480px] px-0`}
+              type="button"
+              uppercase
+              disabled={!username && username?.length === 0}
+              onClick={async (e) => {
+                if (!recentRoom) {
+                  // TODO sentry
+                  return;
+                }
+                const localRoom = recentRoom as String;
+                e.preventDefault();
+                if (!username) {
+                  setError(true);
+                }
+                plausible("recent", {
+                  props: { room: localRoom.toLowerCase() },
+                });
+                await router.push(`/room/${localRoom.toLowerCase()}`);
+              }}
+            >
+              Join recent room: &nbsp;<strong>{recentRoom}</strong>
+            </Button>
+          )}
           <form>
             <TextInput
               label="Username"
@@ -147,7 +178,6 @@ const Home: NextPage = () => {
               variant="gradient"
               gradient={{ from: "blue", to: "cyan" }}
               size="xl"
-              // className={`my-8 w-[380px] px-0 ${!username && "text-gray-900"}`}
               className={`my-8 w-[380px] px-0`}
               type="submit"
               uppercase

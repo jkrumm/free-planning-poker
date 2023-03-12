@@ -31,3 +31,17 @@ export function setLocalstorageRoom(room: string | null): void {
     return localStorage.setItem("room", room);
   }
 }
+
+export function getLocalstorageRecentRoom(): string | null {
+  if (typeof window == "undefined") {
+    throw new Error("not on local");
+  }
+  return localStorage.getItem("recentRoom");
+}
+
+export function setLocalstorageRecentRoom(room: string): void {
+  if (typeof window == "undefined") {
+    throw new Error("not on local");
+  }
+  return localStorage.setItem("recentRoom", room);
+}

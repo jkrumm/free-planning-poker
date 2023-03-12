@@ -35,7 +35,7 @@ h2 span {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    width: 541px;
+    width: 546px;
     align-items: center;
     justify-content: space-between;
 }
