@@ -67,7 +67,7 @@ export const WebsocketReceiver = ({
 
   usePresence(room, { username }, (presenceUpdate) => {
     if (presenceUpdate.action === "enter") {
-      console.debug("SEND OWN PRESENCE", myPresence);
+      console.debug("SEND OWN PRESENCE ON ENTER", myPresence);
       channel.presence.update(myPresence);
     }
     logPresence("RECEIVED PRESENCE", presenceUpdate);

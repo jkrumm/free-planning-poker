@@ -2,7 +2,7 @@ import { Button, Switch } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { setLocalstorageRoom } from "~/store/local-storage";
 import { useWsStore } from "~/store/ws-store";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
 const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
@@ -23,6 +23,17 @@ export const Interactions = ({
   const votes = useWsStore((store) => store.votes);
   const flipped = useWsStore((store) => store.flipped);
   const autoShow = useWsStore((store) => store.autoShow);
+
+  useEffect(() => {
+    if (!channel || !clientId) return;
+    const myPresence = {
+      username,
+      voting: null,
+      spectator: spectators.includes(clientId),
+    };
+    console.debug("SEND OWN PRESENCE ON INIT", myPresence);
+    channel.presence.update(myPresence);
+  }, [channel]);
 
   const roomRef = useRef(null);
 
