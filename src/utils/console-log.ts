@@ -1,5 +1,6 @@
 import { Types } from "ably";
 import PresenceMessage = Types.PresenceMessage;
+import { type PresenceUpdate } from "fpp/store/ws-store";
 
 export const log = (msg: string, data: object) => {
   if (process.env.NODE_ENV === "development") {
@@ -9,13 +10,20 @@ export const log = (msg: string, data: object) => {
 
 export const logPresence = (msg: string, presenceUpdate: PresenceMessage) => {
   if (process.env.NODE_ENV === "development") {
+    const {
+      action,
+      data: { username, voting, spectator, presencesLength },
+    } = presenceUpdate as {
+      action: Types.PresenceAction;
+      clientId: string;
+      data: PresenceUpdate;
+    };
     console.debug(msg, {
-      action: presenceUpdate.action,
-      // clientId: presenceUpdate.clientId,
-      username: presenceUpdate.data.username,
-      voting: presenceUpdate.data.voting,
-      spectator: presenceUpdate.data.spectator,
-      presenceLength: presenceUpdate.data.presencesLength,
+      action,
+      username,
+      voting,
+      spectator,
+      presenceLength: presencesLength ?? "undefined",
     });
   }
 };

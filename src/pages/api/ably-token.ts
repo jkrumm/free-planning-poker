@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Ably from "ably/promises";
 
-const rest = new Ably.Rest(process.env.ABLY_API_KEY as string);
+const rest = new Ably.Rest(process.env.ABLY_API_KEY!);
 
 export default async function handler(
   req: NextApiRequest,

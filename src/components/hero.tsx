@@ -27,7 +27,7 @@ const useStyles = createStyles((theme: MantineTheme) => ({
   },
 
   title: {
-    fontFamily: `Greycliff CF, ${theme.fontFamily || ""}`,
+    fontFamily: `Greycliff CF, ${theme.fontFamily ?? ""}`,
     fontSize: 62,
     fontWeight: 900,
     lineHeight: 1.1,

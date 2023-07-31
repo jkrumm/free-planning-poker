@@ -44,7 +44,7 @@ export const Table = ({
     }
     return {
       name: presencesMap.get(item),
-      card: vote?.number || null,
+      card: vote?.number ?? null,
       status,
     };
   });

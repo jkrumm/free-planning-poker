@@ -28,7 +28,7 @@ export function getMyPresence(): {
   return {
     username,
     voting: localStorage.getItem("voting")
-      ? parseInt(localStorage.getItem("voting") as string)
+      ? parseInt(localStorage.getItem("voting")!)
       : null,
     spectator: localStorage.getItem("spectator") === "true",
   };

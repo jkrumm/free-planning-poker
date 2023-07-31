@@ -1,7 +1,7 @@
 "use client";
 
 import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
-import { useWsStore } from "fpp/store/ws-store";
+import { type PresenceUpdate, useWsStore } from "fpp/store/ws-store";
 import { useEffect } from "react";
 import shortUUID from "short-uuid";
 import { api } from "fpp/utils/api";
@@ -23,7 +23,7 @@ export const WebsocketReceiver = ({
 
   configureAbly({
     authUrl: `${
-      process.env.NEXT_PUBLIC_API_ROOT || "http://localhost:3000/"
+      process.env.NEXT_PUBLIC_API_ROOT ?? "http://localhost:3000/"
     }api/ably-token`,
     clientId: shortUUID().generate().toString(),
   });
@@ -64,21 +64,22 @@ export const WebsocketReceiver = ({
   }, [clientId]);
 
   usePresence(room, { username }, (presenceUpdate) => {
+    const presenceUpdateBody: PresenceUpdate = {
+      ...getMyPresence(),
+      presencesLength: presences.length,
+    };
     if (presenceUpdate.action === "enter") {
       log("SEND OWN PRESENCE ON ENTER", getMyPresence());
-      channel.presence.update({
-        ...getMyPresence(),
-        presencesLength: presences.length,
-      });
+      channel.presence.update(presenceUpdateBody);
     }
     logPresence("RECEIVED PRESENCE", presenceUpdate);
     updatePresences(presenceUpdate);
     // everyone resends presence if presencesLength is not the same as the one it received
     const presencesLength = (
-      presenceUpdate as unknown as { data: { presencesLength: number } }
+      presenceUpdate.data as unknown as { data: { presencesLength: number } }
     ).data.presencesLength;
     if (presencesLength && presences.length !== presencesLength) {
-      channel.presence.update(getMyPresence());
+      channel.presence.update(presenceUpdateBody);
     }
   });
 

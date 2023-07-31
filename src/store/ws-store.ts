@@ -11,6 +11,13 @@ export type Voting = {
   number: number | null;
 };
 
+export interface PresenceUpdate {
+  username: string;
+  voting: number | null;
+  spectator: boolean;
+  presencesLength: number | undefined;
+}
+
 type WsStore = {
   clientId: string | null;
   setClientId: (clientId: string) => void;
@@ -43,10 +50,12 @@ export const useWsStore = create<WsStore>((set, get) => ({
   fullReset: () => {
     set({ votes: [], flipped: true, presences: [], presencesMap: new Map() });
   },
-  handleMessage: (message) => {
+  handleMessage: (message: Types.Message) => {
     switch (message.name) {
       case "auto-show":
-        set({ autoShow: message.data.autoShow });
+        set({
+          autoShow: (message.data as { autoShow: boolean }).autoShow || false,
+        });
         break;
       case "flip":
         set({ flipped: false });
@@ -63,7 +72,11 @@ export const useWsStore = create<WsStore>((set, get) => ({
       action,
       clientId,
       data: { username, voting, spectator },
-    } = presenceMessage;
+    } = presenceMessage as {
+      action: Types.PresenceAction;
+      clientId: string;
+      data: PresenceUpdate;
+    };
     if (!get().clientId) {
       const newClientId = getByValue(get().presencesMap, username);
       set({ clientId: newClientId });

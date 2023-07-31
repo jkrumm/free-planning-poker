@@ -21,12 +21,12 @@ import { log } from "fpp/utils/console-log";
 const Home: NextPage = () => {
   const router = useRouter();
   const randomRoom =
-    api.room.getRandomRoom.useQuery().data || randomWords({ exactly: 1 })[0];
-  const activeRooms = api.room.getActiveRooms.useQuery().data || [];
+    api.room.getRandomRoom.useQuery().data ?? randomWords({ exactly: 1 })[0];
+  const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
 
   const username = getUsername();
 
-  const [localUsername, setLocalUsername] = useState(username || "");
+  const [localUsername, setLocalUsername] = useState(username ?? "");
   const [roomName, setRoomName] = useState("");
   const [recentRoom, setRecentRoom] = useState<string | null>(null);
   const [buttonText, setButtonText] = useState("Create random room");
@@ -55,7 +55,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (roomName === randomRoom || roomName === "") {
       setButtonText(`Create random room: `);
-      setRoomName(randomRoom || "");
+      setRoomName(randomRoom ?? "");
     } else if (activeRooms.includes(roomName)) {
       setButtonText(`Join room: `);
     } else {

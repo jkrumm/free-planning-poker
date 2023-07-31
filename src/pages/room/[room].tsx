@@ -48,6 +48,7 @@ const RoomPage = () => {
   return (
     <>
       <Head>
+        {/* eslint-disable-next-line @typescript-eslint/prefer-optional-chain */}
         <title>Planning Poker - {room && room.toUpperCase()}</title>
         <meta
           name="description"

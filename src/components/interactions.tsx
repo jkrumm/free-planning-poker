@@ -6,7 +6,7 @@ import {
   setLocalstorageRoom,
   resetVote,
 } from "fpp/store/local-storage";
-import { useWsStore } from "fpp/store/ws-store";
+import { type PresenceUpdate, useWsStore } from "fpp/store/ws-store";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { log } from "fpp/utils/console-log";
@@ -33,14 +33,14 @@ export const Interactions = ({
 
   useEffect(() => {
     if (!channel || !clientId) return;
-    const myLocalPresence = {
+    const presenceUpdate: PresenceUpdate = {
       username,
       voting: getMyPresence().voting,
       spectator: spectators.includes(clientId),
       presencesLength: presences.length,
     };
-    log("SEND OWN PRESENCE ON INIT", myLocalPresence);
-    channel.presence.update(myLocalPresence);
+    log("SEND OWN PRESENCE ON INIT", presenceUpdate);
+    channel.presence.update(presenceUpdate);
   }, [channel]);
 
   const roomRef = useRef(null);
@@ -51,6 +51,7 @@ export const Interactions = ({
         <Button.Group>
           {fibonacci.map((number) => (
             <Button
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               disabled={(clientId && spectators.includes(clientId)) || !flipped}
               variant={
                 votes.some(
@@ -67,12 +68,13 @@ export const Interactions = ({
                   ...getMyPresence(),
                   voting: number,
                 });
-                channel.presence.update({
+                const presenceUpdate: PresenceUpdate = {
                   username,
                   voting: number,
                   spectator: spectators.includes(clientId),
                   presencesLength: presences.length,
-                });
+                };
+                channel.presence.update(presenceUpdate);
               }}
             >
               {number}
@@ -151,12 +153,13 @@ export const Interactions = ({
               voting: null,
               spectator: event.currentTarget.checked,
             });
-            channel.presence.update({
+            const presenceUpdate: Partial<PresenceUpdate> = {
               username,
               voting: null,
               spectator: event.currentTarget.checked,
               presencesLength: presences.length,
-            });
+            };
+            channel.presence.update(presenceUpdate);
           }}
         />
         <Switch
