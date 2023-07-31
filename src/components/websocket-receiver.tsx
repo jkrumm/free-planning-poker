@@ -76,8 +76,10 @@ export const WebsocketReceiver = ({
     updatePresences(presenceUpdate);
     // everyone resends presence if presencesLength is not the same as the one it received
     const presencesLength = (
-      presenceUpdate.data as unknown as { data: { presencesLength: number } }
-    ).data.presencesLength;
+      presenceUpdate.data as unknown as {
+        data: { presencesLength: number | undefined } | undefined;
+      }
+    )?.data?.presencesLength;
     if (presencesLength && presences.length !== presencesLength) {
       channel.presence.update(presenceUpdateBody);
     }

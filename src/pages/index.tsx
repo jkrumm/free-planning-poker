@@ -3,7 +3,13 @@ import Head from "next/head";
 import { api } from "fpp/utils/api";
 import React, { useEffect, useState } from "react";
 import { type NextPage } from "next";
-import { Autocomplete, Button, TextInput } from "@mantine/core";
+import {
+  Autocomplete,
+  Button,
+  createStyles,
+  Group,
+  TextInput,
+} from "@mantine/core";
 import { Hero } from "fpp/components/hero";
 import randomWords from "random-words";
 import {
@@ -16,21 +22,31 @@ import {
 import { useRouter } from "next/router";
 import { usePlausible } from "next-plausible";
 import { type PlausibleEvents } from "fpp/utils/plausible.events";
-import { log } from "fpp/utils/console-log";
+import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
+import { useForm } from "@mantine/form";
+
+const useStyles = createStyles(() => ({
+  buttonRight: {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  buttonLeft: {
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+}));
 
 const Home: NextPage = () => {
+  const { classes } = useStyles();
   const router = useRouter();
+
+  const initialUsername = getUsername() ?? "";
+
   const randomRoom =
     api.room.getRandomRoom.useQuery().data ?? randomWords({ exactly: 1 })[0];
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
 
-  const username = getUsername();
-
-  const [localUsername, setLocalUsername] = useState(username ?? "");
-  const [roomName, setRoomName] = useState("");
   const [recentRoom, setRecentRoom] = useState<string | null>(null);
-  const [buttonText, setButtonText] = useState("Create random room");
-  const [error, setError] = useState(false);
 
   const plausible = usePlausible<PlausibleEvents>();
 
@@ -49,19 +65,31 @@ const Home: NextPage = () => {
         .catch(() => ({}));
     }
     setRecentRoom(getLocalstorageRecentRoom());
-    log("recentRoom", { recentRoom });
   }, [recentRoom]);
 
+  const form = useForm({
+    initialValues: {
+      username: initialUsername ?? "",
+      room: randomRoom ?? "",
+    },
+    validate: {
+      username: (value) =>
+        value.replace(/[^A-Za-z]/g, "").length < 3 ||
+        value.replace(/[^A-Za-z]/g, "").length > 15,
+      room: (value) =>
+        value.replace(/[^A-Za-z]/g, "").length < 3 ||
+        value.replace(/[^A-Za-z]/g, "").length > 15,
+    },
+  });
+
+  const [usernameInvalid, setUsernameInvalid] = useState<boolean>(false);
+
   useEffect(() => {
-    if (roomName === randomRoom || roomName === "") {
-      setButtonText(`Create random room: `);
-      setRoomName(randomRoom ?? "");
-    } else if (activeRooms.includes(roomName)) {
-      setButtonText(`Join room: `);
-    } else {
-      setButtonText(`Create room: `);
-    }
-  }, [roomName]);
+    setUsernameInvalid(
+      !form.values.username ||
+        form.values.username.replace(/[^A-Za-z]/g, "").length < 3
+    );
+  }, [form.values.username]);
 
   return (
     <>
@@ -118,94 +146,78 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
         <Hero onHome />
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
+        <div className="container px-4 pb-16">
           {recentRoom && (
             <Button
               variant="gradient"
               gradient={{ from: "blue", to: "cyan" }}
               size="xl"
-              className={`my-8 mb-12 w-[480px] px-0`}
+              className={`mx-auto my-8 block w-[480px]`}
               type="button"
               uppercase
-              disabled={!username && username?.length === 0}
+              disabled={usernameInvalid}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (e) => {
-                if (!recentRoom) {
-                  // TODO sentry
-                  return;
-                }
-                const localRoom = recentRoom;
+                setUsername(form.values.username.replace(/[^A-Za-z]/g, ""));
                 e.preventDefault();
-                if (!username) {
-                  setError(true);
-                }
                 plausible("recent", {
-                  props: { room: localRoom.toLowerCase() },
+                  props: { room: recentRoom },
                 });
-                await router.push(`/room/${localRoom.toLowerCase()}`);
+                await router.push(`/room/${recentRoom}`);
               }}
             >
               Join recent room: &nbsp;<strong>{recentRoom}</strong>
             </Button>
           )}
-          <form>
-            <TextInput
-              label="Username"
-              error={error && "Required"}
-              size="xl"
-              withAsterisk
-              value={localUsername}
-              onChange={(event) => {
-                setError(false);
-                setLocalUsername(event.currentTarget.value.trim());
-              }}
-            />
+          <form
+            className="mt-8 w-full"
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onSubmit={form.onSubmit(async () => {
+              setUsername(form.values.username.replace(/[^A-Za-z]/g, ""));
+              const roomName = form.values.room
+                .replace(/[^A-Za-z]/g, "")
+                .toLowerCase();
+              if (activeRooms.includes(roomName)) {
+                plausible("joined", {
+                  props: { room: roomName },
+                });
+              } else {
+                plausible("created", {
+                  props: { room: roomName },
+                });
+              }
+              await router.push(`/room/${roomName}`);
+            })}
+          >
+            <div className="mx-auto max-w-[400px]">
+              <div className="w-full">
+                <TextInput
+                  label="Username"
+                  size="xl"
+                  {...form.getInputProps("username")}
+                />
 
-            <Autocomplete
-              label="Room"
-              placeholder={roomName}
-              className="my-6"
-              size="xl"
-              limit={3}
-              onChange={(e) => {
-                if (e.length <= 15) {
-                  setRoomName(e.toLowerCase().trim());
-                }
-              }}
-              value={roomName}
-              data={roomName.length > 1 ? activeRooms : []}
-            />
-
-            <Button
-              variant="gradient"
-              gradient={{ from: "blue", to: "cyan" }}
-              size="xl"
-              className={`my-8 w-[380px] px-0`}
-              type="submit"
-              uppercase
-              disabled={!username && username?.length === 0}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={async (e) => {
-                e.preventDefault();
-                if (!localUsername) {
-                  setError(true);
-                } else {
-                  setUsername(localUsername);
-                  if (activeRooms.includes(roomName.toLowerCase())) {
-                    plausible("joined", {
-                      props: { room: roomName.toLowerCase() },
-                    });
-                  } else {
-                    plausible("created", {
-                      props: { room: roomName.toLowerCase() },
-                    });
-                  }
-                  await router.push(`/room/${roomName.toLowerCase()}`);
-                }
-              }}
-            >
-              {buttonText}&nbsp;<strong>{roomName}</strong>
-            </Button>
+                <Group noWrap spacing={0}>
+                  <Autocomplete
+                    disabled={usernameInvalid}
+                    label="Room"
+                    className={`${classes.buttonRight} my-6 w-full`}
+                    size="xl"
+                    limit={3}
+                    {...form.getInputProps("room")}
+                    data={form.values.room.length > 1 ? activeRooms : []}
+                  />
+                  <Button
+                    disabled={usernameInvalid}
+                    size="xl"
+                    className={`${classes.buttonLeft} w-13 mt-11 px-4`}
+                    type="submit"
+                  >
+                    <IconArrowBadgeRightFilled size={35} spacing={0} />
+                  </Button>
+                </Group>
+              </div>
+            </div>
           </form>
         </div>
       </main>
@@ -214,27 +226,3 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-
-// const AuthShowcase: React.FC = () => {
-//   const { data: sessionData } = useSession();
-//
-//   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-//     undefined, // no input
-//     { enabled: sessionData?.user !== undefined }
-//   );
-//
-//   return (
-//     <div className="flex flex-col items-center justify-center gap-4">
-//       <p className="text-center text-2xl">
-//         {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-//         {secretMessage && <span> - {secretMessage}</span>}
-//       </p>
-//       <button
-//         className="rounded-full py-3 font-semibold no-underline transition"
-//         onClick={sessionData ? () => void signOut() : () => void signIn()}
-//       >
-//         {sessionData ? "Sign out" : "Sign in"}
-//       </button>
-//     </div>
-//   );
-// };

@@ -17,12 +17,12 @@ const useStyles = createStyles((theme: MantineTheme) => ({
 
   inner: {
     position: "relative",
-    paddingTop: 80,
-    paddingBottom: 80,
+    paddingTop: 40,
+    paddingBottom: 50,
 
     [BREAKPOINT]: {
-      paddingBottom: 60,
-      paddingTop: 50,
+      paddingBottom: 40,
+      paddingTop: 20,
     },
   },
 
@@ -51,6 +51,7 @@ const useStyles = createStyles((theme: MantineTheme) => ({
 }));
 
 export function Hero(props: { onHome?: boolean }) {
+  const { onHome } = props;
   const { classes } = useStyles();
 
   return (
@@ -63,6 +64,7 @@ export function Hero(props: { onHome?: boolean }) {
               component="span"
               variant="gradient"
               gradient={{ from: "blue", to: "cyan" }}
+              // color="#54a2e9"
               inherit
               className="mb-4 block"
             >
@@ -70,30 +72,16 @@ export function Hero(props: { onHome?: boolean }) {
             </Text>
           </h1>
         </Link>
-        <h2 className="mb-12 text-center">
+        <h2 className="mb-12 text-center opacity-80">
           Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
           Source <span>|</span> Privacy Focused
         </h2>
-        {props.onHome && (
-          <Text
-            className={`${classes.description} mb-12 text-center`}
-            color="dimmed"
-          >
-            Say goodbye to overly complicated and costly planning poker tools
-            with this user-friendly app. Based on the Fibonacci sequence for
-            story point estimation, this tool is suitable for any agile project
-            management needs, whether you use Scrum, Kanban, or your own custom
-            Jira workflow.
-          </Text>
-        )}
         <div className="flex justify-center space-x-4">
-          {!props.onHome && (
-            <Link href="/">
-              <Button color="blue" variant="outline">
-                Home
-              </Button>
-            </Link>
-          )}
+          <Link href="/">
+            <Button color="blue" variant="outline">
+              Home
+            </Button>
+          </Link>
           <a
             href="https://paypal.me/johanneskrum"
             target="_blank"
@@ -114,6 +102,18 @@ export function Hero(props: { onHome?: boolean }) {
             </Button>
           </Link>
         </div>
+        {onHome && (
+          <Text
+            className={`${classes.description} mt-12 text-center`}
+            color="dimmed"
+          >
+            Say goodbye to overly complicated and costly planning poker tools
+            with this user-friendly app. Based on the Fibonacci sequence for
+            story point estimation, this tool is suitable for any agile project
+            management needs, whether you use Scrum, Kanban, or your own custom
+            Jira workflow.
+          </Text>
+        )}
       </Container>
     </div>
   );

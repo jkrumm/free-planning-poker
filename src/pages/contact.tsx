@@ -85,7 +85,7 @@ const Contact: NextPage = () => {
       </Head>
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container flex items-center justify-center gap-12 px-4 pb-28 pt-12">
+        <div className="container flex items-center justify-center gap-12 px-4 pb-28 pt-8">
           <form
             className="w-[800px]"
             onSubmit={form.onSubmit(() => {

@@ -61,7 +61,7 @@ const Imprint: NextPage = () => {
       </Head>
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container flex gap-12 px-4 pt-16 pb-28">
+        <div className="container flex gap-12 px-4 pb-28 pt-8">
           <div className="md:min-w-[250px]">
             <h1>Imprint</h1>
             <h3>Service Provider</h3>
@@ -83,49 +83,53 @@ const Imprint: NextPage = () => {
           </div>
           <div>
             <h1>Privacy Policy</h1>
-            Our website employs services from Ably, a WebSocket provider. Ably
-            assures compliance to SOC 2 Type 2, HIPAA, EU GDPR, and uses 256-bit
-            AES Encryption. Ably does not persist or access data in transit,
-            thus your information remains solely with you.
-            <br />
-            <br />
-            We use Plausible for website analytics, a service that does not
-            track IP addresses and so does not save detailed location
-            information. Please note, this service does not necessitate user
-            consent due to its GDPR compliance, however, be aware that your site
-            activities are captured anonymously and used for improving our
-            service.
-            <br />
-            <br />
-            Any personal data you voluntarily send through our contact form
-            (name and email) is considered personal data under the General Data
-            Protection Regulation (GDPR). This data will be handled
-            confidentially and is strictly used for responding to your
-            inquiries. No data supplied through the contact form will be used
-            for other purposes without your explicit consent.
-            <br />
-            <br />
-            Our website uses a MySQL database operated by Planetscale, running
-            against an eu-central-1 hosted AWS MySQL database. All transfers are
-            encrypted in transit. This database is used to store room usage and
-            voting statistics, but not in association with any specific username
-            or individual vote. This information is non-personal and does not
-            form part of an identifiable profile.
-            <br />
-            <br />
-            <strong>Usernames</strong> on our service are entirely fictional.
-            Any person can view these names and associated votes upon entering a
-            room, but these are non-identifiable. Please refrain from using
-            genuinely identifiable information as your username to ensure GDPR
+            Our website employs Plausible for{" "}
+            <strong>website usage analytics</strong>. Plausible respects user
+            privacy by not tracking IP addresses or recording specific location
+            details. Any data collected is solely for the purpose of service
+            enhancement and does so without the use of cookies or other tracking
+            technologies. Please note, this service does not necessitate user
+            consent due to its General Data Protection Regulation (GDPR)
             compliance.
             <br />
             <br />
-            Usernames and votes are shared with others in the room via Ably
-            Websockets. There is no persistence of this data once you leave the
-            room or after a period of room inactivity. Our usage of Ably does
-            not include history features, negating data persistence. Later
-            visitors to the room cannot access usernames or votes from previous
-            sessions unless you are actively present in the room.
+            Ably, a WebSocket provider, plays a significant role in our
+            services. Data protection compliance is prioritized by Ably, with
+            adherence to EU GDPR and employing 256-bit AES encryption. Ably
+            ensures that data in transit remains secure and confidential.
+            <br />
+            <br />
+            Within our service, <strong>Ably Websockets</strong> enables the
+            transparent sharing of usernames and votes. However, this data does
+            not persist after exiting the room or once the room remains inactive
+            for a period. Consequently, data from previous sessions, including
+            usernames and votes, cannot be accessed by later visitors unless you
+            are actively present in the room.
+            <br />
+            <br />
+            Personal details volunteered through our{" "}
+            <strong>contact form</strong> (name and email), falling in line with
+            GDPR definitions, are handled with utmost confidentiality, and used
+            specifically for responding to your inquiries. Consent is sought
+            prior to utilizing this data for any other purpose.
+            <br />
+            <br />
+            Our website is supported by a MySQL database managed by Planetscale,
+            operating in convergence with an eu-central-1 hosted AWS MySQL
+            database. To assure data integrity, all transfers are encrypted.
+            However, the{" "}
+            <strong>
+              database usage is limited to storing room usage information and
+              voting statistics
+            </strong>{" "}
+            and bears no link to specific usernames or individual votes.
+            Information collected in no way contributes to individual profiles.
+            <br />
+            <br />
+            <strong>Usernames</strong> within our service are purely fictitious.
+            Although accessible upon room entry, these names and corresponding
+            votes are not identifiable. We urge avoidance of identifiable
+            information as usernames to ensure GDPR compliance.
             <br />
             <br />
             <h1 id="license">Project License</h1>
@@ -148,11 +152,20 @@ const Imprint: NextPage = () => {
             <br />
             <br />
             <h1>Donations</h1>
-            The link provided for sending money is strictly a voluntarily
-            personal PayPal link. Funds received support the maintenance and
-            development of this tool. This does not involve any business
-            transactions or an exchange of goods or services or financial
-            interest.
+            The PayPal link offered for contributions is solely an option for
+            those who voluntarily choose to financially support the continued
+            upkeep and development of this tool. Any funds received are
+            acknowledged not as formal, tax-deductible donations, or as a
+            commercial transaction involving an exchange of goods or services.
+            They are considered as supportive contributions aiding in this
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            tool's further development. As such, these arrangements are not
+            governed by German Civil Code (BGB) or Consumer Rights Directive
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            (2011/83/EU). The use of the term "donation" herein is a common
+            terminology in online platforms, and it is important to note its
+            context is not linked with the applicable laws and regulations of
+            formal, registered charity donations.
             <br />
             <br />
             <a

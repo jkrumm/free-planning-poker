@@ -15,12 +15,12 @@ export function Footer() {
   return (
     <footer>
       <div className="pointer-events-none fixed bottom-0 block min-h-[30px] min-w-full bg-[#121314]" />
-      <div className="fixed bottom-0 flex h-[30px] w-full flex-row  bg-[#121314] py-2 px-4 text-xs opacity-40 transition-opacity hover:opacity-100">
+      <div className="fixed bottom-0 flex h-[30px] w-full flex-row  bg-[#121314] px-4 py-2 text-xs opacity-40 transition-opacity hover:opacity-100">
         <div className="flex w-1/2 flex-row">
           © {new Date().getFullYear()} Johannes Krumm{" "}
           <Link
             href="/"
-            className="px-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+            className="pl-3 pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
           >
             free-planning-poker.com
           </Link>{" "}
