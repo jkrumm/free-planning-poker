@@ -27,7 +27,7 @@ const RoomPage = () => {
   useEffect(() => {
     if ((!room || room === "undefined") && !firstLoad) {
       setLocalstorageRoom(null);
-      router.push(`/`).then(() => {
+      void router.push(`/`).then(() => {
         return;
       });
     }
@@ -98,7 +98,7 @@ const RoomPage = () => {
         <meta name="msapplication-TileColor" content="#1a1b1e" />
         <meta name="theme-color" content="#1a1b1e" />
       </Head>
-      <main className="relative flex max-h-screen min-h-screen max-w-[100vw] flex-col items-center justify-center overscroll-none">
+      <main className="relative flex max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none">
         <div>
           {(function () {
             if (!room) {

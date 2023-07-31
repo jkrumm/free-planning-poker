@@ -61,7 +61,7 @@ const Imprint: NextPage = () => {
       </Head>
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container flex gap-12 px-4 py-16">
+        <div className="container flex gap-12 px-4 pt-16 pb-28">
           <div className="md:min-w-[250px]">
             <h1>Imprint</h1>
             <h3>Service Provider</h3>
@@ -128,12 +128,40 @@ const Imprint: NextPage = () => {
             sessions unless you are actively present in the room.
             <br />
             <br />
+            <h1 id="license">Project License</h1>
+            The project is licensed under the GNU Affero General Public License
+            v3.0 (AGPLv3). This license ensures that derivative work will be
+            released under the same license terms, promoting open source sharing
+            and improvements. Users can use, modify, and distribute this
+            software and its source code, provided they adhere to the license
+            terms. You can review the full license terms by clicking the link
+            below.
+            <br />
+            <br />
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://github.com/jkrumm/free-planning-poker/blob/master/LICENSE"
+            >
+              <Button>AGPLv3 license</Button>
+            </a>
+            <br />
+            <br />
             <h1>Donations</h1>
             The link provided for sending money is strictly a voluntarily
             personal PayPal link. Funds received support the maintenance and
             development of this tool. This does not involve any business
             transactions or an exchange of goods or services or financial
             interest.
+            <br />
+            <br />
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://paypal.me/johanneskrum"
+            >
+              <Button>Donate</Button>
+            </a>
           </div>
         </div>
       </main>

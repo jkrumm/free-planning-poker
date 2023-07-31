@@ -35,24 +35,25 @@ h2 span {
 
 .voting-bar, .settings-bar {
     position: fixed;
-    bottom: 20px;
+    bottom: 60px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    width: 546px;
+    min-width: 546px;
     align-items: center;
     justify-content: space-between;
 }
 
 .settings-bar {
-    bottom: 80px;
+    bottom: 120px;
 }
 
 .switch-bar {
     position: fixed;
-    bottom: 20px;
+    bottom: 60px;
     left: calc(50% + 360px);
     transform: translateX(-50%);
+    min-width: 124px;
 }
 
 .table {
