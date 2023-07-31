@@ -9,7 +9,7 @@ export function setUsername(username: string): void {
   if (typeof window == "undefined") {
     throw new Error("not on local");
   }
-  username = username.charAt(0).toUpperCase() + username.slice(1);
+  username = username.slice(0, 15).charAt(0).toUpperCase() + username.slice(1);
   localStorage.setItem("username", username);
 }
 
@@ -34,7 +34,11 @@ export function getMyPresence(): {
   };
 }
 
-export function setMyPresence(myPresence: {
+export function setMyPresence({
+  username,
+  voting,
+  spectator,
+}: {
   username: string;
   voting: number | null;
   spectator: boolean;
@@ -43,13 +47,13 @@ export function setMyPresence(myPresence: {
     throw new Error("not on local");
   }
 
-  localStorage.setItem("username", myPresence.username);
-  localStorage.setItem("spectator", myPresence.spectator.toString());
+  setUsername(username);
+  localStorage.setItem("spectator", spectator.toString());
 
-  if (myPresence.voting === null) {
+  if (voting === null) {
     localStorage.removeItem("voting");
   } else {
-    localStorage.setItem("voting", myPresence.voting.toString());
+    localStorage.setItem("voting", voting.toString());
   }
 }
 
