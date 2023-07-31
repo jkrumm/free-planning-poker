@@ -1,11 +1,11 @@
 "use client";
 
-import { useWsStore } from "~/store/ws-store";
+import { useWsStore } from "fpp/store/ws-store";
 import { Button } from "@mantine/core";
 import React from "react";
 import { usePlausible } from "next-plausible";
-import { type PlausibleEvents } from "~/utils/plausible.events";
-import { log } from "~/utils/console-log";
+import { type PlausibleEvents } from "fpp/utils/plausible.events";
+import { log } from "fpp/utils/console-log";
 
 export const Table = ({
   room,

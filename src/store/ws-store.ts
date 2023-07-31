@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { Types } from "ably";
-import { getByValue } from "~/utils/map.util";
+import { getByValue } from "fpp/utils/map.util";
 import PresenceMessage = Types.PresenceMessage;
 import Message = Types.Message;
 import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
-import { resetVote } from "~/store/local-storage";
+import { resetVote } from "fpp/store/local-storage";
 
 export type Voting = {
   clientId: string;

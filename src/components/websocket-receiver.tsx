@@ -1,16 +1,16 @@
 "use client";
 
 import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
-import { useWsStore } from "~/store/ws-store";
+import { useWsStore } from "fpp/store/ws-store";
 import { useEffect } from "react";
 import shortUUID from "short-uuid";
-import { api } from "~/utils/api";
+import { api } from "fpp/utils/api";
 import {
   getMyPresence,
   setLocalstorageRecentRoom,
-} from "~/store/local-storage";
+} from "fpp/store/local-storage";
 import * as process from "process";
-import { log, logPresence } from "~/utils/console-log";
+import { log, logPresence } from "fpp/utils/console-log";
 
 export const WebsocketReceiver = ({
   room,

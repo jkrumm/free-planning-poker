@@ -1,55 +1,67 @@
-import { createStyles, Container, Group, Anchor, rem } from "@mantine/core";
+import Link from "next/link";
 
-const useStyles = createStyles((theme) => ({
-  footer: {
-    marginTop: rem(120),
-    borderTop: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.colors.gray[2]
-    }`,
+const links = [
+  {
+    url: "/imprint",
+    title: "Imprint & Privacy Policy",
   },
-
-  inner: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.xl,
-
-    [theme.fn.smallerThan("xs")]: {
-      flexDirection: "column",
-    },
+  {
+    url: "/contact",
+    title: "Contact",
   },
+];
 
-  links: {
-    [theme.fn.smallerThan("xs")]: {
-      marginTop: theme.spacing.md,
-    },
-  },
-}));
-
-interface FooterSimpleProps {
-  links: { link: string; label: string }[];
-}
-
-export function FooterSimple({ links }: FooterSimpleProps) {
-  const { classes } = useStyles();
-  const items = links.map((link) => (
-    <Anchor<"a">
-      color="dimmed"
-      key={link.label}
-      href={link.link}
-      onClick={(event) => event.preventDefault()}
-      size="sm"
-    >
-      {link.label}
-    </Anchor>
-  ));
-
+export function Footer() {
   return (
-    <div className={classes.footer}>
-      <Container className={classes.inner}>
-        <Group className={classes.links}>{items}</Group>
-      </Container>
-    </div>
+    <footer>
+      <div className="pointer-events-none fixed bottom-0 block min-h-[30px] min-w-full bg-[#121314]" />
+      <div className="fixed bottom-0 flex h-[30px] w-full flex-row  bg-[#121314] py-2 px-4 text-xs opacity-40 transition-opacity hover:opacity-100">
+        <div className="flex w-1/2 flex-row">
+          © {new Date().getFullYear()} Johannes Krumm{" "}
+          <Link
+            href="/"
+            className="px-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+          >
+            free-planning-poker.com
+          </Link>{" "}
+          is licensed under{" "}
+          <Link
+            href="/imprint#license"
+            className="pl-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+          >
+            AGPLv3
+          </Link>
+        </div>
+        <div className="flex w-1/2 flex-row items-end justify-end">
+          <a
+            href="https://paypal.me/johanneskrum"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+          >
+            Donate
+          </a>
+          <a
+            href="https://github.com/jkrumm/free-planning-poker"
+            target="_blank"
+            className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+          {links.map((link) => (
+            <Link
+              href={link.url}
+              key={link.url}
+              className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+            >
+              {link.title}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </footer>
   );
 }
+
+export default Footer;

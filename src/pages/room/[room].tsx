@@ -5,14 +5,14 @@ import {
   getUsername,
   setLocalstorageRoom,
   setMyPresence,
-} from "~/store/local-storage";
-import { UsernameModel } from "~/components/username-model";
+} from "fpp/store/local-storage";
+import { UsernameModel } from "fpp/components/username-model";
 import { usePlausible } from "next-plausible";
-import { type PlausibleEvents } from "~/utils/plausible.events";
+import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import dynamic from "next/dynamic";
-import { Table } from "~/components/table";
-import { WebsocketReceiver } from "~/components/websocket-receiver";
-import { Interactions } from "~/components/interactions";
+import { Table } from "fpp/components/table";
+import { WebsocketReceiver } from "fpp/components/websocket-receiver";
+import { Interactions } from "fpp/components/interactions";
 
 const RoomPage = () => {
   const router = useRouter();

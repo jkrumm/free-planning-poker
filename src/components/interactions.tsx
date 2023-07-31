@@ -5,11 +5,11 @@ import {
   setMyPresence,
   setLocalstorageRoom,
   resetVote,
-} from "~/store/local-storage";
-import { useWsStore } from "~/store/ws-store";
+} from "fpp/store/local-storage";
+import { useWsStore } from "fpp/store/ws-store";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { log } from "~/utils/console-log";
+import { log } from "fpp/utils/console-log";
 
 const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 
@@ -91,6 +91,7 @@ export const Interactions = ({
           <h2
             className="uppercase"
             ref={roomRef}
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
               if (!window.location) {
                 return;
@@ -126,6 +127,7 @@ export const Interactions = ({
           </Button>
           <Button
             variant={"default"}
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
               setLocalstorageRoom(null);
               resetVote();

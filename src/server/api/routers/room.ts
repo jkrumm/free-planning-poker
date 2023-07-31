@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { DateTime } from "luxon";
 import randomWords from "random-words";
 import { z } from "zod";

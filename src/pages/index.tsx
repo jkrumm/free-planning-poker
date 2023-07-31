@@ -1,10 +1,10 @@
 import Head from "next/head";
 
-import { api } from "~/utils/api";
+import { api } from "fpp/utils/api";
 import React, { useEffect, useState } from "react";
 import { type NextPage } from "next";
 import { Autocomplete, Button, TextInput } from "@mantine/core";
-import { Hero } from "~/components/hero";
+import { Hero } from "fpp/components/hero";
 import randomWords from "random-words";
 import {
   getLocalstorageRecentRoom,
@@ -12,11 +12,11 @@ import {
   getUsername,
   setLocalstorageRoom,
   setUsername,
-} from "~/store/local-storage";
+} from "fpp/store/local-storage";
 import { useRouter } from "next/router";
 import { usePlausible } from "next-plausible";
-import { type PlausibleEvents } from "~/utils/plausible.events";
-import { log } from "~/utils/console-log";
+import { type PlausibleEvents } from "fpp/utils/plausible.events";
+import { log } from "fpp/utils/console-log";
 
 const Home: NextPage = () => {
   const router = useRouter();

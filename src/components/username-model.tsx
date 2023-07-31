@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, FocusTrap, Modal, TextInput } from "@mantine/core";
-import { setUsername } from "~/store/local-storage";
+import { setUsername } from "fpp/store/local-storage";
 
 export const UsernameModel = ({
   modelOpen,
@@ -26,7 +26,7 @@ export const UsernameModel = ({
       closeOnEscape={false}
       closeOnClickOutside={false}
     >
-      <h1 className="m-0 mb-5">Join room {room && room.toUpperCase()}</h1>
+      <h1 className="m-0 mb-5">Join room {room?.toUpperCase()}</h1>
       <FocusTrap active={true}>
         <form>
           <TextInput
@@ -36,7 +36,7 @@ export const UsernameModel = ({
             error={error && "Required"}
             size="xl"
             withAsterisk
-            value={username || ""}
+            value={username ?? ""}
             onChange={(event) => {
               setError(false);
               setInputUsername(event.currentTarget.value.trim());
@@ -50,7 +50,7 @@ export const UsernameModel = ({
             type="submit"
             uppercase
             disabled={!username && username?.length === 0}
-            onClick={async (e) => {
+            onClick={(e) => {
               e.preventDefault();
               if (!username) {
                 setError(true);
