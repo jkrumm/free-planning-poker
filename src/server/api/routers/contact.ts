@@ -13,7 +13,7 @@ export const contactRouter = createTRPCRouter({
         message: z.string().max(800).optional(),
       })
     )
-    .mutation(async ({ input: { name, email, subject, message } }) => {
+    .mutation(({ input: { name, email, subject, message } }) => {
       const mailData = {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         from: `FreePlanningPoker ${env.SEND_EMAIL}`,
@@ -25,7 +25,7 @@ export const contactRouter = createTRPCRouter({
       };
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-      const transporter = (await nodemailer.createTransport({
+      const transporter = nodemailer.createTransport({
         port: 465,
         host: "smtp.gmail.com",
         auth: {
@@ -35,10 +35,10 @@ export const contactRouter = createTRPCRouter({
           pass: env.SEND_EMAIL_PASSWORD,
         },
         secure: true,
-      })) as nodemailer.Transporter;
+      }) as nodemailer.Transporter;
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-      await transporter.sendMail(mailData, function (err, info) {
+      transporter.sendMail(mailData, function (err, info) {
         if (err) console.log(err);
         else console.log(info);
       });
