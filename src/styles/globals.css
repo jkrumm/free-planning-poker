@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    scroll-behavior: smooth;
+}
+
 .mantine-Autocomplete-label, .mantine-TextInput-label {
     padding-bottom: 12px;
 }

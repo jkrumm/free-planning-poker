@@ -1,5 +1,11 @@
-import { Container, createStyles, MantineTheme, Text } from "@mantine/core";
-// import { GithubIcon } from "@mantine/ds";
+import {
+  Button,
+  Container,
+  createStyles,
+  type MantineTheme,
+  Text,
+} from "@mantine/core";
+import Link from "next/link";
 
 const BREAKPOINT = "@media (max-width: 755px)";
 
@@ -36,7 +42,6 @@ const useStyles = createStyles((theme: MantineTheme) => ({
   },
 
   description: {
-    marginTop: theme.spacing.xl,
     fontSize: 24,
 
     [BREAKPOINT]: {
@@ -45,35 +50,70 @@ const useStyles = createStyles((theme: MantineTheme) => ({
   },
 }));
 
-export function Hero() {
+export function Hero(props: { onHome?: boolean }) {
   const { classes } = useStyles();
 
   return (
     <div className={classes.wrapper}>
       <Container size={820} className={classes.inner}>
-        <div className="logo" />
-        <h1 className={`${classes.title} mb-7 block`}>
-          <Text
-            component="span"
-            variant="gradient"
-            gradient={{ from: "blue", to: "cyan" }}
-            inherit
-            className="mb-4 block"
-          >
-            Free-Planning-Poker.com
-          </Text>
-        </h1>
+        <Link href="/" className="no-underline">
+          <div className="logo" />
+          <h1 className={`${classes.title} mb-7 block`}>
+            <Text
+              component="span"
+              variant="gradient"
+              gradient={{ from: "blue", to: "cyan" }}
+              inherit
+              className="mb-4 block"
+            >
+              Free-Planning-Poker.com
+            </Text>
+          </h1>
+        </Link>
         <h2 className="mb-12 text-center">
           Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
           Source <span>|</span> Privacy Focused
         </h2>
-        <Text className={`${classes.description} text-center`} color="dimmed">
-          Say goodbye to overly complicated and costly planning poker tools with
-          this user-friendly app. Based on the Fibonacci sequence for story
-          point estimation, this tool is suitable for any agile project
-          management needs, whether you use Scrum, Kanban, or your own custom
-          Jira workflow.
-        </Text>
+        {props.onHome && (
+          <Text
+            className={`${classes.description} mb-12 text-center`}
+            color="dimmed"
+          >
+            Say goodbye to overly complicated and costly planning poker tools
+            with this user-friendly app. Based on the Fibonacci sequence for
+            story point estimation, this tool is suitable for any agile project
+            management needs, whether you use Scrum, Kanban, or your own custom
+            Jira workflow.
+          </Text>
+        )}
+        <div className="flex justify-center space-x-4">
+          {!props.onHome && (
+            <Link href="/">
+              <Button color="blue" variant="outline">
+                Home
+              </Button>
+            </Link>
+          )}
+          <a
+            href="https://paypal.me/johanneskrum"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button color="blue" variant="outline">
+              Donate
+            </Button>
+          </a>
+          <Link href="/imprint">
+            <Button color="blue" variant="outline">
+              Imprint & Privacy Policy
+            </Button>
+          </Link>
+          <Link href="/contact">
+            <Button color="blue" variant="outline">
+              Contact
+            </Button>
+          </Link>
+        </div>
       </Container>
     </div>
   );

@@ -117,7 +117,7 @@ const Home: NextPage = () => {
         <meta name="theme-color" content="#1a1b1e" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
-        <Hero />
+        <Hero onHome />
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           {recentRoom && (
             <Button
@@ -128,6 +128,7 @@ const Home: NextPage = () => {
               type="button"
               uppercase
               disabled={!username && username?.length === 0}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (e) => {
                 if (!recentRoom) {
                   // TODO sentry
@@ -183,6 +184,7 @@ const Home: NextPage = () => {
               type="submit"
               uppercase
               disabled={!username && username?.length === 0}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (e) => {
                 e.preventDefault();
                 if (!localUsername) {

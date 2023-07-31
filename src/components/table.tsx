@@ -4,7 +4,8 @@ import { useWsStore } from "~/store/ws-store";
 import { Button } from "@mantine/core";
 import React from "react";
 import { usePlausible } from "next-plausible";
-import { PlausibleEvents } from "~/utils/plausible.events";
+import { type PlausibleEvents } from "~/utils/plausible.events";
+import { log } from "~/utils/console-log";
 
 export const Table = ({
   room,
@@ -28,7 +29,7 @@ export const Table = ({
       props: { players: votes.length, room },
     });
     if (channel) {
-      console.debug("FLIPPED");
+      log("FLIPPED", {});
       channel.publish("flip", {});
     }
   }
@@ -55,6 +56,7 @@ export const Table = ({
     if (index === -1) {
       voting.push({ number: item.number, amount: 1 });
     } else if (index > -1) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       voting[index].amount++;
     }
