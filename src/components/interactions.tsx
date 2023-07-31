@@ -1,9 +1,15 @@
 import { Button, Switch } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { setLocalstorageRoom } from "~/store/local-storage";
+import {
+  getMyPresence,
+  setMyPresence,
+  setLocalstorageRoom,
+  resetVote,
+} from "~/store/local-storage";
 import { useWsStore } from "~/store/ws-store";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import { log } from "~/utils/console-log";
 
 const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 
@@ -21,18 +27,20 @@ export const Interactions = ({
 
   const spectators = useWsStore((store) => store.spectators);
   const votes = useWsStore((store) => store.votes);
+  const presences = useWsStore((store) => store.presences);
   const flipped = useWsStore((store) => store.flipped);
   const autoShow = useWsStore((store) => store.autoShow);
 
   useEffect(() => {
     if (!channel || !clientId) return;
-    const myPresence = {
+    const myLocalPresence = {
       username,
-      voting: null,
+      voting: getMyPresence().voting,
       spectator: spectators.includes(clientId),
+      presencesLength: presences.length,
     };
-    console.debug("SEND OWN PRESENCE ON INIT", myPresence);
-    channel.presence.update(myPresence);
+    log("SEND OWN PRESENCE ON INIT", myLocalPresence);
+    channel.presence.update(myLocalPresence);
   }, [channel]);
 
   const roomRef = useRef(null);
@@ -55,10 +63,15 @@ export const Interactions = ({
               key={number}
               onClick={() => {
                 if (!channel || !clientId) return;
+                setMyPresence({
+                  ...getMyPresence(),
+                  voting: number,
+                });
                 channel.presence.update({
                   username,
                   voting: number,
                   spectator: spectators.includes(clientId),
+                  presencesLength: presences.length,
                 });
               }}
             >
@@ -115,6 +128,7 @@ export const Interactions = ({
             variant={"default"}
             onClick={async () => {
               setLocalstorageRoom(null);
+              resetVote();
               await router.push(`/`);
             }}
           >
@@ -130,10 +144,16 @@ export const Interactions = ({
           checked={clientId ? spectators.includes(clientId) : false}
           onChange={(event) => {
             if (!channel) return;
+            setMyPresence({
+              username,
+              voting: null,
+              spectator: event.currentTarget.checked,
+            });
             channel.presence.update({
               username,
               voting: null,
               spectator: event.currentTarget.checked,
+              presencesLength: presences.length,
             });
           }}
         />

@@ -1,12 +1,15 @@
 import Head from "next/head";
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
-import { getUsername, setLocalstorageRoom } from "~/store/local-storage";
+import {
+  getUsername,
+  setLocalstorageRoom,
+  setMyPresence,
+} from "~/store/local-storage";
 import { UsernameModel } from "~/components/username-model";
 import { usePlausible } from "next-plausible";
-import { PlausibleEvents } from "~/utils/plausible.events";
+import { type PlausibleEvents } from "~/utils/plausible.events";
 import dynamic from "next/dynamic";
-import { useWsStore } from "~/store/ws-store";
 import { Table } from "~/components/table";
 import { WebsocketReceiver } from "~/components/websocket-receiver";
 import { Interactions } from "~/components/interactions";
@@ -18,9 +21,8 @@ const RoomPage = () => {
 
   const plausible = usePlausible<PlausibleEvents>();
 
-  const username = useWsStore((store) => store.username);
-  const setUsername = useWsStore((store) => store.setUsername);
   const [modelOpen, setModelOpen] = React.useState(false);
+  const [username, setInputUsername] = React.useState(getUsername());
 
   useEffect(() => {
     if ((!room || room === "undefined") && !firstLoad) {
@@ -33,12 +35,13 @@ const RoomPage = () => {
     plausible("entered", { props: { room } });
 
     if (!username) {
-      const localStorageUsername = getUsername();
-      if (localStorageUsername) {
-        setUsername(localStorageUsername);
-      } else {
-        setModelOpen(true);
-      }
+      setModelOpen(true);
+    } else {
+      setMyPresence({
+        username,
+        voting: null,
+        spectator: false,
+      });
     }
   }, [room]);
 
@@ -108,7 +111,7 @@ const RoomPage = () => {
                   setModelOpen={setModelOpen}
                   room={room}
                   username={username}
-                  setUsername={setUsername}
+                  setInputUsername={setInputUsername}
                 />
               );
             }

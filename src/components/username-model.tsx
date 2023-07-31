@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import { Button, FocusTrap, Modal, TextInput } from "@mantine/core";
+import { setUsername } from "~/store/local-storage";
 
 export const UsernameModel = ({
   modelOpen,
   setModelOpen,
   room,
   username,
-  setUsername,
+  setInputUsername,
 }: {
   modelOpen: boolean;
   setModelOpen: (modelOpen: boolean) => void;
   room: string;
   username: string | null;
-  setUsername: (username: string) => void;
+  setInputUsername: (username: string) => void;
 }) => {
   const [error, setError] = useState(false);
 
@@ -38,7 +39,7 @@ export const UsernameModel = ({
             value={username || ""}
             onChange={(event) => {
               setError(false);
-              setUsername(event.currentTarget.value.trim());
+              setInputUsername(event.currentTarget.value.trim());
             }}
           />
           <Button
@@ -54,6 +55,7 @@ export const UsernameModel = ({
               if (!username) {
                 setError(true);
               } else {
+                setInputUsername(username);
                 setUsername(username);
                 setModelOpen(false);
               }

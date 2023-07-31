@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { Types } from "ably";
-import { getUsername, setUsername } from "~/store/local-storage";
 import { getByValue } from "~/utils/map.util";
 import PresenceMessage = Types.PresenceMessage;
 import Message = Types.Message;
 import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
+import { resetVote } from "~/store/local-storage";
 
 export type Voting = {
   clientId: string;
@@ -14,8 +14,6 @@ export type Voting = {
 type WsStore = {
   clientId: string | null;
   setClientId: (clientId: string) => void;
-  username: string | null;
-  setUsername: (username: string) => void;
   channel: RealtimeChannelCallbacks | null;
   setChannel: (client: RealtimeChannelCallbacks) => void;
   autoShow: boolean;
@@ -24,11 +22,6 @@ type WsStore = {
   votes: Voting[];
   presences: string[];
   presencesMap: Map<string, string>;
-  myPresence: {
-    username: string | null;
-    voting: number | null;
-    spectator: boolean;
-  };
   fullReset: () => void;
   handleMessage: (message: Message) => void;
   updatePresences: (presenceMessage: PresenceMessage) => void;
@@ -37,11 +30,6 @@ type WsStore = {
 export const useWsStore = create<WsStore>((set, get) => ({
   clientId: null,
   setClientId: (clientId) => set({ clientId }),
-  username: getUsername(),
-  setUsername: (username: string) => {
-    setUsername(username);
-    set({ username });
-  },
   channel: null,
   setChannel: (channel) => {
     set({ channel });
@@ -52,7 +40,6 @@ export const useWsStore = create<WsStore>((set, get) => ({
   votes: [],
   presences: [],
   presencesMap: new Map(),
-  myPresence: { username: getUsername(), voting: null, spectator: false },
   fullReset: () => {
     set({ votes: [], flipped: true, presences: [], presencesMap: new Map() });
   },
@@ -63,9 +50,11 @@ export const useWsStore = create<WsStore>((set, get) => ({
         break;
       case "flip":
         set({ flipped: false });
+        resetVote();
         break;
       case "reset":
         set({ votes: [], flipped: true });
+        resetVote();
         break;
     }
   },
@@ -82,7 +71,7 @@ export const useWsStore = create<WsStore>((set, get) => ({
     switch (action) {
       case "enter":
         set((state) => ({
-          presencesMap: state.presencesMap.set(`${clientId}`, username),
+          presencesMap: state.presencesMap.set(clientId, username),
           presences: [
             ...new Set([...state.presences, clientId].filter(Boolean)),
           ],
@@ -90,7 +79,7 @@ export const useWsStore = create<WsStore>((set, get) => ({
         break;
       case "update":
         set((state) => ({
-          presencesMap: state.presencesMap.set(`${clientId}`, username),
+          presencesMap: state.presencesMap.set(clientId, username),
           presences: [
             ...new Set([...state.presences, clientId].filter(Boolean)),
           ],
@@ -117,9 +106,6 @@ export const useWsStore = create<WsStore>((set, get) => ({
               ...state.spectators.filter((spectator) => spectator !== clientId),
             ],
           }));
-        }
-        if (get().clientId === clientId) {
-          set({ myPresence: { username, voting, spectator } });
         }
         break;
       case "leave":

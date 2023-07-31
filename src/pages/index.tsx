@@ -2,7 +2,7 @@ import Head from "next/head";
 
 import { api } from "~/utils/api";
 import React, { useEffect, useState } from "react";
-import { NextPage } from "next";
+import { type NextPage } from "next";
 import { Autocomplete, Button, TextInput } from "@mantine/core";
 import { Hero } from "~/components/hero";
 import randomWords from "random-words";
@@ -11,21 +11,22 @@ import {
   getLocalstorageRoom,
   getUsername,
   setLocalstorageRoom,
+  setUsername,
 } from "~/store/local-storage";
 import { useRouter } from "next/router";
 import { usePlausible } from "next-plausible";
-import { PlausibleEvents } from "~/utils/plausible.events";
-import { useWsStore } from "~/store/ws-store";
+import { type PlausibleEvents } from "~/utils/plausible.events";
+import { log } from "~/utils/console-log";
 
 const Home: NextPage = () => {
   const router = useRouter();
-  let randomRoom =
+  const randomRoom =
     api.room.getRandomRoom.useQuery().data || randomWords({ exactly: 1 })[0];
-  let activeRooms = api.room.getActiveRooms.useQuery().data || [];
+  const activeRooms = api.room.getActiveRooms.useQuery().data || [];
 
-  const username = useWsStore((store) => store.username);
-  const setUsername = useWsStore((store) => store.setUsername);
+  const username = getUsername();
 
+  const [localUsername, setLocalUsername] = useState(username || "");
   const [roomName, setRoomName] = useState("");
   const [recentRoom, setRecentRoom] = useState<string | null>(null);
   const [buttonText, setButtonText] = useState("Create random room");
@@ -34,12 +35,12 @@ const Home: NextPage = () => {
   const plausible = usePlausible<PlausibleEvents>();
 
   useEffect(() => {
-    const localstorageUsername = getUsername();
-    if (localstorageUsername) {
-      setUsername(localstorageUsername);
-    }
     const localStorageRoom = getLocalstorageRoom();
-    if (!localStorageRoom || localStorageRoom === "undefined") {
+    if (
+      !localStorageRoom ||
+      localStorageRoom === "null" ||
+      localStorageRoom === "undefined"
+    ) {
       setLocalstorageRoom(null);
     } else {
       router
@@ -48,7 +49,7 @@ const Home: NextPage = () => {
         .catch(() => ({}));
     }
     setRecentRoom(getLocalstorageRecentRoom());
-    console.log("recentRoom", recentRoom);
+    log("recentRoom", { recentRoom });
   }, [recentRoom]);
 
   useEffect(() => {
@@ -132,7 +133,7 @@ const Home: NextPage = () => {
                   // TODO sentry
                   return;
                 }
-                const localRoom = recentRoom as String;
+                const localRoom = recentRoom;
                 e.preventDefault();
                 if (!username) {
                   setError(true);
@@ -152,10 +153,10 @@ const Home: NextPage = () => {
               error={error && "Required"}
               size="xl"
               withAsterisk
-              value={username || ""}
+              value={localUsername}
               onChange={(event) => {
                 setError(false);
-                setUsername(event.currentTarget.value.trim());
+                setLocalUsername(event.currentTarget.value.trim());
               }}
             />
 
@@ -184,9 +185,10 @@ const Home: NextPage = () => {
               disabled={!username && username?.length === 0}
               onClick={async (e) => {
                 e.preventDefault();
-                if (!username) {
+                if (!localUsername) {
                   setError(true);
                 } else {
+                  setUsername(localUsername);
                   if (activeRooms.includes(roomName.toLowerCase())) {
                     plausible("joined", {
                       props: { room: roomName.toLowerCase() },

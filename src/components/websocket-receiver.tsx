@@ -4,20 +4,13 @@ import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
 import { useWsStore } from "~/store/ws-store";
 import { useEffect } from "react";
 import shortUUID from "short-uuid";
-import { Types } from "ably";
 import { api } from "~/utils/api";
-import { setLocalstorageRecentRoom } from "~/store/local-storage";
-import PresenceMessage = Types.PresenceMessage;
-
-const logPresence = (msg: string, presenceUpdate: PresenceMessage) => {
-  console.log(msg, {
-    action: presenceUpdate.action,
-    clientId: presenceUpdate.clientId,
-    username: presenceUpdate.data.username,
-    voting: presenceUpdate.data.voting,
-    spectator: presenceUpdate.data.spectator,
-  });
-};
+import {
+  getMyPresence,
+  setLocalstorageRecentRoom,
+} from "~/store/local-storage";
+import * as process from "process";
+import { log, logPresence } from "~/utils/console-log";
 
 export const WebsocketReceiver = ({
   room,
@@ -39,17 +32,13 @@ export const WebsocketReceiver = ({
   const setChannel = useWsStore((store) => store.setChannel);
   const clientId = useWsStore((store) => store.clientId);
 
-  const myPresence = useWsStore((store) => store.myPresence);
+  const presences = useWsStore((store) => store.presences);
 
   const handleMessage = useWsStore((store) => store.handleMessage);
   const updatePresences = useWsStore((store) => store.updatePresences);
 
   const [channel] = useChannel(room, (message) => {
-    console.debug(
-      "RECEIVED MESSAGE",
-      { name: message.name, clientId: message.clientId },
-      message.data
-    );
+    log("RECEIVED MESSAGE", message);
     handleMessage(message);
   });
 
@@ -76,17 +65,27 @@ export const WebsocketReceiver = ({
 
   usePresence(room, { username }, (presenceUpdate) => {
     if (presenceUpdate.action === "enter") {
-      console.debug("SEND OWN PRESENCE ON ENTER", myPresence);
-      channel.presence.update(myPresence);
+      log("SEND OWN PRESENCE ON ENTER", getMyPresence());
+      channel.presence.update({
+        ...getMyPresence(),
+        presencesLength: presences.length,
+      });
     }
     logPresence("RECEIVED PRESENCE", presenceUpdate);
     updatePresences(presenceUpdate);
+    // everyone resends presence if presencesLength is not the same as the one it received
+    if (
+      presenceUpdate.data.presencesLength &&
+      presences.length !== presenceUpdate.data.presencesLength
+    ) {
+      channel.presence.update(getMyPresence());
+    }
   });
 
   if (process.browser) {
     window.onbeforeunload = () => {
       channel.presence.leave({}, () => {
-        console.debug("LEFT CHANNEL", { action: "left", clientId });
+        log("LEFT CHANNEL", { action: "left", clientId });
         return;
       });
     };
