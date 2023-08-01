@@ -145,7 +145,7 @@ const Home: NextPage = () => {
         <meta name="theme-color" content="#1a1b1e" />
       </Head>
       <main className="flex min-h-screen flex-col">
-        <Hero onHome />
+        <Hero />
         <div className="w-full px-4 pb-16">
           {recentRoom && (
             <Button
