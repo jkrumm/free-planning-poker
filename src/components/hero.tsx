@@ -6,6 +6,7 @@ import {
   Text,
 } from "@mantine/core";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 const BREAKPOINT = "@media (max-width: 755px)";
 
@@ -50,8 +51,15 @@ const useStyles = createStyles((theme: MantineTheme) => ({
   },
 }));
 
-export function Hero(props: { onHome?: boolean }) {
-  const { onHome } = props;
+export function Hero() {
+  const router = useRouter();
+
+  // which page are we on
+  const page = router.pathname;
+
+  const onHome = page === "/";
+  const onContact = page === "/contact";
+
   const { classes } = useStyles();
 
   return (
@@ -78,7 +86,7 @@ export function Hero(props: { onHome?: boolean }) {
         </h2>
         <div className="flex justify-center space-x-4">
           <Link href="/">
-            <Button color="blue" variant="outline">
+            <Button color={onHome ? "dark" : "gray"} variant="outline">
               Home
             </Button>
           </Link>
@@ -87,17 +95,21 @@ export function Hero(props: { onHome?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button color="blue" variant="outline">
+            <Button color="gray" variant="outline">
               Donate
             </Button>
           </a>
-          <Link href="/imprint">
-            <Button color="blue" variant="outline">
-              Imprint & Privacy Policy
+          <a
+            href="https://github.com/jkrumm/free-planning-poker"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" color="gray">
+              GitHub
             </Button>
-          </Link>
+          </a>
           <Link href="/contact">
-            <Button color="blue" variant="outline">
+            <Button color={onContact ? "dark" : "gray"} variant="outline">
               Contact
             </Button>
           </Link>

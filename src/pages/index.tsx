@@ -144,9 +144,9 @@ const Home: NextPage = () => {
         <meta name="msapplication-TileColor" content="#1a1b1e" />
         <meta name="theme-color" content="#1a1b1e" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center">
+      <main className="flex min-h-screen flex-col">
         <Hero onHome />
-        <div className="container px-4 pb-16">
+        <div className="w-full px-4 pb-16">
           {recentRoom && (
             <Button
               variant="gradient"
