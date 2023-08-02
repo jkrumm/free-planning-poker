@@ -1,15 +1,34 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import React from "react";
+import React, { useEffect } from "react";
 import { Hero } from "fpp/components/hero";
 import { Button, Group, SimpleGrid, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { getUsername } from "fpp/store/local-storage";
+import {
+  getLocalstorageVisitorId,
+  getUsername,
+  setLocalstorageVisitorId,
+} from "fpp/store/local-storage";
 import { api } from "fpp/utils/api";
 import { log } from "fpp/utils/console-log";
 import { notifications } from "@mantine/notifications";
 
 const Contact: NextPage = () => {
+  const getVisitorId = api.tracking.trackPageView.useMutation();
+  useEffect(() => {
+    const localstorageVisitorId = getLocalstorageVisitorId();
+    getVisitorId.mutate(
+      { visitorId: localstorageVisitorId, route: "CONTACT" },
+      {
+        onSuccess: (visitorId) => {
+          if (!localstorageVisitorId) {
+            setLocalstorageVisitorId(visitorId);
+          }
+        },
+      }
+    );
+  }, []);
+
   const sendMail = api.contact.sendMail.useMutation();
 
   const form = useForm({

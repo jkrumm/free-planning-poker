@@ -1,11 +1,31 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import React from "react";
+import React, { useEffect } from "react";
 import { Hero } from "fpp/components/hero";
 import Link from "next/link";
 import { Button } from "@mantine/core";
+import { api } from "fpp/utils/api";
+import {
+  getLocalstorageVisitorId,
+  setLocalstorageVisitorId,
+} from "fpp/store/local-storage";
 
 const Imprint: NextPage = () => {
+  const getVisitorId = api.tracking.trackPageView.useMutation();
+  useEffect(() => {
+    const localstorageVisitorId = getLocalstorageVisitorId();
+    getVisitorId.mutate(
+      { visitorId: localstorageVisitorId, route: "IMPRINT" },
+      {
+        onSuccess: (visitorId) => {
+          if (!localstorageVisitorId) {
+            setLocalstorageVisitorId(visitorId);
+          }
+        },
+      }
+    );
+  }, []);
+
   return (
     <>
       <Head>
@@ -83,21 +103,29 @@ const Imprint: NextPage = () => {
           </div>
           <div>
             <h1>Privacy Policy</h1>
-            Our website employs Plausible for{" "}
-            <strong>website usage analytics</strong>. Plausible respects user
-            privacy by not tracking IP addresses or recording specific location
-            details. Any data collected is solely for the purpose of service
-            enhancement and does so without the use of cookies or other tracking
-            technologies. Please note, this service does not necessitate user
-            consent due to its General Data Protection Regulation (GDPR)
-            compliance.
+            We collect <strong>anonymized website usage analytics</strong> to
+            improve our services and user experience, in compliance with the
+            General Data Protection Regulation (GDPR). Without the use of
+            cookies or other permanent tracking technologies. This includes
+            generic device information (type, OS, browser), approximate
+            geolocation (country, city, region), and the random unique session
+            ID stored in your local storage. This ID allows us to track your
+            page visits and certain actions on our site, such as entering a room
+            and final vote, to help us understand user behavior and preferences.
+            <br />
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            Such data collection takes place under the 'legitimate interests'
+            lawful basis as per GDPR Article 6(1)(f) as it is crucial for
+            analytical purposes and does not involve processing personally
+            identifiable information, thus requiring no prior consent. The
+            utmost respect for your privacy and adherence to data protection
+            principles are steadfastly maintained.
             <br />
             <br />
             Ably, a WebSocket provider, plays a significant role in our
             services. Data protection compliance is prioritized by Ably, with
             adherence to EU GDPR and employing 256-bit AES encryption. Ably
             ensures that data in transit remains secure and confidential.
-            <br />
             <br />
             Within our service, <strong>Ably Websockets</strong> enables the
             transparent sharing of usernames and votes. However, this data does
@@ -114,19 +142,20 @@ const Imprint: NextPage = () => {
             prior to utilizing this data for any other purpose.
             <br />
             <br />
-            Our website is supported by a MySQL database managed by Planetscale,
+            Our website is supported by a database managed by Planetscale,
             operating in convergence with an eu-central-1 hosted AWS MySQL
             database. To assure data integrity, all transfers are encrypted.
             However, the{" "}
             <strong>
-              database usage is limited to storing room usage information and
-              voting statistics
+              database usage is limited to storing the anonymized website usage
+              analytics
             </strong>{" "}
             and bears no link to specific usernames or individual votes.
             Information collected in no way contributes to individual profiles.
             <br />
             <br />
             <strong>Usernames</strong> within our service are purely fictitious.
+            They are not stored or linked to the website usage analytics.
             Although accessible upon room entry, these names and corresponding
             votes are not identifiable. We urge avoidance of identifiable
             information as usernames to ensure GDPR compliance.

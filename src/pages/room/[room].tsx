@@ -2,8 +2,10 @@ import Head from "next/head";
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import {
+  getLocalstorageVisitorId,
   getUsername,
   setLocalstorageRoom,
+  setLocalstorageVisitorId,
   setMyPresence,
 } from "fpp/store/local-storage";
 import { UsernameModel } from "fpp/components/username-model";
@@ -13,10 +15,12 @@ import dynamic from "next/dynamic";
 import { Table } from "fpp/components/table";
 import { WebsocketReceiver } from "fpp/components/websocket-receiver";
 import { Interactions } from "fpp/components/interactions";
+import { api } from "fpp/utils/api";
 
 const RoomPage = () => {
   const router = useRouter();
-  const room = router.query.room as string;
+  const getVisitorId = api.tracking.trackPageView.useMutation();
+  let room = router.query.room as string;
   const [firstLoad, setFirstLoad] = React.useState(true);
 
   const plausible = usePlausible<PlausibleEvents>();
@@ -31,6 +35,29 @@ const RoomPage = () => {
         return;
       });
     }
+    if (firstLoad) {
+      room = room.replace(/[^A-Za-z]/g, "").toLowerCase();
+      if (room.length < 3 || room.length > 15) {
+        setLocalstorageRoom(null);
+        void router.push(`/`).then(() => {
+          return;
+        });
+      }
+      setLocalstorageRoom(room);
+
+      const localstorageVisitorId = getLocalstorageVisitorId();
+      getVisitorId.mutate(
+        { visitorId: localstorageVisitorId, route: "IMPRINT", room },
+        {
+          onSuccess: (visitorId) => {
+            if (!localstorageVisitorId) {
+              setLocalstorageVisitorId(visitorId);
+            }
+          },
+        }
+      );
+    }
+
     setFirstLoad(false);
     plausible("entered", { props: { room } });
 

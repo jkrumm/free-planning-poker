@@ -1,16 +1,67 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mysql"
-    relationMode = "prisma"
-    url = env("DATABASE_URL")
+  provider     = "mysql"
+  relationMode = "prisma"
+  url          = env("DATABASE_URL")
 }
 
 model Room {
-    name       String   @id @default(cuid())
-    lastUsed   DateTime @default(now())
+  name     String   @id @default(cuid())
+  lastUsed DateTime @default(now())
 
-    @@unique([name])
+  @@unique([name])
+}
+
+model Visitor {
+  id        String   @id @default(uuid())
+  device    String?
+  os        String?
+  browser   String?
+  country   String?
+  region    String?
+  city      String?
+  startedAt DateTime @default(now())
+
+  pageViews PageView[]
+  events    Event[]
+}
+
+enum RouteType {
+  HOME
+  CONTACT
+  IMPRINT
+  ROOM
+}
+
+model PageView {
+  id        Int       @id @default(autoincrement())
+  visitorId String
+  route     RouteType
+  room      String?
+  viewedAt  DateTime  @default(now())
+
+  visitor Visitor @relation(fields: [visitorId], references: [id])
+
+  @@index([visitorId])
+}
+
+enum EventType {
+  CONTACT_FORM_SUBMISSION
+  ENTER_EXISTING_ROOM
+  ENTER_RANDOM_ROOM
+  ENTER_RECENT_ROOM
+}
+
+model Event {
+  id         Int       @id @default(autoincrement())
+  visitorId  String
+  type       EventType
+  occurredAt DateTime  @default(now())
+
+  visitor Visitor @relation(fields: [visitorId], references: [id])
+
+  @@index([visitorId])
 }

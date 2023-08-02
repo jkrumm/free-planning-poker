@@ -15,8 +15,10 @@ import randomWords from "random-words";
 import {
   getLocalstorageRecentRoom,
   getLocalstorageRoom,
+  getLocalstorageVisitorId,
   getUsername,
   setLocalstorageRoom,
+  setLocalstorageVisitorId,
   setUsername,
 } from "fpp/store/local-storage";
 import { useRouter } from "next/router";
@@ -24,6 +26,7 @@ import { usePlausible } from "next-plausible";
 import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
+import { log } from "fpp/utils/console-log";
 
 const useStyles = createStyles(() => ({
   buttonRight: {
@@ -39,6 +42,24 @@ const useStyles = createStyles(() => ({
 const Home: NextPage = () => {
   const { classes } = useStyles();
   const router = useRouter();
+
+  const getVisitorId = api.tracking.trackPageView.useMutation();
+  useEffect(() => {
+    const localstorageVisitorId = getLocalstorageVisitorId();
+    getVisitorId.mutate(
+      { visitorId: localstorageVisitorId, route: "HOME" },
+      {
+        onSuccess: (visitorId) => {
+          if (!localstorageVisitorId) {
+            log("new visitorId", { visitorId });
+            setLocalstorageVisitorId(visitorId);
+          } else {
+            log("existing visitorId", { visitorId });
+          }
+        },
+      }
+    );
+  }, []);
 
   const initialUsername = getUsername() ?? "";
 

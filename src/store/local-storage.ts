@@ -94,3 +94,17 @@ export function setLocalstorageRecentRoom(room: string): void {
   }
   return localStorage.setItem("recentRoom", room);
 }
+
+export function getLocalstorageVisitorId(): string | null {
+  if (typeof window == "undefined") {
+    return null;
+  }
+  return localStorage.getItem("visitorId");
+}
+
+export function setLocalstorageVisitorId(visitorId: string): void {
+  if (typeof window == "undefined") {
+    throw new Error("not on local");
+  }
+  return localStorage.setItem("visitorId", visitorId);
+}
