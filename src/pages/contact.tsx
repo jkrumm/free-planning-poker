@@ -1,6 +1,6 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import React, { useEffect } from "react";
+import React from "react";
 import { Hero } from "fpp/components/hero";
 import { Button, Group, SimpleGrid, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -8,24 +8,21 @@ import { api } from "fpp/utils/api";
 import { log } from "fpp/utils/console-log";
 import { notifications } from "@mantine/notifications";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import {
+  useTrackPageView,
+  type UseTrackPageViewMutation,
+} from "fpp/utils/use-tracking.hooks";
+import { RouteType } from "@prisma/client";
+import { EventType } from ".prisma/client";
 
 const Contact: NextPage = () => {
-  const sendEvent = api.tracking.trackEvent.useMutation();
-
   const username = useLocalstorageStore((state) => state.username);
+
   const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
-  const getVisitorId = api.tracking.trackPageView.useMutation();
-  useEffect(() => {
-    getVisitorId.mutate(
-      { visitorId, route: "CONTACT" },
-      {
-        onSuccess: (visitorId) => {
-          setVisitorId(visitorId);
-        },
-      }
-    );
-  }, []);
+  const trackPageViewMutation =
+    api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
+  useTrackPageView(RouteType.CONTACT, visitorId, trackPageViewMutation);
+  const sendEvent = api.tracking.trackEvent.useMutation();
 
   const sendMail = api.contact.sendMail.useMutation();
 
@@ -126,7 +123,7 @@ const Contact: NextPage = () => {
               });
               sendEvent.mutate({
                 visitorId,
-                type: "CONTACT_FORM_SUBMISSION",
+                type: EventType.CONTACT_FORM_SUBMISSION,
               });
             })}
           >

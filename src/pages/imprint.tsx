@@ -1,26 +1,22 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import React, { useEffect } from "react";
+import React from "react";
 import { Hero } from "fpp/components/hero";
 import Link from "next/link";
 import { Button } from "@mantine/core";
 import { api } from "fpp/utils/api";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import {
+  useTrackPageView,
+  type UseTrackPageViewMutation,
+} from "fpp/utils/use-tracking.hooks";
+import { RouteType } from "@prisma/client";
 
 const Imprint: NextPage = () => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
-  const getVisitorId = api.tracking.trackPageView.useMutation();
-  useEffect(() => {
-    getVisitorId.mutate(
-      { visitorId, route: "IMPRINT" },
-      {
-        onSuccess: (visitorId) => {
-          setVisitorId(visitorId);
-        },
-      }
-    );
-  }, []);
+  const trackPageViewMutation =
+    api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
+  useTrackPageView(RouteType.IMPRINT, visitorId, trackPageViewMutation);
 
   return (
     <>

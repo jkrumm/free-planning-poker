@@ -11,6 +11,7 @@ import { Interactions } from "fpp/components/interactions";
 import { api } from "fpp/utils/api";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import Link from "next/link";
+import { EventType } from ".prisma/client";
 
 const RoomPage = () => {
   const router = useRouter();
@@ -23,7 +24,8 @@ const RoomPage = () => {
   const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
   const visitorId = useLocalstorageStore((state) => state.visitorId);
   const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
-  const getVisitorId = api.tracking.trackPageView.useMutation();
+  const trackPageViewMutation = api.tracking.trackPageView.useMutation();
+  const sendEvent = api.tracking.trackEvent.useMutation();
 
   const queryRoom = router.query.room as string;
   const [firstLoad, setFirstLoad] = React.useState(true);
@@ -73,7 +75,11 @@ const RoomPage = () => {
       setRoom(queryRoom);
       setRecentRoom(queryRoom);
 
-      getVisitorId.mutate(
+      sendEvent.mutate({
+        visitorId,
+        type: EventType.ENTER_DIRECTLY,
+      });
+      trackPageViewMutation.mutate(
         { visitorId, route: "ROOM", room: queryRoom },
         {
           onSuccess: (visitorId) => {

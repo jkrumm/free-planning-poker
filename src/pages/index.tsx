@@ -11,13 +11,17 @@ import {
   TextInput,
 } from "@mantine/core";
 import { Hero } from "fpp/components/hero";
-import { generate } from "random-words";
 import { useRouter } from "next/router";
-import { usePlausible } from "next-plausible";
-import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import {
+  useTrackPageView,
+  type UseTrackPageViewMutation,
+} from "fpp/utils/use-tracking.hooks";
+import { EventType } from ".prisma/client";
+import { generate } from "random-words";
+import { RouteType } from "@prisma/client";
 
 const useStyles = createStyles(() => ({
   buttonRight: {
@@ -40,18 +44,10 @@ const Home: NextPage = () => {
   const setRoom = useLocalstorageStore((state) => state.setRoom);
 
   const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
-  const getVisitorId = api.tracking.trackPageView.useMutation();
-  useEffect(() => {
-    getVisitorId.mutate(
-      { visitorId, route: "HOME" },
-      {
-        onSuccess: (visitorId) => {
-          setVisitorId(visitorId);
-        },
-      }
-    );
-  }, []);
+  const trackPageViewMutation =
+    api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
+  useTrackPageView(RouteType.HOME, visitorId, trackPageViewMutation);
+  const sendEvent = api.tracking.trackEvent.useMutation();
 
   const recentRoom = useLocalstorageStore((state) => state.recentRoom);
   const [hasRecentRoom, setHasRecentRoom] = useState(false);
@@ -61,12 +57,7 @@ const Home: NextPage = () => {
     }
   }, [recentRoom]);
 
-  const randomRoom =
-    api.room.getRandomRoom.useQuery().data ??
-    generate({ minLength: 3, exactly: 1 })[0];
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
-
-  const plausible = usePlausible<PlausibleEvents>();
 
   useEffect(() => {
     if (!room || room === "null" || room === "undefined") {
@@ -82,7 +73,7 @@ const Home: NextPage = () => {
   const form = useForm({
     initialValues: {
       username: username ?? "",
-      room: randomRoom ?? "",
+      room: generate({ minLength: 3, exactly: 1 })[0] ?? "",
     },
     validate: {
       username: (value) =>
@@ -93,6 +84,13 @@ const Home: NextPage = () => {
         value.replace(/[^A-Za-z]/g, "").length > 15,
     },
   });
+
+  const randomRoomQuery = api.room.getRandomRoom.useQuery();
+  useEffect(() => {
+    if (randomRoomQuery.data) {
+      form.setFieldValue("room", randomRoomQuery.data);
+    }
+  }, [randomRoomQuery.data]);
 
   const [usernameInvalid, setUsernameInvalid] = useState<boolean>(false);
 
@@ -173,9 +171,10 @@ const Home: NextPage = () => {
                 setUsername(form.values.username);
                 setRoom(recentRoom);
                 e.preventDefault();
-                /* plausible("recent", {
-                props: { room: recentRoom },
-              }); */
+                sendEvent.mutate({
+                  visitorId,
+                  type: EventType.ENTER_RECENT_ROOM,
+                });
                 await router.push(`/room/${recentRoom}`);
               }}
             >
@@ -190,13 +189,21 @@ const Home: NextPage = () => {
               const roomName = form.values.room
                 .replace(/[^A-Za-z]/g, "")
                 .toLowerCase();
+
               if (activeRooms.includes(roomName)) {
-                plausible("joined", {
-                  props: { room: roomName },
+                sendEvent.mutate({
+                  visitorId,
+                  type: EventType.ENTER_EXISTING_ROOM,
+                });
+              } else if (roomName === randomRoomQuery.data) {
+                sendEvent.mutate({
+                  visitorId,
+                  type: EventType.ENTER_RANDOM_ROOM,
                 });
               } else {
-                plausible("created", {
-                  props: { room: roomName },
+                sendEvent.mutate({
+                  visitorId,
+                  type: EventType.ENTER_NEW_ROOM,
                 });
               }
               setRoom(roomName);
