@@ -63,7 +63,7 @@ export function Hero() {
   const { classes } = useStyles();
 
   return (
-    <div className={classes.wrapper}>
+    <header className={classes.wrapper}>
       <Container size={820} className={classes.inner}>
         <Link href="/" className="no-underline">
           <div className="logo" />
@@ -72,7 +72,6 @@ export function Hero() {
               component="span"
               variant="gradient"
               gradient={{ from: "blue", to: "cyan" }}
-              // color="#54a2e9"
               inherit
               className="mb-4 block"
             >
@@ -84,7 +83,7 @@ export function Hero() {
           Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
           Source <span>|</span> Privacy Focused
         </h2>
-        <div className="flex justify-center space-x-4">
+        <nav className="flex justify-center space-x-4">
           <Link href="/">
             <Button color={onHome ? "dark" : "gray"} variant="outline">
               Home
@@ -113,20 +112,22 @@ export function Hero() {
               Contact
             </Button>
           </Link>
-        </div>
+        </nav>
         {onHome && (
           <Text
             className={`${classes.description} mt-12 text-center`}
             color="dimmed"
           >
-            Say goodbye to overly complicated and costly planning poker tools
-            with this user-friendly app. Based on the Fibonacci sequence for
-            story point estimation, this tool is suitable for any agile project
-            management needs, whether you use Scrum, Kanban, or your own custom
-            Jira workflow.
+            <p>
+              Say goodbye to complicated and expensive planning poker tools with
+              this user-friendly app. Based on the Fibonacci sequence for story
+              point estimation, this tool is suitable for any agile project
+              management needs, whether you use Scrum, Kanban, or your own
+              custom Jira workflow.
+            </p>
           </Text>
         )}
       </Container>
-    </div>
+    </header>
   );
 }

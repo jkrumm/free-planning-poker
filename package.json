@@ -44,6 +44,7 @@
     "random-words": "^2.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-intersection-observer": "^9.5.2",
     "request-ip": "^3.3.0",
     "short-uuid": "^4.2.2",
     "superjson": "1.12.2",
@@ -52,13 +53,13 @@
     "zustand": "^4.3.3"
   },
   "devDependencies": {
-    "@types/random-words": "^1.1.2",
     "@types/eslint": "^8.37.0",
     "@types/geoip-lite": "^1.4.1",
     "@types/luxon": "^3.2.0",
     "@types/node": "^18.16.0",
     "@types/nodemailer": "^6.4.9",
     "@types/prettier": "^2.7.2",
+    "@types/random-words": "^1.1.2",
     "@types/react": "^18.2.6",
     "@types/react-dom": "^18.2.4",
     "@types/request-ip": "^0.0.38",

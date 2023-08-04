@@ -73,7 +73,7 @@ const Imprint: NextPage = () => {
       </Head>
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container flex gap-12 px-4 pb-28 pt-8">
+        <div className="container flex max-w-[1200px] gap-12 px-4 pb-28 pt-8">
           <div className="md:min-w-[250px]">
             <h1>Imprint</h1>
             <h3>Service Provider</h3>

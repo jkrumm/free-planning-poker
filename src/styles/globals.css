@@ -10,6 +10,42 @@ html {
     padding-bottom: 12px;
 }
 
+
+article h2 {
+    text-align: center;
+    margin-top: 50px !important;
+}
+
+article p {
+    line-height: 1.8 !important;
+}
+
+.fixed-article-link, .scroll-to-top {
+    opacity: 1;
+    transition: opacity 500ms linear;
+}
+
+.fixed-article-link {
+    position: absolute;
+    top: calc(100vh - 110px);
+    right: 30px;
+}
+
+.fixed-article-link.hidden, .scroll-to-top.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 50px;
+    right: 30px;
+}
+
+/**
+ * Room Styling
+ */
+
 .logo {
     content: '';
     width: 150px;
@@ -67,9 +103,10 @@ h2 span {
     border-radius: 150px;
     border: 15px solid #a95555;
 }
+
 .table:before {
     content: '';
-    border: 7px solid rgba(0,0,0,0.1);
+    border: 7px solid rgba(0, 0, 0, 0.1);
     display: block;
     width: 1015px;
     height: 415px;
@@ -78,9 +115,10 @@ h2 span {
     top: -15px;
     left: -15px;
 }
+
 .table:after {
     content: '';
-    border: 7px solid rgba(0,0,0,0.1);
+    border: 7px solid rgba(0, 0, 0, 0.1);
     display: block;
     width: 985px;
     height: 385px;
@@ -89,6 +127,7 @@ h2 span {
     top: 0;
     left: 0;
 }
+
 .table .card-place {
     border: 5px solid #63c763;
     height: 100px;
@@ -103,6 +142,7 @@ h2 span {
     display: flex;
     z-index: 50;
 }
+
 .vote {
     color: #63c763;
     font-size: 40px;
@@ -111,31 +151,36 @@ h2 span {
     width: 100%;
     margin-top: 4px;
 }
+
 .table .card-place .card:not(:last-child) {
     margin-right: 15px;
 }
+
 .players {
     position: relative;
     width: 100%;
     height: 100%;
     z-index: 30;
 }
+
 .players .player {
     position: absolute;
 }
+
 .players .player .avatar {
     width: 120px;
     height: 120px;
     background-color: #C1C2C5;
     border-radius: 100%;
     position: relative;
-    box-shadow: 2px 10px 0 rgba(0,0,0,0.4);
+    box-shadow: 2px 10px 0 rgba(0, 0, 0, 0.4);
     z-index: 20;
 }
 
 .players .player .avatar.pending {
     background-color: rgb(224, 49, 49);
 }
+
 .players .player .avatar.voted {
     background-color: rgb(47, 158, 68);
 }
@@ -145,13 +190,14 @@ h2 span {
     width: 70px;
     height: 70px;
     position: absolute;
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(0, 0, 0, 0.1);
     top: 50%;
     left: 50%;
     transform: translatex(-50%) translatey(-50%);
     border-radius: 100%;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
 }
+
 .players .player .name {
     text-align: center;
     width: 100px;
@@ -161,6 +207,7 @@ h2 span {
     position: absolute;
     top: -40px;
 }
+
 .players .player.playing:before {
     content: '...';
     color: white;
@@ -174,58 +221,71 @@ h2 span {
     border-radius: 5px;
     z-index: 30;
 }
+
 .players .player.player-1 {
     top: 0;
     left: 50%;
     transform: translatex(-50%) translatey(-50%);
 }
+
 .players .player.player-2 {
     bottom: 0;
     left: 50%;
     transform: translatex(-50%) translatey(50%) rotatez(180deg);
 }
+
 .players .player.player-2 .name, .players .player.player-2 .card {
     transform: rotatez(180deg);
 }
+
 .players .player.player-3 {
     top: 50%;
     left: 0;
     transform: translatex(-50%) translatey(-50%) rotatez(-90deg);
 }
+
 .players .player.player-3 .name {
     transform: rotatez(0deg);
 }
+
 .players .player.player-4 {
     top: 50%;
     right: 0;
     transform: translatex(50%) translatey(-50%) rotatez(90deg);
 }
+
 .players .player.player-4 .name {
     transform: rotatez(0deg);
 }
+
 .players .player.player-8 {
     top: 0;
     left: 25%;
     transform: translatex(-50%) translatey(-50%);
 }
+
 .players .player.player-6 {
     bottom: 0;
     left: 75%;
     transform: translatex(-50%) translatey(50%) rotatez(180deg);
 }
+
 .players .player.player-6 .name, .players .player.player-6 .card {
     transform: rotatez(180deg);
 }
+
 .players .player.player-7 {
     top: 0;
     left: 75%;
     transform: translatex(-50%) translatey(-50%);
 }
+
 .players .player.player-5 {
     bottom: 0;
     left: 25%;
     transform: translatex(-50%) translatey(50%) rotatez(180deg);
 }
+
 .players .player.player-5 .name, .players .player.player-5 .card {
     transform: rotatez(180deg);
 }
@@ -254,10 +314,12 @@ h2 span {
     display: block;
     width: 60px;
 }
+
 .card-wrapper .card {
     border-bottom: 1px solid #525760;
     border-left: 1px solid #525760;
 }
+
 .card-wrapper .card:last-of-type {
     border: 1px solid #373A40;
 }
@@ -269,34 +331,42 @@ h2 span {
     right: 15px;
     top: 20px;
 }
+
 .card-wrapper.amount-1 {
     margin-left: 3px;
     top: -3px;
 }
+
 .card-wrapper.amount-2 {
     margin-left: 6px;
     top: -6px;
 }
+
 .card-wrapper.amount-3 {
     margin-left: 9px;
     top: -9px;
 }
+
 .card-wrapper.amount-4 {
     margin-left: 12px;
     top: -12px;
 }
+
 .card-wrapper.amount-5 {
     margin-left: 15px;
     top: -15px;
 }
+
 .card-wrapper.amount-6 {
     margin-left: 18px;
     top: -18px;
 }
+
 .card-wrapper.amount-7 {
     margin-left: 21px;
     top: -21px;
 }
+
 .card-wrapper.amount-8 {
     margin-left: 24px;
     top: -24px;
@@ -307,45 +377,54 @@ h2 span {
     top: 0;
     left: 0;
 }
+
 .card-wrapper .card:first-child {
     z-index: 8;
     left: 0;
 }
+
 .card-wrapper .card:nth-child(2) {
     z-index: 7;
     left: -2px;
     top: 2px;
 }
+
 .card-wrapper .card:nth-child(3) {
     z-index: 6;
     left: -4px;
     top: 4px;
 }
+
 .card-wrapper .card:nth-child(4) {
     z-index: 5;
     left: -6px;
     top: 6px;
 }
+
 .card-wrapper .card:nth-child(5) {
     z-index: 4;
     left: -8px;
     top: 8px;
 }
+
 .card-wrapper .card:nth-child(6) {
     z-index: 3;
     left: -10px;
     top: 10px;
 }
+
 .card-wrapper .card:nth-child(7) {
     z-index: 2;
     left: -12px;
     top: 12px;
 }
+
 .card-wrapper .card:nth-child(8) {
     z-index: 1;
     left: -14px;
     top: 14px;
 }
+
 .card-wrapper .card:nth-child(9) {
     z-index: 1;
     left: -16px;

@@ -12,10 +12,10 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
     <PlausibleProvider domain={"free-planning-poker.com"}>
       <MantineProvider
         withNormalizeCSS
-        withGlobalStyles
         theme={{
           colorScheme: "dark",
         }}
+        withGlobalStyles
       >
         <Notifications position="top-right" />
         <Component {...pageProps} />
