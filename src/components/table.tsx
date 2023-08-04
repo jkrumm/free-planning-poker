@@ -1,6 +1,6 @@
 "use client";
 
-import { useWsStore } from "fpp/store/ws-store";
+import { useWsStore } from "fpp/store/ws.store";
 import { Button } from "@mantine/core";
 import React from "react";
 import { usePlausible } from "next-plausible";

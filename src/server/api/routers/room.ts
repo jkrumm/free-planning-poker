@@ -1,6 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { DateTime } from "luxon";
-import randomWords from "random-words";
+import { generate } from "random-words";
 import { z } from "zod";
 
 export const roomRouter = createTRPCRouter({
@@ -15,9 +15,11 @@ export const roomRouter = createTRPCRouter({
       })) || []
     ).map((item) => item.name);
     for (let i = 3; i <= 11; i++) {
-      const filtered = randomWords({ maxLength: i, exactly: 400 }).filter(
-        (item) => !usedRooms.includes(item)
-      );
+      const filtered = generate({
+        minLength: 3,
+        maxLength: i,
+        exactly: 400,
+      }).filter((item) => !usedRooms.includes(item));
       if (filtered.length > 0) {
         return filtered[0];
       }

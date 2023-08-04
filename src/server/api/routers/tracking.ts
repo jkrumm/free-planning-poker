@@ -9,7 +9,11 @@ import { type NextApiRequest } from "next";
 function prepareSessionData(req: NextApiRequest): Partial<Visitor> {
   const ua = UAParser(req.headers["user-agent"]);
 
-  const ip = requestIp.getClientIp(req);
+  let ip = requestIp.getClientIp(req);
+  if (!ip || ip === "::1") {
+    ip = req.connection.remoteAddress ?? null;
+  }
+
   let geo = null;
   if (ip) {
     geo = lookup(ip);

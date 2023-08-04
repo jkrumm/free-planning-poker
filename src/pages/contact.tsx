@@ -4,26 +4,24 @@ import React, { useEffect } from "react";
 import { Hero } from "fpp/components/hero";
 import { Button, Group, SimpleGrid, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import {
-  getLocalstorageVisitorId,
-  getUsername,
-  setLocalstorageVisitorId,
-} from "fpp/store/local-storage";
 import { api } from "fpp/utils/api";
 import { log } from "fpp/utils/console-log";
 import { notifications } from "@mantine/notifications";
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
 
 const Contact: NextPage = () => {
+  const sendEvent = api.tracking.trackEvent.useMutation();
+
+  const username = useLocalstorageStore((state) => state.username);
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
   const getVisitorId = api.tracking.trackPageView.useMutation();
   useEffect(() => {
-    const localstorageVisitorId = getLocalstorageVisitorId();
     getVisitorId.mutate(
-      { visitorId: localstorageVisitorId, route: "CONTACT" },
+      { visitorId, route: "CONTACT" },
       {
         onSuccess: (visitorId) => {
-          if (!localstorageVisitorId) {
-            setLocalstorageVisitorId(visitorId);
-          }
+          setVisitorId(visitorId);
         },
       }
     );
@@ -33,7 +31,7 @@ const Contact: NextPage = () => {
 
   const form = useForm({
     initialValues: {
-      name: getUsername() ?? "",
+      name: username ?? "",
       email: "",
       subject: "",
       message: "",
@@ -125,6 +123,10 @@ const Contact: NextPage = () => {
                     message: "Something went wrong, please try again later",
                   });
                 },
+              });
+              sendEvent.mutate({
+                visitorId,
+                type: "CONTACT_FORM_SUBMISSION",
               });
             })}
           >

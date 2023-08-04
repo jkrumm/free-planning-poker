@@ -4,7 +4,6 @@ import { getByValue } from "fpp/utils/map.util";
 import PresenceMessage = Types.PresenceMessage;
 import Message = Types.Message;
 import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
-import { resetVote } from "fpp/store/local-storage";
 
 export type Voting = {
   clientId: string;
@@ -59,11 +58,9 @@ export const useWsStore = create<WsStore>((set, get) => ({
         break;
       case "flip":
         set({ flipped: false });
-        resetVote();
         break;
       case "reset":
         set({ votes: [], flipped: true });
-        resetVote();
         break;
     }
   },

@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { Button, FocusTrap, Modal, TextInput } from "@mantine/core";
-import { setUsername } from "fpp/store/local-storage";
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
 
 export const UsernameModel = ({
   modelOpen,
   setModelOpen,
   room,
-  username,
-  setInputUsername,
 }: {
   modelOpen: boolean;
   setModelOpen: (modelOpen: boolean) => void;
   room: string;
-  username: string | null;
-  setInputUsername: (username: string) => void;
 }) => {
   const [error, setError] = useState(false);
+
+  const [inputUsername, setInputUsername] = useState("");
+
+  const setUsername = useLocalstorageStore((store) => store.setUsername);
 
   return (
     <Modal
@@ -36,7 +36,7 @@ export const UsernameModel = ({
             error={error && "Required"}
             size="xl"
             withAsterisk
-            value={username ?? ""}
+            value={inputUsername}
             onChange={(event) => {
               setError(false);
               setInputUsername(event.currentTarget.value.trim());
@@ -49,14 +49,21 @@ export const UsernameModel = ({
             className={`my-8 w-full px-0`}
             type="submit"
             uppercase
-            disabled={!username && username?.length === 0}
+            disabled={
+              !inputUsername ||
+              inputUsername?.replace(/[^A-Za-z]/g, "").length < 3 ||
+              inputUsername?.replace(/[^A-Za-z]/g, "").length > 15
+            }
             onClick={(e) => {
               e.preventDefault();
-              if (!username) {
+              if (
+                !inputUsername ||
+                inputUsername?.replace(/[^A-Za-z]/g, "").length < 3 ||
+                inputUsername?.replace(/[^A-Za-z]/g, "").length > 15
+              ) {
                 setError(true);
               } else {
-                setInputUsername(username);
-                setUsername(username);
+                setUsername(inputUsername);
                 setModelOpen(false);
               }
             }}

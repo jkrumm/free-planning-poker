@@ -1,15 +1,10 @@
 import { Button, Switch } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import {
-  getMyPresence,
-  setMyPresence,
-  setLocalstorageRoom,
-  resetVote,
-} from "fpp/store/local-storage";
-import { type PresenceUpdate, useWsStore } from "fpp/store/ws-store";
+import { type PresenceUpdate, useWsStore } from "fpp/store/ws.store";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { log } from "fpp/utils/console-log";
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
 
 const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
 
@@ -21,6 +16,12 @@ export const Interactions = ({
   username: string;
 }) => {
   const router = useRouter();
+
+  const voting = useLocalstorageStore((store) => store.voting);
+  const setVoting = useLocalstorageStore((store) => store.setVoting);
+  // const spectator = useLocalstorageStore((store) => store.spectator);
+  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
+  const setRoom = useLocalstorageStore((store) => store.setRoom);
 
   const clientId = useWsStore((store) => store.clientId);
   const channel = useWsStore((store) => store.channel);
@@ -35,7 +36,7 @@ export const Interactions = ({
     if (!channel || !clientId) return;
     const presenceUpdate: PresenceUpdate = {
       username,
-      voting: getMyPresence().voting,
+      voting,
       spectator: spectators.includes(clientId),
       presencesLength: presences.length,
     };
@@ -64,10 +65,7 @@ export const Interactions = ({
               key={number}
               onClick={() => {
                 if (!channel || !clientId) return;
-                setMyPresence({
-                  ...getMyPresence(),
-                  voting: number,
-                });
+                setVoting(number);
                 const presenceUpdate: PresenceUpdate = {
                   username,
                   voting: number,
@@ -131,8 +129,8 @@ export const Interactions = ({
             variant={"default"}
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
-              setLocalstorageRoom(null);
-              resetVote();
+              setRoom(null);
+              setVoting(null);
               await router.push(`/`);
             }}
           >
@@ -148,11 +146,8 @@ export const Interactions = ({
           checked={clientId ? spectators.includes(clientId) : false}
           onChange={(event) => {
             if (!channel) return;
-            setMyPresence({
-              username,
-              voting: null,
-              spectator: event.currentTarget.checked,
-            });
+            setSpectator(event.currentTarget.checked);
+            setVoting(null);
             const presenceUpdate: Partial<PresenceUpdate> = {
               username,
               voting: null,

@@ -1,6 +1,6 @@
 import { Types } from "ably";
+import { type PresenceUpdate } from "fpp/store/ws.store";
 import PresenceMessage = Types.PresenceMessage;
-import { type PresenceUpdate } from "fpp/store/ws-store";
 
 export const log = (msg: string, data: object) => {
   if (process.env.NODE_ENV === "development") {

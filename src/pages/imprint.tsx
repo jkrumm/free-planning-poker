@@ -5,22 +5,18 @@ import { Hero } from "fpp/components/hero";
 import Link from "next/link";
 import { Button } from "@mantine/core";
 import { api } from "fpp/utils/api";
-import {
-  getLocalstorageVisitorId,
-  setLocalstorageVisitorId,
-} from "fpp/store/local-storage";
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
 
 const Imprint: NextPage = () => {
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
   const getVisitorId = api.tracking.trackPageView.useMutation();
   useEffect(() => {
-    const localstorageVisitorId = getLocalstorageVisitorId();
     getVisitorId.mutate(
-      { visitorId: localstorageVisitorId, route: "IMPRINT" },
+      { visitorId, route: "IMPRINT" },
       {
         onSuccess: (visitorId) => {
-          if (!localstorageVisitorId) {
-            setLocalstorageVisitorId(visitorId);
-          }
+          setVisitorId(visitorId);
         },
       }
     );

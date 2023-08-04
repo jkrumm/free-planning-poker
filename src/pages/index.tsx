@@ -11,22 +11,13 @@ import {
   TextInput,
 } from "@mantine/core";
 import { Hero } from "fpp/components/hero";
-import randomWords from "random-words";
-import {
-  getLocalstorageRecentRoom,
-  getLocalstorageRoom,
-  getLocalstorageVisitorId,
-  getUsername,
-  setLocalstorageRoom,
-  setLocalstorageVisitorId,
-  setUsername,
-} from "fpp/store/local-storage";
+import { generate } from "random-words";
 import { useRouter } from "next/router";
 import { usePlausible } from "next-plausible";
 import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { log } from "fpp/utils/console-log";
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
 
 const useStyles = createStyles(() => ({
   buttonRight: {
@@ -43,54 +34,54 @@ const Home: NextPage = () => {
   const { classes } = useStyles();
   const router = useRouter();
 
+  const username = useLocalstorageStore((state) => state.username);
+  const setUsername = useLocalstorageStore((state) => state.setUsername);
+  const room = useLocalstorageStore((state) => state.room);
+  const setRoom = useLocalstorageStore((state) => state.setRoom);
+
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
   const getVisitorId = api.tracking.trackPageView.useMutation();
   useEffect(() => {
-    const localstorageVisitorId = getLocalstorageVisitorId();
     getVisitorId.mutate(
-      { visitorId: localstorageVisitorId, route: "HOME" },
+      { visitorId, route: "HOME" },
       {
         onSuccess: (visitorId) => {
-          if (!localstorageVisitorId) {
-            log("new visitorId", { visitorId });
-            setLocalstorageVisitorId(visitorId);
-          } else {
-            log("existing visitorId", { visitorId });
-          }
+          setVisitorId(visitorId);
         },
       }
     );
   }, []);
 
-  const initialUsername = getUsername() ?? "";
+  const recentRoom = useLocalstorageStore((state) => state.recentRoom);
+  const [hasRecentRoom, setHasRecentRoom] = useState(false);
+  useEffect(() => {
+    if (recentRoom) {
+      setHasRecentRoom(true);
+    }
+  }, [recentRoom]);
 
   const randomRoom =
-    api.room.getRandomRoom.useQuery().data ?? randomWords({ exactly: 1 })[0];
+    api.room.getRandomRoom.useQuery().data ??
+    generate({ minLength: 3, exactly: 1 })[0];
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
-
-  const [recentRoom, setRecentRoom] = useState<string | null>(null);
 
   const plausible = usePlausible<PlausibleEvents>();
 
   useEffect(() => {
-    const localStorageRoom = getLocalstorageRoom();
-    if (
-      !localStorageRoom ||
-      localStorageRoom === "null" ||
-      localStorageRoom === "undefined"
-    ) {
-      setLocalstorageRoom(null);
+    if (!room || room === "null" || room === "undefined") {
+      setRoom(null);
     } else {
       router
-        .push(`/room/${localStorageRoom}`)
+        .push(`/room/${room}`)
         .then(() => ({}))
         .catch(() => ({}));
     }
-    setRecentRoom(getLocalstorageRecentRoom());
-  }, [recentRoom]);
+  }, [room]);
 
   const form = useForm({
     initialValues: {
-      username: initialUsername ?? "",
+      username: username ?? "",
       room: randomRoom ?? "",
     },
     validate: {
@@ -168,7 +159,7 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col">
         <Hero />
         <div className="w-full px-4 pb-16">
-          {recentRoom && (
+          {hasRecentRoom && (
             <Button
               variant="gradient"
               gradient={{ from: "blue", to: "cyan" }}
@@ -179,11 +170,12 @@ const Home: NextPage = () => {
               disabled={usernameInvalid}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (e) => {
-                setUsername(form.values.username.replace(/[^A-Za-z]/g, ""));
+                setUsername(form.values.username);
+                setRoom(recentRoom);
                 e.preventDefault();
-                plausible("recent", {
-                  props: { room: recentRoom },
-                });
+                /* plausible("recent", {
+                props: { room: recentRoom },
+              }); */
                 await router.push(`/room/${recentRoom}`);
               }}
             >
@@ -194,7 +186,7 @@ const Home: NextPage = () => {
             className="mt-8 w-full"
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSubmit={form.onSubmit(async () => {
-              setUsername(form.values.username.replace(/[^A-Za-z]/g, ""));
+              setUsername(form.values.username);
               const roomName = form.values.room
                 .replace(/[^A-Za-z]/g, "")
                 .toLowerCase();
@@ -207,6 +199,7 @@ const Home: NextPage = () => {
                   props: { room: roomName },
                 });
               }
+              setRoom(roomName);
               await router.push(`/room/${roomName}`);
             })}
           >
