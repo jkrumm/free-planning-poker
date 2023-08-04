@@ -15,6 +15,20 @@ model Room {
   @@unique([name])
 }
 
+model Vote {
+  id                 Int      @id @default(autoincrement())
+  room               String
+  votes              Json
+  avgVote            Float
+  maxVote            Int
+  minVote            Int
+  amountOfVotes      Int
+  amountOfSpectators Int
+  votedAt            DateTime @default(now())
+
+  @@index([room])
+}
+
 model Visitor {
   id        String   @id @default(uuid())
   device    String?

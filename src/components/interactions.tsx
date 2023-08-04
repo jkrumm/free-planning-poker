@@ -5,8 +5,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { log } from "fpp/utils/console-log";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-
-const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
+import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 
 export const Interactions = ({
   room,
@@ -50,7 +49,7 @@ export const Interactions = ({
     <>
       <div className="voting-bar">
         <Button.Group>
-          {fibonacci.map((number) => (
+          {fibonacciSequence.map((number) => (
             <Button
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               disabled={(clientId && spectators.includes(clientId)) || !flipped}

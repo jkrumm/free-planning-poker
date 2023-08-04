@@ -3,9 +3,8 @@
 import { useWsStore } from "fpp/store/ws.store";
 import { Button } from "@mantine/core";
 import React from "react";
-import { usePlausible } from "next-plausible";
-import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import { log } from "fpp/utils/console-log";
+import { api } from "fpp/utils/api";
 
 export const Table = ({
   room,
@@ -22,11 +21,13 @@ export const Table = ({
   const presences = useWsStore((store) => store.presences);
   const presencesMap = useWsStore((store) => store.presencesMap);
 
-  const plausible = usePlausible<PlausibleEvents>();
+  const sendVote = api.vote.vote.useMutation();
 
   function flip() {
-    plausible("voted", {
-      props: { players: votes.length, room },
+    sendVote.mutate({
+      room,
+      votes: votes.filter((vote) => vote !== null).map((vote) => vote.number!),
+      amountOfSpectators: spectators.length,
     });
     if (channel) {
       log("FLIPPED", {});
