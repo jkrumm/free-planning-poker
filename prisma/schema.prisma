@@ -48,6 +48,7 @@ enum RouteType {
   CONTACT
   IMPRINT
   ROOM
+  ANALYTICS
 }
 
 model PageView {

@@ -1,7 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import React from "react";
-import { Hero } from "fpp/components/hero";
+import { Hero } from "fpp/components/layout/hero";
 import { Button, Group, SimpleGrid, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { api } from "fpp/utils/api";

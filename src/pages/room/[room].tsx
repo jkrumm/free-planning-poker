@@ -1,13 +1,13 @@
 import Head from "next/head";
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
-import { UsernameModel } from "fpp/components/username-model";
+import { UsernameModel } from "fpp/components/room/username-model";
 import { usePlausible } from "next-plausible";
 import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import dynamic from "next/dynamic";
-import { Table } from "fpp/components/table";
-import { WebsocketReceiver } from "fpp/components/websocket-receiver";
-import { Interactions } from "fpp/components/interactions";
+import { Table } from "fpp/components/room/table";
+import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
+import { Interactions } from "fpp/components/room/interactions";
 import { api } from "fpp/utils/api";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import Link from "next/link";

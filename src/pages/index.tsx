@@ -1,38 +1,21 @@
 import Head from "next/head";
 
 import { api } from "fpp/utils/api";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { type NextPage } from "next";
-import {
-  Autocomplete,
-  Button,
-  createStyles,
-  Group,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
-import { Hero } from "fpp/components/hero";
-import { useRouter } from "next/router";
+import { Button, Text, Title } from "@mantine/core";
+import { Hero } from "fpp/components/layout/hero";
 import {
   IconArrowBadgeDownFilled,
-  IconArrowBadgeRightFilled,
   IconArrowBadgeUpFilled,
 } from "@tabler/icons-react";
-import { useForm } from "@mantine/form";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import {
-  useTrackPageView,
-  type UseTrackPageViewMutation,
-} from "fpp/utils/use-tracking.hooks";
-import { EventType } from ".prisma/client";
-import { generate } from "random-words";
-import { RouteType } from "@prisma/client";
 import Link from "next/link";
-import { useInView } from "react-intersection-observer";
 import PointsTable from "fpp/components/points-table";
+import dynamic from "next/dynamic";
+import IndexFormPlaceholder from "fpp/components/index/form-placeholder";
+import { useInView } from "react-intersection-observer";
 
-const useStyles = createStyles(() => ({
+/* const useStyles = createStyles(() => ({
   buttonRight: {
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
@@ -41,34 +24,42 @@ const useStyles = createStyles(() => ({
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
   },
-}));
+})); */
+
+const IndexFormWithNoSSR = dynamic<{
+  randomRoom: string | undefined;
+  activeRooms: string[];
+}>(() => import("../components/index/form"), {
+  ssr: false,
+  loading: () => <IndexFormPlaceholder />,
+});
 
 const Home: NextPage = () => {
-  const { classes } = useStyles();
-  const router = useRouter();
+  // const { classes } = useStyles();
+  // const router = useRouter();
 
-  const username = useLocalstorageStore((state) => state.username);
+  /*const username = useLocalstorageStore((state) => state.username);
   const setUsername = useLocalstorageStore((state) => state.setUsername);
   const room = useLocalstorageStore((state) => state.room);
-  const setRoom = useLocalstorageStore((state) => state.setRoom);
+  const setRoom = useLocalstorageStore((state) => state.setRoom);*/
 
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  /*  const visitorId = useLocalstorageStore((state) => state.visitorId);
   const trackPageViewMutation =
     api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
-  useTrackPageView(RouteType.HOME, visitorId, trackPageViewMutation);
-  const sendEvent = api.tracking.trackEvent.useMutation();
+  useTrackPageView(RouteType.HOME, visitorId, trackPageViewMutation); */
+  // const sendEvent = api.tracking.trackEvent.useMutation();
 
-  const recentRoom = useLocalstorageStore((state) => state.recentRoom);
+  /*const recentRoom = useLocalstorageStore((state) => state.recentRoom);
   const [hasRecentRoom, setHasRecentRoom] = useState(false);
   useEffect(() => {
     if (recentRoom) {
       setHasRecentRoom(true);
     }
-  }, [recentRoom]);
+  }, [recentRoom]);*/
 
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
 
-  useEffect(() => {
+  /* useEffect(() => {
     if (!room || room === "null" || room === "undefined") {
       setRoom(null);
     } else {
@@ -77,9 +68,11 @@ const Home: NextPage = () => {
         .then(() => ({}))
         .catch(() => ({}));
     }
-  }, [room]);
+  }, [room]); */
 
-  const form = useForm({
+  const randomRoom = api.room.getRandomRoom.useQuery().data;
+
+  /* const form = useForm({
     initialValues: {
       username: username ?? "",
       room: generate({ minLength: 3, exactly: 1 })[0] ?? "",
@@ -108,7 +101,7 @@ const Home: NextPage = () => {
       !form.values.username ||
         form.values.username.replace(/[^A-Za-z]/g, "").length < 3
     );
-  }, [form.values.username]);
+  }, [form.values.username]);  */
 
   const { ref, inView } = useInView({
     rootMargin: "-300px",
@@ -170,91 +163,8 @@ const Home: NextPage = () => {
       </Head>
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="w-full px-4 pb-16">
-          {hasRecentRoom && (
-            <Button
-              variant="gradient"
-              gradient={{ from: "blue", to: "cyan" }}
-              size="xl"
-              className={`mx-auto my-8 block w-[480px]`}
-              type="button"
-              uppercase
-              disabled={usernameInvalid}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={async (e) => {
-                setUsername(form.values.username);
-                setRoom(recentRoom);
-                e.preventDefault();
-                sendEvent.mutate({
-                  visitorId,
-                  type: EventType.ENTER_RECENT_ROOM,
-                });
-                await router.push(`/room/${recentRoom}`);
-              }}
-            >
-              Join recent room: &nbsp;<strong>{recentRoom}</strong>
-            </Button>
-          )}
-          <form
-            className="mt-8 w-full"
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onSubmit={form.onSubmit(async () => {
-              setUsername(form.values.username);
-              const roomName = form.values.room
-                .replace(/[^A-Za-z]/g, "")
-                .toLowerCase();
-
-              if (activeRooms.includes(roomName)) {
-                sendEvent.mutate({
-                  visitorId,
-                  type: EventType.ENTER_EXISTING_ROOM,
-                });
-              } else if (roomName === randomRoomQuery.data) {
-                sendEvent.mutate({
-                  visitorId,
-                  type: EventType.ENTER_RANDOM_ROOM,
-                });
-              } else {
-                sendEvent.mutate({
-                  visitorId,
-                  type: EventType.ENTER_NEW_ROOM,
-                });
-              }
-              setRoom(roomName);
-              await router.push(`/room/${roomName}`);
-            })}
-          >
-            <div className="mx-auto max-w-[400px]">
-              <div className="w-full">
-                <TextInput
-                  label="Username"
-                  size="xl"
-                  {...form.getInputProps("username")}
-                />
-
-                <Group noWrap spacing={0}>
-                  <Autocomplete
-                    disabled={usernameInvalid}
-                    label="Room"
-                    className={`${classes.buttonRight} my-6 w-full`}
-                    size="xl"
-                    limit={3}
-                    {...form.getInputProps("room")}
-                    data={form.values.room.length > 1 ? activeRooms : []}
-                  />
-                  <Button
-                    disabled={usernameInvalid}
-                    size="xl"
-                    className={`${classes.buttonLeft} w-13 mt-11 px-4`}
-                    type="submit"
-                  >
-                    <IconArrowBadgeRightFilled size={35} spacing={0} />
-                  </Button>
-                </Group>
-              </div>
-            </div>
-          </form>
-        </div>
+        {/* <IndexForm randomRoom={randomRoom} activeRooms={activeRooms} /> */}
+        <IndexFormWithNoSSR randomRoom={randomRoom} activeRooms={activeRooms} />
         <Link
           href="/#master-the-art-of-planning-poker"
           className={`fixed-article-link ${inView ? "hidden" : ""}`}
