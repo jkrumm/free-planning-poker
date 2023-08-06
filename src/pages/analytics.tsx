@@ -80,17 +80,20 @@ const Imprint: NextPage = () => {
                   value={votes.votesPerVisitor}
                 />
                 <StatsCard
-                  name="Avg amount of votes"
+                  name="Avg amount of estimations"
                   value={votes.amountOfVotes}
                 />
                 <StatsCard
                   name="Avg amount of spectators"
                   value={votes.amountOfSpectators}
                 />
-                <StatsCard name="Avg lowest vote" value={votes.lowestVoteAvg} />
-                <StatsCard name="Avg votes" value={votes.voteAvg} />
                 <StatsCard
-                  name="Avg highest vote"
+                  name="Avg lowest estimation"
+                  value={votes.lowestVoteAvg}
+                />
+                <StatsCard name="Avg estimations" value={votes.voteAvg} />
+                <StatsCard
+                  name="Avg highest estimation"
                   value={votes.highestVoteAvg}
                 />
               </SimpleGrid>
