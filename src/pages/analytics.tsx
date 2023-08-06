@@ -11,6 +11,7 @@ import { PageViewChart } from "fpp/components/charts/page-view-chart";
 import { Card, SimpleGrid, Text } from "@mantine/core";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
+import { log } from "fpp/utils/console-log";
 
 const Imprint: NextPage = () => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
@@ -20,7 +21,8 @@ const Imprint: NextPage = () => {
 
   const pageViews = api.tracking.getPageViews.useQuery().data;
   const votes = api.vote.getVotes.useQuery().data;
-  console.log(pageViews);
+  log("pageViews", pageViews ?? {});
+  log("votes", votes ?? {});
 
   return (
     <>
@@ -49,7 +51,7 @@ const Imprint: NextPage = () => {
                   value={pageViews.stats.unique}
                 />
                 <StatsCard
-                  name="Visitors per day"
+                  name="Page views per day"
                   value={pageViews.stats.avgPerDay}
                 />
                 <StatsCard
@@ -66,36 +68,34 @@ const Imprint: NextPage = () => {
               </SimpleGrid>
               <h1>Vote analytics</h1>
               <SimpleGrid
-                cols={6}
+                cols={4}
                 spacing="md"
-                breakpoints={[
-                  { maxWidth: "md", cols: 3 },
-                  { maxWidth: "xs", cols: 2 },
-                ]}
+                breakpoints={[{ maxWidth: "md", cols: 2 }]}
                 className="pb-8"
               >
-                <StatsCard name="Total visits" value={pageViews.stats.total} />
+                <StatsCard name="Total votes" value={votes.totalVotes} />
+                <StatsCard name="Votes per day" value={votes.votesPerDay} />
                 <StatsCard
-                  name="Unique visits"
-                  value={pageViews.stats.unique}
+                  name="Votes per visitor"
+                  value={votes.votesPerVisitor}
                 />
                 <StatsCard
-                  name="Visits per day"
-                  value={pageViews.stats.avgPerDay}
+                  name="Avg amount of votes"
+                  value={votes.amountOfVotes}
                 />
                 <StatsCard
-                  name="Views per visit"
-                  value={pageViews.stats.viewsPerVisit}
+                  name="Avg amount of spectators"
+                  value={votes.amountOfSpectators}
                 />
-                <StatsCard name="Duration" value={pageViews.stats.duration} />
+                <StatsCard name="Avg lowest vote" value={votes.lowestVoteAvg} />
+                <StatsCard name="Avg votes" value={votes.voteAvg} />
                 <StatsCard
-                  name="Bounce rate"
-                  value={pageViews.stats.bounceRate}
-                  valueAppend="%"
+                  name="Avg highest vote"
+                  value={votes.highestVoteAvg}
                 />
               </SimpleGrid>
               <h1>Historical data</h1>
-              <PageViewChart pageViews={pageViews} votes={votes} />
+              <PageViewChart pageViews={pageViews} />
             </>
           )}
         </div>

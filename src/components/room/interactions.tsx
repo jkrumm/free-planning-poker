@@ -48,7 +48,7 @@ export const Interactions = ({
   return (
     <>
       <div className="voting-bar">
-        <Button.Group>
+        <Button.Group className="w-full">
           {fibonacciSequence.map((number) => (
             <Button
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -61,6 +61,7 @@ export const Interactions = ({
                   : "default"
               }
               size={"lg"}
+              fullWidth
               key={number}
               onClick={() => {
                 if (!channel || !clientId) return;

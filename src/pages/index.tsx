@@ -92,8 +92,8 @@ const Home: NextPage = () => {
 
               <Text component="p">
                 In Planning Poker, every task is assigned a Fibonacci number (1,
-                2, 3, 5, 8, 13, 21, 34) based on its estimated complexity and
-                time requirement. The <b>Fibonacci sequence</b>, known for its
+                2, 3, 5, 8, 13, 21) based on its estimated complexity and time
+                requirement. The <b>Fibonacci sequence</b>, known for its
                 exponential growth, mirrors the uncertainty and risk associated
                 with task estimation, helping to reflect the increasingly larger
                 efforts required for complex tasks. It essentially transforms

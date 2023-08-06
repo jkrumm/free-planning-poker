@@ -199,11 +199,20 @@ export const trackingRouter = createTRPCRouter({
         GROUP BY date
         ORDER BY date DESC;`;
 
+    const totalVotes = await ctx.prisma.$queryRaw<
+      { date: Date; count: string }[]
+    >`
+        SELECT DATE(occurredAt) AS date, COUNT(*) AS count
+        FROM Event
+        WHERE type = "VOTED"
+        GROUP BY date
+        ORDER BY date DESC;`;
+
     return {
       stats: {
         total,
         unique,
-        avgPerDay: Math.ceil((total / totalViews.length) * 100) / 100,
+        avgPerDay: Math.ceil(total / totalViews.length),
         viewsPerVisit,
         duration,
         bounceRate,
@@ -213,6 +222,10 @@ export const trackingRouter = createTRPCRouter({
         count: parseInt(i.count),
       })),
       uniqueViews: uniqueViews.map((i) => ({
+        date: DateTime.fromJSDate(i.date).toISODate()!,
+        count: parseInt(i.count),
+      })),
+      totalVotes: totalVotes.map((i) => ({
         date: DateTime.fromJSDate(i.date).toISODate()!,
         count: parseInt(i.count),
       })),
@@ -231,4 +244,5 @@ export interface PageViews {
   };
   totalViews: { date: string; count: number }[];
   uniqueViews: { date: string; count: number }[];
+  totalVotes: { date: string; count: number }[];
 }

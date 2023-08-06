@@ -2,16 +2,13 @@ import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { type ApexOptions } from "apexcharts";
 import { type PageViews } from "fpp/server/api/routers/tracking";
-import { type Votes } from "fpp/server/api/routers/vote";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 export const PageViewChart = ({
   pageViews,
-  votes,
 }: {
   pageViews: PageViews | undefined;
-  votes: Votes | undefined;
 }) => {
   const [options] = useState<ApexOptions>({
     chart: {
@@ -57,7 +54,7 @@ export const PageViewChart = ({
         })) ?? [],
     },
     {
-      name: "Unique page views",
+      name: "Unique visitors",
       color: "#2F9E44",
       data:
         pageViews?.uniqueViews.map((pageView) => ({
@@ -69,7 +66,7 @@ export const PageViewChart = ({
       name: "Total votes",
       color: "#F08C00",
       data:
-        votes?.totalVotes.map((pageView) => ({
+        pageViews?.totalVotes.map((pageView) => ({
           x: pageView.date,
           y: pageView.count,
         })) ?? [],
