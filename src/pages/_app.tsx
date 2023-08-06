@@ -6,6 +6,7 @@ import "fpp/styles/globals.css";
 import { MantineProvider } from "@mantine/core";
 import PlausibleProvider from "next-plausible";
 import { Notifications } from "@mantine/notifications";
+import React from "react";
 
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   return (

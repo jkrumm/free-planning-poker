@@ -1,5 +1,3 @@
-import Head from "next/head";
-
 import { api } from "fpp/utils/api";
 import React from "react";
 import { type NextPage } from "next";
@@ -14,17 +12,13 @@ import PointsTable from "fpp/components/points-table";
 import dynamic from "next/dynamic";
 import IndexFormPlaceholder from "fpp/components/index/form-placeholder";
 import { useInView } from "react-intersection-observer";
-
-/* const useStyles = createStyles(() => ({
-  buttonRight: {
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  buttonLeft: {
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
-  },
-})); */
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import {
+  useTrackPageView,
+  type UseTrackPageViewMutation,
+} from "fpp/utils/use-tracking.hooks";
+import { RouteType } from "@prisma/client";
+import { Meta } from "fpp/components/meta";
 
 const IndexFormWithNoSSR = dynamic<{
   randomRoom: string | undefined;
@@ -35,73 +29,13 @@ const IndexFormWithNoSSR = dynamic<{
 });
 
 const Home: NextPage = () => {
-  // const { classes } = useStyles();
-  // const router = useRouter();
-
-  /*const username = useLocalstorageStore((state) => state.username);
-  const setUsername = useLocalstorageStore((state) => state.setUsername);
-  const room = useLocalstorageStore((state) => state.room);
-  const setRoom = useLocalstorageStore((state) => state.setRoom);*/
-
-  /*  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
   const trackPageViewMutation =
     api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
-  useTrackPageView(RouteType.HOME, visitorId, trackPageViewMutation); */
-  // const sendEvent = api.tracking.trackEvent.useMutation();
-
-  /*const recentRoom = useLocalstorageStore((state) => state.recentRoom);
-  const [hasRecentRoom, setHasRecentRoom] = useState(false);
-  useEffect(() => {
-    if (recentRoom) {
-      setHasRecentRoom(true);
-    }
-  }, [recentRoom]);*/
+  useTrackPageView(RouteType.HOME, visitorId, trackPageViewMutation);
 
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
-
-  /* useEffect(() => {
-    if (!room || room === "null" || room === "undefined") {
-      setRoom(null);
-    } else {
-      router
-        .push(`/room/${room}`)
-        .then(() => ({}))
-        .catch(() => ({}));
-    }
-  }, [room]); */
-
   const randomRoom = api.room.getRandomRoom.useQuery().data;
-
-  /* const form = useForm({
-    initialValues: {
-      username: username ?? "",
-      room: generate({ minLength: 3, exactly: 1 })[0] ?? "",
-    },
-    validate: {
-      username: (value) =>
-        value.replace(/[^A-Za-z]/g, "").length < 3 ||
-        value.replace(/[^A-Za-z]/g, "").length > 15,
-      room: (value) =>
-        value.replace(/[^A-Za-z]/g, "").length < 3 ||
-        value.replace(/[^A-Za-z]/g, "").length > 15,
-    },
-  });
-
-  const randomRoomQuery = api.room.getRandomRoom.useQuery();
-  useEffect(() => {
-    if (randomRoomQuery.data) {
-      form.setFieldValue("room", randomRoomQuery.data);
-    }
-  }, [randomRoomQuery.data]);
-
-  const [usernameInvalid, setUsernameInvalid] = useState<boolean>(false);
-
-  useEffect(() => {
-    setUsernameInvalid(
-      !form.values.username ||
-        form.values.username.replace(/[^A-Za-z]/g, "").length < 3
-    );
-  }, [form.values.username]);  */
 
   const { ref, inView } = useInView({
     rootMargin: "-300px",
@@ -110,57 +44,7 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <Head>
-        <title>Free Planning Poker</title>
-        <meta
-          name="description"
-          content="Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused."
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        <meta property="og:title" content="Free Planning Poker" />
-        <meta
-          property="og:description"
-          content="Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:url" content="https://free-planning-poker.com/" />
-        <meta
-          property="og:image"
-          content="https://free-planning-poker.com/free-planning-poker.jpg"
-        />
-        <meta
-          property="og:image:secure_url"
-          content="https://free-planning-poker.com/free-planning-poker.jpg"
-        />
-        <meta property="og:image:type" content="image/jpg" />
-        <meta property="og:image:width" content="1034" />
-        <meta property="og:image:height" content="612" />
-        <meta property="og:image:alt" content="Free Planning Poker" />
-        <meta charSet="utf-8" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1971c2" />
-        <meta name="msapplication-TileColor" content="#1a1b1e" />
-        <meta name="theme-color" content="#1a1b1e" />
-      </Head>
+      <Meta />
       <Hero />
       <main className="flex flex-col items-center justify-center">
         {/* <IndexForm randomRoom={randomRoom} activeRooms={activeRooms} /> */}

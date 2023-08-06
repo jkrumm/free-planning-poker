@@ -118,67 +118,94 @@ export const trackingRouter = createTRPCRouter({
     }),
   getPageViews: publicProcedure.query<PageViews>(async ({ ctx }) => {
     const total = await ctx.prisma.pageView.count();
-
     const unique = await ctx.prisma.visitor.count();
-
     const viewsPerVisit = Math.ceil((total / unique) * 100) / 100;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    /* const durationRes = (await ctx.prisma.$queryRaw`
-  SELECT AVG(duration) as avgDuration
-  FROM (
-    SELECT visitorId, MAX(viewedAtOrOccurredAt) - MIN(viewedAtOrOccurredAt) as duration
-    FROM (
-      SELECT visitorId, viewedAt as viewedAtOrOccurredAt
-      FROM PageView
-      UNION ALL
-      SELECT visitorId, occurredAt as viewedAtOrOccurredAt
-      FROM Event
-    ) subQuery
-    GROUP BY visitorId
-    HAVING duration <= INTERVAL '10 minutes'
-  ) durationQuery`) as { avgDuration: string }[];
-    const duration = parseInt(durationRes[0]?.avgDuration ?? "0");*/
+    /* const activities = await ctx.prisma.$queryRaw<
+      { visitorId: string; activityAt: Date }[]
+    >`
+        SELECT visitorId, viewedAt as activityAt
+        FROM PageView
+        UNION ALL
+        SELECT visitorId, occurredAt as activityAt
+        FROM Event
+        ORDER BY visitorId, activityAt;
+    `;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const visitorsWhoVotedRes = (await ctx.prisma.$queryRaw`
+    let totalDuration = 0;
+    let totalActivities = 0;
+    let currentVisitorId = null;
+    let currentSessionStart = null;
+
+    for (const activity of activities) {
+      if (
+        !currentVisitorId ||
+        currentVisitorId !== activity.visitorId ||
+        !currentSessionStart
+      ) {
+        totalActivities++;
+        currentVisitorId = activity.visitorId;
+        currentSessionStart = activity.activityAt;
+      } else {
+        const duration =
+          activity.activityAt.getTime() - currentSessionStart.getTime();
+        if (duration <= 10 * 60 * 1000) {
+          totalDuration += duration;
+          currentSessionStart = activity.activityAt;
+        } else {
+          totalDuration += 15 * 1000;
+          totalActivities++;
+          currentVisitorId = null;
+        }
+      }
+    }
+
+    const averageDuration =
+      Math.ceil((totalDuration / (totalActivities || 1) / (60 * 1000)) * 100) /
+      100; */
+
+    const duration = 0;
+
+    const visitorsWhoVotedRes = await ctx.prisma.$queryRaw<
+      { hasVoted: string }[]
+    >`
     SELECT COUNT(*) as hasVoted
     FROM (
       SELECT visitorId
       FROM Event
       WHERE type = "VOTED"
       GROUP BY visitorId
-    ) subQuery`) as { hasVoted: string }[];
+    ) subQuery`;
     const visitorsWhoVoted = parseInt(visitorsWhoVotedRes[0]?.hasVoted ?? "0");
     const bounceRate = 100 - Math.ceil((visitorsWhoVoted / unique) * 100);
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const totalViews = (await ctx.prisma
-      .$queryRaw`SELECT DATE(viewedAt) AS date, COUNT(*) AS count 
+    const totalViews = await ctx.prisma.$queryRaw<
+      {
+        date: Date;
+        count: string;
+      }[]
+    >`SELECT DATE(viewedAt) AS date, COUNT(*) AS count 
         FROM PageView 
         GROUP BY date 
-        ORDER BY date DESC;`) as {
-      date: Date;
-      count: string;
-    }[];
+        ORDER BY date DESC;`;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const uniqueViews = (await ctx.prisma
-      .$queryRaw`SELECT DATE(startedAt) AS date, COUNT(*) AS count
+    const uniqueViews = await ctx.prisma.$queryRaw<
+      {
+        date: Date;
+        count: string;
+      }[]
+    >`SELECT DATE(startedAt) AS date, COUNT(*) AS count
         FROM Visitor
         GROUP BY date
-        ORDER BY date DESC;`) as {
-      date: Date;
-      count: string;
-    }[];
+        ORDER BY date DESC;`;
 
     return {
       stats: {
         total,
         unique,
-        avgPerDay: 0,
+        avgPerDay: Math.ceil((total / totalViews.length) * 100) / 100,
         viewsPerVisit,
-        duration: 0,
+        duration,
         bounceRate,
       },
       totalViews: totalViews.map((i) => ({

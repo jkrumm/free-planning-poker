@@ -33,5 +33,5 @@ export const useTrackPageView = (
         },
       }
     );
-  }, []);
+  }, [visitorId, route, room]);
 };
