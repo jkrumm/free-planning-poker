@@ -61,7 +61,7 @@ const IndexForm = (props: {
     }
   }, [recentRoom]);
 
-  const sendEvent = api.tracking.trackEvent.useMutation();
+  const sendEventMutation = api.tracking.trackEvent.useMutation();
 
   const form = useForm({
     initialValues: {
@@ -102,7 +102,7 @@ const IndexForm = (props: {
           setUsername(form.values.username);
           setRoom(recentRoom);
           e.preventDefault();
-          sendEvent.mutate({
+          sendEventMutation.mutate({
             visitorId,
             type: EventType.ENTER_RECENT_ROOM,
           });
@@ -121,17 +121,17 @@ const IndexForm = (props: {
             .toLowerCase();
 
           if (activeRooms.includes(roomName)) {
-            sendEvent.mutate({
+            sendEventMutation.mutate({
               visitorId,
               type: EventType.ENTER_EXISTING_ROOM,
             });
           } else if (roomName === randomRoom) {
-            sendEvent.mutate({
+            sendEventMutation.mutate({
               visitorId,
               type: EventType.ENTER_RANDOM_ROOM,
             });
           } else {
-            sendEvent.mutate({
+            sendEventMutation.mutate({
               visitorId,
               type: EventType.ENTER_NEW_ROOM,
             });

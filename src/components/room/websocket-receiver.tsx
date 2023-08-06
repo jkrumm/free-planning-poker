@@ -8,6 +8,7 @@ import { api } from "fpp/utils/api";
 import * as process from "process";
 import { log, logPresence } from "fpp/utils/console-log";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import { EventType } from ".prisma/client";
 
 export const WebsocketReceiver = ({
   room,
@@ -17,6 +18,7 @@ export const WebsocketReceiver = ({
   username: string;
 }) => {
   const setRoomMutation = api.room.setRoom.useMutation();
+  const sendEventMutation = api.tracking.trackEvent.useMutation();
 
   configureAbly({
     authUrl: `${
@@ -30,6 +32,7 @@ export const WebsocketReceiver = ({
   const spectator = useLocalstorageStore((store) => store.spectator);
   const setRoom = useLocalstorageStore((store) => store.setRoom);
   const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
+  const visitorId = useLocalstorageStore((store) => store.visitorId);
 
   const wsChannel = useWsStore((store) => store.channel);
   const setChannel = useWsStore((store) => store.setChannel);
@@ -44,6 +47,9 @@ export const WebsocketReceiver = ({
     log("RECEIVED MESSAGE", message);
     if (["flip", "reset"].includes(message.name)) {
       setVoting(null);
+    }
+    if (message.name === "flip") {
+      sendEventMutation.mutate({ visitorId, type: EventType.VOTED });
     }
     handleMessage(message);
   });

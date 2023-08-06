@@ -1,8 +1,20 @@
-import { Button, Group, TextInput } from "@mantine/core";
+import { Button, createStyles, Group, TextInput } from "@mantine/core";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import React from "react";
 
+const useStyles = createStyles(() => ({
+  buttonRight: {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  buttonLeft: {
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+}));
+
 const IndexFormPlaceholder = () => {
+  const { classes } = useStyles();
   return (
     <div className="w-full px-4 pb-16">
       <Button
@@ -25,13 +37,13 @@ const IndexFormPlaceholder = () => {
               <TextInput
                 disabled
                 label="Room"
-                className={`my-6 w-full`}
+                className={`${classes.buttonLeft} w-13 mt-11 px-4`}
                 size="xl"
               />
               <Button
                 disabled
                 size="xl"
-                className={`w-13 mt-11 px-4`}
+                className={`${classes.buttonLeft} w-13 mt-11 px-4`}
                 type="submit"
               >
                 <IconArrowBadgeRightFilled size={35} spacing={0} />

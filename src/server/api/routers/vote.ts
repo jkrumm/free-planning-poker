@@ -1,6 +1,7 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
+import { DateTime } from "luxon";
 
 export const voteRouter = createTRPCRouter({
   vote: publicProcedure
@@ -33,4 +34,26 @@ export const voteRouter = createTRPCRouter({
         },
       });
     }),
+  getVotes: publicProcedure.query<Votes>(async ({ ctx }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const totalVotes = (await ctx.prisma
+      .$queryRaw`SELECT DATE(votedAt) AS date, COUNT(*) AS count
+        FROM Vote
+        GROUP BY date
+        ORDER BY date DESC;`) as {
+      date: Date;
+      count: string;
+    }[];
+
+    return {
+      totalVotes: totalVotes.map((i) => ({
+        date: DateTime.fromJSDate(i.date).toISODate()!,
+        count: parseInt(i.count),
+      })),
+    };
+  }),
 });
+
+export interface Votes {
+  totalVotes: { date: string; count: number }[];
+}

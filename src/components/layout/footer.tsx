@@ -30,7 +30,7 @@ export function Footer() {
           </Link>{" "}
           is licensed under{" "}
           <Link
-            href="/src/pages/imprint#license"
+            href="/imprint#license"
             className="pl-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
           >
             AGPLv3

@@ -70,6 +70,7 @@ enum EventType {
   ENTER_NEW_ROOM
   ENTER_RANDOM_ROOM
   ENTER_RECENT_ROOM
+  VOTED
 }
 
 model Event {
