@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { UsernameModel } from "fpp/components/room/username-model";
-import { usePlausible } from "next-plausible";
-import { type PlausibleEvents } from "fpp/utils/plausible.events";
 import dynamic from "next/dynamic";
 import { Table } from "fpp/components/room/table";
 import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
@@ -28,10 +26,8 @@ const RoomPage = () => {
   const sendEvent = api.tracking.trackEvent.useMutation();
 
   const queryRoom = router.query.room as string;
+
   const [firstLoad, setFirstLoad] = React.useState(true);
-
-  const plausible = usePlausible<PlausibleEvents>();
-
   const [modelOpen, setModelOpen] = React.useState(false);
 
   useEffect(() => {
@@ -90,7 +86,6 @@ const RoomPage = () => {
     }
 
     setFirstLoad(false);
-    plausible("entered", { props: { room: queryRoom } });
 
     if (!username) {
       setModelOpen(true);

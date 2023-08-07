@@ -1,7 +1,4 @@
 // @ts-check
-
-import {withPlausibleProxy} from "next-plausible";
-
 await import("./src/env.mjs");
 
 /** @type {import("next").NextConfig} */
