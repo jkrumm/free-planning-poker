@@ -10,6 +10,7 @@ export const env = createEnv({
         TARGET_EMAIL: z.string().email(),
         SEND_EMAIL: z.string().email(),
         SEND_EMAIL_PASSWORD: z.string(),
+        IP_API_KEY: z.string(),
     },
     // client-side environment variables schema ensures the app isn't built with invalid env vars.
     //To expose them to the client, prefix them with `NEXT_PUBLIC_`
@@ -25,6 +26,7 @@ export const env = createEnv({
         TARGET_EMAIL: process.env.TARGET_EMAIL,
         SEND_EMAIL: process.env.SEND_EMAIL,
         SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
+        IP_API_KEY: process.env.IP_API_KEY,
         // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
     },
     // Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

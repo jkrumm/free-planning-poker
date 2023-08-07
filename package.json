@@ -13,7 +13,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "postinstall": "prisma generate && npm run-script updatedb",
+    "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start"
   },
@@ -37,10 +37,10 @@
     "@trpc/server": "^10.26.0",
     "ably": "^1.2.36",
     "apexcharts": "^3.41.1",
-    "geoip-lite": "^1.4.7",
     "luxon": "^3.3.0",
     "next": "^13.4.2",
     "next-plausible": "^3.7.2",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.4",
     "random-words": "^2.0.0",
     "react": "18.2.0",
@@ -56,7 +56,6 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.37.0",
-    "@types/geoip-lite": "^1.4.1",
     "@types/luxon": "^3.2.0",
     "@types/node": "^18.16.0",
     "@types/nodemailer": "^6.4.9",

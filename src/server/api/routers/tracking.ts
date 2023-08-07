@@ -1,13 +1,17 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
 import UAParser from "ua-parser-js";
-import { lookup } from "geoip-lite";
 import { EventType, RouteType, type Visitor } from "@prisma/client";
 import requestIp from "request-ip";
 import { type NextApiRequest } from "next";
 import { DateTime } from "luxon";
+import fetch from "node-fetch";
+import { env } from "fpp/env.mjs";
+import { log } from "fpp/utils/console-log";
 
-function prepareSessionData(req: NextApiRequest): Partial<Visitor> {
+async function prepareSessionData(
+  req: NextApiRequest
+): Promise<Partial<Visitor>> {
   const ua = UAParser(req.headers["user-agent"]);
 
   let ip = requestIp.getClientIp(req);
@@ -15,9 +19,39 @@ function prepareSessionData(req: NextApiRequest): Partial<Visitor> {
     ip = req.connection.remoteAddress ?? null;
   }
 
-  let geo = null;
-  if (ip) {
-    geo = lookup(ip);
+  let geo: { country: string; region: string; city: string } | null = null;
+  if (ip && ua.os && env.NODE_ENV !== "development") {
+    const url = `https://api.getgeoapi.com/v2/ip/${ip}?api_key=${env.IP_API_KEY}&format=json`;
+
+    try {
+      const resp = await fetch(url);
+
+      const apiData = (await resp.json()) as {
+        country: {
+          name: string;
+          code: string;
+        };
+        area: {
+          name: string;
+        };
+        city: {
+          name: string;
+        };
+      };
+
+      geo = {
+        country: apiData.country.code,
+        region: apiData.area.name,
+        city: apiData.city.name,
+      };
+
+      log("ip address fetch", apiData);
+    } catch (e) {
+      // TODO: sentry
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      console.error(`Error: ${e.message}`);
+    }
   }
 
   return {
@@ -40,7 +74,6 @@ export const trackingRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input: { visitorId, route, room } }) => {
-      const visitorData = prepareSessionData(ctx.req);
       let visitor: Visitor | null = null;
 
       if (visitorId) {
@@ -54,7 +87,6 @@ export const trackingRouter = createTRPCRouter({
           await ctx.prisma.visitor.update({
             where: { id: visitor.id },
             data: {
-              ...visitorData,
               pageViews: {
                 create: { route, room },
               },
@@ -66,7 +98,7 @@ export const trackingRouter = createTRPCRouter({
       return (
         await ctx.prisma.visitor.create({
           data: {
-            ...visitorData,
+            ...(await prepareSessionData(ctx.req)),
             pageViews: {
               create: { route, room },
             },
@@ -82,7 +114,6 @@ export const trackingRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input: { visitorId, type } }) => {
-      const visitorData = prepareSessionData(ctx.req);
       let visitor: Partial<Visitor> | null = null;
 
       if (visitorId) {
@@ -96,7 +127,6 @@ export const trackingRouter = createTRPCRouter({
           await ctx.prisma.visitor.update({
             where: { id: visitor.id },
             data: {
-              ...visitorData,
               events: {
                 create: { type },
               },
@@ -108,7 +138,7 @@ export const trackingRouter = createTRPCRouter({
       return (
         await ctx.prisma.visitor.create({
           data: {
-            ...visitorData,
+            ...(await prepareSessionData(ctx.req)),
             events: {
               create: { type },
             },
