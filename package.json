@@ -51,6 +51,7 @@
     "short-uuid": "^4.2.2",
     "superjson": "1.12.2",
     "ua-parser-js": "^1.0.35",
+    "web-vitals": "^3.4.0",
     "zod": "^3.21.4",
     "zustand": "^4.3.3"
   },

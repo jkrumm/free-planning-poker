@@ -8,7 +8,7 @@ import {
   IconArrowBadgeUpFilled,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import PointsTable from "fpp/components/points-table";
+import PointsTable from "fpp/components/index/points-table";
 import dynamic from "next/dynamic";
 import IndexFormPlaceholder from "fpp/components/index/form-placeholder";
 import { useInView } from "react-intersection-observer";
