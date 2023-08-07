@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/trpc/[trpc]": {
+    "api/trpc/**": {
       "includeFiles": "node_modules/geoip-lite/data/*"
     }
   }
