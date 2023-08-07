@@ -58,7 +58,7 @@ model PageView {
   room      String?
   viewedAt  DateTime  @default(now())
 
-  visitor Visitor @relation(fields: [visitorId], references: [id])
+  visitor Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
 
   @@index([visitorId])
 }
@@ -79,7 +79,7 @@ model Event {
   type       EventType
   occurredAt DateTime  @default(now())
 
-  visitor Visitor @relation(fields: [visitorId], references: [id])
+  visitor Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
 
   @@index([visitorId])
 }

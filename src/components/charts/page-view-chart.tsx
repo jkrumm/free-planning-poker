@@ -5,11 +5,7 @@ import { type PageViews } from "fpp/server/api/routers/tracking";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-export const PageViewChart = ({
-  pageViews,
-}: {
-  pageViews: PageViews | undefined;
-}) => {
+export const PageViewChart = ({ pageViews }: { pageViews: PageViews }) => {
   const [options] = useState<ApexOptions>({
     chart: {
       id: "basic-bar",
@@ -47,29 +43,26 @@ export const PageViewChart = ({
     {
       name: "Total page views",
       color: "#1971c2",
-      data:
-        pageViews?.totalViews.map((pageView) => ({
-          x: pageView.date,
-          y: pageView.count,
-        })) ?? [],
+      data: pageViews.totalViews.map((pageView) => ({
+        x: pageView.date,
+        y: pageView.count,
+      })),
     },
     {
       name: "Unique visitors",
       color: "#2F9E44",
-      data:
-        pageViews?.uniqueViews.map((pageView) => ({
-          x: pageView.date,
-          y: pageView.count,
-        })) ?? [],
+      data: pageViews.uniqueViews.map((pageView) => ({
+        x: pageView.date,
+        y: pageView.count,
+      })),
     },
     {
-      name: "Total votes",
+      name: "Total estimations",
       color: "#F08C00",
-      data:
-        pageViews?.totalVotes.map((pageView) => ({
-          x: pageView.date,
-          y: pageView.count,
-        })) ?? [],
+      data: pageViews.totalVotes.map((pageView) => ({
+        x: pageView.date,
+        y: pageView.count,
+      })),
     },
   ]);
 

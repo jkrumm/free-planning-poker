@@ -46,22 +46,37 @@ const Imprint: NextPage = () => {
           <div>
             <h1>Privacy Policy</h1>
             We collect <strong>anonymized website usage analytics</strong> to
-            improve our services and user experience, in compliance with the
-            General Data Protection Regulation (GDPR). Without the use of
-            cookies or other permanent tracking technologies. This includes
-            generic device information (type, OS, browser), approximate
-            geolocation (country, city, region), and the random unique session
-            ID stored in your local storage. This ID allows us to track your
-            page visits and certain actions on our site, such as entering a room
-            and final vote, to help us understand user behavior and preferences.
+            improve our services and user experience, in full compliance with
+            the General Data Protection Regulation (GDPR), without the use of
+            cookies or other permanent tracking technologies.
             <br />
+            The data we collect includes generic device information (such as
+            type, OS, browser), approximate geolocation (incorporating country,
+            city, region), and a random unique session ID stored in your local
+            storage. We use a professional IP address api service (ipapi.co) to
+            acquire this anonymized geolocation data. You may refer to{" "}
+            <a
+              href="https://ipapi.co/privacy/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              their privacy policy
+            </a>
+            . This data acquisition service is fully GDPR compliant and ensures
+            encryption of data in transit. Neither us nor ipapi.co process or
+            store any personally identifiable information or more specially your
+            IP address.
+            <br />
+            The unique session id allows us to track your page visits and
+            certain actions on our site, such as entering a room and final vote,
+            to help us understand user behavior and preferences.
             {/* eslint-disable-next-line react/no-unescaped-entities */}
-            Such data collection takes place under the 'legitimate interests'
-            lawful basis as per GDPR Article 6(1)(f) as it is crucial for
-            analytical purposes and does not involve processing personally
-            identifiable information, thus requiring no prior consent. The
-            utmost respect for your privacy and adherence to data protection
-            principles are steadfastly maintained.
+            Such data collection operates under the 'legitimate interests'
+            lawful basis as per GDPR Article 6(1)(f). Since we solely deal with
+            anonymized data and perform no processing of personally identifiable
+            information, there is no requirement for prior consent. We maintain
+            our steadfast commitment to your privacy and adhere strictly to data
+            protection principles.
             <br />
             <br />
             Ably, a WebSocket provider, plays a significant role in our
@@ -81,7 +96,9 @@ const Imprint: NextPage = () => {
             <strong>contact form</strong> (name and email), falling in line with
             GDPR definitions, are handled with utmost confidentiality, and used
             specifically for responding to your inquiries. Consent is sought
-            prior to utilizing this data for any other purpose.
+            prior to utilizing this data for any other purpose. Furthermore, we
+            are not using any third-party services for our contact form where
+            your data could be stored.
             <br />
             <br />
             Our website is supported by a database managed by Planetscale,

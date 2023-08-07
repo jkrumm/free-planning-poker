@@ -1,68 +1,8 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
-import UAParser from "ua-parser-js";
 import { EventType, RouteType, type Visitor } from "@prisma/client";
-import requestIp from "request-ip";
-import { type NextApiRequest } from "next";
 import { DateTime } from "luxon";
-import fetch from "node-fetch";
-import { env } from "fpp/env.mjs";
-import { log } from "fpp/utils/console-log";
-
-async function prepareSessionData(
-  req: NextApiRequest
-): Promise<Partial<Visitor>> {
-  const ua = UAParser(req.headers["user-agent"]);
-
-  let ip = requestIp.getClientIp(req);
-  if (!ip || ip === "::1") {
-    ip = req.connection.remoteAddress ?? null;
-  }
-
-  let geo: { country: string; region: string; city: string } | null = null;
-  if (ip && ua.os && env.NODE_ENV !== "development") {
-    const url = `https://api.getgeoapi.com/v2/ip/${ip}?api_key=${env.IP_API_KEY}&format=json`;
-
-    try {
-      const resp = await fetch(url);
-
-      const apiData = (await resp.json()) as {
-        country: {
-          name: string;
-          code: string;
-        };
-        area: {
-          name: string;
-        };
-        city: {
-          name: string;
-        };
-      };
-
-      geo = {
-        country: apiData.country.code,
-        region: apiData.area.name,
-        city: apiData.city.name,
-      };
-
-      log("ip address fetch", apiData);
-    } catch (e) {
-      // TODO: sentry
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      console.error(`Error: ${e.message}`);
-    }
-  }
-
-  return {
-    device: ua.device.type ?? "desktop",
-    os: ua.os.name ?? null,
-    browser: ua.browser.name ?? null,
-    country: geo?.country ?? null,
-    region: geo?.region ?? null,
-    city: geo?.city ?? null,
-  };
-}
+import { prepareSessionData } from "fpp/utils/prepare-session-data";
 
 export const trackingRouter = createTRPCRouter({
   trackPageView: publicProcedure
@@ -95,10 +35,15 @@ export const trackingRouter = createTRPCRouter({
         ).id;
       }
 
+      const sessionData = await prepareSessionData(ctx.req);
+      if (sessionData.city === "Santa Clara") {
+        return "we ignore next.js deployment validation";
+      }
+
       return (
         await ctx.prisma.visitor.create({
           data: {
-            ...(await prepareSessionData(ctx.req)),
+            ...sessionData,
             pageViews: {
               create: { route, room },
             },
@@ -151,6 +96,7 @@ export const trackingRouter = createTRPCRouter({
     const unique = await ctx.prisma.visitor.count();
     const viewsPerVisit = Math.ceil((total / unique) * 100) / 100;
 
+    // TODO: enable below one ISR is enabled
     /* const activities = await ctx.prisma.$queryRaw<
       { visitorId: string; activityAt: Date }[]
     >`
@@ -261,7 +207,104 @@ export const trackingRouter = createTRPCRouter({
       })),
     };
   }),
+  getAggregatedVisitorInfo: publicProcedure.query<AggregatedVisitorInfo>(
+    async ({ ctx }) => {
+      const deviceCounts = await ctx.prisma.visitor.groupBy({
+        by: ["device"],
+        where: {
+          device: {
+            not: null,
+          },
+        },
+        _count: true,
+      });
+
+      const osCounts = await ctx.prisma.visitor.groupBy({
+        by: ["os"],
+        where: {
+          os: {
+            not: null,
+          },
+        },
+        _count: true,
+      });
+
+      const browserCounts = await ctx.prisma.visitor.groupBy({
+        by: ["browser"],
+        where: {
+          browser: {
+            not: null,
+          },
+        },
+        _count: true,
+      });
+
+      const countryCounts = await ctx.prisma.visitor.groupBy({
+        by: ["country"],
+        where: {
+          country: {
+            not: null,
+          },
+        },
+        _count: true,
+      });
+
+      const regionCounts = await ctx.prisma.visitor.groupBy({
+        by: ["region"],
+        where: {
+          region: {
+            not: null,
+          },
+        },
+        _count: true,
+      });
+
+      const cityCounts = await ctx.prisma.visitor.groupBy({
+        by: ["city"],
+        where: {
+          city: {
+            not: null,
+          },
+        },
+        _count: true,
+      });
+
+      return {
+        deviceCounts: mapCounts(deviceCounts),
+        osCounts: mapCounts(osCounts),
+        browserCounts: mapCounts(browserCounts),
+        countryCounts: mapCounts(countryCounts),
+        regionCounts: mapCounts(regionCounts),
+        cityCounts: mapCounts(cityCounts),
+      };
+    }
+  ),
 });
+
+type CountData = Record<string, string | number | null>;
+
+const mapCounts = (data: Array<CountData>) => {
+  return data
+    .filter((item) => Object.values(item)[0] !== null)
+    .map((item) => {
+      const name = Object.values(item).find(
+        (value) => value !== item._count
+      ) as string;
+      const value = item._count as number;
+      return { name, value };
+    });
+};
+
+export type CountResult = Array<{ name: string; value: number }>;
+
+export interface AggregatedVisitorInfo {
+  deviceCounts: CountResult;
+  osCounts: CountResult;
+  browserCounts: CountResult;
+  countryCounts: CountResult;
+  regionCounts: CountResult;
+  cityCounts: CountResult;
+}
 
 export interface PageViews {
   stats: {

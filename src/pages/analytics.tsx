@@ -12,6 +12,7 @@ import { Card, SimpleGrid, Text } from "@mantine/core";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 import { log } from "fpp/utils/console-log";
+import { BarChart } from "fpp/components/charts/bar-chart";
 
 const Imprint: NextPage = () => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
@@ -21,8 +22,11 @@ const Imprint: NextPage = () => {
 
   const pageViews = api.tracking.getPageViews.useQuery().data;
   const votes = api.vote.getVotes.useQuery().data;
+  const aggregatedVisitorInfo =
+    api.tracking.getAggregatedVisitorInfo.useQuery().data;
   log("pageViews", pageViews ?? {});
   log("votes", votes ?? {});
+  log("getAggregatedVisitorInfo", aggregatedVisitorInfo ?? {});
 
   return (
     <>
@@ -91,7 +95,7 @@ const Imprint: NextPage = () => {
                   name="Avg lowest estimation"
                   value={votes.lowestVoteAvg}
                 />
-                <StatsCard name="Avg estimations" value={votes.voteAvg} />
+                <StatsCard name="Avg estimation" value={votes.voteAvg} />
                 <StatsCard
                   name="Avg highest estimation"
                   value={votes.highestVoteAvg}
@@ -99,6 +103,44 @@ const Imprint: NextPage = () => {
               </SimpleGrid>
               <h1>Historical data</h1>
               <PageViewChart pageViews={pageViews} />
+              <h1 className="mb-0 mt-[60px]">Location data</h1>
+              <SimpleGrid
+                cols={3}
+                spacing="md"
+                breakpoints={[{ maxWidth: "md", cols: 1 }]}
+              >
+                <BarChart
+                  headline={"Countries"}
+                  data={aggregatedVisitorInfo?.countryCounts ?? []}
+                />
+                <BarChart
+                  headline={"Regions"}
+                  data={aggregatedVisitorInfo?.regionCounts ?? []}
+                />
+                <BarChart
+                  headline={"Cities"}
+                  data={aggregatedVisitorInfo?.cityCounts ?? []}
+                />
+              </SimpleGrid>
+              <h1 className="mb-0 mt-[60px]">User Agent data</h1>
+              <SimpleGrid
+                cols={3}
+                spacing="md"
+                breakpoints={[{ maxWidth: "md", cols: 1 }]}
+              >
+                <BarChart
+                  headline={"Operating Systems"}
+                  data={aggregatedVisitorInfo?.osCounts ?? []}
+                />
+                <BarChart
+                  headline={"Devices"}
+                  data={aggregatedVisitorInfo?.deviceCounts ?? []}
+                />
+                <BarChart
+                  headline={"Browsers"}
+                  data={aggregatedVisitorInfo?.browserCounts ?? []}
+                />
+              </SimpleGrid>
             </>
           )}
         </div>
