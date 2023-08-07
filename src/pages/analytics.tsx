@@ -1,4 +1,4 @@
-import { type NextPage } from "next";
+import { type InferGetStaticPropsType } from "next";
 import React from "react";
 import { Hero } from "fpp/components/layout/hero";
 import { api } from "fpp/utils/api";
@@ -11,22 +11,54 @@ import { PageViewChart } from "fpp/components/charts/page-view-chart";
 import { Card, SimpleGrid, Text } from "@mantine/core";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
-import { log } from "fpp/utils/console-log";
 import { BarChart } from "fpp/components/charts/bar-chart";
+import { createServerSideHelpers } from "@trpc/react-query/server";
+import { appRouter } from "fpp/server/api/root";
+import superjson from "superjson";
+import { createTRPCContext } from "fpp/server/api/trpc";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-const Imprint: NextPage = () => {
+export const getStaticProps = async () => {
+  /*const pageViews = api.tracking.getPageViews.useQuery().data;
+  const votes = api.vote.getVotes.useQuery().data;
+  const aggregatedVisitorInfo =
+    api.tracking.getAggregatedVisitorInfo.useQuery().data;*/
+
+  const helpers = createServerSideHelpers({
+    router: appRouter,
+    ctx: createTRPCContext({} as CreateNextContextOptions),
+    transformer: superjson, // optional - adds superjson serialization
+  });
+  // const id = context.params?.id as string;
+  // prefetch `post.byId`
+  await helpers.tracking.getPageViews.prefetch();
+  await helpers.vote.getVotes.prefetch();
+  await helpers.tracking.getAggregatedVisitorInfo.prefetch();
+
+  return {
+    props: { trpcState: helpers.dehydrate() },
+    revalidate: 3600,
+  };
+};
+
+const Analytics: React.FC<
+  InferGetStaticPropsType<typeof getStaticProps>
+> = () => {
+  const pageViews = api.tracking.getPageViews.useQuery().data;
+  const votes = api.vote.getVotes.useQuery().data;
+  const aggregatedVisitorInfo =
+    api.tracking.getAggregatedVisitorInfo.useQuery().data;
+
+  // const Analytics: NextPage = () => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
   const trackPageViewMutation =
     api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
   useTrackPageView(RouteType.ANALYTICS, visitorId, trackPageViewMutation);
 
-  const pageViews = api.tracking.getPageViews.useQuery().data;
-  const votes = api.vote.getVotes.useQuery().data;
-  const aggregatedVisitorInfo =
-    api.tracking.getAggregatedVisitorInfo.useQuery().data;
+  /*
   log("pageViews", pageViews ?? {});
   log("votes", votes ?? {});
-  log("getAggregatedVisitorInfo", aggregatedVisitorInfo ?? {});
+  log("getAggregatedVisitorInfo", aggregatedVisitorInfo ?? {});*/
 
   return (
     <>
@@ -183,4 +215,4 @@ export const StatsCard = ({
   ); */
 };
 
-export default Imprint;
+export default Analytics;

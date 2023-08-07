@@ -1,4 +1,4 @@
-import { Table } from "@mantine/core";
+import { Card, Table } from "@mantine/core";
 import { useEffect, useState } from "react";
 
 const PointsTable = () => {
@@ -53,14 +53,14 @@ const PointsTable = () => {
   return isSmallScreen ? (
     <div className="p-4">
       {data.map((row, idx) => (
-        <div
+        <Card
           key={idx}
           className="mb-4 flex flex-col space-y-2 rounded border p-4 shadow-sm"
         >
-          <span className="text-lg font-semibold">{row[0]}</span>
+          <h3 className="my-0">{row[0]}</h3>
           <span>{row[1]}</span>
-          <span className="">{row[2]}</span>
-        </div>
+          <span>{row[2]}</span>
+        </Card>
       ))}
     </div>
   ) : (

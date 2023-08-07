@@ -97,7 +97,7 @@ const RoomPage = () => {
 
   return (
     <>
-      <Meta title={room} />
+      <Meta title={room} robots="noindex,nofollow" />
       <main className="relative flex max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none">
         <div>
           {(function () {

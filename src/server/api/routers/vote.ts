@@ -66,7 +66,7 @@ export const voteRouter = createTRPCRouter({
           100
       ) / 100;
 
-    const votesPerVisitor =
+    /* const votesPerVisitor =
       (
         await ctx.prisma.$queryRaw<
           {
@@ -77,7 +77,7 @@ export const voteRouter = createTRPCRouter({
     (SELECT COUNT(*) FROM Event WHERE type = 'VOTED') /
     (SELECT COUNT(DISTINCT visitorId) FROM Event WHERE type = 'VOTED')
     AS votesPerVisitor`
-      )[0]?.votesPerVisitor ?? 0;
+      )[0]?.votesPerVisitor ?? 0; */
 
     return {
       totalVotes: await ctx.prisma.event.count({
@@ -86,7 +86,7 @@ export const voteRouter = createTRPCRouter({
         },
       }),
       votesPerDay,
-      votesPerVisitor,
+      votesPerVisitor: 0,
       amountOfVotes:
         Math.ceil(parseInt(averages[0]?.avg_amountOfVotes ?? "0") * 100) / 100,
       amountOfSpectators:

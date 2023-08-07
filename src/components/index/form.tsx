@@ -93,9 +93,10 @@ const IndexForm = (props: {
         variant="gradient"
         gradient={{ from: "blue", to: "cyan" }}
         size="xl"
-        className={`mx-auto my-8 block w-[480px]`}
+        className={`mx-auto my-8 block md:w-[480px]`}
         type="button"
         uppercase
+        role="recent-roome"
         disabled={!hasRecentRoom || usernameInvalid}
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async (e) => {
@@ -160,6 +161,7 @@ const IndexForm = (props: {
               />
               <Button
                 disabled={usernameInvalid}
+                role="join-room"
                 size="xl"
                 className={`${classes.buttonLeft} w-13 mt-11 px-4`}
                 type="submit"

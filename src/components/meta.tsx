@@ -1,16 +1,21 @@
 import Head from "next/head";
 import React from "react";
 
-export const Meta = ({ title }: { title?: string | null }) => {
+export const Meta = ({
+  title,
+  robots = "all",
+}: {
+  title?: string | null;
+  robots?: string;
+}) => {
   return (
     <Head>
-      <title>Free Planning Poker</title>
       <meta
         name="description"
         content="Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused."
       />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+      <meta name="robots" content={robots} />
       <title>
         {title ? `Free Planning Poker - ${title}` : "Free Planning Poker"}
       </title>

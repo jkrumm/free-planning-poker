@@ -21,7 +21,7 @@ const IndexFormPlaceholder = () => {
         variant="gradient"
         gradient={{ from: "blue", to: "cyan" }}
         size="xl"
-        className={`mx-auto my-8 block w-[480px]`}
+        className={`mx-auto my-8 block md:w-[480px]`}
         type="button"
         uppercase
         disabled

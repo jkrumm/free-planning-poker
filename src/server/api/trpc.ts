@@ -38,7 +38,7 @@ export type Context = {
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 
-const createInnerTRPCContext = (req: NextApiRequest): Context => {
+export const createInnerTRPCContext = (req: NextApiRequest): Context => {
   return {
     req,
     prisma,

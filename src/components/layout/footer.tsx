@@ -18,10 +18,11 @@ const links = [
 export function Footer() {
   return (
     <footer>
-      <div className="pointer-events-none fixed bottom-0 block min-h-[30px] min-w-full bg-[#121314]" />
-      <div className="fixed bottom-0 flex h-[30px] w-full flex-row  bg-[#121314] px-4 py-2 text-xs opacity-40 transition-opacity hover:opacity-100">
-        <div className="flex w-1/2 flex-row">
+      <div className="pointer-events-none fixed bottom-0 z-40 block min-h-[50px] min-w-full bg-[#121314] sm:min-h-[30px]" />
+      <div className="fixed bottom-0 z-50 h-[50px] w-full flex-row bg-[#121314] px-4 py-2 text-xs opacity-40 transition-opacity hover:opacity-100 sm:h-[30px] lg:flex">
+        <div className="xs:flex w-full flex-row lg:w-1/2">
           © {new Date().getFullYear()} Johannes Krumm{" "}
+          <br className="sm:hidden" />
           <Link
             href="/"
             className="pl-3 pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
@@ -36,7 +37,7 @@ export function Footer() {
             AGPLv3
           </Link>
         </div>
-        <div className="flex w-1/2 flex-row items-end justify-end">
+        <div className="hidden w-1/2 flex-row items-end justify-end lg:flex ">
           <a
             href="https://paypal.me/johanneskrum"
             target="_blank"

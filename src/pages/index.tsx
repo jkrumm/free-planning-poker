@@ -51,18 +51,21 @@ const Home: NextPage = () => {
         <IndexFormWithNoSSR randomRoom={randomRoom} activeRooms={activeRooms} />
         <Link
           href="/#master-the-art-of-planning-poker"
-          className={`fixed-article-link ${inView ? "hidden" : ""}`}
+          className={`fixed-article-link hidden lg:block ${
+            inView ? "hide" : ""
+          }`}
         >
           <Button
             rightIcon={<IconArrowBadgeDownFilled size={35} spacing={0} />}
             size="lg"
             color="gray"
+            role="understand-planning-poker"
           >
             Understand Planning Poker{" "}
           </Button>
         </Link>
-        <Link href="/" className={`scroll-to-top ${!inView ? "hidden" : ""}`}>
-          <Button size="lg" color="gray" px={8}>
+        <Link href="/" className={`scroll-to-top ${!inView ? "hide" : ""}`}>
+          <Button size="lg" color="gray" px={8} role="scroll-to-top">
             <IconArrowBadgeUpFilled size={35} spacing={0} />
           </Button>
         </Link>

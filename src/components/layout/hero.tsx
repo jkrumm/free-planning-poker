@@ -8,7 +8,8 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-const BREAKPOINT = "@media (max-width: 755px)";
+const BREAKPOINT_MOBILE = "@media (max-width: 755px)";
+const BREAKPOINT = "@media (max-width: 900px)";
 
 const useStyles = createStyles((theme: MantineTheme) => ({
   wrapper: {
@@ -33,12 +34,28 @@ const useStyles = createStyles((theme: MantineTheme) => ({
     fontWeight: 900,
     lineHeight: 1.1,
     margin: 0,
+    textAlign: "center",
     padding: 0,
     color: theme.colorScheme === "dark" ? theme.white : theme.black,
 
     [BREAKPOINT]: {
       fontSize: 42,
       lineHeight: 1.2,
+    },
+
+    [BREAKPOINT_MOBILE]: {
+      fontSize: 35,
+      lineHeight: 1.2,
+    },
+  },
+
+  subtitle: {
+    [BREAKPOINT]: {
+      fontSize: 18,
+      lineHeight: 1.2,
+    },
+    [BREAKPOINT_MOBILE]: {
+      display: "none",
     },
   },
 
@@ -79,7 +96,7 @@ export function Hero() {
             </Text>
           </h1>
         </Link>
-        <h2 className="mb-12 text-center opacity-80">
+        <h2 className={`${classes.subtitle} mb-12 text-center opacity-80`}>
           Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
           Source <span>|</span> Privacy Focused
         </h2>
