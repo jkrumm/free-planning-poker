@@ -2,6 +2,7 @@ import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { DateTime } from "luxon";
+import { env } from "fpp/env.mjs";
 
 export const voteRouter = createTRPCRouter({
   vote: publicProcedure
@@ -35,6 +36,10 @@ export const voteRouter = createTRPCRouter({
       });
     }),
   getVotes: publicProcedure.query<Votes>(async ({ ctx }) => {
+    if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+      return sampleVotes;
+    }
+
     const averages = await ctx.prisma.$queryRaw<
       {
         avg_avgVote: string;
@@ -111,3 +116,14 @@ export interface Votes {
   lowestVoteAvg: number;
   voteAvg: number;
 }
+
+const sampleVotes: Votes = {
+  totalVotes: 100,
+  votesPerDay: 10,
+  votesPerVisitor: 3,
+  amountOfVotes: 3,
+  amountOfSpectators: 0.93,
+  highestVoteAvg: 8,
+  lowestVoteAvg: 3,
+  voteAvg: 5,
+};

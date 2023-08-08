@@ -5,7 +5,7 @@ export const env = createEnv({
     // server-side environment variables schema ensures the app isn't built with invalid env vars.
     server: {
         DATABASE_URL: z.string().url(),
-        NODE_ENV: z.enum(["development", "test", "production"]),
+        NEXT_PUBLIC_NODE_ENV: z.enum(["development", "test", "production"]),
         ABLY_API_KEY: z.string(),
         TARGET_EMAIL: z.string().email(),
         SEND_EMAIL: z.string().email(),
@@ -15,13 +15,14 @@ export const env = createEnv({
     // client-side environment variables schema ensures the app isn't built with invalid env vars.
     //To expose them to the client, prefix them with `NEXT_PUBLIC_`
     client: {
+        NEXT_PUBLIC_NODE_ENV: z.enum(["development", "test", "production"]),
         // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
     },
     // You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
     // middlewares) or client-side so we need to destruct manually.
     runtimeEnv: {
         DATABASE_URL: process.env.DATABASE_URL,
-        NODE_ENV: process.env.NODE_ENV,
+        NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
         ABLY_API_KEY: process.env.ABLY_API_KEY,
         TARGET_EMAIL: process.env.TARGET_EMAIL,
         SEND_EMAIL: process.env.SEND_EMAIL,

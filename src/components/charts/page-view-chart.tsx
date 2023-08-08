@@ -26,17 +26,11 @@ export const PageViewChart = ({ pageViews }: { pageViews: PageViews }) => {
     theme: {
       palette: "palette2", //Check the list of available palettes and choose one.
     },
-    grid: { borderColor: "#3e3e3e" },
-    fill: {
-      type: "gradient",
-      gradient: {
-        gradientToColors: ["#1A1B1E"],
-        shadeIntensity: 1,
-        opacityFrom: 0.6,
-        opacityTo: 0.8,
-        stops: [0, 90, 100],
-      },
+    stroke: {
+      curve: "smooth",
+      width: 3,
     },
+    grid: { borderColor: "#3e3e3e" },
   });
 
   const [series] = useState<ApexAxisChartSeries | ApexNonAxisChartSeries>([
@@ -71,7 +65,7 @@ export const PageViewChart = ({ pageViews }: { pageViews: PageViews }) => {
       <Chart
         options={options}
         series={series}
-        type="area"
+        type="line"
         width="100%"
         height="100%"
       />

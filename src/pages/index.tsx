@@ -12,10 +12,9 @@ import PointsTable from "fpp/components/index/points-table";
 import dynamic from "next/dynamic";
 import IndexFormPlaceholder from "fpp/components/index/form-placeholder";
 import { useInView } from "react-intersection-observer";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import {
+  type TrackPageViewMutation,
   useTrackPageView,
-  type UseTrackPageViewMutation,
 } from "fpp/utils/use-tracking.hooks";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
@@ -29,10 +28,9 @@ const IndexFormWithNoSSR = dynamic<{
 });
 
 const Home: NextPage = () => {
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const trackPageViewMutation =
-    api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
-  useTrackPageView(RouteType.HOME, visitorId, trackPageViewMutation);
+  const mutation = api.tracking.trackPageView.useMutation()
+    .mutate as TrackPageViewMutation;
+  useTrackPageView(RouteType.HOME, mutation);
 
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
   const randomRoom = api.room.getRandomRoom.useQuery().data;

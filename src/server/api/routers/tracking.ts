@@ -3,6 +3,7 @@ import { z } from "zod";
 import { EventType, RouteType, type Visitor } from "@prisma/client";
 import { DateTime } from "luxon";
 import { prepareSessionData } from "fpp/utils/prepare-session-data";
+import { env } from "fpp/env.mjs";
 
 export const trackingRouter = createTRPCRouter({
   trackPageView: publicProcedure
@@ -92,12 +93,14 @@ export const trackingRouter = createTRPCRouter({
       ).id;
     }),
   getPageViews: publicProcedure.query<PageViews>(async ({ ctx }) => {
+    if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+      return samplePageViews;
+    }
     const total = await ctx.prisma.pageView.count();
     const unique = await ctx.prisma.visitor.count();
     const viewsPerVisit = Math.ceil((total / unique) * 100) / 100;
 
-    // TODO: enable below one ISR is enabled
-    /* const activities = await ctx.prisma.$queryRaw<
+    const activities = await ctx.prisma.$queryRaw<
       { visitorId: string; activityAt: Date }[]
     >`
         SELECT visitorId, viewedAt as activityAt
@@ -136,11 +139,9 @@ export const trackingRouter = createTRPCRouter({
       }
     }
 
-    const averageDuration =
+    const duration =
       Math.ceil((totalDuration / (totalActivities || 1) / (60 * 1000)) * 100) /
-      100; */
-
-    const duration = 0;
+      100;
 
     const visitorsWhoVotedRes = await ctx.prisma.$queryRaw<
       { hasVoted: string }[]
@@ -209,6 +210,10 @@ export const trackingRouter = createTRPCRouter({
   }),
   getAggregatedVisitorInfo: publicProcedure.query<AggregatedVisitorInfo>(
     async ({ ctx }) => {
+      if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+        return sampleAggregatedVisitorInfo;
+      }
+
       const deviceCounts = await ctx.prisma.visitor.groupBy({
         by: ["device"],
         where: {
@@ -319,3 +324,88 @@ export interface PageViews {
   uniqueViews: { date: string; count: number }[];
   totalVotes: { date: string; count: number }[];
 }
+
+const sampleAggregatedVisitorInfo: AggregatedVisitorInfo = {
+  deviceCounts: [
+    { name: "Desktop", value: 200 },
+    { name: "Mobile", value: 50 },
+    { name: "Tablet", value: 30 },
+  ],
+  osCounts: [
+    { name: "Windows", value: 100 },
+    { name: "MacOS", value: 100 },
+    { name: "Linux", value: 80 },
+  ],
+  browserCounts: [
+    { name: "Chrome", value: 100 },
+    { name: "Firefox", value: 50 },
+    { name: "Safari", value: 70 },
+    { name: "Edge", value: 10 },
+    { name: "Opera", value: 30 },
+    { name: "Other", value: 20 },
+  ],
+  countryCounts: [
+    { name: "United States", value: 100 },
+    { name: "Canada", value: 50 },
+    { name: "United Kingdom", value: 70 },
+    { name: "Australia", value: 10 },
+    { name: "Germany", value: 30 },
+  ],
+  regionCounts: [
+    { name: "California", value: 100 },
+    { name: "Texas", value: 50 },
+    { name: "New York", value: 70 },
+    { name: "Florida", value: 10 },
+    { name: "Illinois", value: 30 },
+  ],
+  cityCounts: [
+    { name: "Los Angeles", value: 80 },
+    { name: "New York", value: 50 },
+    { name: "Chicago", value: 70 },
+    { name: "Houston", value: 10 },
+    { name: "Phoenix", value: 30 },
+    { name: "Philadelphia", value: 20 },
+    { name: "San Antonio", value: 20 },
+  ],
+};
+
+const samplePageViews: PageViews = {
+  stats: {
+    total: 100,
+    unique: 50,
+    avgPerDay: 10,
+    viewsPerVisit: 2,
+    duration: 9.53,
+    bounceRate: 70,
+  },
+  totalViews: [
+    { date: "2021-01-01", count: 10 },
+    { date: "2021-01-02", count: 20 },
+    { date: "2021-01-03", count: 25 },
+    { date: "2021-01-04", count: 40 },
+    { date: "2021-01-05", count: 50 },
+    { date: "2021-01-06", count: 60 },
+    { date: "2021-01-07", count: 50 },
+    { date: "2021-01-08", count: 40 },
+  ],
+  uniqueViews: [
+    { date: "2021-01-01", count: 5 },
+    { date: "2021-01-02", count: 10 },
+    { date: "2021-01-03", count: 8 },
+    { date: "2021-01-04", count: 10 },
+    { date: "2021-01-05", count: 12 },
+    { date: "2021-01-06", count: 15 },
+    { date: "2021-01-07", count: 10 },
+    { date: "2021-01-08", count: 8 },
+  ],
+  totalVotes: [
+    { date: "2021-01-01", count: 15 },
+    { date: "2021-01-02", count: 20 },
+    { date: "2021-01-03", count: 25 },
+    { date: "2021-01-04", count: 30 },
+    { date: "2021-01-05", count: 25 },
+    { date: "2021-01-06", count: 25 },
+    { date: "2021-01-07", count: 45 },
+    { date: "2021-01-08", count: 35 },
+  ],
+};

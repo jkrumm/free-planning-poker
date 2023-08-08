@@ -1,25 +1,25 @@
 import React from "react";
 import { api } from "fpp/utils/api";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { useTrackPageView } from "fpp/utils/use-tracking.hooks";
-import { Card, SimpleGrid, Text } from "@mantine/core";
+import {
+  type TrackPageViewMutation,
+  useTrackPageView,
+} from "fpp/utils/use-tracking.hooks";
+import { Card, Group, SimpleGrid, Text, Title } from "@mantine/core";
 import { RouteType } from "@prisma/client";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { appRouter } from "fpp/server/api/root";
-import superjson from "superjson";
 import { createTRPCContext } from "fpp/server/api/trpc";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { log } from "fpp/utils/console-log";
 import { Meta } from "fpp/components/meta";
 import { Hero } from "fpp/components/layout/hero";
 import { PageViewChart } from "fpp/components/charts/page-view-chart";
-import { BarChart } from "fpp/components/charts/bar-chart";
+import { type CountResult } from "fpp/server/api/routers/tracking";
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: createTRPCContext(context),
-    transformer: superjson, // optional - adds superjson serialization
   });
 
   await helpers.tracking.getPageViews.prefetch();
@@ -34,37 +34,27 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 
 // const Analytics = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 const Analytics = () => {
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
-  /* const trackPageViewMutation =
-    api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation; */
-  const { mutate } = api.tracking.trackPageView.useMutation();
-  useTrackPageView(RouteType.ANALYTICS, visitorId, mutate);
+  const mutation = api.tracking.trackPageView.useMutation()
+    .mutate as TrackPageViewMutation;
+  useTrackPageView(RouteType.ANALYTICS, mutation);
 
-  const pageViewsQuery = api.tracking.getPageViews.useQuery(undefined, {
-    staleTime: Infinity,
-    enabled: false,
-  });
-  const votesQuery = api.vote.getVotes.useQuery(undefined, {
-    staleTime: Infinity,
-    enabled: false,
-  });
-  const getAggregatedVisitorInfoQuery =
-    api.tracking.getAggregatedVisitorInfo.useQuery(undefined, {
-      staleTime: Infinity,
-      enabled: false,
-    });
+  const { data: pageViews, isFetched: isPageViewsFetched } =
+    api.tracking.getPageViews.useQuery();
+  const { data: votes, isFetched: isVotesFetched } =
+    api.vote.getVotes.useQuery();
+  const {
+    data: aggregatedVisitorInfo,
+    isFetched: isAggregatedVisitorInfoFetched,
+  } = api.tracking.getAggregatedVisitorInfo.useQuery();
 
   if (
-    pageViewsQuery.status !== "success" ||
-    votesQuery.status !== "success" ||
-    getAggregatedVisitorInfoQuery.status !== "success"
+    !isPageViewsFetched ||
+    !isVotesFetched ||
+    !isAggregatedVisitorInfoFetched
   ) {
+    // TODO: sentry
     return <div>Loading...</div>;
   }
-
-  const pageViews = pageViewsQuery.data;
-  const votes = votesQuery.data;
-  const aggregatedVisitorInfo = getAggregatedVisitorInfoQuery.data;
 
   log("pageViews", pageViews ?? {});
   log("votes", votes ?? {});
@@ -76,7 +66,7 @@ const Analytics = () => {
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
-          {pageViews && votes && (
+          {pageViews && votes && aggregatedVisitorInfo && (
             <>
               <h1>Site Traffic</h1>
               <SimpleGrid
@@ -145,42 +135,42 @@ const Analytics = () => {
               </SimpleGrid>
               <h1>Historical data</h1>
               <PageViewChart pageViews={pageViews} />
-              <h1 className="mb-0 mt-[60px]">Location data</h1>
+              <h1 className="mb-2 mt-[60px]">Location data</h1>
               <SimpleGrid
                 cols={3}
                 spacing="md"
                 breakpoints={[{ maxWidth: "md", cols: 1 }]}
               >
-                <BarChart
+                <AnalyticsCard
                   headline={"Countries"}
-                  data={aggregatedVisitorInfo?.countryCounts ?? []}
+                  data={aggregatedVisitorInfo.countryCounts}
                 />
-                <BarChart
+                <AnalyticsCard
                   headline={"Regions"}
-                  data={aggregatedVisitorInfo?.regionCounts ?? []}
+                  data={aggregatedVisitorInfo.regionCounts}
                 />
-                <BarChart
+                <AnalyticsCard
                   headline={"Cities"}
-                  data={aggregatedVisitorInfo?.cityCounts ?? []}
+                  data={aggregatedVisitorInfo.cityCounts}
                 />
               </SimpleGrid>
-              <h1 className="mb-0 mt-[60px]">User Agent data</h1>
+              <h1 className="mb-2 mt-[60px]">User Agent data</h1>
               <SimpleGrid
                 cols={3}
                 spacing="md"
                 breakpoints={[{ maxWidth: "md", cols: 1 }]}
               >
-                <BarChart
+                <AnalyticsCard
                   headline={"Operating Systems"}
-                  data={aggregatedVisitorInfo?.osCounts ?? []}
+                  data={aggregatedVisitorInfo.osCounts}
                 />
-                <BarChart
+                <AnalyticsCard
                   headline={"Devices"}
-                  data={aggregatedVisitorInfo?.deviceCounts ?? []}
+                  data={aggregatedVisitorInfo.deviceCounts}
                 />
-                <BarChart
+                <AnalyticsCard
                   headline={"Browsers"}
-                  data={aggregatedVisitorInfo?.browserCounts ?? []}
+                  data={aggregatedVisitorInfo.browserCounts}
                 />
               </SimpleGrid>
             </>
@@ -188,6 +178,41 @@ const Analytics = () => {
         </div>
       </main>
     </>
+  );
+};
+
+export const AnalyticsCard = ({
+  data,
+  headline,
+}: {
+  data: CountResult;
+  headline: string;
+}) => {
+  const sortedData = data.sort((a, b) => b.value - a.value);
+  const highestValue = sortedData[0]?.value ?? 0;
+
+  return (
+    <Card withBorder shadow="sm" radius="md">
+      <Card.Section withBorder inheritPadding py="xs">
+        <Title order={4}>{headline}</Title>
+      </Card.Section>
+      <Card.Section className="px-2">
+        {sortedData.map((item, index) => (
+          <Group position="apart" key={index} className="relative py-2">
+            <div
+              className="absolute h-[40px] w-full rounded bg-[#2C2E33]"
+              style={{ width: `${(item.value / highestValue) * 100}%` }}
+            />
+            <Text fz="md" className="z-10 m-2">
+              {item.name}
+            </Text>
+            <Text fz="md" className="z-10 m-2">
+              {item.value}
+            </Text>
+          </Group>
+        ))}
+      </Card.Section>
+    </Card>
   );
 };
 

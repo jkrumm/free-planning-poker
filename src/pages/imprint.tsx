@@ -4,19 +4,17 @@ import { Hero } from "fpp/components/layout/hero";
 import Link from "next/link";
 import { Button } from "@mantine/core";
 import { api } from "fpp/utils/api";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import {
+  type TrackPageViewMutation,
   useTrackPageView,
-  type UseTrackPageViewMutation,
 } from "fpp/utils/use-tracking.hooks";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 
 const Imprint: NextPage = () => {
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const trackPageViewMutation =
-    api.tracking.trackPageView.useMutation() as UseTrackPageViewMutation;
-  useTrackPageView(RouteType.IMPRINT, visitorId, trackPageViewMutation);
+  const mutation = api.tracking.trackPageView.useMutation()
+    .mutate as TrackPageViewMutation;
+  useTrackPageView(RouteType.IMPRINT, mutation);
 
   return (
     <>

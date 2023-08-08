@@ -17,7 +17,7 @@ export async function prepareSessionData(
   }
 
   let geo: { country: string; region: string; city: string } | null = null;
-  if (ip && ua.os && env.NODE_ENV !== "development") {
+  if (ip && ua.os && env.NEXT_PUBLIC_NODE_ENV !== "development") {
     const url = `'https://ipapi.co/${ip}/json/'`;
 
     try {
