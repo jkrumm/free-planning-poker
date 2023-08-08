@@ -19,9 +19,9 @@ const Contact: NextPage = () => {
   const username = useLocalstorageStore((state) => state.username);
 
   const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const mutation = api.tracking.trackPageView.useMutation()
+  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
     .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.CONTACT, mutation);
+  useTrackPageView(RouteType.CONTACT, trackPageViewMutation);
   const sendEvent = api.tracking.trackEvent.useMutation();
 
   const sendMail = api.contact.sendMail.useMutation();

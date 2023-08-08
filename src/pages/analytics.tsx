@@ -34,9 +34,9 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 
 // const Analytics = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 const Analytics = () => {
-  const mutation = api.tracking.trackPageView.useMutation()
+  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
     .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.ANALYTICS, mutation);
+  useTrackPageView(RouteType.ANALYTICS, trackPageViewMutation);
 
   const { data: pageViews, isFetched: isPageViewsFetched } =
     api.tracking.getPageViews.useQuery();

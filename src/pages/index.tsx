@@ -28,9 +28,9 @@ const IndexFormWithNoSSR = dynamic<{
 });
 
 const Home: NextPage = () => {
-  const mutation = api.tracking.trackPageView.useMutation()
+  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
     .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.HOME, mutation);
+  useTrackPageView(RouteType.HOME, trackPageViewMutation);
 
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
   const randomRoom = api.room.getRandomRoom.useQuery().data;

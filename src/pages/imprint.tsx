@@ -12,9 +12,9 @@ import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 
 const Imprint: NextPage = () => {
-  const mutation = api.tracking.trackPageView.useMutation()
+  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
     .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.IMPRINT, mutation);
+  useTrackPageView(RouteType.IMPRINT, trackPageViewMutation);
 
   return (
     <>
