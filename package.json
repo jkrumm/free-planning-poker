@@ -13,9 +13,12 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "postinstall": "prisma generate",
+    "start": "next start",
+    "prisma:generate": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "format": "prettier --write \"{src,test}/**\"",
+    "format:check": "prettier --check \"{src,test}/**\"",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@ably-labs/react-hooks": "^2.1.0",
