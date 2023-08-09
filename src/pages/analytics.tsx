@@ -39,13 +39,24 @@ const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS, trackPageViewMutation);
 
   const { data: pageViews, isFetched: isPageViewsFetched } =
-    api.tracking.getPageViews.useQuery();
-  const { data: votes, isFetched: isVotesFetched } =
-    api.vote.getVotes.useQuery();
+    api.tracking.getPageViews.useQuery(undefined, {
+      staleTime: Infinity,
+      enabled: false,
+    });
+  const { data: votes, isFetched: isVotesFetched } = api.vote.getVotes.useQuery(
+    undefined,
+    {
+      staleTime: Infinity,
+      enabled: false,
+    }
+  );
   const {
     data: aggregatedVisitorInfo,
     isFetched: isAggregatedVisitorInfoFetched,
-  } = api.tracking.getAggregatedVisitorInfo.useQuery();
+  } = api.tracking.getAggregatedVisitorInfo.useQuery(undefined, {
+    staleTime: Infinity,
+    enabled: false,
+  });
 
   if (
     !isPageViewsFetched ||

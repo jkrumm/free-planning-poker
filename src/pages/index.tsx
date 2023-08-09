@@ -18,6 +18,7 @@ import {
 } from "fpp/utils/use-tracking.hooks";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
+import { log } from "fpp/utils/console-log";
 
 const IndexFormWithNoSSR = dynamic<{
   randomRoom: string | undefined;
@@ -31,6 +32,9 @@ const Home: NextPage = () => {
   const trackPageViewMutation = api.tracking.trackPageView.useMutation()
     .mutate as TrackPageViewMutation;
   useTrackPageView(RouteType.HOME, trackPageViewMutation);
+
+  const data = api.roadmap.getRoadmap.useQuery().data;
+  log("data", data ?? {});
 
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
   const randomRoom = api.room.getRandomRoom.useQuery().data;
