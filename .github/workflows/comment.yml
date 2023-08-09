@@ -1,0 +1,17 @@
+name: "PR Commenter"
+
+on: [ pull_request ]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    permissions:
+      # id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: exercism/pr-commenter-action@v1.4.0
+        with:
+          github-token: "${{ github.token }}"
+          config-file: ".github/pr-commenter.yml"

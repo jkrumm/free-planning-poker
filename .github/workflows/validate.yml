@@ -1,0 +1,77 @@
+name: Validate
+
+on: [ pull_request ]
+
+jobs:
+  typechecking:
+    name: Typechecking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Install npm
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci --quiet
+      - name: Run typechecking
+        run: npm run type-check
+
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Install npm
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci --quiet
+      - name: Run formatting
+        run: npm run format:check
+
+
+  linting:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Mock .env
+        run: cp .env.example .env
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Install npm
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci --quiet
+      - name: Run linting
+        run: npm run lint
+
+#  testing:
+#    name: Testing & Linting
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: actions/setup-node@v1
+#      - uses: actions/cache@v2
+#        with:
+#          path: '**/node_modules'
+#          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+#      - name: Install npm
+#        if: steps.npm-cache.outputs.cache-hit != 'true'
+#        run: npm ci --quiet
+#      - name: Run testing
+#        run: npm run test

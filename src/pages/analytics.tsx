@@ -41,13 +41,15 @@ const Analytics = () => {
   const { data: pageViews, isFetched: isPageViewsFetched } =
     api.tracking.getPageViews.useQuery(undefined, {
       staleTime: Infinity,
-      enabled: false,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
     });
   const { data: votes, isFetched: isVotesFetched } = api.vote.getVotes.useQuery(
     undefined,
     {
       staleTime: Infinity,
-      enabled: false,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
     }
   );
   const {
@@ -55,7 +57,8 @@ const Analytics = () => {
     isFetched: isAggregatedVisitorInfoFetched,
   } = api.tracking.getAggregatedVisitorInfo.useQuery(undefined, {
     staleTime: Infinity,
-    enabled: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   if (
