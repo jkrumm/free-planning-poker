@@ -74,7 +74,7 @@ const PointsTable = () => {
         <tr>
           <th>Story Points</th>
           <th>Description</th>
-          <th>Estimated Completion Time</th>
+          <th>Completion Time</th>
         </tr>
       </thead>
       <tbody>

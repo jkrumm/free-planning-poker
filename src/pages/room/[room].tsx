@@ -100,7 +100,7 @@ const RoomPage = () => {
       setVoting(null);
       setSpectator(false);
     }
-  }, [queryRoom, username, room, firstLoad]);
+  }, [queryRoom, username, firstLoad]);
 
   return (
     <>

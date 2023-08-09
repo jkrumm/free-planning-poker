@@ -143,10 +143,10 @@ const Imprint: NextPage = () => {
             upkeep and development of this tool. Any funds received are
             acknowledged not as formal, tax-deductible donations, or as a
             commercial transaction involving an exchange of goods or services.
-            They are considered as supportive contributions aiding in this
+            They are considered as supportive contributions aiding in this{" "}
             {/* eslint-disable-next-line react/no-unescaped-entities */}
             tool's further development. As such, these arrangements are not
-            governed by German Civil Code (BGB) or Consumer Rights Directive
+            governed by German Civil Code (BGB) or Consumer Rights Directive{" "}
             {/* eslint-disable-next-line react/no-unescaped-entities */}
             (2011/83/EU). The use of the term "donation" herein is a common
             terminology in online platforms, and it is important to note its

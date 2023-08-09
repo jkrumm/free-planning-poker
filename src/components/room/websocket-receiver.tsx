@@ -9,6 +9,7 @@ import * as process from "process";
 import { log, logPresence } from "fpp/utils/console-log";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { EventType } from ".prisma/client";
+import { env } from "fpp/env.mjs";
 
 export const WebsocketReceiver = ({
   room,
@@ -21,9 +22,7 @@ export const WebsocketReceiver = ({
   const sendEventMutation = api.tracking.trackEvent.useMutation();
 
   configureAbly({
-    authUrl: `${
-      process.env.NEXT_PUBLIC_API_ROOT ?? "http://localhost:3000/"
-    }api/ably-token`,
+    authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
     clientId: shortUUID().generate().toString(),
   });
 
