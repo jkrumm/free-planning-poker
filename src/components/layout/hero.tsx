@@ -124,6 +124,11 @@ export function Hero() {
               GitHub
             </Button>
           </a>
+          <Link href="/roadmap">
+            <Button color={onContact ? "dark" : "gray"} variant="outline">
+              Roadmap
+            </Button>
+          </Link>
           <Link href="/contact">
             <Button color={onContact ? "dark" : "gray"} variant="outline">
               Contact

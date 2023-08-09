@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ably-labs/react-hooks": "^2.1.0",
+    "@doist/todoist-api-typescript": "^2.1.2",
     "@emotion/react": "^11.10.6",
     "@emotion/server": "^11.10.0",
     "@mantine/core": "^6.0.0",

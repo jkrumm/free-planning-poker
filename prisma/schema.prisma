@@ -49,6 +49,7 @@ enum RouteType {
   IMPRINT
   ROOM
   ANALYTICS
+  ROADMAP
 }
 
 model PageView {
