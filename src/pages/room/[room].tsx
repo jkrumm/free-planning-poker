@@ -10,6 +10,8 @@ import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import Link from "next/link";
 import { EventType } from ".prisma/client";
 import { Meta } from "fpp/components/meta";
+import { log } from "fpp/utils/console-log";
+import { RouteType } from "@prisma/client";
 
 const RoomPage = () => {
   const router = useRouter();
@@ -76,10 +78,15 @@ const RoomPage = () => {
         type: EventType.ENTER_DIRECTLY,
       });
       trackPageViewMutation.mutate(
-        { visitorId, route: "ROOM", room: queryRoom },
+        { visitorId, route: RouteType.ROOM, room: queryRoom },
         {
           onSuccess: (visitorId) => {
             setVisitorId(visitorId);
+            log("useTrackPageView", {
+              visitorId,
+              route: RouteType.ROOM,
+              room,
+            });
           },
         }
       );
@@ -93,7 +100,7 @@ const RoomPage = () => {
       setVoting(null);
       setSpectator(false);
     }
-  }, [queryRoom]);
+  }, [queryRoom, username, room, firstLoad]);
 
   return (
     <>
