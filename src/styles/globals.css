@@ -12,6 +12,14 @@ html {
   padding-bottom: 12px;
 }
 
+.react-markdown pre {
+  text-wrap: balance;
+  border-radius: 4px;
+  border: 1px solid #141517;
+  background-color: #212529;
+  padding: 16px;
+}
+
 article h2 {
   text-align: center;
   margin-top: 50px !important;
