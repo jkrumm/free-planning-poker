@@ -12,6 +12,7 @@ import { Hero } from "fpp/components/layout/hero";
 import { type Todo } from "fpp/server/api/routers/roadmap";
 import { useDisclosure } from "@mantine/hooks";
 import { IconArrowBadgeDownFilled } from "@tabler/icons-react";
+import ReactMarkdown from "react-markdown";
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
@@ -61,15 +62,6 @@ const Roadmap = () => {
       </main>
     </>
   );
-};
-
-const textWithBreaks = (text: string) => {
-  return text.split("\n").map((str, index) => (
-    <React.Fragment key={index}>
-      {str}
-      <br />
-    </React.Fragment>
-  ));
 };
 
 const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
@@ -126,7 +118,14 @@ const RoadmapCard = ({
           </Card.Section>
           <Collapse in={opened} transitionDuration={300}>
             <Card.Section className="px-6 py-2">
-              <Text fz="sm">{textWithBreaks(description)}</Text>
+              <Text
+                fz="sm"
+                className="overflow-auto rounded-lg border border-[#141517] bg-[#212529] p-3"
+              >
+                <ReactMarkdown className="react-markdown">
+                  {description}
+                </ReactMarkdown>
+              </Text>
             </Card.Section>
           </Collapse>
         </>
