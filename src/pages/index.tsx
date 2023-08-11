@@ -12,10 +12,7 @@ import PointsTable from "fpp/components/index/points-table";
 import dynamic from "next/dynamic";
 import IndexFormPlaceholder from "fpp/components/index/form-placeholder";
 import { useInView } from "react-intersection-observer";
-import {
-  type TrackPageViewMutation,
-  useTrackPageView,
-} from "fpp/utils/use-tracking.hooks";
+import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 import { log } from "fpp/utils/console-log";
@@ -29,9 +26,7 @@ const IndexFormWithNoSSR = dynamic<{
 });
 
 const Home: NextPage = () => {
-  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
-    .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.HOME, trackPageViewMutation);
+  useTrackPageView(RouteType.HOME);
 
   const data = api.roadmap.getRoadmap.useQuery().data;
   log("data", data ?? {});

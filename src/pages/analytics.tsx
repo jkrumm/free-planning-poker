@@ -1,9 +1,6 @@
 import React from "react";
 import { api } from "fpp/utils/api";
-import {
-  type TrackPageViewMutation,
-  useTrackPageView,
-} from "fpp/utils/use-tracking.hooks";
+import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Card, Group, SimpleGrid, Text, Title } from "@mantine/core";
 import { RouteType } from "@prisma/client";
 import { createServerSideHelpers } from "@trpc/react-query/server";
@@ -34,9 +31,7 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 
 // const Analytics = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 const Analytics = () => {
-  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
-    .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.ANALYTICS, trackPageViewMutation);
+  useTrackPageView(RouteType.ANALYTICS);
 
   const { data: pageViews, isFetched: isPageViewsFetched } =
     api.tracking.getPageViews.useQuery(undefined, {

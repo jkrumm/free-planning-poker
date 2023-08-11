@@ -3,18 +3,12 @@ import React from "react";
 import { Hero } from "fpp/components/layout/hero";
 import Link from "next/link";
 import { Button } from "@mantine/core";
-import { api } from "fpp/utils/api";
-import {
-  type TrackPageViewMutation,
-  useTrackPageView,
-} from "fpp/utils/use-tracking.hooks";
+import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 
 const Imprint: NextPage = () => {
-  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
-    .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.IMPRINT, trackPageViewMutation);
+  useTrackPageView(RouteType.IMPRINT);
 
   return (
     <>

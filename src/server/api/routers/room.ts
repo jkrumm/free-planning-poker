@@ -41,6 +41,13 @@ export const roomRouter = createTRPCRouter({
     .input(z.object({ room: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
+        const deletedRoom = await ctx.prisma.room.findFirst({
+          where: {
+            name: input.room,
+          },
+        });
+        const name = deletedRoom?.name;
+
         const room = await ctx.prisma.room.findFirst({
           where: {
             name: input.room,

@@ -3,7 +3,6 @@ import { env } from "fpp/env.mjs";
 import { appRouter } from "fpp/server/api/root";
 import { createTRPCContext } from "fpp/server/api/trpc";
 
-// export API handler
 export default createNextApiHandler({
   router: appRouter,
   createContext: createTRPCContext,

@@ -7,10 +7,7 @@ import { api } from "fpp/utils/api";
 import { log } from "fpp/utils/console-log";
 import { notifications } from "@mantine/notifications";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import {
-  type TrackPageViewMutation,
-  useTrackPageView,
-} from "fpp/utils/use-tracking.hooks";
+import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { EventType } from ".prisma/client";
 import { Meta } from "fpp/components/meta";
@@ -19,9 +16,7 @@ const Contact: NextPage = () => {
   const username = useLocalstorageStore((state) => state.username);
 
   const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
-    .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.CONTACT, trackPageViewMutation);
+  useTrackPageView(RouteType.CONTACT);
   const sendEvent = api.tracking.trackEvent.useMutation();
 
   const sendMail = api.contact.sendMail.useMutation();
