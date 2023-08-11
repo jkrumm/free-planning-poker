@@ -75,6 +75,7 @@ export function Hero() {
   const page = router.pathname;
 
   const onHome = page === "/";
+  const onRoadmap = page === "/roadmap";
   const onContact = page === "/contact";
 
   const { classes } = useStyles();
@@ -125,7 +126,7 @@ export function Hero() {
             </Button>
           </a>
           <Link href="/roadmap">
-            <Button color={onContact ? "dark" : "gray"} variant="outline">
+            <Button color={onRoadmap ? "dark" : "gray"} variant="outline">
               Roadmap
             </Button>
           </Link>

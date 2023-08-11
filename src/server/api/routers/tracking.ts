@@ -1,57 +1,11 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
-import { EventType, RouteType, type Visitor } from "@prisma/client";
+import { EventType, type Visitor } from "@prisma/client";
 import { DateTime } from "luxon";
 import { prepareSessionData } from "fpp/utils/prepare-session-data";
 import { env } from "fpp/env.mjs";
 
 export const trackingRouter = createTRPCRouter({
-  trackPageView: publicProcedure
-    .input(
-      z.object({
-        visitorId: z.string().uuid().nullable(),
-        route: z.nativeEnum(RouteType),
-        room: z.string().min(2).max(15).optional(),
-      })
-    )
-    .mutation(async ({ ctx, input: { visitorId, route, room } }) => {
-      let visitor: Visitor | null = null;
-
-      if (visitorId) {
-        visitor = await ctx.prisma.visitor.findUnique({
-          where: { id: visitorId },
-        });
-      }
-
-      if (visitor) {
-        return (
-          await ctx.prisma.visitor.update({
-            where: { id: visitor.id },
-            data: {
-              pageViews: {
-                create: { route, room },
-              },
-            },
-          })
-        ).id;
-      }
-
-      const sessionData = await prepareSessionData(ctx.req);
-      if (sessionData.city === "Santa Clara") {
-        return "we ignore next.js deployment validation";
-      }
-
-      return (
-        await ctx.prisma.visitor.create({
-          data: {
-            ...sessionData,
-            pageViews: {
-              create: { route, room },
-            },
-          },
-        })
-      ).id;
-    }),
   trackEvent: publicProcedure
     .input(
       z.object({

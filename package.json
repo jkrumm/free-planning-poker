@@ -31,6 +31,7 @@
     "@mantine/modals": "^6.0.0",
     "@mantine/next": "^6.0.0",
     "@mantine/notifications": "^6.0.0",
+    "@planetscale/database": "^1.10.0",
     "@prisma/client": "^5.1.1",
     "@t3-oss/env-nextjs": "^0.3.1",
     "@tabler/icons-react": "^2.30.0",

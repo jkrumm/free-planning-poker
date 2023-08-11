@@ -1,9 +1,6 @@
 import React from "react";
 import { api } from "fpp/utils/api";
-import {
-  type TrackPageViewMutation,
-  useTrackPageView,
-} from "fpp/utils/use-tracking.hooks";
+import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Card, Collapse, Group, SimpleGrid, Text, Title } from "@mantine/core";
 import { RouteType } from "@prisma/client";
 import { createServerSideHelpers } from "@trpc/react-query/server";
@@ -29,9 +26,7 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 };
 
 const Roadmap = () => {
-  const trackPageViewMutation = api.tracking.trackPageView.useMutation()
-    .mutate as TrackPageViewMutation;
-  useTrackPageView(RouteType.ROADMAP, trackPageViewMutation);
+  useTrackPageView(RouteType.ROADMAP);
 
   const { data: roadmap, isFetched } = api.roadmap.getRoadmap.useQuery(
     undefined,
@@ -97,16 +92,14 @@ const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
 const RoadmapCard = ({
   title,
   description,
-  key,
 }: {
   title: string;
   description: string;
-  key: number;
 }) => {
   const [opened, { toggle }] = useDisclosure(false);
 
   return (
-    <Card key={key} p={0} withBorder radius="sm" className="mb-3">
+    <Card p={0} withBorder radius="sm" className="mb-3">
       {description === "" ? (
         <div className="p-2">
           <Text>{title}</Text>
@@ -119,7 +112,7 @@ const RoadmapCard = ({
             className="border-t-0 px-6 py-2"
             onClick={toggle}
           >
-            <Group position="apart">
+            <Group noWrap position="apart">
               <Text>{title}</Text>
               <IconArrowBadgeDownFilled
                 size={26}
