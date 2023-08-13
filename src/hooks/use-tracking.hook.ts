@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { type RouteType } from "@prisma/client";
 import { type MutateFunction } from "@tanstack/query-core";
-import { log } from "fpp/utils/console-log";
 import { env } from "fpp/env.mjs";
+import { log } from "next-axiom";
 
 export type TrackPageViewMutation = MutateFunction<
   string,
@@ -45,12 +45,19 @@ export const sendTrackPageView = ({
 
   if (navigator.sendBeacon && visitorId) {
     navigator.sendBeacon(url, body);
+    log.debug("useTrackPageView", {
+      withBeacon: true,
+      visitorId,
+      route,
+      room,
+    });
   } else {
     fetch(url, { body, method: "POST", keepalive: true })
       .then((res) => res.json() as Promise<{ visitorId: string }>)
       .then(({ visitorId }) => {
         setVisitorId(visitorId);
-        log("useTrackPageView", {
+        log.debug("useTrackPageView", {
+          withBeacon: false,
           visitorId,
           route,
           room,
