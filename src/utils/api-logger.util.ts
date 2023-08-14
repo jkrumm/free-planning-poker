@@ -70,7 +70,7 @@ export function withLogger(handler: NextHandler) {
     axiomContext.log = logger;
 
     try {
-      logger.info("Called Next route handler", {
+      logger.debug("Called Next route handler", {
         ...report,
         ...reportExtension,
         startTime,
@@ -79,7 +79,7 @@ export function withLogger(handler: NextHandler) {
       const res = await handler(axiomContext);
 
       const endTime = new Date().getTime();
-      logger.info("Success Next route handler", {
+      logger.debug("Success Next route handler", {
         ...report,
         ...reportExtension,
         startTime,

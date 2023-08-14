@@ -44,7 +44,6 @@ const Home: NextPage = () => {
       <Meta />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        {/* <IndexForm randomRoom={randomRoom} activeRooms={activeRooms} /> */}
         <IndexFormWithNoSSR randomRoom={randomRoom} activeRooms={activeRooms} />
         <Link
           href="/#master-the-art-of-planning-poker"
