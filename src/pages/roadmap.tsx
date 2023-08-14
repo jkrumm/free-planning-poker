@@ -13,15 +13,19 @@ import { type Todo } from "fpp/server/api/routers/roadmap";
 import { useDisclosure } from "@mantine/hooks";
 import { IconArrowBadgeDownFilled } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
+import superjson from "superjson";
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: createTRPCContext(context),
+    transformer: superjson,
   });
-  await helpers.roadmap.getRoadmap.prefetch();
+
+  await helpers.roadmap.getRoadmap.prefetch(undefined);
+
   return {
-    props: { trpcState: helpers.dehydrate({ dehydrateQueries: true }) },
+    props: { trpcState: helpers.dehydrate() },
     revalidate: 3600,
   };
 };
@@ -29,16 +33,14 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 const Roadmap = () => {
   useTrackPageView(RouteType.ROADMAP);
 
-  const { data: roadmap, isFetched } = api.roadmap.getRoadmap.useQuery(
-    undefined,
-    {
-      staleTime: Infinity,
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    }
-  );
+  const { data: roadmap } = api.roadmap.getRoadmap.useQuery(undefined, {
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
-  if (!isFetched || !roadmap) {
+  if (!roadmap) {
     // TODO: sentry
     return <div>Loading...</div>;
   }
