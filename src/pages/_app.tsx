@@ -6,10 +6,7 @@ import "fpp/styles/globals.css";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import React from "react";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-export { reportWebVitals } from "next-axiom";
+import { AxiomWebVitals } from "next-axiom";
 
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   return (
@@ -20,6 +17,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       }}
       withGlobalStyles
     >
+      <AxiomWebVitals />
       <Notifications position="top-right" />
       <Component {...pageProps} />
     </MantineProvider>
