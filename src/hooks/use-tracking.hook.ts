@@ -1,20 +1,8 @@
 import { useEffect } from "react";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { type RouteType } from "@prisma/client";
-import { type MutateFunction } from "@tanstack/query-core";
 import { env } from "fpp/env.mjs";
-import { log } from "next-axiom";
-
-export type TrackPageViewMutation = MutateFunction<
-  string,
-  unknown,
-  {
-    visitorId: string | null;
-    route: RouteType;
-    room?: string;
-  },
-  unknown
->;
+import { log } from "fpp/constants/error.constants";
 
 export const useTrackPageView = (route: RouteType, room?: string) => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
@@ -32,7 +20,7 @@ export const sendTrackPageView = ({
   setVisitorId,
 }: {
   visitorId: string | null;
-  route: string;
+  route: RouteType;
   room?: string;
   setVisitorId: (visitorId: string) => void;
 }) => {
