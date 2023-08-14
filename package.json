@@ -18,7 +18,8 @@
     "lint": "next lint",
     "format": "prettier --write \"{src,test}/**\"",
     "format:check": "prettier --check \"{src,test}/**\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "pre": "npm run lint && npm run type-check && npm run format:check && npm run build"
   },
   "dependencies": {
     "@ably-labs/react-hooks": "^2.1.0",
