@@ -39,8 +39,11 @@ export const contactRouter = createTRPCRouter({
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
       transporter.sendMail(mailData, function (err, info) {
-        if (err) console.log(err);
-        else console.log(info);
+        if (err) {
+          throw new Error("Error sending email");
+        } else {
+          console.log(info);
+        }
       });
     }),
 });

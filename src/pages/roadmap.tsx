@@ -14,6 +14,9 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconArrowBadgeDownFilled } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import superjson from "superjson";
+import { useLogger } from "next-axiom";
+import { logMsg } from "fpp/constants/logging.constant";
+import * as Sentry from "@sentry/nextjs";
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
@@ -31,7 +34,8 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 };
 
 const Roadmap = () => {
-  useTrackPageView(RouteType.ROADMAP);
+  const logger = useLogger().with({ route: RouteType.ROADMAP });
+  useTrackPageView(RouteType.ROADMAP, logger);
 
   const { data: roadmap } = api.roadmap.getRoadmap.useQuery(undefined, {
     staleTime: Infinity,
@@ -41,7 +45,8 @@ const Roadmap = () => {
   });
 
   if (!roadmap) {
-    // TODO: sentry
+    logger.error(logMsg.SSG_FAILED);
+    Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
   }
 

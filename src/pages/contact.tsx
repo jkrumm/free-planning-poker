@@ -4,7 +4,6 @@ import { Hero } from "fpp/components/layout/hero";
 import { Button, Group, SimpleGrid, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { api } from "fpp/utils/api";
-import { log } from "fpp/utils/console-log";
 import { notifications } from "@mantine/notifications";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
@@ -12,9 +11,11 @@ import { RouteType } from "@prisma/client";
 import { EventType } from ".prisma/client";
 import { Meta } from "fpp/components/meta";
 import { sendTrackEvent } from "fpp/utils/send-track-event.util";
+import { useLogger } from "next-axiom";
 
 const Contact: NextPage = () => {
-  useTrackPageView(RouteType.CONTACT);
+  const logger = useLogger().with({ route: RouteType.CONTACT });
+  useTrackPageView(RouteType.CONTACT, logger);
 
   const username = useLocalstorageStore((state) => state.username);
   const visitorId = useLocalstorageStore((state) => state.visitorId);
@@ -48,7 +49,6 @@ const Contact: NextPage = () => {
           <form
             className="w-[800px]"
             onSubmit={form.onSubmit(() => {
-              log("SEND EMAIL", form.values);
               sendMail.mutate(form.values, {
                 onSuccess: () => {
                   notifications.show({
@@ -66,7 +66,11 @@ const Contact: NextPage = () => {
                   });
                 },
               });
-              sendTrackEvent(EventType.CONTACT_FORM_SUBMISSION, visitorId);
+              sendTrackEvent({
+                event: EventType.CONTACT_FORM_SUBMISSION,
+                visitorId,
+                logger,
+              });
             })}
           >
             <SimpleGrid

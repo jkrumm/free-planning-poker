@@ -6,16 +6,17 @@ import { useRouter } from "next/router";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { type Logger } from "next-axiom";
-import { logMsg } from "fpp/constants/logging.constant";
+import { logMsg, roomEvent } from "fpp/constants/logging.constant";
+import { RouteType } from "@prisma/client";
 
 export const Interactions = ({
   room,
   username,
-  log,
+  logger,
 }: {
   room: string;
   username: string;
-  log: Logger;
+  logger: Logger;
 }) => {
   const router = useRouter();
 
@@ -43,7 +44,7 @@ export const Interactions = ({
       spectator: spectators.includes(clientId),
       presencesLength: presences.length,
     };
-    log.debug("SEND OWN PRESENCE ON INIT", presenceUpdate);
+    logger.debug("SEND OWN PRESENCE ON INIT", presenceUpdate);
     channel.presence.update(presenceUpdate);
   }, [channel]);
 
@@ -133,11 +134,11 @@ export const Interactions = ({
             variant={"default"}
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
-              log.info(logMsg.TRACK_ROOM_EVENT, {
-                event: "LEAVE_ROOM",
+              logger.info(logMsg.TRACK_ROOM_EVENT, {
+                event: roomEvent.LEAVE_ROOM,
                 room,
                 visitorId,
-                route: "ROOM",
+                route: RouteType.ROOM,
               });
               setRoom(null);
               setVoting(null);

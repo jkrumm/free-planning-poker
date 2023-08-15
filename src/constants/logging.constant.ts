@@ -1,6 +1,7 @@
 export const logMsg = {
   TRACK_ROOM_EVENT: "TRACK_ROOM_EVENT",
-  TRACK_PAGE_VIEW: "TRACK_PAGE_VIEW",
+  ENDPOINT_FAILED: "ENDPOINT_FAILED",
+  SSG_FAILED: "SSG_FAILED",
 } as const;
 
 export const logEndpoint = {

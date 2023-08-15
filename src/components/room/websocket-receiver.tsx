@@ -6,17 +6,19 @@ import { useEffect } from "react";
 import shortUUID from "short-uuid";
 import { api } from "fpp/utils/api";
 import * as process from "process";
-import { log, logPresence } from "fpp/utils/console-log";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { env } from "fpp/env.mjs";
 import { sendTrackEstimation } from "fpp/utils/send-track-estimation.util";
+import { type Logger } from "next-axiom";
 
 export const WebsocketReceiver = ({
   room,
   username,
+  logger,
 }: {
   room: string;
   username: string;
+  logger: Logger;
 }) => {
   const setRoomMutation = api.room.setRoom.useMutation();
 
@@ -42,7 +44,7 @@ export const WebsocketReceiver = ({
   const updatePresences = useWsStore((store) => store.updatePresences);
 
   const [channel] = useChannel(room, (message) => {
-    log("RECEIVED MESSAGE", message);
+    logger.debug("RECEIVED MESSAGE", message);
     if (message.name === "flip") {
       const localVoting = localStorage.getItem("vote");
       const localSpectator = localStorage.getItem("spectator");
@@ -51,6 +53,7 @@ export const WebsocketReceiver = ({
         room,
         estimation: localVoting ? parseInt(localVoting) : null,
         spectator: localSpectator === "true",
+        logger,
       });
     }
     if (["flip", "reset"].includes(message.name)) {
@@ -75,7 +78,14 @@ export const WebsocketReceiver = ({
         return;
       }
       presenceUpdates.forEach((presenceUpdate) => {
-        logPresence("FETCHED PRESENCE", presenceUpdate);
+        logger.debug("FETCHED PRESENCE", {
+          visitorId,
+          action: presenceUpdate.action,
+          username,
+          voting,
+          spectator,
+          // presenceLength: presenceUpdate.presencesLength,
+        });
         updatePresences(presenceUpdate);
       });
     });
@@ -89,10 +99,21 @@ export const WebsocketReceiver = ({
       presencesLength: presences.length,
     };
     if (presenceUpdate.action === "enter") {
-      log("SEND OWN PRESENCE ON ENTER", { username, voting, spectator });
+      logger.debug("SEND OWN PRESENCE ON ENTER", {
+        username,
+        voting,
+        spectator,
+      });
       channel.presence.update(presenceUpdateBody);
     }
-    logPresence("RECEIVED PRESENCE", presenceUpdate);
+    logger.debug("RECEIVED PRESENCE", {
+      visitorId,
+      action: presenceUpdate.action,
+      username,
+      voting,
+      spectator,
+      // presenceLength: presenceUpdate.presencesLength,
+    });
     updatePresences(presenceUpdate);
     // everyone resends presence if presencesLength is not the same as the one it received
     const presencesLength = (
@@ -108,7 +129,7 @@ export const WebsocketReceiver = ({
   if (process.browser) {
     window.onbeforeunload = () => {
       channel.presence.leave({}, () => {
-        log("LEFT CHANNEL", { action: "left", clientId });
+        logger.debug("LEFT CHANNEL", { action: "left", clientId });
         return;
       });
     };
