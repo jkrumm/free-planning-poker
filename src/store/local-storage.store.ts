@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import * as Sentry from "@sentry/nextjs";
 
 function saveToLocalstorage(key: string, value: string) {
   if (typeof window == "undefined") {
@@ -37,7 +38,13 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   spectator: getFromLocalstorage("spectator") === "true",
   room: getFromLocalstorage("room"),
   recentRoom: getFromLocalstorage("recentRoom"),
-  visitorId: getFromLocalstorage("visitorId"),
+  visitorId: (() => {
+    const visitorId = getFromLocalstorage("visitorId");
+    if (visitorId !== null) {
+      Sentry.setUser({ id: visitorId });
+    }
+    return visitorId;
+  })(),
   setUsername: (username: string) => {
     username = username.replace(/[^A-Za-z]/g, "");
 
@@ -104,6 +111,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     if (get().visitorId === visitorId) {
       return;
     }
+    Sentry.setUser({ id: visitorId });
     saveToLocalstorage("visitorId", visitorId);
     set({ visitorId });
   },
