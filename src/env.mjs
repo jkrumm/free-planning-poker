@@ -14,7 +14,6 @@ export const env = createEnv({
     TARGET_EMAIL: z.string().email(),
     SEND_EMAIL: z.string().email(),
     SEND_EMAIL_PASSWORD: z.string(),
-    IP_API_KEY: z.string(),
     TODOIST_SECRET: z.string(),
   },
   // client-side environment variables schema ensures the app isn't built with invalid env vars.
@@ -36,7 +35,6 @@ export const env = createEnv({
     TARGET_EMAIL: process.env.TARGET_EMAIL,
     SEND_EMAIL: process.env.SEND_EMAIL,
     SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
-    IP_API_KEY: process.env.IP_API_KEY,
     TODOIST_SECRET: process.env.TODOIST_SECRET,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
