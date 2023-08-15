@@ -85,11 +85,7 @@ export const voteRouter = createTRPCRouter({
       )[0]?.votesPerVisitor ?? 0; */
 
     return {
-      totalVotes: await ctx.prisma.event.count({
-        where: {
-          type: "VOTED",
-        },
-      }),
+      totalVotes: await ctx.prisma.estimation.count(),
       votesPerDay,
       votesPerVisitor: 0,
       amountOfVotes:

@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { type RouteType } from "@prisma/client";
 import { env } from "fpp/env.mjs";
-import { log } from "fpp/constants/error.constants";
+import { log } from "fpp/constants/error.constant";
+import { logMsg } from "fpp/constants/logging.constant";
 
 export const useTrackPageView = (route: RouteType, room?: string) => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
@@ -33,7 +34,7 @@ export const sendTrackPageView = ({
 
   if (navigator.sendBeacon && visitorId) {
     navigator.sendBeacon(url, body);
-    log.debug("useTrackPageView", {
+    log.debug(logMsg.TRACK_PAGE_VIEW, {
       withBeacon: true,
       visitorId,
       route,
@@ -44,7 +45,7 @@ export const sendTrackPageView = ({
       .then((res) => res.json() as Promise<{ visitorId: string }>)
       .then(({ visitorId }) => {
         setVisitorId(visitorId);
-        log.debug("useTrackPageView", {
+        log.debug(logMsg.TRACK_PAGE_VIEW, {
           withBeacon: false,
           visitorId,
           route,

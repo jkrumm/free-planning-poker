@@ -1,51 +1,8 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { z } from "zod";
-import { EventType, type Visitor } from "@prisma/client";
 import { DateTime } from "luxon";
-import { prepareSessionData } from "fpp/utils/prepare-session-data";
 import { env } from "fpp/env.mjs";
 
 export const trackingRouter = createTRPCRouter({
-  trackEvent: publicProcedure
-    .input(
-      z.object({
-        visitorId: z.string().uuid().nullable(),
-        type: z.nativeEnum(EventType),
-      })
-    )
-    .mutation(async ({ ctx, input: { visitorId, type } }) => {
-      let visitor: Partial<Visitor> | null = null;
-
-      if (visitorId) {
-        visitor = await ctx.prisma.visitor.findUnique({
-          where: { id: visitorId },
-        });
-      }
-
-      if (visitor) {
-        return (
-          await ctx.prisma.visitor.update({
-            where: { id: visitor.id },
-            data: {
-              events: {
-                create: { type },
-              },
-            },
-          })
-        ).id;
-      }
-
-      return (
-        await ctx.prisma.visitor.create({
-          data: {
-            ...(await prepareSessionData(ctx.req)),
-            events: {
-              create: { type },
-            },
-          },
-        })
-      ).id;
-    }),
   getPageViews: publicProcedure.query<PageViews>(async ({ ctx }) => {
     if (env.NEXT_PUBLIC_NODE_ENV === "development") {
       return samplePageViews;

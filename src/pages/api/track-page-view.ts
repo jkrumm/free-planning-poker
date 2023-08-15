@@ -6,20 +6,26 @@ import {
   BadRequestError,
   log,
   MethodNotAllowedError,
-} from "fpp/constants/error.constants";
+} from "fpp/constants/error.constant";
 import { type AxiomRequest } from "next-axiom";
 import { withLogger } from "fpp/utils/api-logger.util";
 import { decodeBlob } from "fpp/utils/decode.util";
+import { logEndpoint } from "fpp/constants/logging.constant";
 
 export const config = {
   runtime: "edge",
   regions: ["fra1"],
 };
 
-export const GET = withLogger(async (req: AxiomRequest) => {
-  req.log.with({ endpoint: "trackPageView" });
+export const TrackPageView = withLogger(async (req: AxiomRequest) => {
+  req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });
   if (req.method !== "POST") {
-    throw new MethodNotAllowedError("trackPageView only accepts POST requests");
+    throw new MethodNotAllowedError(
+      "TRACK_PAGE_VIEW only accepts POST requests",
+      {
+        method: req.method,
+      }
+    );
   }
 
   const { visitorId, route, room } = await decodeBlob<{
@@ -29,6 +35,14 @@ export const GET = withLogger(async (req: AxiomRequest) => {
   }>(req);
   req.log.with({ visitorId, route, room });
   validateInput({ visitorId, route, room });
+
+  if (userAgent(req).isBot) {
+    req.log.with({ isBot: true });
+    return NextResponse.json(
+      { visitorId: "we_dont_track_bots" },
+      { status: 200 }
+    );
+  }
 
   const conn = connect({
     url: env.DATABASE_URL,
@@ -113,50 +127,9 @@ const getVisitorPayload = (req: AxiomRequest) => {
       city: req?.geo?.city ?? null,
     };
 
-    // let geo: { country: string; region: string; city: string } | null = null;
-
-    /*// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const ip: string | null =
-      req.ip ??
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      req.headers["x-forwarded-for"] ??
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      req.headers["x-real-ip"] ??
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      req.headers["x-client-ip"] ??
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      req.headers["x-cluster-client-ip"] ??
-      null;
-
-    if (ip && env.NEXT_PUBLIC_NODE_ENV === "production") {
-      const url = `'https://ipapi.co/${ip}/json/'`;
-
-      try {
-        const resp = await fetch(url);
-
-        const apiData = (await resp.json()) as {
-          city: string;
-          country_code_iso3: string;
-          region: string;
-        };
-
-        geo = {
-          country: apiData.country_code_iso3,
-          region: apiData.region,
-          city: apiData.city,
-        };
-      } catch (e) {
-        throw new Error("ip address fetch failed");
-      }
-    }*/
-
     return {
       browser: ua?.browser?.name ?? null,
-      device: ua?.device?.type ?? "desktop",
+      device: ua?.device?.type ?? ua.isBot ? "bot" : "desktop",
       os: ua?.os?.name ?? null,
       city: geo?.city ?? null,
       country: geo?.country ?? null,
@@ -173,4 +146,4 @@ const getVisitorPayload = (req: AxiomRequest) => {
   };
 };
 
-export default GET;
+export default TrackPageView;

@@ -11,10 +11,11 @@ import {
   Group,
   TextInput,
 } from "@mantine/core";
-import { EventType } from ".prisma/client";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
-import { api } from "fpp/utils/api";
 import { useRouter } from "next/router";
+import { type ClientLog } from "fpp/constants/error.constant";
+import { logMsg, roomEvent } from "fpp/constants/logging.constant";
+import { useLogger } from "next-axiom";
 
 const useStyles = createStyles(() => ({
   buttonRight: {
@@ -32,6 +33,7 @@ const IndexForm = (props: {
   activeRooms: string[];
 }) => {
   const router = useRouter();
+  const log = useLogger();
   const { classes } = useStyles();
   const { randomRoom, activeRooms } = props;
 
@@ -60,8 +62,6 @@ const IndexForm = (props: {
       setHasRecentRoom(true);
     }
   }, [recentRoom]);
-
-  const sendEventMutation = api.tracking.trackEvent.useMutation();
 
   const form = useForm({
     initialValues: {
@@ -103,9 +103,10 @@ const IndexForm = (props: {
           setUsername(form.values.username);
           setRoom(recentRoom);
           e.preventDefault();
-          sendEventMutation.mutate({
+          log.info(logMsg.TRACK_ROOM_EVENT, {
             visitorId,
-            type: EventType.ENTER_RECENT_ROOM,
+            room: recentRoom,
+            event: roomEvent.ENTER_EXISTING_ROOM,
           });
           await router.push(`/room/${recentRoom}`);
         }}
@@ -121,20 +122,25 @@ const IndexForm = (props: {
             .replace(/[^A-Za-z]/g, "")
             .toLowerCase();
 
+          const logPayload: ClientLog = {
+            visitorId,
+            room: roomName,
+          };
+
           if (activeRooms.includes(roomName)) {
-            sendEventMutation.mutate({
-              visitorId,
-              type: EventType.ENTER_EXISTING_ROOM,
+            log.info(logMsg.TRACK_ROOM_EVENT, {
+              ...logPayload,
+              event: roomEvent.ENTER_EXISTING_ROOM,
             });
           } else if (roomName === randomRoom) {
-            sendEventMutation.mutate({
-              visitorId,
-              type: EventType.ENTER_RANDOM_ROOM,
+            log.info(logMsg.TRACK_ROOM_EVENT, {
+              ...logPayload,
+              event: roomEvent.ENTER_RANDOM_ROOM,
             });
           } else {
-            sendEventMutation.mutate({
-              visitorId,
-              type: EventType.ENTER_NEW_ROOM,
+            log.info(logMsg.TRACK_ROOM_EVENT, {
+              ...logPayload,
+              event: roomEvent.ENTER_NEW_ROOM,
             });
           }
           setRoom(roomName);

@@ -3,16 +3,19 @@ import { notifications } from "@mantine/notifications";
 import { type PresenceUpdate, useWsStore } from "fpp/store/ws.store";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { log } from "fpp/utils/console-log";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
+import { type Logger } from "next-axiom";
+import { logMsg } from "fpp/constants/logging.constant";
 
 export const Interactions = ({
   room,
   username,
+  log,
 }: {
   room: string;
   username: string;
+  log: Logger;
 }) => {
   const router = useRouter();
 
@@ -22,6 +25,7 @@ export const Interactions = ({
   const setSpectator = useLocalstorageStore((store) => store.setSpectator);
   const setRoom = useLocalstorageStore((store) => store.setRoom);
 
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
   const clientId = useWsStore((store) => store.clientId);
   const channel = useWsStore((store) => store.channel);
 
@@ -39,7 +43,7 @@ export const Interactions = ({
       spectator: spectators.includes(clientId),
       presencesLength: presences.length,
     };
-    log("SEND OWN PRESENCE ON INIT", presenceUpdate);
+    log.debug("SEND OWN PRESENCE ON INIT", presenceUpdate);
     channel.presence.update(presenceUpdate);
   }, [channel]);
 
@@ -129,6 +133,12 @@ export const Interactions = ({
             variant={"default"}
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
+              log.info(logMsg.TRACK_ROOM_EVENT, {
+                event: "LEAVE_ROOM",
+                room,
+                visitorId,
+                route: "ROOM",
+              });
               setRoom(null);
               setVoting(null);
               await router.push(`/`);

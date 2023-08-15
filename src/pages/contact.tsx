@@ -11,13 +11,13 @@ import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { EventType } from ".prisma/client";
 import { Meta } from "fpp/components/meta";
+import { sendTrackEvent } from "fpp/utils/send-track-event.util";
 
 const Contact: NextPage = () => {
-  const username = useLocalstorageStore((state) => state.username);
-
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
   useTrackPageView(RouteType.CONTACT);
-  const sendEvent = api.tracking.trackEvent.useMutation();
+
+  const username = useLocalstorageStore((state) => state.username);
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
 
   const sendMail = api.contact.sendMail.useMutation();
 
@@ -66,10 +66,7 @@ const Contact: NextPage = () => {
                   });
                 },
               });
-              sendEvent.mutate({
-                visitorId,
-                type: EventType.CONTACT_FORM_SUBMISSION,
-              });
+              sendTrackEvent(EventType.CONTACT_FORM_SUBMISSION, visitorId);
             })}
           >
             <SimpleGrid
