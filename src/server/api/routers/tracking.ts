@@ -56,14 +56,8 @@ export const trackingRouter = createTRPCRouter({
 
     const visitorsWhoVotedRes = await ctx.prisma.$queryRaw<
       { hasVoted: string }[]
-    >`
-    SELECT COUNT(*) as hasVoted
-    FROM (
-      SELECT visitorId
-      FROM Event
-      WHERE type = "VOTED"
-      GROUP BY visitorId
-    ) subQuery`;
+    >`SELECT COUNT(*)
+        FROM (SELECT COUNT(*) as hasVoted FROM Estimation GROUP BY visitorId) as subQuery;`;
     const visitorsWhoVoted = parseInt(visitorsWhoVotedRes[0]?.hasVoted ?? "0");
     const bounceRate = 100 - Math.ceil((visitorsWhoVoted / unique) * 100);
 
