@@ -2,15 +2,20 @@ import { useEffect } from "react";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { type RouteType } from "@prisma/client";
 import { env } from "fpp/env.mjs";
-import { log } from "fpp/constants/error.constant";
-import { logMsg } from "fpp/constants/logging.constant";
+import { logEndpoint } from "fpp/constants/logging.constant";
+import { type Logger } from "next-axiom";
+import * as Sentry from "@sentry/nextjs";
 
-export const useTrackPageView = (route: RouteType, room?: string) => {
+export const useTrackPageView = (
+  route: RouteType,
+  logger: Logger,
+  room?: string
+) => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
   const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
 
   useEffect(() => {
-    sendTrackPageView({ visitorId, route, room, setVisitorId });
+    sendTrackPageView({ visitorId, route, room, setVisitorId, logger });
   }, [route, room]);
 };
 
@@ -19,41 +24,62 @@ export const sendTrackPageView = ({
   route,
   room,
   setVisitorId,
+  logger,
 }: {
   visitorId: string | null;
   route: RouteType;
   room?: string;
   setVisitorId: (visitorId: string) => void;
+  logger: Logger;
 }) => {
-  const body = JSON.stringify({
-    visitorId,
-    route,
-    room,
-  });
-  const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
+  logger.with({ visitorId, route, room });
 
-  if (navigator.sendBeacon && visitorId) {
-    navigator.sendBeacon(url, body);
-    log.debug(logMsg.TRACK_PAGE_VIEW, {
-      withBeacon: true,
+  try {
+    const body = JSON.stringify({
       visitorId,
       route,
       room,
     });
-  } else {
-    fetch(url, { body, method: "POST", keepalive: true })
-      .then((res) => res.json() as Promise<{ visitorId: string }>)
-      .then(({ visitorId }) => {
-        setVisitorId(visitorId);
-        log.debug(logMsg.TRACK_PAGE_VIEW, {
-          withBeacon: false,
+    const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
+
+    if (navigator.sendBeacon && visitorId) {
+      navigator.sendBeacon(url, body);
+      logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
+        withBeacon: true,
+      });
+    } else {
+      fetch(url, { body, method: "POST", keepalive: true })
+        .then((res) => res.json() as Promise<{ visitorId: string }>)
+        .then(({ visitorId }) => {
+          setVisitorId(visitorId);
+          logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
+            withBeacon: false,
+          });
+        })
+        .catch((e) => {
+          throw e;
+        });
+    }
+  } catch (e) {
+    if (e instanceof Error) {
+      logger.error(logEndpoint.TRACK_PAGE_VIEW, {
+        endpoint: logEndpoint.TRACK_PAGE_VIEW,
+        error: {
+          message: e.message,
+          stack: e.stack,
+          name: e.name,
+        },
+      });
+      Sentry.captureException(e, {
+        tags: {
+          endpoint: logEndpoint.TRACK_PAGE_VIEW,
+        },
+        extra: {
           visitorId,
           route,
           room,
-        });
-      })
-      .catch(() => {
-        // TODO: sentry
+        },
       });
+    }
   }
 };

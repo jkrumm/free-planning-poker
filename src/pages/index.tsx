@@ -15,7 +15,7 @@ import { useInView } from "react-intersection-observer";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
-import { log } from "fpp/utils/console-log";
+import { useLogger } from "next-axiom";
 
 const IndexFormWithNoSSR = dynamic<{
   randomRoom: string | undefined;
@@ -26,10 +26,8 @@ const IndexFormWithNoSSR = dynamic<{
 });
 
 const Home: NextPage = () => {
-  useTrackPageView(RouteType.HOME);
-
-  const data = api.roadmap.getRoadmap.useQuery().data;
-  log("data", data ?? {});
+  const logger = useLogger().with({ route: RouteType.HOME });
+  useTrackPageView(RouteType.HOME, logger);
 
   const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
   const randomRoom = api.room.getRandomRoom.useQuery().data;

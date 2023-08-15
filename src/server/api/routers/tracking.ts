@@ -83,10 +83,8 @@ export const trackingRouter = createTRPCRouter({
 
     const totalVotes = await ctx.prisma.$queryRaw<
       { date: Date; count: string }[]
-    >`
-        SELECT DATE(occurredAt) AS date, COUNT(*) AS count
-        FROM Event
-        WHERE type = "VOTED"
+    >`SELECT DATE(estimatedAt) AS date, COUNT(*) AS count
+        FROM Estimation
         GROUP BY date
         ORDER BY date DESC;`;
 

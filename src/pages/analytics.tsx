@@ -12,6 +12,9 @@ import { Hero } from "fpp/components/layout/hero";
 import { PageViewChart } from "fpp/components/charts/page-view-chart";
 import { type CountResult } from "fpp/server/api/routers/tracking";
 import superjson from "superjson";
+import { useLogger } from "next-axiom";
+import { logMsg } from "fpp/constants/logging.constant";
+import * as Sentry from "@sentry/nextjs";
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
@@ -31,7 +34,8 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 };
 
 const Analytics = () => {
-  useTrackPageView(RouteType.ANALYTICS);
+  const logger = useLogger().with({ route: RouteType.ANALYTICS });
+  useTrackPageView(RouteType.ANALYTICS, logger);
 
   const { data: pageViews } = api.tracking.getPageViews.useQuery(undefined, {
     staleTime: Infinity,
@@ -54,7 +58,8 @@ const Analytics = () => {
     });
 
   if (!pageViews || !votes || !aggregatedVisitorInfo) {
-    // TODO: sentry
+    logger.error(logMsg.SSG_FAILED);
+    Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
   }
 

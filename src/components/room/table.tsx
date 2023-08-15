@@ -3,15 +3,17 @@
 import { useWsStore } from "fpp/store/ws.store";
 import { Button } from "@mantine/core";
 import React from "react";
-import { log } from "fpp/utils/console-log";
 import { api } from "fpp/utils/api";
+import { type Logger } from "next-axiom";
 
 export const Table = ({
   room,
   username,
+  logger,
 }: {
   room: string;
   username: string;
+  logger: Logger;
 }) => {
   const channel = useWsStore((store) => store.channel);
 
@@ -30,7 +32,7 @@ export const Table = ({
       amountOfSpectators: spectators.length,
     });
     if (channel) {
-      log("FLIPPED", {});
+      logger.debug("FLIPPED", {});
       channel.publish("flip", {});
     }
   }

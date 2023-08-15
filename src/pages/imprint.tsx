@@ -6,9 +6,11 @@ import { Button } from "@mantine/core";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
+import { useLogger } from "next-axiom";
 
 const Imprint: NextPage = () => {
-  useTrackPageView(RouteType.IMPRINT);
+  const logger = useLogger().with({ route: RouteType.IMPRINT });
+  useTrackPageView(RouteType.IMPRINT, logger);
 
   return (
     <>

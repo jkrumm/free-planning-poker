@@ -16,7 +16,7 @@ import { type ClientLog } from "fpp/constants/error.constant";
 
 const RoomPage = () => {
   const router = useRouter();
-  const log = useLogger();
+  const logger = useLogger().with({ route: RouteType.ROOM });
 
   const username = useLocalstorageStore((store) => store.username);
   const setVoting = useLocalstorageStore((store) => store.setVoting);
@@ -77,7 +77,7 @@ const RoomPage = () => {
           room: room ?? queryRoom,
           route: RouteType.ROOM,
         };
-        log.info(logMsg.TRACK_ROOM_EVENT, logPayload);
+        logger.info(logMsg.TRACK_ROOM_EVENT, logPayload);
       }
 
       setRoom(queryRoom);
@@ -90,10 +90,12 @@ const RoomPage = () => {
         route: RouteType.ROOM,
         room: queryRoom,
         setVisitorId,
+        logger,
       });
     }
 
     setFirstLoad(false);
+    logger.with({ visitorId, room: room ?? queryRoom, queryRoom });
 
     if (!username) {
       setModelOpen(true);
@@ -130,9 +132,17 @@ const RoomPage = () => {
             ) {
               return (
                 <>
-                  <WebsocketReceiver username={username} room={room} />
-                  <Table room={room} username={username} />
-                  <Interactions room={room} username={username} log={log} />
+                  <WebsocketReceiver
+                    username={username}
+                    room={room}
+                    logger={logger}
+                  />
+                  <Table room={room} username={username} logger={logger} />
+                  <Interactions
+                    room={room}
+                    username={username}
+                    logger={logger}
+                  />
                 </>
               );
             } else {

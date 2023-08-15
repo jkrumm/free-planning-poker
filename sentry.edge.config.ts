@@ -4,12 +4,12 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
-import * as process from "process";
+import { env } from "fpp/env.mjs";
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: env.NEXT_PUBLIC_SENTRY_DSN,
 
-  environment: process.env.NEXT_PUBLIC_NODE_ENV,
+  environment: env.NEXT_PUBLIC_NODE_ENV,
 
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,

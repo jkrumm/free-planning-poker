@@ -6,6 +6,7 @@ import {
   removeNulls,
   type ServerLog,
 } from "fpp/constants/error.constant";
+import * as Sentry from "@sentry/nextjs";
 
 type NextHandler = (
   req: AxiomRequest
@@ -102,6 +103,17 @@ export function withLogger(handler: NextHandler) {
       const endTime = new Date().getTime();
 
       const e = error as BaseError;
+
+      Sentry.captureException(error, {
+        tags: {
+          endpoint: report.path,
+          exception: e.constructor.name,
+        },
+        extra: {
+          visitorId: logger.config.args?.visitorId,
+        },
+      });
+
       const errorLogPayload = {
         ...report,
         ...reportExtension,
