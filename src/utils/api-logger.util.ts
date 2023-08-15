@@ -5,7 +5,7 @@ import {
   type BaseError,
   removeNulls,
   type ServerLog,
-} from "fpp/constants/error.constants";
+} from "fpp/constants/error.constant";
 
 type NextHandler = (
   req: AxiomRequest
@@ -97,7 +97,7 @@ export function withLogger(handler: NextHandler) {
       if (res instanceof NextResponse) {
         return res;
       }
-      return NextResponse.json(undefined, { status: 200 });
+      return NextResponse.json({}, { status: 200 });
     } catch (error) {
       const endTime = new Date().getTime();
 

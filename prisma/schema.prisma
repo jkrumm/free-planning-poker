@@ -39,8 +39,9 @@ model Visitor {
   city      String?
   startedAt DateTime @default(now())
 
-  pageViews PageView[]
-  events    Event[]
+  pageViews   PageView[]
+  events      Event[]
+  estimations Estimation[]
 }
 
 enum RouteType {
@@ -65,20 +66,27 @@ model PageView {
 }
 
 enum EventType {
-  VOTED
   CONTACT_FORM_SUBMISSION
-  ENTER_DIRECTLY
-  ENTER_EXISTING_ROOM
-  ENTER_NEW_ROOM
-  ENTER_RANDOM_ROOM
-  ENTER_RECENT_ROOM
 }
 
 model Event {
   id         Int       @id @default(autoincrement())
   visitorId  String
-  type       EventType
+  event      EventType
   occurredAt DateTime  @default(now())
+
+  visitor Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  @@index([visitorId])
+}
+
+model Estimation {
+  id          Int      @id @default(autoincrement())
+  visitorId   String
+  room        String
+  estimation  Int?
+  spectator   Boolean
+  estimatedAt DateTime @default(now())
 
   visitor Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
 

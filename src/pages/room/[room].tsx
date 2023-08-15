@@ -5,16 +5,18 @@ import dynamic from "next/dynamic";
 import { Table } from "fpp/components/room/table";
 import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
 import { Interactions } from "fpp/components/room/interactions";
-import { api } from "fpp/utils/api";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import Link from "next/link";
-import { EventType } from ".prisma/client";
 import { Meta } from "fpp/components/meta";
 import { RouteType } from "@prisma/client";
 import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
+import { useLogger } from "next-axiom";
+import { logMsg, roomEvent } from "fpp/constants/logging.constant";
+import { type ClientLog } from "fpp/constants/error.constant";
 
 const RoomPage = () => {
   const router = useRouter();
+  const log = useLogger();
 
   const username = useLocalstorageStore((store) => store.username);
   const setVoting = useLocalstorageStore((store) => store.setVoting);
@@ -24,7 +26,6 @@ const RoomPage = () => {
   const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
   const visitorId = useLocalstorageStore((state) => state.visitorId);
   const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
-  const sendEvent = api.tracking.trackEvent.useMutation();
 
   const queryRoom = router.query.room as string;
 
@@ -69,13 +70,21 @@ const RoomPage = () => {
         return;
       }
 
+      if (queryRoom !== room) {
+        const logPayload: ClientLog = {
+          visitorId,
+          event: roomEvent.ENTER_DIRECTLY,
+          room: room ?? queryRoom,
+          route: RouteType.ROOM,
+        };
+        log.info(logMsg.TRACK_ROOM_EVENT, logPayload);
+      }
+
       setRoom(queryRoom);
       setRecentRoom(queryRoom);
+      setVoting(null);
+      setSpectator(false);
 
-      sendEvent.mutate({
-        visitorId,
-        type: EventType.ENTER_DIRECTLY,
-      });
       sendTrackPageView({
         visitorId,
         route: RouteType.ROOM,
@@ -88,9 +97,6 @@ const RoomPage = () => {
 
     if (!username) {
       setModelOpen(true);
-    } else {
-      setVoting(null);
-      setSpectator(false);
     }
   }, [queryRoom, username, firstLoad]);
 
@@ -126,7 +132,7 @@ const RoomPage = () => {
                 <>
                   <WebsocketReceiver username={username} room={room} />
                   <Table room={room} username={username} />
-                  <Interactions room={room} username={username} />
+                  <Interactions room={room} username={username} log={log} />
                 </>
               );
             } else {

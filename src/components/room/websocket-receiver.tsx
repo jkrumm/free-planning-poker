@@ -8,8 +8,8 @@ import { api } from "fpp/utils/api";
 import * as process from "process";
 import { log, logPresence } from "fpp/utils/console-log";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { EventType } from ".prisma/client";
 import { env } from "fpp/env.mjs";
+import { sendTrackEstimation } from "fpp/utils/send-track-estimation.util";
 
 export const WebsocketReceiver = ({
   room,
@@ -19,7 +19,6 @@ export const WebsocketReceiver = ({
   username: string;
 }) => {
   const setRoomMutation = api.room.setRoom.useMutation();
-  const sendEventMutation = api.tracking.trackEvent.useMutation();
 
   configureAbly({
     authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
@@ -44,11 +43,18 @@ export const WebsocketReceiver = ({
 
   const [channel] = useChannel(room, (message) => {
     log("RECEIVED MESSAGE", message);
+    if (message.name === "flip") {
+      const localVoting = localStorage.getItem("vote");
+      const localSpectator = localStorage.getItem("spectator");
+      sendTrackEstimation({
+        visitorId,
+        room,
+        estimation: localVoting ? parseInt(localVoting) : null,
+        spectator: localSpectator === "true",
+      });
+    }
     if (["flip", "reset"].includes(message.name)) {
       setVoting(null);
-    }
-    if (message.name === "flip") {
-      sendEventMutation.mutate({ visitorId, type: EventType.VOTED });
     }
     handleMessage(message);
   });
