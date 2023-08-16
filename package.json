@@ -43,6 +43,8 @@
     "@trpc/next": "^10.26.0",
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
+    "@upstash/ratelimit": "^0.4.3",
+    "@upstash/redis": "^1.22.0",
     "ably": "^1.2.36",
     "apexcharts": "^3.41.1",
     "country-region-data": "^3.0.0",
