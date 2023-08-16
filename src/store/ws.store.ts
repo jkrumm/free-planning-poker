@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { Types } from "ably";
-import { getByValue } from "fpp/utils/map.util";
 import PresenceMessage = Types.PresenceMessage;
 import Message = Types.Message;
 import RealtimeChannelCallbacks = Types.RealtimeChannelCallbacks;
@@ -75,8 +74,9 @@ export const useWsStore = create<WsStore>((set, get) => ({
       data: PresenceUpdate;
     };
     if (!get().clientId) {
-      const newClientId = getByValue(get().presencesMap, username);
-      set({ clientId: newClientId });
+      for (const [key, value] of get().presencesMap.entries()) {
+        if (value === username) set({ clientId: key });
+      }
     }
     switch (action) {
       case "enter":

@@ -2,6 +2,10 @@ import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { DateTime } from "luxon";
 import { env } from "fpp/env.mjs";
 
+const countryRegions =
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("country-region-data/data.json") as CountryRegionData[];
+
 export const trackingRouter = createTRPCRouter({
   getPageViews: publicProcedure.query<PageViews>(async ({ ctx }) => {
     if (env.NEXT_PUBLIC_NODE_ENV === "development") {
@@ -156,9 +160,16 @@ export const trackingRouter = createTRPCRouter({
         },
         _count: true,
       });
+      const countryCountsMapped = countryCounts.map((i) => ({
+        name: `${i.country} - ${
+          countryRegions.find((c) => c.countryShortCode === i.country)
+            ?.countryName ?? i.country
+        }`,
+        value: i._count,
+      }));
 
       const regionCounts = await ctx.prisma.visitor.groupBy({
-        by: ["region"],
+        by: ["region", "country"],
         where: {
           region: {
             not: null,
@@ -166,9 +177,17 @@ export const trackingRouter = createTRPCRouter({
         },
         _count: true,
       });
+      const regionCountsMapped = regionCounts.map((i) => ({
+        name: `${i.country} - ${
+          countryRegions
+            .find((c) => c.countryShortCode === i.country)
+            ?.regions.find((r) => r.shortCode === i.region)?.name ?? i.region
+        }`,
+        value: i._count,
+      }));
 
       const cityCounts = await ctx.prisma.visitor.groupBy({
-        by: ["city"],
+        by: ["city", "country"],
         where: {
           city: {
             not: null,
@@ -176,18 +195,28 @@ export const trackingRouter = createTRPCRouter({
         },
         _count: true,
       });
+      const cityCountsMapped = cityCounts.map((i) => ({
+        name: `${i.country} - ${i.city}`,
+        value: i._count,
+      }));
 
       return {
         deviceCounts: mapCounts(deviceCounts),
         osCounts: mapCounts(osCounts),
         browserCounts: mapCounts(browserCounts),
-        countryCounts: mapCounts(countryCounts),
-        regionCounts: mapCounts(regionCounts),
-        cityCounts: mapCounts(cityCounts),
+        countryCounts: countryCountsMapped,
+        regionCounts: regionCountsMapped,
+        cityCounts: cityCountsMapped,
       };
     }
   ),
 });
+
+type CountryRegionData = {
+  countryName: string;
+  countryShortCode: string;
+  regions: { name: string; shortCode: string }[];
+};
 
 type CountData = Record<string, string | number | null>;
 
@@ -248,27 +277,27 @@ const sampleAggregatedVisitorInfo: AggregatedVisitorInfo = {
     { name: "Other", value: 20 },
   ],
   countryCounts: [
-    { name: "United States", value: 100 },
-    { name: "Canada", value: 50 },
-    { name: "United Kingdom", value: 70 },
-    { name: "Australia", value: 10 },
-    { name: "Germany", value: 30 },
+    { name: "US - United States", value: 100 },
+    { name: "DE - Germany", value: 50 },
+    { name: "UK - United Kingdom", value: 70 },
+    { name: "AU - Australia", value: 10 },
+    { name: "PL - Poland", value: 30 },
   ],
   regionCounts: [
-    { name: "California", value: 100 },
-    { name: "Texas", value: 50 },
-    { name: "New York", value: 70 },
-    { name: "Florida", value: 10 },
-    { name: "Illinois", value: 30 },
+    { name: "US - California", value: 100 },
+    { name: "US - Texas", value: 50 },
+    { name: "US - New York", value: 70 },
+    { name: "US - Florida", value: 10 },
+    { name: "US - Illinois", value: 30 },
   ],
   cityCounts: [
-    { name: "Los Angeles", value: 80 },
-    { name: "New York", value: 50 },
-    { name: "Chicago", value: 70 },
-    { name: "Houston", value: 10 },
-    { name: "Phoenix", value: 30 },
-    { name: "Philadelphia", value: 20 },
-    { name: "San Antonio", value: 20 },
+    { name: "US - Los Angeles", value: 80 },
+    { name: "US - New York", value: 50 },
+    { name: "US - Chicago", value: 70 },
+    { name: "US - Houston", value: 10 },
+    { name: "US - Phoenix", value: 30 },
+    { name: "US - Philadelphia", value: 20 },
+    { name: "US - San Antonio", value: 20 },
   ],
 };
 
