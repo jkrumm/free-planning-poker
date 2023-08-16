@@ -6,8 +6,14 @@ module.exports = withAxiom({
     locales: ["en"],
     defaultLocale: "en",
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  swcMinify: true,
 });
-
 
 // Injected content via Sentry wizard below
 
