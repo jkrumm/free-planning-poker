@@ -7,7 +7,7 @@ import * as Sentry from "@sentry/nextjs";
 import { env } from "fpp/env.mjs";
 
 Sentry.init({
-  enabled: env.NEXT_PUBLIC_NODE_ENV === "development",
+  enabled: env.NEXT_PUBLIC_NODE_ENV !== "development",
 
   dsn: env.NEXT_PUBLIC_SENTRY_DSN,
 

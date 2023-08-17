@@ -1,5 +1,3 @@
-"use client";
-
 import { useForm } from "@mantine/form";
 import { generate } from "random-words";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
@@ -15,7 +13,7 @@ import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { type ClientLog } from "fpp/constants/error.constant";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
-import { useLogger } from "next-axiom";
+import { type Logger } from "next-axiom";
 
 const useStyles = createStyles(() => ({
   buttonRight: {
@@ -28,14 +26,17 @@ const useStyles = createStyles(() => ({
   },
 }));
 
-const IndexForm = (props: {
+const IndexForm = ({
+  randomRoom,
+  activeRooms,
+  logger,
+}: {
   randomRoom: string | undefined;
   activeRooms: string[];
+  logger: Logger;
 }) => {
   const router = useRouter();
-  const log = useLogger();
   const { classes } = useStyles();
-  const { randomRoom, activeRooms } = props;
 
   const visitorId = useLocalstorageStore((state) => state.visitorId);
 
@@ -55,13 +56,13 @@ const IndexForm = (props: {
     }
   }, [room]);
 
-  const recentRoom = useLocalstorageStore((state) => state.recentRoom);
-  const [hasRecentRoom, setHasRecentRoom] = useState(false);
+  const [recentRoom, setRecentRoom] = useState<string | null>(null);
   useEffect(() => {
+    const recentRoom = localStorage.getItem("recentRoom");
     if (recentRoom) {
-      setHasRecentRoom(true);
+      setRecentRoom(recentRoom);
     }
-  }, [recentRoom]);
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -97,13 +98,13 @@ const IndexForm = (props: {
         type="button"
         uppercase
         role="recent-roome"
-        disabled={!hasRecentRoom || usernameInvalid}
+        disabled={!recentRoom || usernameInvalid}
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async (e) => {
           setUsername(form.values.username);
           setRoom(recentRoom);
           e.preventDefault();
-          log.info(logMsg.TRACK_ROOM_EVENT, {
+          logger.info(logMsg.TRACK_ROOM_EVENT, {
             visitorId,
             room: recentRoom,
             event: roomEvent.ENTER_EXISTING_ROOM,
@@ -128,17 +129,17 @@ const IndexForm = (props: {
           };
 
           if (activeRooms.includes(roomName)) {
-            log.info(logMsg.TRACK_ROOM_EVENT, {
+            logger.info(logMsg.TRACK_ROOM_EVENT, {
               ...logPayload,
               event: roomEvent.ENTER_EXISTING_ROOM,
             });
           } else if (roomName === randomRoom) {
-            log.info(logMsg.TRACK_ROOM_EVENT, {
+            logger.info(logMsg.TRACK_ROOM_EVENT, {
               ...logPayload,
               event: roomEvent.ENTER_RANDOM_ROOM,
             });
           } else {
-            log.info(logMsg.TRACK_ROOM_EVENT, {
+            logger.info(logMsg.TRACK_ROOM_EVENT, {
               ...logPayload,
               event: roomEvent.ENTER_NEW_ROOM,
             });
