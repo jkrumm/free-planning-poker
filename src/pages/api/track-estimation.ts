@@ -17,14 +17,11 @@ export const config = {
   regions: ["fra1"],
 };
 
-export const TrackEstimation = withLogger(async (req: AxiomRequest) => {
+const TrackEstimation = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_ESTIMATION });
   if (req.method !== "POST") {
     throw new MethodNotAllowedError(
-      "TRACK_ESTIMATION only accepts POST requests",
-      {
-        method: req.method,
-      }
+      "TRACK_ESTIMATION only accepts POST requests"
     );
   }
 

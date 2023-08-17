@@ -15,6 +15,7 @@ type NextHandler = (
 export function withLogger(handler: NextHandler) {
   return async (req: Request | NextRequest) => {
     // res.headers.set("Cache-Control", "s-maxage=1, stale-while-revalidate");
+    const startTime = Date.now();
 
     let geoObj: {
       country: string | undefined;
@@ -40,8 +41,6 @@ export function withLogger(handler: NextHandler) {
         ip = req.headers.get("x-forwarded-for");
       }
     }
-
-    const startTime = new Date().getTime();
 
     const report: RequestReport = {
       startTime,
@@ -79,7 +78,7 @@ export function withLogger(handler: NextHandler) {
 
       const res = await handler(axiomContext);
 
-      const endTime = new Date().getTime();
+      const endTime = Date.now();
       logger.debug("Success Next route handler", {
         ...report,
         ...reportExtension,
@@ -100,21 +99,11 @@ export function withLogger(handler: NextHandler) {
       }
       return NextResponse.json({}, { status: 200 });
     } catch (error) {
-      const endTime = new Date().getTime();
+      const endTime = Date.now();
 
       const e = error as BaseError;
 
-      Sentry.captureException(error, {
-        tags: {
-          endpoint: report.path,
-          exception: e.constructor.name,
-        },
-        extra: {
-          visitorId: logger.config.args?.visitorId,
-        },
-      });
-
-      const errorLogPayload = {
+      let errorLogPayload = {
         ...report,
         ...reportExtension,
         ...e?.meta,
@@ -122,12 +111,27 @@ export function withLogger(handler: NextHandler) {
         endTime,
         duration: endTime - startTime,
         httpCode: e?.httpCode ?? 500,
+        visitorId: logger.config.args?.visitorId
+          ? String(logger.config.args?.visitorId)
+          : null,
         error: {
           name: e?.name,
           stack: e?.stack,
           message: e?.message,
         },
       } as ServerLog;
+      errorLogPayload = removeNulls(errorLogPayload);
+
+      Sentry.captureException(error, {
+        tags: {
+          endpoint: report.path,
+          exception: e.constructor.name,
+          httpCode: e.httpCode ?? 500,
+        },
+        extra: {
+          ...errorLogPayload,
+        },
+      });
 
       switch (e.constructor.name) {
         case "BadRequestError":

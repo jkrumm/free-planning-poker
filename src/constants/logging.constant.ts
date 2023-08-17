@@ -8,6 +8,7 @@ export const logEndpoint = {
   TRACK_PAGE_VIEW: "TRACK_PAGE_VIEW",
   TRACK_EVENT: "TRACK_EVENT",
   TRACK_ESTIMATION: "TRACK_ESTIMATION",
+  ABLY_TOKEN: "ABLY_TOKEN",
 } as const;
 
 export const roomEvent = {

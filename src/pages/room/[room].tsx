@@ -13,21 +13,32 @@ import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { useLogger } from "next-axiom";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { type ClientLog } from "fpp/constants/error.constant";
+import { api } from "fpp/utils/api";
+import { configureAbly } from "@ably-labs/react-hooks";
+import { env } from "fpp/env.mjs";
+import shortUUID from "short-uuid";
 
 const RoomPage = () => {
   const router = useRouter();
   const logger = useLogger().with({ route: RouteType.ROOM });
 
+  configureAbly({
+    authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
+    clientId: shortUUID().generate().toString(),
+  });
+
   const username = useLocalstorageStore((store) => store.username);
-  const setVoting = useLocalstorageStore((store) => store.setVoting);
-  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
-  const room = useLocalstorageStore((store) => store.room);
-  const setRoom = useLocalstorageStore((store) => store.setRoom);
-  const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
   const visitorId = useLocalstorageStore((state) => state.visitorId);
   const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
 
+  const setRoomMutation = api.room.setRoom.useMutation();
   const queryRoom = router.query.room as string;
+  const room = useLocalstorageStore((store) => store.room);
+  const setRoom = useLocalstorageStore((store) => store.setRoom);
+  const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
+
+  const setVoting = useLocalstorageStore((store) => store.setVoting);
+  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
 
   const [firstLoad, setFirstLoad] = React.useState(true);
   const [modelOpen, setModelOpen] = React.useState(false);
@@ -82,6 +93,7 @@ const RoomPage = () => {
 
       setRoom(queryRoom);
       setRecentRoom(queryRoom);
+      setRoomMutation.mutate({ room: queryRoom });
       setVoting(null);
       setSpectator(false);
 
@@ -107,7 +119,7 @@ const RoomPage = () => {
       <Meta title={room} robots="noindex,nofollow" />
       <main className="relative flex max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none">
         <div>
-          {(function () {
+          {(() => {
             if (
               firstLoad ||
               !queryRoom ||
@@ -145,15 +157,14 @@ const RoomPage = () => {
                   />
                 </>
               );
-            } else {
-              return (
-                <div className="flex flex-col items-center justify-center">
-                  <h1 className="text-center text-3xl">
-                    Room not found. <Link href="/">Go back home</Link>
-                  </h1>
-                </div>
-              );
             }
+            return (
+              <div className="flex flex-col items-center justify-center">
+                <h1 className="text-center text-3xl">
+                  Room not found. <Link href="/">Go back home</Link>
+                </h1>
+              </div>
+            );
           })()}
         </div>
       </main>

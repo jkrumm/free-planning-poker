@@ -1,13 +1,10 @@
 "use client";
 
-import { configureAbly, useChannel, usePresence } from "@ably-labs/react-hooks";
+import { useChannel, usePresence } from "@ably-labs/react-hooks";
 import { type PresenceUpdate, useWsStore } from "fpp/store/ws.store";
 import { useEffect } from "react";
-import shortUUID from "short-uuid";
-import { api } from "fpp/utils/api";
 import * as process from "process";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { env } from "fpp/env.mjs";
 import { sendTrackEstimation } from "fpp/utils/send-track-estimation.util";
 import { type Logger } from "next-axiom";
 
@@ -20,18 +17,9 @@ export const WebsocketReceiver = ({
   username: string;
   logger: Logger;
 }) => {
-  const setRoomMutation = api.room.setRoom.useMutation();
-
-  configureAbly({
-    authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
-    clientId: shortUUID().generate().toString(),
-  });
-
   const voting = useLocalstorageStore((store) => store.voting);
   const setVoting = useLocalstorageStore((store) => store.setVoting);
   const spectator = useLocalstorageStore((store) => store.spectator);
-  const setRoom = useLocalstorageStore((store) => store.setRoom);
-  const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
   const visitorId = useLocalstorageStore((store) => store.visitorId);
 
   const wsChannel = useWsStore((store) => store.channel);
@@ -43,7 +31,7 @@ export const WebsocketReceiver = ({
   const handleMessage = useWsStore((store) => store.handleMessage);
   const updatePresences = useWsStore((store) => store.updatePresences);
 
-  const [channel] = useChannel(room, (message) => {
+  const [channel] = useChannel(`room:${room}`, (message) => {
     logger.debug("RECEIVED MESSAGE", message);
     if (message.name === "flip") {
       const localVoting = localStorage.getItem("vote");
@@ -67,12 +55,6 @@ export const WebsocketReceiver = ({
   }
 
   useEffect(() => {
-    setRoomMutation.mutate({ room });
-    setRoom(room);
-    setRecentRoom(room);
-  }, []);
-
-  useEffect(() => {
     channel.presence.get((err, presenceUpdates) => {
       if (!presenceUpdates?.length) {
         return;
@@ -91,7 +73,7 @@ export const WebsocketReceiver = ({
     });
   }, [clientId]);
 
-  usePresence(room, { username }, (presenceUpdate) => {
+  usePresence(`room:${room}`, { username }, (presenceUpdate) => {
     const presenceUpdateBody: PresenceUpdate = {
       username,
       voting,
