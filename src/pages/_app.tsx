@@ -14,6 +14,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       withNormalizeCSS
       theme={{
         colorScheme: "dark",
+        loader: "bars",
       }}
       withGlobalStyles
     >

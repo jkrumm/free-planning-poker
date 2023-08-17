@@ -36,8 +36,6 @@ const GetRooms = withLogger(async (req: AxiomRequest) => {
   ).rows as { name: string }[];
   const usedRooms = usedRoomsRows.map((row) => row.name);
 
-  console.log({ activeRooms, usedRooms });
-
   return NextResponse.json({ activeRooms, usedRooms }, { status: 200 });
 });
 

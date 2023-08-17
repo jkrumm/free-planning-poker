@@ -6,7 +6,6 @@ import { Table } from "fpp/components/room/table";
 import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
 import { Interactions } from "fpp/components/room/interactions";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import Link from "next/link";
 import { Meta } from "fpp/components/meta";
 import { RouteType } from "@prisma/client";
 import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
@@ -17,6 +16,7 @@ import { api } from "fpp/utils/api";
 import { configureAbly } from "@ably-labs/react-hooks";
 import { env } from "fpp/env.mjs";
 import shortUUID from "short-uuid";
+import { Loader } from "@mantine/core";
 
 const RoomPage = () => {
   const router = useRouter();
@@ -120,14 +120,6 @@ const RoomPage = () => {
       <main className="relative flex max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none">
         <div>
           {(() => {
-            if (
-              firstLoad ||
-              !queryRoom ||
-              queryRoom.replace(/[^A-Za-z]/g, "").length < 3 ||
-              queryRoom.replace(/[^A-Za-z]/g, "").length > 15
-            ) {
-              return "Loading...";
-            }
             if (!username || modelOpen) {
               return (
                 <UsernameModel
@@ -158,13 +150,7 @@ const RoomPage = () => {
                 </>
               );
             }
-            return (
-              <div className="flex flex-col items-center justify-center">
-                <h1 className="text-center text-3xl">
-                  Room not found. <Link href="/">Go back home</Link>
-                </h1>
-              </div>
-            );
+            return <Loader variant="bars" />;
           })()}
         </div>
       </main>
