@@ -20,18 +20,17 @@ export const Interactions = ({
 }) => {
   const router = useRouter();
 
-  const voting = useLocalstorageStore((store) => store.voting);
-  const setVoting = useLocalstorageStore((store) => store.setVoting);
-  // const spectator = useLocalstorageStore((store) => store.spectator);
-  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
-  const setRoom = useLocalstorageStore((store) => store.setRoom);
-
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
   const clientId = useWsStore((store) => store.clientId);
   const channel = useWsStore((store) => store.channel);
 
-  const spectators = useWsStore((store) => store.spectators);
+  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const voting = useLocalstorageStore((store) => store.voting);
+  const setVoting = useLocalstorageStore((store) => store.setVoting);
+  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
+  const setRoom = useLocalstorageStore((store) => store.setRoom);
+
   const votes = useWsStore((store) => store.votes);
+  const spectators = useWsStore((store) => store.spectators);
   const presences = useWsStore((store) => store.presences);
   const flipped = useWsStore((store) => store.flipped);
   const autoShow = useWsStore((store) => store.autoShow);

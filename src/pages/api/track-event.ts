@@ -17,12 +17,10 @@ export const config = {
   regions: ["fra1"],
 };
 
-export const TrackEvent = withLogger(async (req: AxiomRequest) => {
+const TrackEvent = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_EVENT });
   if (req.method !== "POST") {
-    throw new MethodNotAllowedError("TRACK_EVENT only accepts POST requests", {
-      method: req.method,
-    });
+    throw new MethodNotAllowedError("TRACK_EVENT only accepts POST requests");
   }
 
   const { visitorId, event } = await decodeBlob<{

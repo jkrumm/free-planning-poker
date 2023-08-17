@@ -1,6 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 
-export default function handler(_req: NextApiRequest, res: NextApiResponse) {
-  res.status(429);
-  return res.end();
+export const config = {
+  runtime: "edge",
+};
+
+export default function handler() {
+  return new NextResponse("too many requests", {
+    status: 429,
+  });
 }

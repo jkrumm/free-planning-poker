@@ -17,14 +17,11 @@ export const config = {
   regions: ["fra1"],
 };
 
-export const TrackPageView = withLogger(async (req: AxiomRequest) => {
+const TrackPageView = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });
   if (req.method !== "POST") {
     throw new MethodNotAllowedError(
-      "TRACK_PAGE_VIEW only accepts POST requests",
-      {
-        method: req.method,
-      }
+      "TRACK_PAGE_VIEW only accepts POST requests"
     );
   }
 
