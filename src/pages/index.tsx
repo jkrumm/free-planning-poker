@@ -1,6 +1,5 @@
-import { api } from "fpp/utils/api";
 import React from "react";
-import { type NextPage } from "next";
+import { type InferGetServerSidePropsType, type NextPage } from "next";
 import { Button, Text, Title } from "@mantine/core";
 import { Hero } from "fpp/components/layout/hero";
 import {
@@ -9,28 +8,56 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import PointsTable from "fpp/components/index/points-table";
-import dynamic from "next/dynamic";
-import IndexFormPlaceholder from "fpp/components/index/form-placeholder";
 import { useInView } from "react-intersection-observer";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 import { useLogger } from "next-axiom";
+import { generate } from "random-words";
+import IndexForm from "fpp/components/index/form";
 
-const IndexFormWithNoSSR = dynamic<{
-  randomRoom: string | undefined;
-  activeRooms: string[];
-}>(() => import("../components/index/form"), {
-  ssr: false,
-  loading: () => <IndexFormPlaceholder />,
-});
+// const IndexFormWithNoSSR = dynamic<{
+//   randomRoom: string | undefined;
+//   activeRooms: string[];
+// }>(() => import("../components/index/form"), {
+//   ssr: false,
+//   loading: () => <IndexFormPlaceholder />,
+// });
 
-const Home: NextPage = () => {
+export async function getServerSideProps() {
+  const roomsRes = await fetch(
+    `${process.env.NEXT_PUBLIC_API_ROOT}api/get-rooms`
+  );
+  const { activeRooms, usedRooms } = (await roomsRes.json()) as {
+    activeRooms: string[];
+    usedRooms: string[];
+  };
+
+  let randomRoom: string | undefined = "";
+  for (let i = 3; i <= 11; i++) {
+    const filtered = generate({
+      minLength: 3,
+      maxLength: i,
+      exactly: 200,
+    }).filter((item) => !usedRooms.includes(item));
+    if (filtered.length > 0) {
+      randomRoom = filtered[0];
+    }
+  }
+
+  return {
+    props: {
+      activeRooms,
+      randomRoom,
+    },
+  };
+}
+
+const Home: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = ({ activeRooms, randomRoom }) => {
   const logger = useLogger().with({ route: RouteType.HOME });
   useTrackPageView(RouteType.HOME, logger);
-
-  const activeRooms = api.room.getActiveRooms.useQuery().data ?? [];
-  const randomRoom = api.room.getRandomRoom.useQuery().data;
 
   const { ref, inView } = useInView({
     rootMargin: "-300px",
@@ -42,7 +69,11 @@ const Home: NextPage = () => {
       <Meta />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <IndexFormWithNoSSR randomRoom={randomRoom} activeRooms={activeRooms} />
+        <IndexForm
+          randomRoom={randomRoom}
+          activeRooms={activeRooms}
+          logger={logger}
+        />
         <Link
           href="/#master-the-art-of-planning-poker"
           className={`fixed-article-link hidden lg:block ${
