@@ -28,6 +28,7 @@ export async function getServerSideProps() {
   const roomsRes = await fetch(
     `${process.env.NEXT_PUBLIC_API_ROOT}api/get-rooms`
   );
+
   const { activeRooms, usedRooms } = (await roomsRes.json()) as {
     activeRooms: string[];
     usedRooms: string[];
