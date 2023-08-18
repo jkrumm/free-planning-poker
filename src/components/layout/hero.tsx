@@ -13,12 +13,10 @@ const BREAKPOINT = "@media (max-width: 900px)";
 
 const useStyles = createStyles((theme: MantineTheme) => ({
   wrapper: {
-    position: "relative",
     boxSizing: "border-box",
   },
 
   inner: {
-    position: "relative",
     paddingTop: 40,
     paddingBottom: 50,
 

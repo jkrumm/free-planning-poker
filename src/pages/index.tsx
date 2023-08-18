@@ -1,12 +1,7 @@
 import React from "react";
 import { type InferGetServerSidePropsType, type NextPage } from "next";
-import { Button, Text, Title } from "@mantine/core";
+import { Text, Title } from "@mantine/core";
 import { Hero } from "fpp/components/layout/hero";
-import {
-  IconArrowBadgeDownFilled,
-  IconArrowBadgeUpFilled,
-} from "@tabler/icons-react";
-import Link from "next/link";
 import PointsTable from "fpp/components/index/points-table";
 import { useInView } from "react-intersection-observer";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
@@ -15,14 +10,13 @@ import { Meta } from "fpp/components/meta";
 import { useLogger } from "next-axiom";
 import { generate } from "random-words";
 import IndexForm from "fpp/components/index/form";
+import dynamic from "next/dynamic";
 
-// const IndexFormWithNoSSR = dynamic<{
-//   randomRoom: string | undefined;
-//   activeRooms: string[];
-// }>(() => import("../components/index/form"), {
-//   ssr: false,
-//   loading: () => <IndexFormPlaceholder />,
-// });
+const ScrollButtonsWithNoSSR = dynamic<{
+  inView: boolean;
+}>(() => import("../components/index/scroll-buttons"), {
+  ssr: false,
+});
 
 export async function getServerSideProps() {
   const roomsRes = await fetch(
@@ -75,26 +69,7 @@ const Home: NextPage<
           activeRooms={activeRooms}
           logger={logger}
         />
-        <Link
-          href="/#master-the-art-of-planning-poker"
-          className={`fixed-article-link hidden lg:block ${
-            inView ? "hide" : ""
-          }`}
-        >
-          <Button
-            rightIcon={<IconArrowBadgeDownFilled size={35} spacing={0} />}
-            size="lg"
-            color="gray"
-            role="understand-planning-poker"
-          >
-            Understand Planning Poker{" "}
-          </Button>
-        </Link>
-        <Link href="/" className={`scroll-to-top ${!inView ? "hide" : ""}`}>
-          <Button size="lg" color="gray" px={8} role="scroll-to-top">
-            <IconArrowBadgeUpFilled size={35} spacing={0} />
-          </Button>
-        </Link>
+        <ScrollButtonsWithNoSSR inView={inView} />
         <div className="w-full max-w-[1200px] px-4 pb-16">
           <article id="master-the-art-of-planning-poker" ref={ref}>
             <header>
