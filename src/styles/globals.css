@@ -29,21 +29,10 @@ article p {
   line-height: 1.8 !important;
 }
 
-.fixed-article-link,
-.scroll-to-top {
-  opacity: 1;
-}
-
 .fixed-article-link {
   position: absolute;
   top: calc(100vh - 110px);
   right: 30px;
-}
-
-.fixed-article-link.hide,
-.scroll-to-top.hide {
-  opacity: 0;
-  pointer-events: none;
 }
 
 .scroll-to-top {
