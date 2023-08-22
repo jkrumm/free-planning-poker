@@ -4,7 +4,12 @@
 
 html {
   scroll-behavior: smooth;
-  min-width: 450px;
+}
+
+@media (max-width: 767px) {
+  nav a {
+    margin: 10px auto;
+  }
 }
 
 .mantine-Autocomplete-label,

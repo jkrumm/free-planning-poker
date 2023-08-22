@@ -124,10 +124,10 @@ const RoadmapCard = ({
             </Group>
           </Card.Section>
           <Collapse in={opened} transitionDuration={300}>
-            <Card.Section className="px-6 py-2">
+            <Card.Section className="px-6 py-0">
               <Text
                 fz="sm"
-                className="overflow-auto rounded-lg border border-[#141517] bg-[#212529] p-3"
+                className="overflow-auto rounded-lg border border-[#141517] p-2"
               >
                 <ReactMarkdown className="react-markdown">
                   {description}
