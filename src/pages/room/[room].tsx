@@ -16,7 +16,9 @@ import { api } from "fpp/utils/api";
 import { configureAbly } from "@ably-labs/react-hooks";
 import { env } from "fpp/env.mjs";
 import shortUUID from "short-uuid";
-import { Loader } from "@mantine/core";
+import { Alert, Button, Loader, Text } from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons-react";
+import Link from "next/link";
 
 const RoomPage = () => {
   const router = useRouter();
@@ -48,6 +50,7 @@ const RoomPage = () => {
     if (!firstLoad && queryRoom) {
       const correctedRoom = queryRoom.replace(/[^A-Za-z]/g, "").toLowerCase();
       if (
+        window.innerWidth < 768 ||
         !queryRoom ||
         queryRoom === "undefined" ||
         !correctedRoom ||
@@ -117,42 +120,52 @@ const RoomPage = () => {
   return (
     <>
       <Meta title={room} robots="noindex,nofollow" />
-      <main className="relative flex max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none">
-        <div>
-          {(() => {
-            if (!username || modelOpen) {
-              return (
-                <UsernameModel
-                  modelOpen={modelOpen}
-                  setModelOpen={setModelOpen}
-                  room={queryRoom}
+      <div className="m-8 md:hidden">
+        <Alert
+          icon={<IconAlertCircle size="1rem" />}
+          title="Not supported on mobile devices"
+          color="orange"
+          variant="outline"
+        >
+          <Text>
+            Free-Planning-Poker.com is not supported on mobile devices. Please
+            use a larger device or increase the size of your browser window.
+          </Text>
+          <Link href="/">
+            <Button className="mt-4 block">Back to homepage</Button>
+          </Link>
+        </Alert>
+      </div>
+      <main className="relative hidden max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none md:flex">
+        {(() => {
+          if (!username || modelOpen) {
+            return (
+              <UsernameModel
+                modelOpen={modelOpen}
+                setModelOpen={setModelOpen}
+                room={queryRoom}
+              />
+            );
+          }
+          if (
+            room &&
+            room.replace(/[^A-Za-z]/g, "").length >= 3 &&
+            room.replace(/[^A-Za-z]/g, "").length <= 15
+          ) {
+            return (
+              <>
+                <WebsocketReceiver
+                  username={username}
+                  room={room}
+                  logger={logger}
                 />
-              );
-            }
-            if (
-              room &&
-              room.replace(/[^A-Za-z]/g, "").length >= 3 &&
-              room.replace(/[^A-Za-z]/g, "").length <= 15
-            ) {
-              return (
-                <>
-                  <WebsocketReceiver
-                    username={username}
-                    room={room}
-                    logger={logger}
-                  />
-                  <Table room={room} username={username} logger={logger} />
-                  <Interactions
-                    room={room}
-                    username={username}
-                    logger={logger}
-                  />
-                </>
-              );
-            }
-            return <Loader variant="bars" />;
-          })()}
-        </div>
+                <Table room={room} username={username} logger={logger} />
+                <Interactions room={room} username={username} logger={logger} />
+              </>
+            );
+          }
+          return <Loader variant="bars" />;
+        })()}
       </main>
     </>
   );

@@ -1,7 +1,12 @@
 import React from "react";
 import { type InferGetServerSidePropsType, type NextPage } from "next";
-import { Text, Title } from "@mantine/core";
+import { Alert, Text, Title } from "@mantine/core";
 import { Hero } from "fpp/components/layout/hero";
+import {
+  IconArrowBadgeDownFilled,
+  IconArrowBadgeUpFilled,
+} from "@tabler/icons-react";
+import Link from "next/link";
 import PointsTable from "fpp/components/index/points-table";
 import { useInView } from "react-intersection-observer";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
@@ -11,6 +16,7 @@ import { useLogger } from "next-axiom";
 import { generate } from "random-words";
 import IndexForm from "fpp/components/index/form";
 import dynamic from "next/dynamic";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 const ScrollButtonsWithNoSSR = dynamic<{
   inView: boolean;
@@ -64,11 +70,26 @@ const Home: NextPage<
       <Meta />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <IndexForm
-          randomRoom={randomRoom}
-          activeRooms={activeRooms}
-          logger={logger}
-        />
+        <div className="hidden md:block">
+          <IndexForm
+            randomRoom={randomRoom}
+            activeRooms={activeRooms}
+            logger={logger}
+          />
+        </div>
+        <div className="mx-8 md:hidden">
+          <Alert
+            icon={<IconAlertCircle size="1rem" />}
+            title="Not supported on mobile devices"
+            color="orange"
+            variant="outline"
+          >
+            <Text>
+              Free-Planning-Poker.com is not supported on mobile devices. Please
+              use a larger device or increase the size of your browser window.
+            </Text>
+          </Alert>
+        </div>
         <ScrollButtonsWithNoSSR inView={inView} />
         <div className="w-full max-w-[1200px] px-4 pb-16">
           <article id="master-the-art-of-planning-poker" ref={ref}>

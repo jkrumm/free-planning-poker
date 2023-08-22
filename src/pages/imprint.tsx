@@ -17,8 +17,8 @@ const Imprint: NextPage = () => {
       <Meta title="Imprint & Privacy Policy" />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container flex max-w-[1200px] gap-12 px-4 pb-28 pt-8">
-          <div className="md:min-w-[250px]">
+        <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8 md:flex">
+          <div className="mb-20 md:mb-0 md:min-w-[250px]">
             <h1>Imprint</h1>
             <h3>Service Provider</h3>
             Johannes Krumm

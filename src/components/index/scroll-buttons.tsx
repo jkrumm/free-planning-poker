@@ -35,7 +35,7 @@ const ScrollButtons = ({ inView }: { inView: boolean }) => {
           >
             <Link
               href="/"
-              className="scroll-to-top"
+              className="scroll-to-top hidden xl:block"
               onClick={() => {
                 window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
               }}
@@ -64,7 +64,7 @@ const ScrollButtons = ({ inView }: { inView: boolean }) => {
           >
             <Link
               href="/#master-the-art-of-planning-poker"
-              className="fixed-article-link"
+              className="fixed-article-link hidden xl:block"
             >
               <Button
                 rightIcon={<IconArrowBadgeDownFilled size={35} spacing={0} />}

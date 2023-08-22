@@ -74,7 +74,9 @@ export function Hero() {
 
   const onHome = page === "/";
   const onRoadmap = page === "/roadmap";
+  const onAnalytics = page === "/analytics";
   const onContact = page === "/contact";
+  const onImprint = page === "/imprint";
 
   const { classes } = useStyles();
 
@@ -99,7 +101,7 @@ export function Hero() {
           Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
           Source <span>|</span> Privacy Focused
         </h2>
-        <nav className="flex justify-center space-x-4">
+        <nav className="flex flex-col justify-center align-middle md:flex-row md:space-x-4">
           <Link href="/">
             <Button color={onHome ? "dark" : "gray"} variant="outline">
               Home
@@ -128,9 +130,19 @@ export function Hero() {
               Roadmap
             </Button>
           </Link>
+          <Link href="/analytics" className="lg:hidden">
+            <Button color={onAnalytics ? "dark" : "gray"} variant="outline">
+              Analytics
+            </Button>
+          </Link>
           <Link href="/contact">
             <Button color={onContact ? "dark" : "gray"} variant="outline">
               Contact
+            </Button>
+          </Link>
+          <Link href="/imprint" className="lg:hidden">
+            <Button color={onImprint ? "dark" : "gray"} variant="outline">
+              Imprint
             </Button>
           </Link>
         </nav>
