@@ -184,7 +184,9 @@ export const AnalyticsCard = ({
   return (
     <Card withBorder shadow="sm" radius="md">
       <Card.Section withBorder inheritPadding py="xs">
-        <Title order={4}>{headline}</Title>
+        <Title order={2} size="md">
+          {headline}
+        </Title>
       </Card.Section>
       <Card.Section className="px-2">
         {sortedData.map((item, index) => (

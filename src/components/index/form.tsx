@@ -97,7 +97,8 @@ const IndexForm = ({
         className={`mx-auto my-8 block md:w-[480px]`}
         type="button"
         uppercase
-        role="recent-roome"
+        role="button"
+        aria-label="Join recent room"
         disabled={!recentRoom || usernameInvalid}
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async (e) => {
@@ -168,7 +169,8 @@ const IndexForm = ({
               />
               <Button
                 disabled={usernameInvalid}
-                role="join-room"
+                role="button"
+                aria-label="Join room"
                 size="xl"
                 className={`${classes.buttonLeft} w-13 mt-11 px-4`}
                 type="submit"
