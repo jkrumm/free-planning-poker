@@ -122,14 +122,14 @@ const RoomPage = () => {
       <Head>
         <meta
           name="description"
-          content="Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused."
+          content="The fastest and easiest tool to estimate your story points. Simple and free agile scrum sprint planning poker app. Open source and privacy focused."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex,nofollow" />
         <title>{`Free Planning Poker - ${room}`}</title>
         <meta
           property="og:description"
-          content="Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused."
+          content="The fastest and easiest tool to estimate your story points. Simple and free agile scrum sprint planning poker app. Open source and privacy focused."
         />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_US" />
