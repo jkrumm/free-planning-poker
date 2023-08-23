@@ -36,11 +36,12 @@ const ScrollButtons = ({ inView }: { inView: boolean }) => {
             <Link
               href="/"
               className="scroll-to-top hidden xl:block"
+              aria-label="Scroll to top"
               onClick={() => {
                 window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
               }}
             >
-              <Button size="lg" color="gray" px={8} role="scroll-to-top">
+              <Button size="lg" color="gray" px={8} role="button">
                 <IconArrowBadgeUpFilled size={35} spacing={0} />
               </Button>
             </Link>
@@ -70,7 +71,7 @@ const ScrollButtons = ({ inView }: { inView: boolean }) => {
                 rightIcon={<IconArrowBadgeDownFilled size={35} spacing={0} />}
                 size="lg"
                 color="gray"
-                role="understand-planning-poker"
+                role="button"
               >
                 Understand Planning Poker{" "}
               </Button>
