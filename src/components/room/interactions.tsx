@@ -131,7 +131,7 @@ export const Interactions = ({
             New Round
           </Button>
           <Button
-            variant={"default"}
+            variant="default"
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
               logger.info(logMsg.TRACK_ROOM_EVENT, {

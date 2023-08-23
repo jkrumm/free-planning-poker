@@ -12,6 +12,10 @@ html {
   }
 }
 
+.room-wrapper {
+  transition: width 1s ease-out;
+}
+
 .mantine-Autocomplete-label,
 .mantine-TextInput-label {
   padding-bottom: 12px;
@@ -85,7 +89,7 @@ h2 span {
 .settings-bar {
   position: fixed;
   bottom: 60px;
-  left: 50%;
+  left: calc(50% - 62px);
   transform: translateX(-50%);
   display: flex;
   min-width: 546px;
@@ -100,7 +104,7 @@ h2 span {
 .switch-bar {
   position: fixed;
   bottom: 60px;
-  left: calc(50% + 360px);
+  left: calc(50% + 298px);
   transform: translateX(-50%);
   min-width: 124px;
 }
@@ -213,7 +217,7 @@ h2 span {
 
 .players .player .name {
   text-align: center;
-  width: 100px;
+  width: 130px;
   margin-left: 10px;
   border-radius: 5px;
   overflow: hidden;
@@ -463,4 +467,235 @@ h2 span {
 .card.flipped.voted:after {
   border-color: rgb(47, 158, 68);
   background-size: 12px 12px;
+}
+
+@media (max-width: 1600px) {
+  .table {
+    width: 850px;
+    height: 340px;
+    border-radius: 127.5px;
+    border: 12.75px solid #a95555;
+  }
+
+  .table:before {
+    width: 863.75px;
+    height: 352.75px;
+    border-radius: 127.5px;
+  }
+
+  .table:after {
+    width: 837.25px;
+    height: 327.75px;
+    border-radius: 110.5px;
+  }
+
+  .table .card-place {
+    height: 85px;
+    width: 289px;
+    border-radius: 8.5px;
+    padding: 8.5px;
+  }
+
+  .vote {
+    font-size: 34px;
+  }
+
+  .table .card-place .card:not(:last-child) {
+    margin-right: 12.75px;
+  }
+
+  .players .player .avatar {
+    width: 102px;
+    height: 102px;
+    box-shadow: 1.7px 8.5px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .players .player .avatar:after {
+    width: 59.5px;
+    height: 59.5px;
+    box-shadow: 0 4.25px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .players .player .name {
+    margin-left: -13px;
+  }
+
+  .players .player.playing:before {
+    font-size: 17px;
+    height: 8.5px;
+    padding: 4.25px 8.5px;
+  }
+
+  .card {
+    height: 59.5px;
+    width: 42.5px;
+    font-size: 24.65px;
+    padding-top: 8.5px;
+    left: 28.05px;
+    top: 12.75px;
+  }
+
+  .card-wrapper {
+    width: 51px;
+  }
+
+  .card-place .average {
+    font-size: 26.35px;
+    right: 12.75px;
+    top: 17px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .table {
+    width: 700px;
+    height: 280px;
+    border-radius: 105px;
+    border: 10.5px solid #a95555;
+  }
+
+  .table:before {
+    width: 710.5px;
+    height: 290.5px;
+    border-radius: 105px;
+  }
+
+  .table:after {
+    width: 689.5px;
+    height: 269.5px;
+    border-radius: 91px;
+  }
+
+  .table .card-place {
+    height: 70px;
+    width: 238px;
+    border-radius: 7px;
+    padding: 7px;
+  }
+
+  .vote {
+    font-size: 28px;
+  }
+
+  .table .card-place .card:not(:last-child) {
+    margin-right: 10.5px;
+  }
+
+  .players .player .avatar {
+    width: 84px;
+    height: 84px;
+    box-shadow: 1.4px 7px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .players .player .avatar:after {
+    width: 49px;
+    height: 49px;
+    box-shadow: 0 3.5px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .players .player .name {
+    margin-left: -22px;
+  }
+
+  .players .player.playing:before {
+    font-size: 14px;
+    height: 7px;
+    padding: 3.5px 7px;
+  }
+
+  .card {
+    height: 49px;
+    width: 35px;
+    font-size: 20.3px;
+    padding-top: 7px;
+    left: 22.75px;
+    top: 10.5px;
+  }
+
+  .card-wrapper {
+    width: 42px;
+  }
+
+  .card-place .average {
+    font-size: 21.7px;
+    right: 10.5px;
+    top: 14px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .table {
+    width: 500px;
+    height: 200px;
+    border-radius: 75px;
+    border: 7.5px solid #a95555;
+  }
+
+  .table:before {
+    width: 507.5px;
+    height: 207.5px;
+    border-radius: 75px;
+  }
+
+  .table:after {
+    width: 492.5px;
+    height: 192.5px;
+    border-radius: 65px;
+  }
+
+  .table .card-place {
+    height: 50px;
+    width: 170px;
+    border-radius: 5px;
+    padding: 5px;
+  }
+
+  .vote {
+    font-size: 20px;
+  }
+
+  .table .card-place .card:not(:last-child) {
+    margin-right: 7.5px;
+  }
+
+  .players .player .avatar {
+    width: 60px;
+    height: 60px;
+    box-shadow: 1px 5px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .players .player .avatar:after {
+    width: 35px;
+    height: 35px;
+    box-shadow: 0 2.5px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .players .player.playing:before {
+    font-size: 10px;
+    height: 5px;
+    padding: 2.5px 5px;
+  }
+
+  .players .player .name {
+    margin-left: -34px;
+  }
+
+  .card {
+    height: 35px;
+    width: 25px;
+    font-size: 14.5px;
+    padding-top: 5px;
+    left: 16.5px;
+    top: 7.5px;
+  }
+
+  .card-wrapper {
+    width: 30px;
+  }
+
+  .card-place .average {
+    font-size: 15.5px;
+    right: 7.5px;
+    top: 10px;
+  }
 }
