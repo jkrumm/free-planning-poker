@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { Meta } from "fpp/components/meta";
 import { useRouter } from "next/router";
 import { Alert, Button, Loader, Text } from "@mantine/core";
-import Sidebar from "fpp/components/room/sidebar";
+import Sidebar from "fpp/components/room/sidebar/sidebar";
 import { IconAlertCircle } from "@tabler/icons-react";
 import Link from "next/link";
 import React from "react";
