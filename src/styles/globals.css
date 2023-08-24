@@ -13,7 +13,7 @@ html {
 }
 
 .room-wrapper {
-  transition: width 1s ease-out;
+  transition: width 1s ease-out 1s;
 }
 
 .mantine-Autocomplete-label,
@@ -218,7 +218,7 @@ h2 span {
 .players .player .name {
   text-align: center;
   width: 130px;
-  margin-left: 10px;
+  margin-left: -6px;
   border-radius: 5px;
   overflow: hidden;
   position: absolute;

@@ -56,12 +56,20 @@ const SidebarContent = ({
 };
 
 const Sidebar = () => {
-  const [open, setOpen] = useState<null | keyof typeof sidebarTabs>(null);
+  const [tab, setTab] = useState<null | keyof typeof sidebarTabs>(null);
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex">
+    <motion.div
+      className={`flex justify-end`}
+      animate={open ? "open" : "closed"}
+      variants={{
+        open: { width: "460px" },
+        closed: { width: "72px" },
+      }}
+    >
       <AnimatePresence>
-        {open === sidebarTabs.room_history && (
+        {tab === sidebarTabs.room_history && (
           <SidebarContent
             childrens={[
               {
@@ -89,7 +97,7 @@ const Sidebar = () => {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {open === sidebarTabs.room_analytics && (
+        {tab === sidebarTabs.room_analytics && (
           <SidebarContent
             childrens={[
               {
@@ -116,37 +124,63 @@ const Sidebar = () => {
           />
         )}
       </AnimatePresence>
-      <div className="m-6 ml-0 flex flex-col text-white">
+      <div className="m-6 ml-0 flex flex-col  text-white">
         <Button
           size="lg"
-          variant={open === sidebarTabs.room_history ? "filled" : "default"}
+          variant={tab === sidebarTabs.room_history ? "filled" : "default"}
           className="mb-4 px-3"
-          onClick={() =>
-            setOpen(
-              open === sidebarTabs.room_history
-                ? null
-                : sidebarTabs.room_history
-            )
-          }
+          onClick={() => {
+            if (tab === sidebarTabs.room_history) {
+              // void sidebarOpenControl.start("closed");
+              // setSidebarOpen(false);
+              setTab(null);
+              setTimeout(() => {
+                setOpen(false);
+              }, 500);
+            } else if (tab) {
+              setTab(null);
+              setTimeout(() => {
+                setTab(sidebarTabs.room_history);
+              }, 500);
+            } else {
+              // void sidebarOpenControl.start("open");
+              // setSidebarOpen(true);
+              setOpen(true);
+              setTab(sidebarTabs.room_history);
+            }
+          }}
         >
           <IconHistory size={22} />
         </Button>
         <Button
           size="lg"
-          variant={open === sidebarTabs.room_analytics ? "filled" : "default"}
+          variant={tab === sidebarTabs.room_analytics ? "filled" : "default"}
           className="px-3"
-          onClick={() =>
-            setOpen(
-              open === sidebarTabs.room_analytics
-                ? null
-                : sidebarTabs.room_analytics
-            )
-          }
+          onClick={() => {
+            if (tab === sidebarTabs.room_analytics) {
+              // void sidebarOpenControl.start("closed");
+              // setSidebarOpen(false);
+              setTab(null);
+              setTimeout(() => {
+                setOpen(false);
+              }, 500);
+            } else if (tab) {
+              setTab(null);
+              setTimeout(() => {
+                setTab(sidebarTabs.room_analytics);
+              }, 500);
+            } else {
+              // setSidebarOpen(true);
+              // void sidebarOpenControl.start("open");
+              setOpen(true);
+              setTab(sidebarTabs.room_analytics);
+            }
+          }}
         >
           <IconGraph size={22} />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
