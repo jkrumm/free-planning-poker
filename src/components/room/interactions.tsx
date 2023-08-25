@@ -7,6 +7,7 @@ import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { type Logger } from "next-axiom";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
+import Counter from "fpp/components/room/counter";
 import { RouteType } from "fpp/server/db/schema";
 
 export const Interactions = ({
@@ -150,6 +151,7 @@ export const Interactions = ({
         </div>
       </div>
       <div className="switch-bar">
+        <Counter />
         <Switch
           className="mb-2 cursor-pointer"
           disabled={!flipped}

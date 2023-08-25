@@ -27,6 +27,7 @@ type WsStore = {
   votes: Voting[];
   presences: string[];
   presencesMap: Map<string, string>;
+  voteStarted: number;
   fullReset: () => void;
   handleMessage: (message: Message) => void;
   updatePresences: (presenceMessage: PresenceMessage) => void;
@@ -45,6 +46,7 @@ export const useWsStore = create<WsStore>((set, get) => ({
   votes: [],
   presences: [],
   presencesMap: new Map(),
+  voteStarted: Date.now(),
   fullReset: () => {
     set({ votes: [], flipped: true, presences: [], presencesMap: new Map() });
   },
@@ -59,7 +61,7 @@ export const useWsStore = create<WsStore>((set, get) => ({
         set({ flipped: false });
         break;
       case "reset":
-        set({ votes: [], flipped: true });
+        set({ votes: [], flipped: true, voteStarted: Date.now() });
         break;
     }
   },
