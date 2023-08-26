@@ -34,11 +34,15 @@ const SidebarContent = ({
         >
           <Card withBorder shadow="sm" radius="md" className="mb-4">
             <Card.Section withBorder p="xs">
-              <Text size="md" weight="800">
+              <Text size="md" weight="600">
                 {children.title}
               </Text>
             </Card.Section>
-            <Card.Section className="p-2">{children.content}</Card.Section>
+            <Card.Section className="p-2">
+              <div className="flex justify-evenly text-center">
+                {children.content}
+              </div>
+            </Card.Section>
           </Card>
         </motion.div>
       ))}

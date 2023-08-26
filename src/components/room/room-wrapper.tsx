@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/router";
 import { useLogger } from "next-axiom";
-import { RouteType } from "@prisma/client";
 import { configureAbly } from "@ably-labs/react-hooks";
 import { env } from "fpp/env.mjs";
 import shortUUID from "short-uuid";
@@ -17,6 +16,7 @@ import { UsernameModel } from "fpp/components/room/username-model";
 import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
 import { Table } from "fpp/components/room/table";
 import { Interactions } from "fpp/components/room/interactions";
+import { RouteType } from "fpp/server/db/schema";
 
 const RoomWrapper = () => {
   const router = useRouter();

@@ -133,6 +133,7 @@ export const Interactions = ({
           </Button>
           <Button
             variant="default"
+            className="text-[#C1C2C5]"
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
               logger.info(logMsg.TRACK_ROOM_EVENT, {
