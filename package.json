@@ -31,7 +31,7 @@
     "@mantine/form": "^6.0.0",
     "@mantine/hooks": "^6.0.0",
     "@mantine/modals": "^6.0.0",
-    "@mantine/next": "^6.0.0",
+    "@mantine/next": "^6.0.21",
     "@mantine/notifications": "^6.0.0",
     "@planetscale/database": "^1.10.0",
     "@prisma/client": "^5.1.1",
