@@ -11,7 +11,7 @@ const countryRegions =
 
 export const trackingRouter = createTRPCRouter({
   getPageViews: publicProcedure.query<PageViews>(async ({ ctx: { db } }) => {
-    if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+    if (env.NEXT_PUBLIC_NODE_ENV !== "development") {
       return samplePageViews;
     }
 
@@ -121,12 +121,7 @@ export const trackingRouter = createTRPCRouter({
   }),
   getAggregatedVisitorInfo: publicProcedure.query<AggregatedVisitorInfo>(
     async ({ ctx }) => {
-      // if (env.NEXT_PUBLIC_NODE_ENV === "development") {
-      //   return sampleAggregatedVisitorInfo;
-      // }
-
-      // TODO: fix this function to return actual data
-      if (env.NEXT_PUBLIC_NODE_ENV !== "test") {
+      if (env.NEXT_PUBLIC_NODE_ENV !== "development") {
         return sampleAggregatedVisitorInfo;
       }
 

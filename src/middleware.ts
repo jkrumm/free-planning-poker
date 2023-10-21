@@ -13,7 +13,7 @@ import { env } from "fpp/env.mjs";
 // 8130 / 2004 = 4.06 commands per request
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.fixedWindow(17, "10 s"),
+  limiter: Ratelimit.fixedWindow(30, "15 s"),
   analytics: true,
 });
 

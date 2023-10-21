@@ -45,10 +45,6 @@ export const voteRouter = createTRPCRouter({
       },
     ),
   getVotes: publicProcedure.query(async ({ ctx: { db } }) => {
-    // if (env.NEXT_PUBLIC_NODE_ENV === "development") {
-    //   return sampleVotes;
-    // }
-
     const averages = await db.get<{
       avg_avgEstimation: string;
       avg_maxEstimation: string;
