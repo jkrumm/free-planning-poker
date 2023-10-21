@@ -7,7 +7,7 @@ import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { type Logger } from "next-axiom";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
-import { RouteType } from "@prisma/client";
+import { RouteType } from "fpp/server/db/schema";
 
 export const Interactions = ({
   room,
@@ -59,7 +59,8 @@ export const Interactions = ({
               disabled={(clientId && spectators.includes(clientId)) || !flipped}
               variant={
                 votes.some(
-                  (item) => item.clientId === clientId && item.number === number
+                  (item) =>
+                    item.clientId === clientId && item.number === number,
                 )
                   ? "filled"
                   : "default"

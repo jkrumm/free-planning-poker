@@ -2,7 +2,6 @@ import React from "react";
 import { api } from "fpp/utils/api";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Card, Group, SimpleGrid, Text, Title } from "@mantine/core";
-import { RouteType } from "@prisma/client";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { appRouter } from "fpp/server/api/root";
 import { createTRPCContext } from "fpp/server/api/trpc";
@@ -15,6 +14,7 @@ import superjson from "superjson";
 import { useLogger } from "next-axiom";
 import { logMsg } from "fpp/constants/logging.constant";
 import * as Sentry from "@sentry/nextjs";
+import { RouteType } from "fpp/server/db/schema";
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
@@ -109,20 +109,20 @@ const Analytics = () => {
             <StatsCard name="Votes per visitor" value={votes.votesPerVisitor} />
             <StatsCard
               name="Avg amount of estimations"
-              value={votes.amountOfVotes}
+              value={votes.avgAmountOfEstimations}
             />
             <StatsCard
               name="Avg amount of spectators"
-              value={votes.amountOfSpectators}
+              value={votes.avgAmountOfSpectators}
             />
             <StatsCard
               name="Avg lowest estimation"
-              value={votes.lowestVoteAvg}
+              value={votes.avgMinEstimation}
             />
-            <StatsCard name="Avg estimation" value={votes.voteAvg} />
+            <StatsCard name="Avg estimation" value={votes.avgAvgEstimation} />
             <StatsCard
               name="Avg highest estimation"
-              value={votes.highestVoteAvg}
+              value={votes.avgMaxEstimation}
             />
           </SimpleGrid>
           <h1>Historical data</h1>

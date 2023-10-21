@@ -2,21 +2,16 @@ import React from "react";
 import { type InferGetServerSidePropsType, type NextPage } from "next";
 import { Alert, Text, Title } from "@mantine/core";
 import { Hero } from "fpp/components/layout/hero";
-import {
-  IconArrowBadgeDownFilled,
-  IconArrowBadgeUpFilled,
-} from "@tabler/icons-react";
-import Link from "next/link";
 import PointsTable from "fpp/components/index/points-table";
 import { useInView } from "react-intersection-observer";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { RouteType } from "@prisma/client";
 import { Meta } from "fpp/components/meta";
 import { useLogger } from "next-axiom";
-import { generate } from "random-words";
 import IndexForm from "fpp/components/index/form";
 import dynamic from "next/dynamic";
 import { IconAlertCircle } from "@tabler/icons-react";
+import { generate } from "random-words";
+import { RouteType } from "fpp/server/db/schema";
 
 const ScrollButtonsWithNoSSR = dynamic<{
   inView: boolean;
@@ -26,7 +21,7 @@ const ScrollButtonsWithNoSSR = dynamic<{
 
 export async function getServerSideProps() {
   const roomsRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_ROOT}api/get-rooms`
+    `${process.env.NEXT_PUBLIC_API_ROOT}api/get-rooms`,
   );
 
   const { activeRooms, usedRooms } = (await roomsRes.json()) as {
@@ -34,15 +29,15 @@ export async function getServerSideProps() {
     usedRooms: string[];
   };
 
-  let randomRoom: string | undefined = "";
+  let randomRoom = "";
   for (let i = 3; i <= 11; i++) {
     const filtered = generate({
       minLength: 3,
       maxLength: i,
       exactly: 200,
-    }).filter((item) => !usedRooms.includes(item));
+    }).filter((item) => !usedRooms?.includes(item));
     if (filtered.length > 0) {
-      randomRoom = filtered[0];
+      randomRoom = filtered[0] ?? "";
     }
   }
 

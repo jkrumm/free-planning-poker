@@ -2,7 +2,7 @@ import React from "react";
 import { api } from "fpp/utils/api";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Card, Collapse, Group, SimpleGrid, Text, Title } from "@mantine/core";
-import { RouteType } from "@prisma/client";
+import { RouteType } from "fpp/server/db/schema";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { appRouter } from "fpp/server/api/root";
 import { createTRPCContext } from "fpp/server/api/trpc";

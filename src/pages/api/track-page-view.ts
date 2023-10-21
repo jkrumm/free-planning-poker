@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse, userAgent } from "next/server";
-import { env } from "fpp/env.mjs";
-import { connect } from "@planetscale/database";
-import { RouteType, type Visitor } from "@prisma/client";
 import {
   BadRequestError,
   log,
@@ -11,65 +8,55 @@ import { type AxiomRequest } from "next-axiom";
 import { withLogger } from "fpp/utils/api-logger.util";
 import { decodeBlob } from "fpp/utils/decode.util";
 import { logEndpoint } from "fpp/constants/logging.constant";
+import db from "fpp/server/db";
+import { pageViews, RouteType, visitors } from "fpp/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export const config = {
   runtime: "edge",
-  regions: ["fra1"],
 };
 
 const TrackPageView = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });
   if (req.method !== "POST") {
     throw new MethodNotAllowedError(
-      "TRACK_PAGE_VIEW only accepts POST requests"
+      "TRACK_PAGE_VIEW only accepts POST requests",
     );
   }
 
-  const { visitorId, route, room } = await decodeBlob<{
+  // eslint-disable-next-line prefer-const
+  let { visitorId, route, room } = await decodeBlob<{
     visitorId: string | null;
-    route: RouteType;
+    route: keyof typeof RouteType;
     room?: string;
   }>(req);
   req.log.with({ visitorId, route, room });
-  validateInput({ visitorId, route, room });
-
   if (userAgent(req).isBot) {
     req.log.with({ isBot: true });
-    return NextResponse.json(
-      { visitorId: "we_dont_track_bots" },
-      { status: 200 }
-    );
   }
 
-  const conn = connect({
-    url: env.DATABASE_URL,
+  validateInput({ visitorId, route, room });
+  visitorId = visitorId ?? crypto.randomUUID();
+
+  const visitorExists = !!(
+    await db.select().from(visitors).where(eq(visitors.id, visitorId))
+  )[0];
+
+  if (!visitorExists) {
+    const visitorPayload = getVisitorPayload(req);
+    await db.insert(visitors).values({
+      id: visitorId,
+      ...visitorPayload,
+    });
+  }
+
+  await db.insert(pageViews).values({
+    visitorId,
+    route,
+    room,
   });
 
-  let visitor: Visitor | null = null;
-  if (visitorId) {
-    const visitorQuery = await conn.execute(
-      "SELECT * FROM Visitor WHERE id = ? LIMIT 1;",
-      [visitorId]
-    );
-    visitor = visitorQuery.rows ? (visitorQuery.rows[0] as Visitor) : null;
-  }
-
-  if (!visitor) {
-    const v = getVisitorPayload(req);
-    const visitorUuid = crypto.randomUUID();
-    await conn.execute(
-      "INSERT INTO Visitor (id, browser, device, os, city, country, region) VALUES (?, ?, ?, ?, ?, ?, ?);",
-      [visitorUuid, v.browser, v.device, v.os, v.city, v.country, v.region]
-    );
-    visitor = { id: visitorUuid } as Visitor;
-  }
-
-  await conn.execute(
-    "INSERT INTO PageView (visitorId, route, room) VALUES (?, ?, ?);",
-    [visitor.id, route, room]
-  );
-
-  return NextResponse.json({ visitorId: visitor.id }, { status: 200 });
+  return NextResponse.json({ visitorId }, { status: 200 });
 });
 
 const validateInput = ({
@@ -78,7 +65,7 @@ const validateInput = ({
   room,
 }: {
   visitorId: string | null;
-  route: RouteType;
+  route: keyof typeof RouteType;
   room?: string;
 }): void => {
   if (visitorId && visitorId.length !== 36) {
@@ -126,7 +113,7 @@ const getVisitorPayload = (req: AxiomRequest) => {
 
     return {
       browser: ua?.browser?.name ?? null,
-      device: ua?.device?.type ?? ua.isBot ? "bot" : "desktop",
+      device: ua.isBot ? "bot" : ua?.device?.type ?? "desktop",
       os: ua?.os?.name ?? null,
       city: geo?.city ?? null,
       country: geo?.country ?? null,

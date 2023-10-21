@@ -4,7 +4,7 @@ import { Hero } from "fpp/components/layout/hero";
 import Link from "next/link";
 import { Button } from "@mantine/core";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { RouteType } from "@prisma/client";
+import { RouteType } from "fpp/server/db/schema";
 import { Meta } from "fpp/components/meta";
 import { useLogger } from "next-axiom";
 

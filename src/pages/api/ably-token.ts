@@ -66,7 +66,7 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
         "Content-Type": "application/json",
       },
       method: "POST",
-    }
+    },
   );
   const tokenRequest = (await tokenRequestReq.json()) as object;
 
@@ -82,7 +82,7 @@ async function hmacSign(signText: string, keySecret: string) {
     keySecretEncoded,
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const signature = await crypto.subtle.sign("HMAC", key, signTextEncoded);

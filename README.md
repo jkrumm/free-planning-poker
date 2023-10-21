@@ -2,9 +2,9 @@
 
 #### Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.
 
-Based on NextJs, tRPC, Prisma and Mantine UI components.
+Based on NextJs, tRPC, Drizzle and Mantine UI components.
 
-Mostly using Websocket communication utilizing Ably as Websocket service.
+Mostly using Websocket communication utilizing Ably as Websocket service and Turso for edge DB.
 
 All "personal" data is stored only in the visitors local storage.
 

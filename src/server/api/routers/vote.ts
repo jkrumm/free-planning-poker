@@ -2,14 +2,17 @@ import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { DateTime } from "luxon";
-import { env } from "fpp/env.mjs";
+import { votes } from "fpp/server/db/schema";
+import { sql } from "drizzle-orm";
+import { round } from "fpp/utils/number.utils";
+import { countTable } from "fpp/utils/db-api.util";
 
 export const voteRouter = createTRPCRouter({
   vote: publicProcedure
     .input(
       z.object({
         room: z.string().min(2).max(15),
-        votes: z
+        estimations: z
           .array(z.number())
           .min(1)
           .refine(
@@ -17,87 +20,82 @@ export const voteRouter = createTRPCRouter({
               values.every((value) => fibonacciSequence.includes(value)),
             {
               message: "Every vote must be a valid fibonacci number",
-            }
+            },
           ),
+        duration: z.number().min(0),
         amountOfSpectators: z.number().min(0),
-      })
+      }),
     )
-    .mutation(async ({ ctx, input: { room, votes, amountOfSpectators } }) => {
-      await ctx.prisma.vote.create({
-        data: {
+    .mutation(
+      async ({
+        ctx: { db },
+        input: { room, estimations, duration, amountOfSpectators },
+      }) => {
+        await db.insert(votes).values({
           room,
-          votes,
-          avgVote: votes.reduce((a, b) => a + b, 0) / votes.length,
-          maxVote: votes.reduce((a, b) => Math.max(a, b), 1),
-          minVote: votes.reduce((a, b) => Math.min(a, b), 21),
-          amountOfVotes: votes.length,
+          avgEstimation:
+            estimations.reduce((a, b) => a + b, 0) / estimations.length,
+          maxEstimation: estimations.reduce((a, b) => Math.max(a, b), 1),
+          minEstimation: estimations.reduce((a, b) => Math.min(a, b), 21),
+          finalEstimation: null,
+          amountOfEstimations: estimations.length,
           amountOfSpectators,
-        },
-      });
-    }),
-  getVotes: publicProcedure.query<Votes>(async ({ ctx }) => {
-    if (env.NEXT_PUBLIC_NODE_ENV === "development") {
-      return sampleVotes;
-    }
+          duration,
+        });
+      },
+    ),
+  getVotes: publicProcedure.query(async ({ ctx: { db } }) => {
+    // if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+    //   return sampleVotes;
+    // }
 
-    const averages = await ctx.prisma.$queryRaw<
-      {
-        avg_avgVote: string;
-        avg_maxVote: string;
-        avg_minVote: string;
-        avg_amountOfVotes: string;
-        avg_amountOfSpectators: string;
-      }[]
-    >`SELECT AVG(avgVote)            as avg_avgVote,
-        AVG(maxVote)            as avg_maxVote,
-        AVG(minVote)            as avg_minVote,
-        AVG(amountOfVotes)      as avg_amountOfVotes,
-        AVG(amountOfSpectators) as avg_amountOfSpectators
-    FROM Vote`;
+    const averages = await db.get<{
+      avg_avgEstimation: string;
+      avg_maxEstimation: string;
+      avg_minEstimation: string;
+      avg_finalEstimation: string;
+      avg_amountOfEstimations: string;
+      avg_amountOfSpectators: string;
+    }>(sql`
+        SELECT AVG(avg_estimation)  as avg_avgEstimation,
+          AVG(max_estimation)       as avg_maxEstimation,
+          AVG(min_estimation)       as avg_minEstimation,
+          AVG(final_estimation)     as avg_finalEstimation,
+          AVG(amount_of_estimation) as avg_amountOfEstimations,
+          AVG(amount_of_spectators) as avg_amountOfSpectators
+        FROM fpp_votes`);
 
     const oldestVote =
       (
-        await ctx.prisma.vote.findFirst({
-          orderBy: {
-            votedAt: "asc",
-          },
-        })
-      )?.votedAt ?? new Date();
-    const totalVotes = await ctx.prisma.vote.count();
+        await db
+          .select({
+            votedAt: votes.votedAt,
+          })
+          .from(votes)
+          .orderBy(votes.votedAt)
+          .limit(1)
+      )[0]?.votedAt ?? Date.now();
+
+    const totalVotes = await countTable(db, votes);
+
     const votesPerDay =
       Math.ceil(
         (totalVotes /
-          DateTime.now().diff(DateTime.fromJSDate(oldestVote), "days").days) *
-          100
+          DateTime.now().diff(DateTime.fromMillis(oldestVote), "days").days) *
+          100,
       ) / 100;
 
-    /* const votesPerVisitor =
-      (
-        await ctx.prisma.$queryRaw<
-          {
-            votesPerVisitor: number;
-          }[]
-        >`
-     SELECT
-    (SELECT COUNT(*) FROM Event WHERE type = 'VOTED') /
-    (SELECT COUNT(DISTINCT visitorId) FROM Event WHERE type = 'VOTED')
-    AS votesPerVisitor`
-      )[0]?.votesPerVisitor ?? 0; */
-
     return {
-      totalVotes: await ctx.prisma.estimation.count(),
+      totalVotes,
       votesPerDay,
       votesPerVisitor: 0,
-      amountOfVotes:
-        Math.ceil(parseInt(averages[0]?.avg_amountOfVotes ?? "0") * 100) / 100,
-      amountOfSpectators:
-        Math.ceil(parseInt(averages[0]?.avg_amountOfSpectators ?? "0") * 100) /
-        100,
-      highestVoteAvg:
-        Math.ceil(parseInt(averages[0]?.avg_maxVote ?? "0") * 100) / 100,
-      lowestVoteAvg:
-        Math.ceil(parseInt(averages[0]?.avg_minVote ?? "0") * 100) / 100,
-      voteAvg: Math.ceil(parseInt(averages[0]?.avg_avgVote ?? "0") * 100) / 100,
+      totalEstimations: 0,
+      estimationsPerDay: 0,
+      avgAmountOfEstimations: round(averages.avg_amountOfEstimations),
+      avgAmountOfSpectators: round(averages.avg_amountOfSpectators),
+      avgMaxEstimation: round(averages.avg_maxEstimation),
+      avgMinEstimation: round(averages.avg_minEstimation),
+      avgAvgEstimation: round(averages.avg_avgEstimation),
     };
   }),
 });
@@ -113,13 +111,13 @@ export interface Votes {
   voteAvg: number;
 }
 
-const sampleVotes: Votes = {
-  totalVotes: 100,
-  votesPerDay: 10,
-  votesPerVisitor: 3,
-  amountOfVotes: 3,
-  amountOfSpectators: 0.93,
-  highestVoteAvg: 8,
-  lowestVoteAvg: 3,
-  voteAvg: 5,
-};
+// const sampleVotes: Votes = {
+//   totalVotes: 100,
+//   votesPerDay: 10,
+//   votesPerVisitor: 3,
+//   amountOfVotes: 3,
+//   amountOfSpectators: 0.93,
+//   highestVoteAvg: 8,
+//   lowestVoteAvg: 3,
+//   voteAvg: 5,
+// };

@@ -4,12 +4,18 @@ import { z } from "zod";
 export const env = createEnv({
   // server-side environment variables schema ensures the app isn't built with invalid env vars.
   server: {
-    DATABASE_URL: z.string().url(),
+    // DATABASE_URL: z.string().url(),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     NEXT_PUBLIC_NODE_ENV: z.enum(["development", "test", "production"]),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     NEXT_PUBLIC_API_ROOT: z.enum([
       "http://localhost:3000/",
       "https://free-planning-poker.com/",
     ]),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string(),
@@ -32,7 +38,7 @@ export const env = createEnv({
   // You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
   // middlewares) or client-side so we need to destruct manually.
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
+    // DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_API_ROOT: process.env.NEXT_PUBLIC_API_ROOT,
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,

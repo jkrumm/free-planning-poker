@@ -25,7 +25,7 @@ export function sendTrackEstimation({
     if (navigator.sendBeacon) {
       navigator.sendBeacon(
         `${process.env.NEXT_PUBLIC_API_ROOT}api/track-estimation`,
-        body
+        body,
       );
     } else {
       fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/track-estimation`, {

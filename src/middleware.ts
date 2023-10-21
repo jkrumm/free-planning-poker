@@ -6,6 +6,7 @@ import {
 import { Ratelimit } from "@upstash/ratelimit";
 
 import { Redis } from "@upstash/redis";
+import { env } from "fpp/env.mjs";
 
 // NOTE: with sliding window I had on the 17.08.23
 // 8130 commands with total of 2004 reqs and allowed 1867 and blocked 137
@@ -22,14 +23,18 @@ const isAPI = (path: string) => {
 
 export default async function middleware(
   request: NextRequest,
-  event: NextFetchEvent
+  event: NextFetchEvent,
 ): Promise<Response | undefined> {
+  if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+    return NextResponse.next();
+  }
+
   const ip = request.ip ?? "127.0.0.1";
 
   // Rate limit apis
   if (isAPI(request.nextUrl.pathname)) {
     const { success, pending, limit, reset, remaining } = await ratelimit.limit(
-      `ratelimit_middleware_${ip}`
+      `ratelimit_middleware_${ip}`,
     );
     event.waitUntil(pending);
 
@@ -44,7 +49,7 @@ export default async function middleware(
   }
 
   const { success, pending } = await ratelimit.limit(
-    `ratelimit_middleware_${ip}`
+    `ratelimit_middleware_${ip}`,
   );
   event.waitUntil(pending);
 

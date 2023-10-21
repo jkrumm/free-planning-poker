@@ -1,7 +1,4 @@
 import { NextResponse, userAgent } from "next/server";
-import { env } from "fpp/env.mjs";
-import { connect } from "@planetscale/database";
-import { EventType } from "@prisma/client";
 import {
   BadRequestError,
   MethodNotAllowedError,
@@ -11,10 +8,11 @@ import { withLogger } from "fpp/utils/api-logger.util";
 import { decodeBlob } from "fpp/utils/decode.util";
 import { logEndpoint } from "fpp/constants/logging.constant";
 import { findVisitorById } from "fpp/utils/db-api.util";
+import { events, EventType } from "fpp/server/db/schema";
+import db from "fpp/server/db";
 
 export const config = {
   runtime: "edge",
-  regions: ["fra1"],
 };
 
 const TrackEvent = withLogger(async (req: AxiomRequest) => {
@@ -25,7 +23,7 @@ const TrackEvent = withLogger(async (req: AxiomRequest) => {
 
   const { visitorId, event } = await decodeBlob<{
     visitorId: string;
-    event: EventType;
+    event: keyof typeof EventType;
   }>(req);
   req.log.with({ visitorId, event });
   validateInput({ visitorId, event });
@@ -35,16 +33,12 @@ const TrackEvent = withLogger(async (req: AxiomRequest) => {
     return NextResponse.json({}, { status: 200 });
   }
 
-  const conn = connect({
-    url: env.DATABASE_URL,
-  });
+  const visitor = await findVisitorById(visitorId);
 
-  const visitor = await findVisitorById(visitorId, conn);
-
-  await conn.execute("INSERT INTO Event (visitorId, event) VALUES (?, ?);", [
-    visitor.id,
+  await db.insert(events).values({
+    visitorId: visitor.id,
     event,
-  ]);
+  });
 
   return NextResponse.json({}, { status: 200 });
 });
@@ -54,7 +48,7 @@ const validateInput = ({
   event,
 }: {
   visitorId: string;
-  event: EventType;
+  event: keyof typeof EventType;
 }): void => {
   if (!visitorId || visitorId.length !== 36) {
     throw new BadRequestError("invalid visitorId");
