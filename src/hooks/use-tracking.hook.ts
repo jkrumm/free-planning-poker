@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { type RouteType } from "@prisma/client";
 import { env } from "fpp/env.mjs";
 import { logEndpoint } from "fpp/constants/logging.constant";
 import { type Logger } from "next-axiom";
 import * as Sentry from "@sentry/nextjs";
+import { type RouteType } from "fpp/server/db/schema";
 
 export const useTrackPageView = (
-  route: RouteType,
+  route: keyof typeof RouteType,
   logger: Logger,
-  room?: string
+  room?: string,
 ) => {
   const visitorId = useLocalstorageStore((state) => state.visitorId);
   const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
@@ -27,7 +27,7 @@ export const sendTrackPageView = ({
   logger,
 }: {
   visitorId: string | null;
-  route: RouteType;
+  route: keyof typeof RouteType;
   room?: string;
   setVisitorId: (visitorId: string) => void;
   logger: Logger;

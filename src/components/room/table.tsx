@@ -28,7 +28,10 @@ export const Table = ({
   function flip() {
     sendVote.mutate({
       room,
-      votes: votes.filter((vote) => vote !== null).map((vote) => vote.number!),
+      estimations: votes
+        .filter((vote) => vote !== null)
+        .map((vote) => vote.number!),
+      duration: 0,
       amountOfSpectators: spectators.length,
     });
     if (channel) {
@@ -72,7 +75,7 @@ export const Table = ({
         return acc + item.number * item.amount;
       }, 0) /
         voting.reduce((acc, item) => acc + item.amount, 0)) *
-        10
+        10,
     ) / 10 || null;
 
   voting = voting.sort((a, b) => b.amount - a.amount).slice(0, 4);
@@ -92,7 +95,7 @@ export const Table = ({
                   cards.push(
                     <div className="card" key={i}>
                       {item.number}
-                    </div>
+                    </div>,
                   );
                 }
                 return cards;

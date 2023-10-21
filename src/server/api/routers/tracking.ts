@@ -1,30 +1,34 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { DateTime } from "luxon";
 import { env } from "fpp/env.mjs";
+import { countTable } from "fpp/utils/db-api.util";
+import { pageViews, visitors } from "fpp/server/db/schema";
+import { sql } from "drizzle-orm";
 
 const countryRegions =
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require("country-region-data/data.json") as CountryRegionData[];
 
 export const trackingRouter = createTRPCRouter({
-  getPageViews: publicProcedure.query<PageViews>(async ({ ctx }) => {
+  getPageViews: publicProcedure.query<PageViews>(async ({ ctx: { db } }) => {
     if (env.NEXT_PUBLIC_NODE_ENV === "development") {
       return samplePageViews;
     }
-    const total = await ctx.prisma.pageView.count();
-    const unique = await ctx.prisma.visitor.count();
+
+    const total = await countTable(db, pageViews);
+    const unique = await countTable(db, visitors);
     const viewsPerVisit = Math.ceil((total / unique) * 100) / 100;
 
-    const activities = await ctx.prisma.$queryRaw<
+    const activities = await db.get<
       { visitorId: string; activityAt: Date }[]
-    >`
+    >(sql`
         SELECT visitorId, viewedAt as activityAt
-        FROM PageView
+        FROM fpp_page_views
         UNION ALL
-        SELECT visitorId, occurredAt as activityAt
-        FROM Event
+        SELECT visitorId, estimatedAt as activityAt
+        FROM fpp_estimations
         ORDER BY visitorId, activityAt;
-    `;
+    `);
 
     let totalDuration = 0;
     let totalActivities = 0;
@@ -58,39 +62,39 @@ export const trackingRouter = createTRPCRouter({
       Math.ceil((totalDuration / (totalActivities || 1) / (60 * 1000)) * 100) /
       100;
 
-    const visitorsWhoVotedRes = await ctx.prisma.$queryRaw<
+    const visitorsWhoVotedRes = await db.get<
       { hasVoted: string }[]
-    >`SELECT COUNT(*)
-        FROM (SELECT COUNT(*) as hasVoted FROM Estimation GROUP BY visitorId) as subQuery;`;
+    >(sql`SELECT COUNT(*)
+        FROM (SELECT COUNT(*) as hasVoted FROM fpp_estimations GROUP BY visitorId) as subQuery;`);
     const visitorsWhoVoted = parseInt(visitorsWhoVotedRes[0]?.hasVoted ?? "0");
     const bounceRate = 100 - Math.ceil((visitorsWhoVoted / unique) * 100);
 
-    const totalViews = await ctx.prisma.$queryRaw<
+    const totalViews = await db.get<
       {
         date: Date;
         count: string;
       }[]
-    >`SELECT DATE(viewedAt) AS date, COUNT(*) AS count 
-        FROM PageView 
+    >(sql`SELECT DATE(viewedAt) AS date, COUNT(*) AS count 
+        FROM fpp_page_views
         GROUP BY date 
-        ORDER BY date DESC;`;
+        ORDER BY date DESC;`);
 
-    const uniqueViews = await ctx.prisma.$queryRaw<
+    const uniqueViews = await db.get<
       {
         date: Date;
         count: string;
       }[]
-    >`SELECT DATE(startedAt) AS date, COUNT(*) AS count
-        FROM Visitor
+    >(sql`SELECT DATE(startedAt) AS date, COUNT(*) AS count
+        FROM fpp_visitors
         GROUP BY date
-        ORDER BY date DESC;`;
+        ORDER BY date DESC;`);
 
-    const totalVotes = await ctx.prisma.$queryRaw<
+    const totalVotes = await db.get<
       { date: Date; count: string }[]
-    >`SELECT DATE(estimatedAt) AS date, COUNT(*) AS count
-        FROM Estimation
+    >(sql`SELECT DATE(estimatedAt) AS date, COUNT(*) AS count
+        FROM fpp_estimations
         GROUP BY date
-        ORDER BY date DESC;`;
+        ORDER BY date DESC;`);
 
     return {
       stats: {
@@ -117,87 +121,104 @@ export const trackingRouter = createTRPCRouter({
   }),
   getAggregatedVisitorInfo: publicProcedure.query<AggregatedVisitorInfo>(
     async ({ ctx }) => {
-      if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+      // if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+      //   return sampleAggregatedVisitorInfo;
+      // }
+
+      // TODO: fix this function to return actual data
+      if (env.NEXT_PUBLIC_NODE_ENV !== "test") {
         return sampleAggregatedVisitorInfo;
       }
 
-      const deviceCounts = await ctx.prisma.visitor.groupBy({
-        by: ["device"],
-        where: {
-          device: {
-            not: null,
-          },
-        },
-        _count: true,
-      });
+      const deviceCounts = await ctx.db.get<
+        { device: string; count: number }[]
+      >(
+        sql`SELECT device, COUNT(*) AS count FROM fpp_visitors WHERE device IS NOT NULL GROUP BY device;`,
+      );
 
-      const osCounts = await ctx.prisma.visitor.groupBy({
-        by: ["os"],
-        where: {
-          os: {
-            not: null,
-          },
-        },
-        _count: true,
-      });
+      const osCounts = await ctx.db.get<{ os: string; count: number }[]>(
+        sql`SELECT os, COUNT(*) AS count FROM fpp_visitors WHERE os IS NOT NULL GROUP BY os;`,
+      );
 
-      const browserCounts = await ctx.prisma.visitor.groupBy({
-        by: ["browser"],
-        where: {
-          browser: {
-            not: null,
-          },
-        },
-        _count: true,
-      });
+      const browserCounts = await ctx.db.get<
+        { browser: string; count: number }[]
+      >(
+        sql`SELECT browser, COUNT(*) AS count FROM fpp_visitors WHERE browser IS NOT NULL GROUP BY browser;`,
+      );
 
-      const countryCounts = await ctx.prisma.visitor.groupBy({
-        by: ["country"],
-        where: {
-          country: {
-            not: null,
-          },
-        },
-        _count: true,
-      });
+      let countryCounts: { country: string; count: number }[] = [];
+      try {
+        countryCounts = await ctx.db.get<{ country: string; count: number }[]>(
+          sql`SELECT country, COUNT(*) AS count FROM fpp_visitors WHERE country IS NOT NULL GROUP BY country;`,
+        );
+      } catch (e) {
+        if (
+          e instanceof Error &&
+          e.message === "Cannot convert undefined or null to object"
+        ) {
+          countryCounts = [];
+        } else {
+          throw e;
+        }
+      }
+
       const countryCountsMapped = countryCounts.map((i) => ({
         name: `${i.country} - ${
           countryRegions.find((c) => c.countryShortCode === i.country)
             ?.countryName ?? i.country
         }`,
-        value: i._count,
+        value: i.count,
       }));
 
-      const regionCounts = await ctx.prisma.visitor.groupBy({
-        by: ["region", "country"],
-        where: {
-          region: {
-            not: null,
-          },
-        },
-        _count: true,
-      });
+      let regionCounts: { region: string; country: string; count: number }[] =
+        [];
+      try {
+        regionCounts = await ctx.db.get<
+          { region: string; country: string; count: number }[]
+        >(
+          sql`SELECT region, country, COUNT(*) AS count FROM fpp_visitors WHERE region IS NOT NULL GROUP BY region;`,
+        );
+      } catch (e) {
+        if (
+          e instanceof Error &&
+          e.message === "Cannot convert undefined or null to object"
+        ) {
+          regionCounts = [];
+        } else {
+          throw e;
+        }
+      }
+
       const regionCountsMapped = regionCounts.map((i) => ({
         name: `${i.country} - ${
           countryRegions
             .find((c) => c.countryShortCode === i.country)
             ?.regions.find((r) => r.shortCode === i.region)?.name ?? i.region
         }`,
-        value: i._count,
+        value: i.count,
       }));
 
-      const cityCounts = await ctx.prisma.visitor.groupBy({
-        by: ["city", "country"],
-        where: {
-          city: {
-            not: null,
-          },
-        },
-        _count: true,
-      });
+      let cityCounts: { city: string; country: string; count: number }[] = [];
+      try {
+        cityCounts = await ctx.db.get<
+          { city: string; country: string; count: number }[]
+        >(
+          sql`SELECT city, country, COUNT(*) AS count FROM fpp_visitors WHERE city IS NOT NULL GROUP BY city;`,
+        );
+      } catch (e) {
+        if (
+          e instanceof Error &&
+          e.message === "Cannot convert undefined or null to object"
+        ) {
+          cityCounts = [];
+        } else {
+          throw e;
+        }
+      }
+
       const cityCountsMapped = cityCounts.map((i) => ({
         name: `${i.country} - ${i.city}`,
-        value: i._count,
+        value: i.count,
       }));
 
       return {
@@ -208,7 +229,7 @@ export const trackingRouter = createTRPCRouter({
         regionCounts: regionCountsMapped,
         cityCounts: cityCountsMapped,
       };
-    }
+    },
   ),
 });
 
@@ -225,9 +246,9 @@ const mapCounts = (data: Array<CountData>) => {
     .filter((item) => Object.values(item)[0] !== null)
     .map((item) => {
       const name = Object.values(item).find(
-        (value) => value !== item._count
+        (value) => value !== item.count,
       ) as string;
-      const value = item._count as number;
+      const value = item.count as number;
       return { name, value };
     });
 };

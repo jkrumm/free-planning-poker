@@ -9,9 +9,9 @@ comment:
 #    Automated comment created by [PR Commenter](https://github.com/exercism/pr-commenter-action) :robot:.
 
   snippets:
-    - id: prisma-schema-changed
+    - id: drizzle-schema-changed
       files:
-        - '**/schema.prisma'
+        - '**/schema.ts'
       body: |
-        <h3> :warning: Prisma schema file has been modified :warning: </h3>
-        Please make sure to review and deploy it using <a href="https://app.planetscale.com/jkrumm/planning-poker" target="_blank">Planetscale</a> before merging the PR.
+        <h3> :warning: Drizzle schema file has been modified :warning: </h3>
+        Please make sure to review and deploy it using Turso CLI before merging the PR.

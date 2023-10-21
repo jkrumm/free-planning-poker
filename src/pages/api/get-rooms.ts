@@ -3,12 +3,12 @@ import { withLogger } from "fpp/utils/api-logger.util";
 import { type AxiomRequest } from "next-axiom";
 import { logEndpoint } from "fpp/constants/logging.constant";
 import { MethodNotAllowedError } from "fpp/constants/error.constant";
-import { connect } from "@planetscale/database";
-import { env } from "fpp/env.mjs";
+import db from "fpp/server/db";
+import { rooms } from "fpp/server/db/schema";
+import { sql } from "drizzle-orm";
 
 export const config = {
   runtime: "edge",
-  regions: ["fra1"],
 };
 
 const GetRooms = withLogger(async (req: AxiomRequest) => {
@@ -18,23 +18,19 @@ const GetRooms = withLogger(async (req: AxiomRequest) => {
     throw new MethodNotAllowedError("ABLY_TOKEN only accepts GET requests");
   }
 
-  const conn = connect({
-    url: env.DATABASE_URL,
-  });
+  const activeRooms = (
+    await db
+      .select({ name: rooms.name })
+      .from(rooms)
+      .where(sql`${rooms.lastUsedAt} >= datetime('now', '-1 hour')`)
+  ).map((row) => row.name);
 
-  const activeRoomsRows = (
-    await conn.execute(
-      "SELECT name FROM Room WHERE lastUsed > DATE_SUB(NOW(), INTERVAL 1 HOUR);"
-    )
-  ).rows as { name: string }[];
-  const activeRooms = activeRoomsRows.map((row) => row.name);
-
-  const usedRoomsRows = (
-    await conn.execute(
-      "SELECT name FROM Room WHERE lastUsed > DATE_SUB(NOW(), INTERVAL 4 HOUR);"
-    )
-  ).rows as { name: string }[];
-  const usedRooms = usedRoomsRows.map((row) => row.name);
+  const usedRooms = (
+    await db
+      .select({ name: rooms.name })
+      .from(rooms)
+      .where(sql`${rooms.lastUsedAt} >= datetime('now', '-4 hour')`)
+  ).map((row) => row.name);
 
   return NextResponse.json({ activeRooms, usedRooms }, { status: 200 });
 });

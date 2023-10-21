@@ -84,7 +84,7 @@ const IndexForm = ({
   useEffect(() => {
     setUsernameInvalid(
       !form.values.username ||
-        form.values.username.replace(/[^A-Za-z]/g, "").length < 3
+        form.values.username.replace(/[^A-Za-z]/g, "").length < 3,
     );
   }, [form.values.username]);
 

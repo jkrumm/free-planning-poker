@@ -11,7 +11,7 @@ export const contactRouter = createTRPCRouter({
         email: z.string().max(60).optional(),
         subject: z.string().min(3).max(100),
         message: z.string().max(800).optional(),
-      })
+      }),
     )
     .mutation(({ input: { name, email, subject, message } }) => {
       const mailData = {

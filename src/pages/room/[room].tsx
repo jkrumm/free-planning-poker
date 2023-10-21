@@ -6,7 +6,6 @@ import { Table } from "fpp/components/room/table";
 import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
 import { Interactions } from "fpp/components/room/interactions";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { RouteType } from "@prisma/client";
 import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { useLogger } from "next-axiom";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
@@ -19,6 +18,7 @@ import { Alert, Button, Loader, Text } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import Link from "next/link";
 import Head from "next/head";
+import { RouteType } from "fpp/server/db/schema";
 
 const RoomPage = () => {
   const router = useRouter();

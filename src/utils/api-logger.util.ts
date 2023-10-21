@@ -9,7 +9,7 @@ import {
 import * as Sentry from "@sentry/nextjs";
 
 type NextHandler = (
-  req: AxiomRequest
+  req: AxiomRequest,
 ) => Promise<Response> | Promise<NextResponse> | NextResponse | Response;
 
 export function withLogger(handler: NextHandler) {
@@ -103,6 +103,12 @@ export function withLogger(handler: NextHandler) {
 
       const e = error as BaseError;
 
+      console.error("EEROR:", {
+        name: e?.name,
+        stack: e?.stack,
+        message: e?.message,
+      });
+
       let errorLogPayload = {
         ...report,
         ...reportExtension,
@@ -159,7 +165,7 @@ export function withLogger(handler: NextHandler) {
       }
       return NextResponse.json(
         { error: "InternalServerError" },
-        { status: 500 }
+        { status: 500 },
       );
     }
   };

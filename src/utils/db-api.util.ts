@@ -1,22 +1,24 @@
-import { type Visitor } from "@prisma/client";
-import { type Connection } from "@planetscale/database";
 import { BadRequestError, NotFoundError } from "fpp/constants/error.constant";
+import { eq, type InferSelectModel, sql } from "drizzle-orm";
+import { visitors } from "fpp/server/db/schema";
+// import db from "fpp/server/db";
+import { type SQLiteTable } from "drizzle-orm/sqlite-core";
+import { type LibSQLDatabase } from "drizzle-orm/libsql";
+import db from "fpp/server/db";
 
 export async function findVisitorById(
+  // db: LibSQLDatabase,
   visitorId: string | null,
-  conn: Connection
-): Promise<Visitor> {
+): Promise<InferSelectModel<typeof visitors>> {
   if (!visitorId || visitorId.length !== 36) {
     throw new BadRequestError("invalid visitorId");
   }
 
-  let visitor: Visitor | null = null;
+  let visitor: InferSelectModel<typeof visitors> | null = null;
   if (visitorId) {
-    const visitorQuery = await conn.execute(
-      "SELECT * FROM Visitor WHERE id = ? LIMIT 1;",
-      [visitorId]
-    );
-    visitor = visitorQuery.rows ? (visitorQuery.rows[0] as Visitor) : null;
+    visitor =
+      (await db.select().from(visitors).where(eq(visitors.id, visitorId)))[0] ??
+      null;
   }
 
   if (!visitor) {
@@ -24,4 +26,14 @@ export async function findVisitorById(
   }
 
   return visitor;
+}
+
+export async function countTable(
+  db: LibSQLDatabase<Record<string, unknown>>,
+  table: SQLiteTable,
+) {
+  return Number(
+    (await db.select({ count: sql<number>`count(*)` }).from(table))[0]?.count ??
+      0,
+  );
 }

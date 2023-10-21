@@ -1,6 +1,4 @@
 import { NextResponse, userAgent } from "next/server";
-import { env } from "fpp/env.mjs";
-import { connect } from "@planetscale/database";
 import {
   BadRequestError,
   MethodNotAllowedError,
@@ -11,17 +9,18 @@ import { decodeBlob } from "fpp/utils/decode.util";
 import { logEndpoint } from "fpp/constants/logging.constant";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { findVisitorById } from "fpp/utils/db-api.util";
+import { estimations } from "fpp/server/db/schema";
+import db from "fpp/server/db";
 
 export const config = {
   runtime: "edge",
-  regions: ["fra1"],
 };
 
 const TrackEstimation = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_ESTIMATION });
   if (req.method !== "POST") {
     throw new MethodNotAllowedError(
-      "TRACK_ESTIMATION only accepts POST requests"
+      "TRACK_ESTIMATION only accepts POST requests",
     );
   }
 
@@ -39,16 +38,14 @@ const TrackEstimation = withLogger(async (req: AxiomRequest) => {
     return NextResponse.json({}, { status: 200 });
   }
 
-  const conn = connect({
-    url: env.DATABASE_URL,
+  const visitor = await findVisitorById(visitorId);
+
+  await db.insert(estimations).values({
+    visitorId: visitor.id,
+    room,
+    estimation,
+    spectator,
   });
-
-  const visitor = await findVisitorById(visitorId, conn);
-
-  await conn.execute(
-    "INSERT INTO Estimation (visitorId, room, estimation, spectator) VALUES (?, ?, ?, ?);",
-    [visitor.id, room, estimation, spectator]
-  );
 
   return NextResponse.json({}, { status: 200 });
 });

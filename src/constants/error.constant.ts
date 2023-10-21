@@ -1,10 +1,10 @@
 import { log as axiomLog } from "next-axiom";
 import HttpStatusCode from "fpp/constants/http-status-codes.constant";
-import { type RouteType } from "@prisma/client";
 import {
   type logEndpoint,
   type roomEvent,
 } from "fpp/constants/logging.constant";
+import { type RouteType } from "fpp/server/db/schema";
 
 /**
  * Logging types
@@ -13,7 +13,7 @@ import {
 interface GlobalLoggingType {
   visitorId?: string | null;
   room?: string;
-  route?: RouteType;
+  route?: keyof typeof RouteType;
   event?: keyof typeof roomEvent;
 }
 
