@@ -9,9 +9,7 @@ const getDefaultDate = () => Date.now();
 const getUuid = () => crypto.randomUUID();
 
 /**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
- *
+ * Multi-project schema feature of Drizzle ORM. Use the same database instance for multiple projects.
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const sqliteTable = sqliteTableCreator((name) => `fpp_${name}`);
@@ -21,10 +19,6 @@ export const rooms = sqliteTable("rooms", {
   lastUsedAt: integer("last_used_at").notNull(),
   firstUsedAt: integer("first_used_at").$defaultFn(getDefaultDate),
 });
-
-// export const roomsRelations = relations(rooms, ({ many }) => ({
-//   votes: many(votes),
-// }));
 
 export const votes = sqliteTable(
   "votes",
@@ -48,13 +42,6 @@ export const votes = sqliteTable(
   }),
 );
 
-// export const votesRelations = relations(votes, ({ one }) => ({
-//   room: one(rooms, {
-//     fields: [votes.room],
-//     references: [rooms.name],
-//   }),
-// }));
-
 export const visitors = sqliteTable("visitors", {
   id: text("id").primaryKey().$defaultFn(getUuid),
   device: text("device"),
@@ -65,12 +52,6 @@ export const visitors = sqliteTable("visitors", {
   city: text("city"),
   firstVisitedAt: integer("first_visited_at").$defaultFn(getDefaultDate),
 });
-
-// export const visitorsRelations = relations(visitors, ({ many }) => ({
-//   pageViews: many(pageViews),
-//   events: many(events),
-//   estimations: many(estimations),
-// }));
 
 export const RouteType = {
   HOME: "HOME",
@@ -99,13 +80,6 @@ export const pageViews = sqliteTable(
   }),
 );
 
-// export const pageViewRelations = relations(pageViews, ({ one }) => ({
-//   visitor: one(visitors, {
-//     fields: [pageViews.visitorId],
-//     references: [visitors.id],
-//   }),
-// }));
-
 export const EventType = {
   CONTACT_FORM_SUBMISSION: "CONTACT_FORM_SUBMISSION",
 } as const;
@@ -126,13 +100,6 @@ export const events = sqliteTable(
   }),
 );
 
-// export const eventRelations = relations(events, ({ one }) => ({
-//   visitor: one(visitors, {
-//     fields: [events.visitorId],
-//     references: [visitors.id],
-//   }),
-// }));
-
 export const estimations = sqliteTable(
   "estimations",
   {
@@ -152,9 +119,14 @@ export const estimations = sqliteTable(
   }),
 );
 
-// export const estimationRelations = relations(estimations, ({ one }) => ({
-//   visitor: one(visitors, {
-//     fields: [estimations.visitorId],
-//     references: [visitors.id],
-//   }),
-// }));
+export const FeatureFlagType = {
+  CONTACT_FORM: "CONTACT_FORM",
+} as const;
+
+export const featureFlags = sqliteTable("feature_flags", {
+  id: integer("id").primaryKey(),
+  name: text("name", {
+    enum: Object.keys(FeatureFlagType) as [string, ...string[]],
+  }).notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).default(false).notNull(),
+});

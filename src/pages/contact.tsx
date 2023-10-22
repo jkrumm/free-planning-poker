@@ -1,20 +1,34 @@
 import { type NextPage } from "next";
 import React from "react";
 import { Hero } from "fpp/components/layout/hero";
-import { Button, Group, SimpleGrid, Textarea, TextInput } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Group,
+  SimpleGrid,
+  Text,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { api } from "fpp/utils/api";
 import { notifications } from "@mantine/notifications";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { EventType, RouteType } from "fpp/server/db/schema";
+import { EventType, FeatureFlagType, RouteType } from "fpp/server/db/schema";
 import { Meta } from "fpp/components/meta";
 import { sendTrackEvent } from "fpp/utils/send-track-event.util";
 import { useLogger } from "next-axiom";
+import { useFeatureFlagStore } from "fpp/store/feature-flag.store";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 const Contact: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.CONTACT });
   useTrackPageView(RouteType.CONTACT, logger);
+
+  const activeFeatureFlags = useFeatureFlagStore(
+    (state) => state.activeFeatureFlags,
+  );
 
   const username = useLocalstorageStore((state) => state.username);
   const visitorId = useLocalstorageStore((state) => state.visitorId);
@@ -117,8 +131,30 @@ const Contact: NextPage = () => {
               disabled={sendMail.isSuccess}
             />
 
+            {!activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM) && (
+              <Alert
+                icon={<IconAlertCircle size="1rem" />}
+                title="Contact form disabled"
+                color="orange"
+                variant="outline"
+                className="mx-auto my-8 w-1/2"
+              >
+                <Text>
+                  The contact form is currently disabled by a feature flag.
+                  Please try again later.
+                </Text>
+              </Alert>
+            )}
+
             <Group position="center" mt="xl">
-              <Button type="submit" size="md" disabled={sendMail.isSuccess}>
+              <Button
+                type="submit"
+                size="md"
+                disabled={
+                  sendMail.isSuccess ||
+                  !activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM)
+                }
+              >
                 Send message
               </Button>
             </Group>
