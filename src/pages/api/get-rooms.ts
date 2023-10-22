@@ -15,7 +15,7 @@ const GetRooms = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.GET_ROOMS });
 
   if (req.method !== "GET") {
-    throw new MethodNotAllowedError("ABLY_TOKEN only accepts GET requests");
+    throw new MethodNotAllowedError("GET_ROOMS only accepts GET requests");
   }
 
   const activeRooms = (

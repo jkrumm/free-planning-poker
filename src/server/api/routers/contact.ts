@@ -2,6 +2,9 @@ import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 import { env } from "fpp/env.mjs";
+import { featureFlags, FeatureFlagType } from "fpp/server/db/schema";
+import { eq } from "drizzle-orm";
+import { NotImplementedError } from "fpp/constants/error.constant";
 
 export const contactRouter = createTRPCRouter({
   sendMail: publicProcedure
@@ -13,7 +16,18 @@ export const contactRouter = createTRPCRouter({
         message: z.string().max(800).optional(),
       }),
     )
-    .mutation(({ input: { name, email, subject, message } }) => {
+    .mutation(async ({ ctx, input: { name, email, subject, message } }) => {
+      const featureFlagEntry = await ctx.db
+        .select()
+        .from(featureFlags)
+        .where(eq(featureFlags.name, FeatureFlagType.CONTACT_FORM))
+        .get();
+      if (!featureFlagEntry?.enabled) {
+        throw new NotImplementedError(
+          "CONTACT_FORM feature flag is not enabled",
+        );
+      }
+
       const mailData = {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         from: `FreePlanningPoker ${env.SEND_EMAIL}`,

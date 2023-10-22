@@ -2,6 +2,7 @@ export const logMsg = {
   TRACK_ROOM_EVENT: "TRACK_ROOM_EVENT",
   ENDPOINT_FAILED: "ENDPOINT_FAILED",
   SSG_FAILED: "SSG_FAILED",
+  GET_FEATURE_FLAGS_FAILED: "GET_FEATURE_FLAGS_FAILED",
 } as const;
 
 export const logEndpoint = {
@@ -10,6 +11,7 @@ export const logEndpoint = {
   TRACK_ESTIMATION: "TRACK_ESTIMATION",
   ABLY_TOKEN: "ABLY_TOKEN",
   GET_ROOMS: "GET_ROOMS",
+  GET_FEATURE_FLAGS: "GET_FEATURE_FLAGS",
 } as const;
 
 export const roomEvent = {
