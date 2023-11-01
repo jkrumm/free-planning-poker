@@ -48,7 +48,7 @@
     "ably": "^1.2.36",
     "apexcharts": "^3.41.1",
     "country-region-data": "^3.0.0",
-    "drizzle-orm": "^0.28.2",
+    "drizzle-orm": "^0.28.6",
     "framer-motion": "^10.16.0",
     "luxon": "^3.4.2",
     "next": "^13.4.13",
