@@ -67,25 +67,25 @@ const PointsTable = () => {
     <Table
       highlightOnHover
       verticalSpacing="md"
-      fontSize="sm"
-      className="w-full overflow-hidden rounded-lg shadow-lg"
+      withRowBorders={false}
+      className="w-full overflow-hidden"
     >
-      <thead>
-        <tr>
-          <th>Story Points</th>
-          <th>Description</th>
-          <th>Completion Time</th>
-        </tr>
-      </thead>
-      <tbody>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Story Points</Table.Th>
+          <Table.Th>Description</Table.Th>
+          <Table.Th>Completion Time</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
         {data.map((row, idx) => (
-          <tr key={idx}>
+          <Table.Tr key={idx}>
             {row.map((cell, idx) => (
-              <td key={idx}>{cell}</td>
+              <Table.Td key={idx}>{cell}</Table.Td>
             ))}
-          </tr>
+          </Table.Tr>
         ))}
-      </tbody>
+      </Table.Tbody>
     </Table>
   );
 };

@@ -2,29 +2,23 @@ import { useForm } from "@mantine/form";
 import { generate } from "random-words";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import React, { useEffect, useState } from "react";
-import {
-  Autocomplete,
-  Button,
-  createStyles,
-  Group,
-  TextInput,
-} from "@mantine/core";
+import { Autocomplete, Button, Group, TextInput } from "@mantine/core";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { type ClientLog } from "fpp/constants/error.constant";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { type Logger } from "next-axiom";
 
-const useStyles = createStyles(() => ({
-  buttonRight: {
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  buttonLeft: {
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
-  },
-}));
+// const useStyles = createStyles(() => ({
+//   buttonRight: {
+//     borderTopRightRadius: 0,
+//     borderBottomRightRadius: 0,
+//   },
+//   buttonLeft: {
+//     borderTopLeftRadius: 0,
+//     borderBottomLeftRadius: 0,
+//   },
+// }));
 
 const IndexForm = ({
   randomRoom,
@@ -36,7 +30,6 @@ const IndexForm = ({
   logger: Logger;
 }) => {
   const router = useRouter();
-  const { classes } = useStyles();
 
   const visitorId = useLocalstorageStore((state) => state.visitorId);
 
@@ -96,7 +89,6 @@ const IndexForm = ({
         size="xl"
         className={`mx-auto my-8 block md:w-[480px]`}
         type="button"
-        uppercase
         role="button"
         aria-label="Join recent room"
         disabled={!recentRoom || usernameInvalid}
@@ -113,7 +105,7 @@ const IndexForm = ({
           await router.push(`/room/${recentRoom}`);
         }}
       >
-        Join recent room &nbsp;<strong>{recentRoom}</strong>
+        Join recent room: &nbsp;<strong>{recentRoom?.toUpperCase()}</strong>
       </Button>
       <form
         className="mt-8 w-full"
@@ -157,11 +149,14 @@ const IndexForm = ({
               {...form.getInputProps("username")}
             />
 
-            <Group noWrap spacing={0}>
+            {/*<Group noWrap spacing={0}>*/}
+            {/*<Group className="flex-nowrap gap-0">*/}
+            <Group className="flex-nowrap">
               <Autocomplete
                 disabled={usernameInvalid}
                 label="Room"
-                className={`${classes.buttonRight} my-6 w-full`}
+                // className={`${classes.buttonRight} my-6 w-full`}
+                className={`my-6 w-full`}
                 size="xl"
                 limit={3}
                 {...form.getInputProps("room")}
@@ -172,7 +167,8 @@ const IndexForm = ({
                 role="button"
                 aria-label="Join room"
                 size="xl"
-                className={`${classes.buttonLeft} w-13 mt-11 px-4`}
+                // className={`${classes.buttonLeft} w-13 mt-11 px-4`}
+                className={`w-13 mt-11 px-4`}
                 type="submit"
               >
                 <IconArrowBadgeRightFilled size={35} spacing={0} />

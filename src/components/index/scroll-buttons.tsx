@@ -68,7 +68,9 @@ const ScrollButtons = ({ inView }: { inView: boolean }) => {
               className="fixed-article-link hidden xl:block"
             >
               <Button
-                rightIcon={<IconArrowBadgeDownFilled size={35} spacing={0} />}
+                rightSection={
+                  <IconArrowBadgeDownFilled size={35} spacing={0} />
+                }
                 size="lg"
                 color="gray"
                 role="button"

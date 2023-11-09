@@ -71,12 +71,12 @@ const Analytics = () => {
         <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
           <h1>Site Traffic</h1>
           <SimpleGrid
-            cols={6}
+            cols={{
+              xs: 2,
+              sm: 3,
+              md: 6,
+            }}
             spacing="md"
-            breakpoints={[
-              { maxWidth: "md", cols: 3 },
-              { maxWidth: "xs", cols: 2 },
-            ]}
             className="pb-8"
           >
             <StatsCard name="Total page views" value={pageViews.stats.total} />
@@ -99,9 +99,11 @@ const Analytics = () => {
           </SimpleGrid>
           <h1>Vote analytics</h1>
           <SimpleGrid
-            cols={4}
+            cols={{
+              sm: 2,
+              md: 4,
+            }}
             spacing="md"
-            breakpoints={[{ maxWidth: "md", cols: 2 }]}
             className="pb-8"
           >
             <StatsCard name="Total votes" value={votes.totalVotes} />
@@ -129,9 +131,11 @@ const Analytics = () => {
           <PageViewChart pageViews={pageViews} />
           <h1 className="mb-2 mt-[60px]">Location data</h1>
           <SimpleGrid
-            cols={3}
+            cols={{
+              sm: 1,
+              md: 3,
+            }}
             spacing="md"
-            breakpoints={[{ maxWidth: "md", cols: 1 }]}
           >
             <AnalyticsCard
               headline={"Countries"}
@@ -148,9 +152,11 @@ const Analytics = () => {
           </SimpleGrid>
           <h1 className="mb-2 mt-[60px]">User Agent data</h1>
           <SimpleGrid
-            cols={3}
+            cols={{
+              sm: 1,
+              md: 3,
+            }}
             spacing="md"
-            breakpoints={[{ maxWidth: "md", cols: 1 }]}
           >
             <AnalyticsCard
               headline={"Operating Systems"}
@@ -190,7 +196,7 @@ export const AnalyticsCard = ({
       </Card.Section>
       <Card.Section className="px-2">
         {sortedData.map((item, index) => (
-          <Group position="apart" key={index} className="relative py-2">
+          <Group key={index} className="relative py-2">
             <div
               className="absolute h-[40px] w-full rounded bg-[#2C2E33]"
               style={{ width: `${(item.value / highestValue) * 100}%` }}

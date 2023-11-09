@@ -48,7 +48,6 @@ export const UsernameModel = ({
             size="xl"
             className={`my-8 w-full px-0`}
             type="submit"
-            uppercase
             disabled={
               !inputUsername ||
               inputUsername?.replace(/[^A-Za-z]/g, "").length < 3 ||
@@ -68,7 +67,7 @@ export const UsernameModel = ({
               }
             }}
           >
-            Join room:&nbsp;<strong>{room}</strong>
+            Join room:&nbsp;<strong>{room.toUpperCase()}</strong>
           </Button>
         </form>
       </FocusTrap>

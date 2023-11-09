@@ -12,9 +12,8 @@ import { findVisitorById } from "fpp/utils/db-api.util";
 import { estimations } from "fpp/server/db/schema";
 import db from "fpp/server/db";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
+export const preferredRegion = ["fra1", "sfo1", "sin1"];
 
 const TrackEstimation = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_ESTIMATION });
