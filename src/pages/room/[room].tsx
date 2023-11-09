@@ -19,6 +19,7 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import Link from "next/link";
 import Head from "next/head";
 import { RouteType } from "fpp/server/db/schema";
+import { Notifications } from "@mantine/notifications";
 
 const RoomPage = () => {
   const router = useRouter();
@@ -170,6 +171,7 @@ const RoomPage = () => {
         <meta name="theme-color" content="#1a1b1e" />
       </Head>
       <div className="m-8 md:hidden">
+        <Notifications position="top-right" zIndex={1000} />
         <Alert
           icon={<IconAlertCircle size="1rem" />}
           title="Not supported on mobile devices"
@@ -185,7 +187,7 @@ const RoomPage = () => {
           </Link>
         </Alert>
       </div>
-      <main className="relative hidden max-h-screen min-h-screen min-w-[1200px] flex-col items-center justify-center overscroll-none md:flex">
+      <main className="relative hidden max-h-screen min-h-screen flex-col items-center justify-center overscroll-none md:flex">
         {(() => {
           if (!username || modelOpen) {
             return (

@@ -1,5 +1,6 @@
 import Head from "next/head";
 import React from "react";
+import { ColorSchemeScript } from "@mantine/core";
 
 export const Meta = ({ title }: { title?: string | null }) => {
   return (
@@ -54,6 +55,7 @@ export const Meta = ({ title }: { title?: string | null }) => {
       <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1971c2" />
       <meta name="msapplication-TileColor" content="#1a1b1e" />
       <meta name="theme-color" content="#1a1b1e" />
+      <ColorSchemeScript defaultColorScheme="dark" />
     </Head>
   );
 };

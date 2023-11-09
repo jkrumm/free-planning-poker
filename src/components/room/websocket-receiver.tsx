@@ -7,6 +7,8 @@ import * as process from "process";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { sendTrackEstimation } from "fpp/utils/send-track-estimation.util";
 import { type Logger } from "next-axiom";
+import { Types } from "ably";
+import PresenceMessage = Types.PresenceMessage;
 
 export const WebsocketReceiver = ({
   room,
@@ -96,7 +98,7 @@ export const WebsocketReceiver = ({
       spectator,
       // presenceLength: presenceUpdate.presencesLength,
     });
-    updatePresences(presenceUpdate);
+    updatePresences(presenceUpdate as PresenceMessage);
     // everyone resends presence if presencesLength is not the same as the one it received
     const presencesLength = (
       presenceUpdate.data as unknown as {

@@ -8,9 +8,8 @@ import {
   MethodNotAllowedError,
 } from "fpp/constants/error.constant";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
+export const dynamic = "force-dynamic"; // no caching
 
 const AblyToken = withLogger(async (request: AxiomRequest) => {
   const req = request as NextRequest & { log: Logger };

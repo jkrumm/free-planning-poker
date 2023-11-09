@@ -87,9 +87,11 @@ const Contact: NextPage = () => {
             })}
           >
             <SimpleGrid
-              cols={2}
+              cols={{
+                xs: 1,
+                sm: 2,
+              }}
               mt="xl"
-              breakpoints={[{ maxWidth: "sm", cols: 1 }]}
             >
               <TextInput
                 label="Name"
@@ -146,7 +148,7 @@ const Contact: NextPage = () => {
               </Alert>
             )}
 
-            <Group position="center" mt="xl">
+            <Group mt="xl">
               <Button
                 type="submit"
                 size="md"

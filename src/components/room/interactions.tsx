@@ -50,103 +50,113 @@ export const Interactions = ({
   const roomRef = useRef(null);
 
   return (
-    <>
-      <div className="voting-bar">
-        <Button.Group className="w-full">
-          {fibonacciSequence.map((number) => (
-            <Button
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-              disabled={(clientId && spectators.includes(clientId)) || !flipped}
-              variant={
-                votes.some(
-                  (item) =>
-                    item.clientId === clientId && item.number === number,
-                )
-                  ? "filled"
-                  : "default"
-              }
-              size={"lg"}
-              fullWidth
-              key={number}
-              onClick={() => {
-                if (!channel || !clientId) return;
-                setVoting(number);
-                const presenceUpdate: PresenceUpdate = {
-                  username,
-                  voting: number,
-                  spectator: spectators.includes(clientId),
-                  presencesLength: presences.length,
-                };
-                channel.presence.update(presenceUpdate);
+    <div className="interactions">
+      <div className="left">
+        <div className="settings-bar">
+          <Button
+            variant="outline"
+            color="gray"
+            size="lg"
+            className="room-name"
+          >
+            <h2
+              className="uppercase"
+              ref={roomRef}
+              onKeyPress={() => ({})}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onClick={async () => {
+                if (!window.location) {
+                  return;
+                }
+                if ("clipboard" in navigator) {
+                  await navigator.clipboard.writeText(
+                    window.location.toString(),
+                  );
+                } else {
+                  document.execCommand(
+                    "copy",
+                    true,
+                    window.location.toString(),
+                  );
+                }
+                notifications.show({
+                  color: "green",
+                  autoClose: 3000,
+                  withCloseButton: true,
+                  title: "Room url copied to clipboard",
+                  message: "Share it with your team!",
+                });
               }}
             >
-              {number}
+              {room}
+            </h2>
+          </Button>
+          <div>
+            <Button
+              variant={flipped ? "default" : "filled"}
+              disabled={flipped}
+              className={"mr-5"}
+              onClick={() => {
+                if (!channel) return;
+                channel.publish("reset", {});
+              }}
+            >
+              New Round
             </Button>
-          ))}
-        </Button.Group>
-      </div>
-      <div className="settings-bar">
-        <Button
-          variant="outline"
-          color="gray"
-          size="lg"
-          className="room-name"
-          compact
-        >
-          <h2
-            className="uppercase"
-            ref={roomRef}
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onClick={async () => {
-              if (!window.location) {
-                return;
-              }
-              if ("clipboard" in navigator) {
-                await navigator.clipboard.writeText(window.location.toString());
-              } else {
-                document.execCommand("copy", true, window.location.toString());
-              }
-              notifications.show({
-                color: "green",
-                autoClose: 3000,
-                withCloseButton: true,
-                title: "Room url copied to clipboard",
-                message: "Share it with your team!",
-              });
-            }}
-          >
-            {room}
-          </h2>
-        </Button>
-        <div>
-          <Button
-            variant={flipped ? "default" : "filled"}
-            disabled={flipped}
-            className={"mr-5"}
-            onClick={() => {
-              if (!channel) return;
-              channel.publish("reset", {});
-            }}
-          >
-            New Round
-          </Button>
-          <Button
-            variant={"default"}
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onClick={async () => {
-              logger.info(logMsg.TRACK_ROOM_EVENT, {
-                event: roomEvent.LEAVE_ROOM,
-                room,
-                visitorId,
-                route: RouteType.ROOM,
-              });
-              setRoom(null);
-              setVoting(null);
-              await router.push(`/`);
-            }}
-          >
-            Leave Room
-          </Button>
+            <Button
+              variant={"default"}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onClick={async () => {
+                logger.info(logMsg.TRACK_ROOM_EVENT, {
+                  event: roomEvent.LEAVE_ROOM,
+                  room,
+                  visitorId,
+                  route: RouteType.ROOM,
+                });
+                setRoom(null);
+                setVoting(null);
+                await router.push(`/`);
+              }}
+            >
+              Leave Room
+            </Button>
+          </div>
+        </div>
+        <div className="voting-bar">
+          <Button.Group className="w-full">
+            {fibonacciSequence.map((number) => (
+              <Button
+                disabled={
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  (clientId && spectators.includes(clientId)) || !flipped
+                }
+                variant={
+                  votes.some(
+                    (item) =>
+                      item.clientId === clientId && item.number === number,
+                  )
+                    ? "filled"
+                    : "default"
+                }
+                size={"lg"}
+                fullWidth
+                key={number}
+                onClick={() => {
+                  if (!channel || !clientId) return;
+                  setVoting(number);
+                  const presenceUpdate: PresenceUpdate = {
+                    username,
+                    voting: number,
+                    spectator: spectators.includes(clientId),
+                    presencesLength: presences.length,
+                  };
+                  channel.presence.update(presenceUpdate);
+                }}
+              >
+                {number}
+              </Button>
+            ))}
+          </Button.Group>
         </div>
       </div>
       <div className="switch-bar">
@@ -181,6 +191,6 @@ export const Interactions = ({
           }}
         />
       </div>
-    </>
+    </div>
   );
 };

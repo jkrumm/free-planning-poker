@@ -1,16 +1,19 @@
 import { type AppType } from "next/app";
 
 import { api } from "fpp/utils/api";
-
+import "normalize.css/normalize.css";
+import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 import "fpp/styles/globals.css";
-import { MantineProvider } from "@mantine/core";
-import { Notifications } from "@mantine/notifications";
 import React, { useEffect } from "react";
 import { AxiomWebVitals } from "next-axiom";
 import { FeatureFlagType } from "fpp/server/db/schema";
 import * as Sentry from "@sentry/nextjs";
 import { logMsg } from "fpp/constants/logging.constant";
 import { useFeatureFlagStore } from "fpp/store/feature-flag.store";
+import { createTheme, MantineProvider } from "@mantine/core";
+
+const theme = createTheme({});
 
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   const setFeatureFlags = useFeatureFlagStore((state) => state.setFeatureFlags);
@@ -41,15 +44,17 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
 
   return (
     <MantineProvider
-      withNormalizeCSS
-      theme={{
-        colorScheme: "dark",
-        loader: "bars",
-      }}
-      withGlobalStyles
+      // withNormalizeCSS
+      defaultColorScheme="dark"
+      theme={
+        {
+          // colorScheme: "dark",
+          // loader: "bars",
+        }
+      }
+      // withGlobalStyles
     >
       <AxiomWebVitals />
-      <Notifications position="top-right" />
       <Component {...pageProps} />
     </MantineProvider>
   );

@@ -12,9 +12,8 @@ import db from "fpp/server/db";
 import { pageViews, RouteType, visitors } from "fpp/server/db/schema";
 import { eq } from "drizzle-orm";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
+export const preferredRegion = ["fra1", "sfo1", "sin1"];
 
 const TrackPageView = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });

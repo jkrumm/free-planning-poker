@@ -57,8 +57,10 @@ const Roadmap = () => {
       <main className="flex flex-col items-center justify-center">
         <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
           <SimpleGrid
-            cols={3}
-            breakpoints={[{ maxWidth: "md", cols: 1 }]}
+            cols={{
+              sm: 1,
+              md: 3,
+            }}
             spacing="xl"
           >
             <RoadmapSection title="Todo" todos={roadmap.todo} />
@@ -111,7 +113,7 @@ const RoadmapCard = ({
             className="border-t-0 px-6 py-2"
             onClick={toggle}
           >
-            <Group noWrap position="apart">
+            <Group>
               <Text>{title}</Text>
               <IconArrowBadgeDownFilled
                 size={26}

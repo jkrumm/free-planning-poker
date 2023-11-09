@@ -7,9 +7,8 @@ import db from "fpp/server/db";
 import { featureFlags, FeatureFlagType } from "fpp/server/db/schema";
 import { sql } from "drizzle-orm";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
+export const preferredRegion = ["fra1", "sfo1", "sin1"];
 
 const GetFeatureFlags = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.GET_FEATURE_FLAGS });

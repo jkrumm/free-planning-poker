@@ -1,72 +1,8 @@
-import {
-  Button,
-  Container,
-  createStyles,
-  type MantineTheme,
-  Text,
-} from "@mantine/core";
+import { Button, Container, Text } from "@mantine/core";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-const BREAKPOINT_MOBILE = "@media (max-width: 755px)";
-const BREAKPOINT = "@media (max-width: 900px)";
-
-const useStyles = createStyles((theme: MantineTheme) => ({
-  wrapper: {
-    boxSizing: "border-box",
-  },
-
-  inner: {
-    paddingTop: 40,
-    paddingBottom: 50,
-
-    [BREAKPOINT]: {
-      paddingBottom: 40,
-      paddingTop: 20,
-    },
-  },
-
-  title: {
-    fontFamily: `Greycliff CF, ${theme.fontFamily ?? ""}`,
-    fontSize: 62,
-    fontWeight: 900,
-    lineHeight: 1.1,
-    margin: 0,
-    textAlign: "center",
-    padding: 0,
-    color: theme.colorScheme === "dark" ? theme.white : theme.black,
-
-    [BREAKPOINT]: {
-      fontSize: 42,
-      lineHeight: 1.2,
-    },
-
-    [BREAKPOINT_MOBILE]: {
-      fontSize: 35,
-      lineHeight: 1.2,
-    },
-  },
-
-  subtitle: {
-    [BREAKPOINT]: {
-      fontSize: 18,
-      lineHeight: 1.2,
-    },
-    [BREAKPOINT_MOBILE]: {
-      display: "none",
-    },
-  },
-
-  description: {
-    fontSize: 24,
-
-    [BREAKPOINT]: {
-      fontSize: 18,
-    },
-  },
-}));
-
-export function Hero() {
+export function Hero(props: { withDescription?: true }) {
   const router = useRouter();
 
   // which page are we on
@@ -78,14 +14,14 @@ export function Hero() {
   const onContact = page === "/contact";
   const onImprint = page === "/imprint";
 
-  const { classes } = useStyles();
-
   return (
-    <header className={classes.wrapper}>
-      <Container size={820} className={classes.inner}>
+    <header>
+      <Container size={820} className="pb-7 pt-5 md:pb-10 md:pt-8">
         <Link href="/" className="no-underline">
           <div className="logo" />
-          <h1 className={`${classes.title} mb-7 block`}>
+          <h1
+            className={`center m-0 block p-0 text-center text-[42px] md:text-[62px]`}
+          >
             <Text
               component="span"
               variant="gradient"
@@ -97,7 +33,9 @@ export function Hero() {
             </Text>
           </h1>
         </Link>
-        <h2 className={`${classes.subtitle} mb-12 text-center opacity-80`}>
+        <h2
+          className={`mb-12 mt-0 hidden text-center text-[18px] opacity-80 md:block md:text-[24px]`}
+        >
           Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span> Open
           Source <span>|</span> Privacy Focused
         </h2>
@@ -146,17 +84,17 @@ export function Hero() {
             </Button>
           </Link>
         </nav>
-        {onHome && (
-          <Text
-            className={`${classes.description} mt-12 text-center`}
-            color="dimmed"
-          >
+        {props.withDescription && (
+          <Text className={`mt-12 text-center text-[22px]`}>
             <p>
               Say goodbye to complicated and expensive planning poker tools with
-              this user-friendly app. Based on the Fibonacci sequence for story
-              point estimation, this tool is suitable for any agile project
-              management needs, whether you use Scrum, Kanban, or your own
-              custom Jira workflow.
+              this
+              <br className="hidden md:block" />
+              user-friendly app. Based on the Fibonacci sequence for story point
+              estimation,
+              <br className="hidden md:block" />
+              this tool is suitable for any agile project management needs,
+              whether you use Scrum, Kanban, or your own custom Jira workflow.
             </p>
           </Text>
         )}

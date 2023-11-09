@@ -7,9 +7,8 @@ import db from "fpp/server/db";
 import { rooms } from "fpp/server/db/schema";
 import { sql } from "drizzle-orm";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
+export const preferredRegion = ["fra1", "sfo1", "sin1"];
 
 const GetRooms = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.GET_ROOMS });
