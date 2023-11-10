@@ -1,3 +1,5 @@
+"use client";
+
 import { useForm } from "@mantine/form";
 import { generate } from "random-words";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
@@ -8,28 +10,53 @@ import { useRouter } from "next/router";
 import { type ClientLog } from "fpp/constants/error.constant";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { type Logger } from "next-axiom";
+import * as Sentry from "@sentry/nextjs";
 
-// const useStyles = createStyles(() => ({
-//   buttonRight: {
-//     borderTopRightRadius: 0,
-//     borderBottomRightRadius: 0,
-//   },
-//   buttonLeft: {
-//     borderTopLeftRadius: 0,
-//     borderBottomLeftRadius: 0,
-//   },
-// }));
-
-const IndexForm = ({
-  randomRoom,
-  activeRooms,
-  logger,
-}: {
-  randomRoom: string | undefined;
-  activeRooms: string[];
-  logger: Logger;
-}) => {
+const IndexForm = ({ logger }: { logger: Logger }) => {
   const router = useRouter();
+
+  const [active, setActiveRooms] = useState<string[]>([]);
+  const [random, setRandomRoom] = useState<string>("");
+
+  useEffect(() => {
+    void fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/get-rooms`)
+      .then((res) =>
+        res.json().then(
+          (data) =>
+            data as {
+              activeRooms: string[];
+              usedRooms: string[];
+            },
+        ),
+      )
+      .catch((e) => {
+        Sentry.captureException(e);
+        if (e instanceof Error) {
+          logger.error(logMsg.GET_ROOMS_FAILED, { ...e });
+        }
+        return {
+          activeRooms: [],
+          usedRooms: [],
+        };
+      })
+      .then((data) => {
+        const { activeRooms, usedRooms } = data as {
+          activeRooms: string[];
+          usedRooms: string[];
+        };
+        setActiveRooms(activeRooms);
+        for (let i = 3; i <= 11; i++) {
+          const filtered = generate({
+            minLength: 3,
+            maxLength: i,
+            exactly: 200,
+          }).filter((item) => !usedRooms?.includes(item));
+          if (filtered.length > 0) {
+            setRandomRoom(filtered[0] ?? "");
+          }
+        }
+      });
+  }, []);
 
   const visitorId = useLocalstorageStore((state) => state.visitorId);
 
@@ -60,7 +87,7 @@ const IndexForm = ({
   const form = useForm({
     initialValues: {
       username: username ?? "",
-      room: randomRoom ?? generate({ minLength: 3, exactly: 1 })[0] ?? "",
+      room: random ?? generate({ minLength: 3, exactly: 1 })[0] ?? "",
     },
     validate: {
       username: (value) =>
@@ -121,12 +148,12 @@ const IndexForm = ({
             room: roomName,
           };
 
-          if (activeRooms.includes(roomName)) {
+          if (active.includes(roomName)) {
             logger.info(logMsg.TRACK_ROOM_EVENT, {
               ...logPayload,
               event: roomEvent.ENTER_EXISTING_ROOM,
             });
-          } else if (roomName === randomRoom) {
+          } else if (roomName === random) {
             logger.info(logMsg.TRACK_ROOM_EVENT, {
               ...logPayload,
               event: roomEvent.ENTER_RANDOM_ROOM,
@@ -160,7 +187,7 @@ const IndexForm = ({
                 size="xl"
                 limit={3}
                 {...form.getInputProps("room")}
-                data={form.values.room.length > 1 ? activeRooms : []}
+                data={form.values.room.length > 1 ? active : []}
               />
               <Button
                 disabled={usernameInvalid}

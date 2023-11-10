@@ -70,6 +70,6 @@ export const config = {
      * - blocked (blocked page)
      * - api/get-rooms (get-rooms api endpoint) (ssr)
      */
-    "/((?!_next|static|favicon.ico|api/blocked|blocked|api/get-rooms).*)",
+    "/((?!_next|static|favicon.ico|api/blocked|blocked|api/get-rooms|monitoring).*)",
   ],
 };

@@ -114,7 +114,6 @@ const RoadmapCard = ({
             onClick={toggle}
           >
             <Group>
-              <Text>{title}</Text>
               <IconArrowBadgeDownFilled
                 size={26}
                 style={{
@@ -123,6 +122,7 @@ const RoadmapCard = ({
                   transform: opened ? "rotate(180deg)" : "rotate(0)",
                 }}
               />
+              <Text>{title}</Text>
             </Group>
           </Card.Section>
           <Collapse in={opened} transitionDuration={300}>
