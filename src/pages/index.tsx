@@ -1,64 +1,32 @@
-import React from "react";
-import { type InferGetServerSidePropsType, type NextPage } from "next";
+import React, { lazy, Suspense } from "react";
+import { type NextPage } from "next";
 import { Alert, Text, Title } from "@mantine/core";
 import { Hero } from "fpp/components/layout/hero";
 import PointsTable from "fpp/components/index/points-table";
-import { useInView } from "react-intersection-observer";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Meta } from "fpp/components/meta";
 import { useLogger } from "next-axiom";
-import IndexForm from "fpp/components/index/form";
-import dynamic from "next/dynamic";
+// import IndexForm from "fpp/components/index/form";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { generate } from "random-words";
 import { RouteType } from "fpp/server/db/schema";
+import IndexFormSkeleton from "fpp/components/index/form-skeleton";
 
-const ScrollButtonsWithNoSSR = dynamic<{
-  inView: boolean;
-}>(() => import("../components/index/scroll-buttons"), {
-  ssr: false,
-});
+const IndexForm = lazy(() => import("fpp/components/index/form"));
 
-export async function getServerSideProps() {
-  const roomsRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_ROOT}api/get-rooms`,
-  );
+// const ScrollButtonsWithNoSSR = dynamic<{
+//   inView: boolean;
+// }>(() => import("../components/index/scroll-buttons"), {
+//   ssr: false,
+// });
 
-  const { activeRooms, usedRooms } = (await roomsRes.json()) as {
-    activeRooms: string[];
-    usedRooms: string[];
-  };
-
-  let randomRoom = "";
-  for (let i = 3; i <= 11; i++) {
-    const filtered = generate({
-      minLength: 3,
-      maxLength: i,
-      exactly: 200,
-    }).filter((item) => !usedRooms?.includes(item));
-    if (filtered.length > 0) {
-      randomRoom = filtered[0] ?? "";
-    }
-  }
-
-  return {
-    props: {
-      activeRooms,
-      randomRoom,
-    },
-  };
-}
-
-const Home: NextPage<
-  InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ activeRooms, randomRoom }) => {
+const Home: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.HOME });
   useTrackPageView(RouteType.HOME, logger);
 
-  const { ref, inView } = useInView({
-    rootMargin: "-300px",
-    triggerOnce: false,
-  });
+  // const { ref, inView } = useInView({
+  //   rootMargin: "-300px",
+  //   triggerOnce: false,
+  // });
 
   return (
     <>
@@ -66,11 +34,9 @@ const Home: NextPage<
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <div className="hidden md:block">
-          <IndexForm
-            randomRoom={randomRoom}
-            activeRooms={activeRooms}
-            logger={logger}
-          />
+          <Suspense fallback={<IndexFormSkeleton />}>
+            <IndexForm logger={logger} />
+          </Suspense>
         </div>
         <div className="mx-8 md:hidden">
           <Alert
@@ -85,9 +51,10 @@ const Home: NextPage<
             </Text>
           </Alert>
         </div>
-        <ScrollButtonsWithNoSSR inView={inView} />
+        {/*<ScrollButtonsWithNoSSR inView={inView} />*/}
         <div className="w-full max-w-[1200px] px-4 pb-16">
-          <article id="master-the-art-of-planning-poker" ref={ref}>
+          {/*<article id="master-the-art-of-planning-poker" ref={ref}>*/}
+          <article id="master-the-art-of-planning-poker">
             <header>
               <Title order={1} className="pt-[60px] text-center">
                 Master the Art of Planning Poker: An Agile Approach to

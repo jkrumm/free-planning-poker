@@ -3,6 +3,7 @@ export const logMsg = {
   ENDPOINT_FAILED: "ENDPOINT_FAILED",
   SSG_FAILED: "SSG_FAILED",
   GET_FEATURE_FLAGS_FAILED: "GET_FEATURE_FLAGS_FAILED",
+  GET_ROOMS_FAILED: "GET_ROOMS_FAILED",
 } as const;
 
 export const logEndpoint = {
