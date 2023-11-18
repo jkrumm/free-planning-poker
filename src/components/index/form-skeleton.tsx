@@ -4,39 +4,33 @@ import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 
 const IndexFormSkeleton = () => {
   return (
-    <div className="w-full px-4 pb-16">
+    <Group>
       <Button
-        variant="gradient"
-        gradient={{ from: "blue", to: "cyan" }}
+        color="#1971C2"
         size="xl"
-        className={`mx-auto my-8 block md:w-[480px]`}
+        className={`left-0 mx-auto my-8 block w-[300px]`}
         type="button"
         role="button"
-        aria-label="Join recent room"
-        disabled={true}
+        aria-label="Start Planning"
       >
-        Join recent room: &nbsp;
+        Start Planning
       </Button>
-      <form className="mt-8 w-full">
-        <div className="mx-auto max-w-[400px]">
+      <form className="pl-8">
+        <div className="mx-auto">
           <div className="w-full">
-            <TextInput label="Username" size="xl" disabled={true} />
-            <Group className="flex-nowrap">
+            <Group className="relative w-[300px] flex-nowrap" gap="0">
               <TextInput
-                disabled={true}
-                label="Room"
-                // className={`${classes.buttonRight} my-6 w-full`}
-                className={`my-6 w-full`}
+                placeholder="Join room"
+                className={`absolute my-6 w-[300px] rounded-md border-[2px] border-solid border-[#1971C2]`}
                 size="xl"
               />
               <Button
-                disabled={true}
                 role="button"
                 aria-label="Join room"
                 size="xl"
-                // className={`${classes.buttonLeft} w-13 mt-11 px-4`}
-                className={`w-13 mt-11 px-4`}
+                className={`only-right-rounded absolute right-0 mr-[3px] h-[58px] px-4`}
                 type="submit"
+                disabled={true}
               >
                 <IconArrowBadgeRightFilled size={35} spacing={0} />
               </Button>
@@ -44,7 +38,7 @@ const IndexFormSkeleton = () => {
           </div>
         </div>
       </form>
-    </div>
+    </Group>
   );
 };
 

@@ -7,16 +7,18 @@ export const Meta = ({ title }: { title?: string | null }) => {
     <Head>
       <meta
         name="description"
-        content="The fastest and easiest tool to estimate your story points. Simple and free agile scrum sprint planning poker app. Open source and privacy focused."
+        content="Estimate your story points faster than ever. Free agile scrum sprint planning poker app based on fibanocci. Open source and privacy focused."
       />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="robots" content="all" />
       <title>
-        {title ? `Free Planning Poker - ${title}` : "Free Planning Poker"}
+        {title
+          ? `Free Planning Poker - ${title}`
+          : "Free Planning Poker | Estimate story points fast"}
       </title>
       <meta
         property="og:description"
-        content="The fastest and easiest tool to estimate your story points. Simple and free agile scrum sprint planning poker app. Open source and privacy focused."
+        content="Estimate your story points faster than ever. Free agile scrum sprint planning poker app based on fibanocci. Open source and privacy focused."
       />
       <meta property="og:type" content="website" />
       <meta property="og:locale" content="en_US" />

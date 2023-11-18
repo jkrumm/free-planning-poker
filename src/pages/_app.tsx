@@ -5,6 +5,7 @@ import "normalize.css/normalize.css";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "fpp/styles/globals.css";
+import { GeistSans } from "geist/font/sans";
 import React, { Suspense } from "react";
 import { AxiomWebVitals } from "next-axiom";
 import { MantineProvider } from "@mantine/core";
@@ -29,7 +30,9 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
         <AxiomWebVitals />
         <FeatureFlagLoaderUtil />
       </Suspense>
-      <Component {...pageProps} />
+      <main className={GeistSans.className}>
+        <Component {...pageProps} />
+      </main>
     </MantineProvider>
   );
 };
