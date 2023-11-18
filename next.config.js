@@ -13,6 +13,7 @@ module.exports = withAxiom({
     ignoreDuringBuilds: true,
   },
   swcMinify: true,
+  transpilePackages: ["geist"],
 });
 
 // Injected content via Sentry wizard below
@@ -49,5 +50,5 @@ module.exports = withSentryConfig(
 
     // Automatically tree-shake Sentry logger statements to reduce bundle size
     disableLogger: true,
-  }
+  },
 );
