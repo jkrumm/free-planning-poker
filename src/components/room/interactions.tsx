@@ -88,7 +88,9 @@ export const Interactions = ({
                 });
               }}
             >
-              {room}
+              {/^\d+$/.test(room) && room.length === 6
+                ? room.slice(0, 3) + " " + room.slice(3)
+                : room.toUpperCase()}
             </h2>
           </Button>
           <div>

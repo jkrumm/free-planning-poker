@@ -80,7 +80,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
       return;
     }
 
-    room = room.replace(/[^A-Za-z]/g, "");
+    room = room.replace(/[^A-Za-z0-9]/g, "");
 
     if (room.length < 3) {
       throw new Error("room too short");
@@ -97,7 +97,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
       return;
     }
 
-    recentRoom = recentRoom.replace(/[^A-Za-z]/g, "");
+    recentRoom = recentRoom.replace(/[^A-Za-z0-9]/g, "");
 
     if (recentRoom.length < 3) {
       throw new Error("room too short");
