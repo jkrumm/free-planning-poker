@@ -49,7 +49,9 @@ const RoomPage = () => {
   useEffect(() => {
     let willLeave = false;
     if (!firstLoad && queryRoom) {
-      const correctedRoom = queryRoom.replace(/[^A-Za-z]/g, "").toLowerCase();
+      const correctedRoom = queryRoom
+        .replace(/[^A-Za-z0-9]/g, "")
+        .toLowerCase();
       if (
         window.innerWidth < 768 ||
         !queryRoom ||
@@ -200,8 +202,8 @@ const RoomPage = () => {
           }
           if (
             room &&
-            room.replace(/[^A-Za-z]/g, "").length >= 3 &&
-            room.replace(/[^A-Za-z]/g, "").length <= 15
+            room.replace(/[^A-Za-z0-9]/g, "").length >= 3 &&
+            room.replace(/[^A-Za-z0-9]/g, "").length <= 15
           ) {
             return (
               <>

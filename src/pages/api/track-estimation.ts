@@ -65,7 +65,7 @@ const validateInput = ({
   }
 
   const roomCleaned = room
-    ? room.replace(/[^A-Za-z]/g, "").toLowerCase()
+    ? room.replace(/[^A-Za-z0-9]/g, "").toLowerCase()
     : null;
 
   if (room && (room !== roomCleaned || room.length > 15 || room.length < 3)) {

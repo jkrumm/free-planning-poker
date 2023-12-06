@@ -1,11 +1,10 @@
 import React, { lazy, Suspense } from "react";
 import { type NextPage } from "next";
-import { Alert, Group, Text, Title } from "@mantine/core";
+import { Alert, Text, Title } from "@mantine/core";
 import PointsTable from "fpp/components/index/points-table";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Meta } from "fpp/components/meta";
 import { useLogger } from "next-axiom";
-// import IndexForm from "fpp/components/index/form";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { RouteType } from "fpp/server/db/schema";
 import IndexFormSkeleton from "fpp/components/index/form-skeleton";
@@ -47,7 +46,6 @@ const Home: NextPage = () => {
           </Text>
         </h1>
       </Link>
-      {/* <Navbar /> */}
       <main className="mt-10 flex flex-col items-center justify-center p-6">
         <div className="gradients"></div>
         <div className="mb-20 text-center">
@@ -59,24 +57,9 @@ const Home: NextPage = () => {
             Open source and privacy focused.
           </Title>
         </div>
-        <Group className="mb-20">
-          <IndexFormSkeleton />
-        </Group>
-        <div className="gradient-image"></div>
-        <div className="z-10 w-[1432px] max-w-full p-6">
-          <Image
-            src="/fpp_screenshot.png"
-            width={2852 / 2}
-            height={1586 / 2}
-            className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
-            alt="Picture of the free planning poker app ui"
-          />
-        </div>
-        <div className="hidden md:block">
-          <Suspense fallback={<IndexFormSkeleton />}>
-            <IndexForm logger={logger} />
-          </Suspense>
-        </div>
+        <Suspense fallback={<IndexFormSkeleton />}>
+          <IndexForm logger={logger} />
+        </Suspense>
         <div className="mx-8 md:hidden">
           <Alert
             icon={<IconAlertCircle size="1rem" />}
@@ -90,8 +73,23 @@ const Home: NextPage = () => {
             </Text>
           </Alert>
         </div>
+        <div className="gradient-image"></div>
+        <div className="z-10 w-[1432px] max-w-full p-6">
+          <Image
+            src="/fpp_screenshot.png"
+            width={2852 / 2}
+            height={1586 / 2}
+            className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
+            alt="Picture of the free planning poker app ui"
+          />
+        </div>
+        {/*<div className="hidden md:block">*/}
+        {/*  <Suspense fallback={<IndexFormSkeleton />}>*/}
+        {/*    <IndexForm logger={logger} />*/}
+        {/*  </Suspense>*/}
+        {/*</div>*/}
         {/*<ScrollButtonsWithNoSSR inView={inView} />*/}
-        <div className="w-full max-w-[1200px] px-4 pb-16">
+        <div className="mt-16 w-full max-w-[1200px] px-4 pb-16">
           {/*<article id="master-the-art-of-planning-poker" ref={ref}>*/}
           <article id="master-the-art-of-planning-poker">
             <header>
