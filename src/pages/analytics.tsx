@@ -8,7 +8,7 @@ import { createTRPCContext } from "fpp/server/api/trpc";
 import { Meta } from "fpp/components/meta";
 import { Hero } from "fpp/components/layout/hero";
 import { PageViewChart } from "fpp/components/charts/page-view-chart";
-import { type CountResult } from "fpp/server/api/routers/tracking";
+import { type CountResult } from "fpp/server/api/routers/tracking.router";
 import superjson from "superjson";
 import { useLogger } from "next-axiom";
 import { logMsg } from "fpp/constants/logging.constant";

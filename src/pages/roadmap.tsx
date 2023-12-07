@@ -5,7 +5,7 @@ import { Card, Collapse, Group, SimpleGrid, Text, Title } from "@mantine/core";
 import { RouteType } from "fpp/server/db/schema";
 import { Meta } from "fpp/components/meta";
 import { Hero } from "fpp/components/layout/hero";
-import { type Todo } from "fpp/server/api/routers/roadmap";
+import { type Todo } from "fpp/server/api/routers/roadmap.router";
 import { useDisclosure } from "@mantine/hooks";
 import { IconArrowBadgeDownFilled } from "@tabler/icons-react";
 import { useLogger } from "next-axiom";

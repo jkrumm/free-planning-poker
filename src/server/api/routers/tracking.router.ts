@@ -1,9 +1,9 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { DateTime } from "luxon";
-import { env } from "fpp/env.mjs";
 import { countTable } from "fpp/utils/db-api.util";
 import { pageViews, visitors } from "fpp/server/db/schema";
 import { sql } from "drizzle-orm";
+import { env } from "fpp/env.mjs";
 
 const countryRegions =
   // eslint-disable-next-line @typescript-eslint/no-var-requires
