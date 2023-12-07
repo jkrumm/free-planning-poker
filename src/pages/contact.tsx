@@ -148,7 +148,7 @@ const Contact: NextPage = () => {
               </Alert>
             )}
 
-            <Group mt="xl">
+            <Group mt="xl" justify="center">
               <Button
                 type="submit"
                 size="md"
