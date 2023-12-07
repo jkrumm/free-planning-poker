@@ -1,9 +1,11 @@
-import { env } from "fpp/env.mjs";
 import { appRouter } from "fpp/server/api/root";
 import { createTRPCContext } from "fpp/server/api/trpc";
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { type NextRequest } from "next/server";
+import { TRPCError } from "@trpc/server";
+import * as Sentry from "@sentry/nextjs";
+import { env } from "fpp/env.mjs";
 
 export const config = {
   runtime: "edge",
@@ -16,13 +18,46 @@ export default async function handler(req: NextRequest) {
     router: appRouter,
     req,
     createContext: createTRPCContext,
-    onError:
-      env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? ({ path, error }) => {
-            console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
-            );
-          }
-        : undefined,
+    onError: trpcErrorHandler,
   });
 }
+
+const trpcErrorHandler = ({
+  error,
+  type,
+  path,
+  input,
+}: {
+  error: TRPCError;
+  type: "query" | "mutation" | "subscription" | "unknown";
+  path: string | undefined;
+  input: unknown;
+}) => {
+  const inputObj = input != null && typeof input === "object" ? input : {};
+  const errorObj = { error, type, path };
+  if (error.code === "INTERNAL_SERVER_ERROR") {
+    console.error("TRPC ERROR", { ...inputObj, ...errorObj });
+    Sentry.captureException(errorObj, {
+      tags: {
+        endpoint: path,
+        type,
+      },
+      extra: {
+        endpoint: path,
+        type,
+        ...inputObj,
+      },
+    });
+
+    if (env.NEXT_PUBLIC_NODE_ENV === "production") {
+      return new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal Server Error",
+      });
+    } else {
+      return error;
+    }
+  }
+  console.warn("TRPC ERROR", { ...inputObj, ...errorObj });
+  throw error;
+};

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { type ApexOptions } from "apexcharts";
-import { type PageViews } from "fpp/server/api/routers/tracking";
+import { type PageViews } from "fpp/server/api/routers/tracking.router";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
