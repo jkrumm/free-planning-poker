@@ -1,24 +1,24 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { api } from "fpp/utils/api";
 import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { Card, Collapse, Group, SimpleGrid, Text, Title } from "@mantine/core";
 import { RouteType } from "fpp/server/db/schema";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { appRouter } from "fpp/server/api/root";
-import { createTRPCContext } from "fpp/server/api/trpc";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { Meta } from "fpp/components/meta";
 import { Hero } from "fpp/components/layout/hero";
 import { type Todo } from "fpp/server/api/routers/roadmap";
 import { useDisclosure } from "@mantine/hooks";
 import { IconArrowBadgeDownFilled } from "@tabler/icons-react";
-import ReactMarkdown from "react-markdown";
-import superjson from "superjson";
 import { useLogger } from "next-axiom";
+import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import { appRouter } from "fpp/server/api/root";
+import { createServerSideHelpers } from "@trpc/react-query/server";
+import { createTRPCContext } from "fpp/server/api/trpc";
+import superjson from "superjson";
 import { logMsg } from "fpp/constants/logging.constant";
 import * as Sentry from "@sentry/nextjs";
+import dynamic from "next/dynamic";
 
-export const getStaticProps = async (context: CreateNextContextOptions) => {
+export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: createTRPCContext(context),
@@ -45,6 +45,7 @@ const Roadmap = () => {
   });
 
   if (!roadmap) {
+    console.error(logMsg.SSG_FAILED);
     logger.error(logMsg.SSG_FAILED);
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
@@ -90,6 +91,10 @@ const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
   );
 };
 
+const Markdown = dynamic(() => import("fpp/components/markdown"), {
+  ssr: false,
+});
+
 const RoadmapCard = ({
   title,
   description,
@@ -131,9 +136,10 @@ const RoadmapCard = ({
                 fz="sm"
                 className="overflow-auto rounded-lg border border-[#141517] p-2"
               >
-                <ReactMarkdown className="react-markdown">
-                  {description}
-                </ReactMarkdown>
+                {/*{description}*/}
+                <Suspense fallback={<p>{description}</p>}>
+                  <Markdown description={description} />
+                </Suspense>
               </Text>
             </Card.Section>
           </Collapse>
@@ -142,5 +148,13 @@ const RoadmapCard = ({
     </Card>
   );
 };
+//
+// const Markdown = lazy(() => import("fpp/components/index/form"));
+//
+// const Markdown = ({ description }: { description: string }) => {
+//   return (
+//     <ReactMarkdown className="react-markdown">{description}</ReactMarkdown>
+//   );
+// };
 
 export default Roadmap;

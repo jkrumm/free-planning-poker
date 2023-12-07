@@ -5,7 +5,6 @@ import { Card, Group, SimpleGrid, Text, Title } from "@mantine/core";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { appRouter } from "fpp/server/api/root";
 import { createTRPCContext } from "fpp/server/api/trpc";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { Meta } from "fpp/components/meta";
 import { Hero } from "fpp/components/layout/hero";
 import { PageViewChart } from "fpp/components/charts/page-view-chart";
@@ -15,8 +14,9 @@ import { useLogger } from "next-axiom";
 import { logMsg } from "fpp/constants/logging.constant";
 import * as Sentry from "@sentry/nextjs";
 import { RouteType } from "fpp/server/db/schema";
+import { type FetchCreateContextFnOptions } from "@trpc/server/dist/adapters/fetch";
 
-export const getStaticProps = async (context: CreateNextContextOptions) => {
+export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: createTRPCContext(context),

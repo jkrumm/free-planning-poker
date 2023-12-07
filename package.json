@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "@ably-labs/react-hooks": "^2.1.2",
-    "@doist/todoist-api-typescript": "^3.0.1",
     "@emotion/react": "^11.10.6",
     "@emotion/server": "^11.10.0",
     "@libsql/client": "^0.3.1",

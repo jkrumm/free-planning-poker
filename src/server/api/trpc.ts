@@ -7,11 +7,10 @@
  * need to use are documented accordingly near the end.
  */
 import { initTRPC } from "@trpc/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import db from "fpp/server/db";
-import { type NextApiRequest } from "next";
+import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 
 /**
  * 1. CONTEXT
@@ -37,7 +36,7 @@ import { type NextApiRequest } from "next";
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 
-export const createInnerTRPCContext = (req: NextApiRequest) => {
+export const createInnerTRPCContext = (req: Request) => {
   return {
     req,
     db,
@@ -50,7 +49,7 @@ export const createInnerTRPCContext = (req: NextApiRequest) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (opts: CreateNextContextOptions) => {
+export const createTRPCContext = (opts: FetchCreateContextFnOptions) => {
   return createInnerTRPCContext(opts.req);
 };
 
