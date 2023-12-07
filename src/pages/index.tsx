@@ -81,13 +81,11 @@ const Home: NextPage = () => {
             height={1586 / 2}
             className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
             alt="Picture of the free planning poker app ui"
+            placeholder="blur"
+            blurDataURL={"/fpp_screenshot.png"}
+            priority={true}
           />
         </div>
-        {/*<div className="hidden md:block">*/}
-        {/*  <Suspense fallback={<IndexFormSkeleton />}>*/}
-        {/*    <IndexForm logger={logger} />*/}
-        {/*  </Suspense>*/}
-        {/*</div>*/}
         {/*<ScrollButtonsWithNoSSR inView={inView} />*/}
         <div className="mt-16 w-full max-w-[1200px] px-4 pb-16">
           {/*<article id="master-the-art-of-planning-poker" ref={ref}>*/}
