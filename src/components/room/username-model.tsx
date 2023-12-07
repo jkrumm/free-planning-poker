@@ -9,7 +9,7 @@ export const UsernameModel = ({
 }: {
   modelOpen: boolean;
   setModelOpen: (modelOpen: boolean) => void;
-  room: string;
+  room: string | undefined;
 }) => {
   const [error, setError] = useState(false);
 
@@ -26,7 +26,7 @@ export const UsernameModel = ({
       closeOnEscape={false}
       closeOnClickOutside={false}
     >
-      <h1 className="m-0 mb-5">Join room {room?.toUpperCase()}</h1>
+      <h1 className="m-0 mb-5">Join room {room?.toUpperCase() ?? ""}</h1>
       <FocusTrap active={true}>
         <form>
           <TextInput
@@ -67,7 +67,7 @@ export const UsernameModel = ({
               }
             }}
           >
-            Join room:&nbsp;<strong>{room.toUpperCase()}</strong>
+            Join room:&nbsp;<strong>{room?.toUpperCase() ?? ""}</strong>
           </Button>
         </form>
       </FocusTrap>
