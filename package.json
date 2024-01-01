@@ -48,7 +48,7 @@
     "apexcharts": "^3.44.2",
     "country-region-data": "^3.0.0",
     "drizzle-orm": "^0.29.1",
-    "framer-motion": "^10.16.15",
+    "framer-motion": "^10.16.16",
     "geist": "^1.2.0",
     "luxon": "^3.4.4",
     "next": "^13.4.13",
