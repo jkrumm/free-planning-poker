@@ -45,7 +45,6 @@ const Roadmap = () => {
   });
 
   if (!roadmap) {
-    console.error(logMsg.SSG_FAILED);
     logger.error(logMsg.SSG_FAILED);
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;

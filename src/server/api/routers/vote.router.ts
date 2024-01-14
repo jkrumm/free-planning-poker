@@ -2,7 +2,7 @@ import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { DateTime } from "luxon";
-import { votes } from "fpp/server/db/schema";
+import { type ICreateVote, votes } from "fpp/server/db/schema";
 import { sql } from "drizzle-orm";
 import { round } from "fpp/utils/number.utils";
 import { countTable } from "fpp/utils/db-api.util";
@@ -11,7 +11,7 @@ export const voteRouter = createTRPCRouter({
   vote: publicProcedure
     .input(
       z.object({
-        room: z.string().min(2).max(15),
+        roomId: z.number(),
         estimations: z
           .array(z.number())
           .min(1)
@@ -29,37 +29,40 @@ export const voteRouter = createTRPCRouter({
     .mutation(
       async ({
         ctx: { db },
-        input: { room, estimations, duration, amountOfSpectators },
+        input: { roomId, estimations, duration, amountOfSpectators },
       }) => {
-        await db.insert(votes).values({
-          room,
-          avgEstimation:
+        const vote: ICreateVote = {
+          roomId,
+          avgEstimation: String(
             estimations.reduce((a, b) => a + b, 0) / estimations.length,
-          maxEstimation: estimations.reduce((a, b) => Math.max(a, b), 1),
-          minEstimation: estimations.reduce((a, b) => Math.min(a, b), 21),
-          finalEstimation: null,
-          amountOfEstimations: estimations.length,
+          ),
+          maxEstimation: String(
+            estimations.reduce((a, b) => Math.max(a, b), 1),
+          ),
+          minEstimation: String(
+            estimations.reduce((a, b) => Math.min(a, b), 21),
+          ),
+          amountOfEstimations: String(estimations.length),
           amountOfSpectators,
           duration,
-        });
+        };
+        await db.insert(votes).values(vote);
       },
     ),
   getVotes: publicProcedure.query(async ({ ctx: { db } }) => {
-    const averages = await db.get<{
-      avg_avgEstimation: string;
-      avg_maxEstimation: string;
-      avg_minEstimation: string;
-      avg_finalEstimation: string;
-      avg_amountOfEstimations: string;
-      avg_amountOfSpectators: string;
-    }>(sql`
+    const averages = (await db.execute(sql`
         SELECT AVG(avg_estimation)  as avg_avgEstimation,
           AVG(max_estimation)       as avg_maxEstimation,
           AVG(min_estimation)       as avg_minEstimation,
-          AVG(final_estimation)     as avg_finalEstimation,
-          AVG(amount_of_estimation) as avg_amountOfEstimations,
+          AVG(amount_of_estimations) as avg_amountOfEstimations,
           AVG(amount_of_spectators) as avg_amountOfSpectators
-        FROM fpp_votes`);
+        FROM fpp_votes`)) as unknown as {
+      avg_avgEstimation: string;
+      avg_maxEstimation: string;
+      avg_minEstimation: string;
+      avg_amountOfEstimations: string;
+      avg_amountOfSpectators: string;
+    };
 
     const oldestVote =
       (
@@ -70,9 +73,9 @@ export const voteRouter = createTRPCRouter({
           .from(votes)
           .orderBy(votes.votedAt)
           .limit(1)
-      )[0]?.votedAt ?? Date.now();
+      )[0]?.votedAt.getUTCMilliseconds() ?? Date.now();
 
-    const totalVotes = await countTable(db, votes);
+    const totalVotes = await countTable(votes);
 
     const votesPerDay =
       Math.ceil(

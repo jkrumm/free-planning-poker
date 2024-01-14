@@ -15,29 +15,31 @@ import { api } from "fpp/utils/api";
 import { RouteType } from "fpp/server/db/schema";
 import { configureAbly } from "@ably-labs/react-hooks";
 import { env } from "fpp/env.mjs";
-import shortUUID from "short-uuid";
+import { Loader } from "@mantine/core";
 
 const RoomWrapper = () => {
   const router = useRouter();
   const logger = useLogger().with({ route: RouteType.ROOM });
 
-  console.log("room-wrapper.tsx: const RoomWrapper = () => {");
-
-  configureAbly({
-    authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
-    clientId: shortUUID().generate().toString(),
-  });
-
-  console.log("room-wrapper.tsx: configureAbly({");
-
   const username = useLocalstorageStore((store) => store.username);
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
+  const userId = useLocalstorageStore((state) => state.userId);
+  const setUserId = useLocalstorageStore((state) => state.setUserId);
 
-  const setRoomMutation = api.room.setRoom.useMutation();
+  if (userId) {
+    configureAbly({
+      authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
+      clientId: userId,
+    });
+  }
+
+  const joinRoomMutation = api.room.joinRoom.useMutation();
   const queryRoom = router.query.room as string;
-  const room = useLocalstorageStore((store) => store.room);
-  const setRoom = useLocalstorageStore((store) => store.setRoom);
+  const roomId = useLocalstorageStore((store) => store.roomId);
+  const setRoomId = useLocalstorageStore((store) => store.setRoomId);
+  const roomReadable = useLocalstorageStore((store) => store.roomReadable);
+  const setRoomReadable = useLocalstorageStore(
+    (store) => store.setRoomReadable,
+  );
   const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
 
   const setVoting = useLocalstorageStore((store) => store.setVoting);
@@ -47,12 +49,8 @@ const RoomWrapper = () => {
   const [modelOpen, setModelOpen] = React.useState(false);
 
   useEffect(() => {
-    console.log("room-wrapper.tsx: useEffect(() => {");
     let willLeave = false;
     if (!firstLoad && queryRoom) {
-      console.log(
-        "room-wrapper.tsx: useEffect(() => { if (!firstLoad && queryRoom) {",
-      );
       const correctedRoom = queryRoom
         .replace(/[^A-Za-z0-9]/g, "")
         .toLowerCase();
@@ -65,7 +63,8 @@ const RoomWrapper = () => {
         correctedRoom.length > 15
       ) {
         willLeave = true;
-        setRoom(null);
+        setRoomId(null);
+        setRoomReadable(null);
         setRecentRoom(null);
         router
           .push(`/`)
@@ -79,7 +78,9 @@ const RoomWrapper = () => {
 
       if (queryRoom !== correctedRoom) {
         willLeave = true;
-        setRoom(correctedRoom);
+        // TODO: FIX BELOW
+        // setRoomId(null);
+        setRoomReadable(correctedRoom);
         setRecentRoom(correctedRoom);
         router
           .push(`/room/${correctedRoom}`)
@@ -91,33 +92,39 @@ const RoomWrapper = () => {
         return;
       }
 
-      if (queryRoom !== room) {
+      if (queryRoom !== roomReadable) {
         const logPayload: ClientLog = {
-          visitorId,
+          userId,
           event: roomEvent.ENTER_DIRECTLY,
-          room: room ?? queryRoom,
+          roomReadable: queryRoom,
           route: RouteType.ROOM,
         };
         logger.info(logMsg.TRACK_ROOM_EVENT, logPayload);
       }
 
-      setRoom(queryRoom);
-      setRecentRoom(queryRoom);
-      setRoomMutation.mutate({ room: queryRoom });
-      setVoting(null);
-      setSpectator(false);
-
-      sendTrackPageView({
-        visitorId,
-        route: RouteType.ROOM,
-        room: queryRoom,
-        setVisitorId,
-        logger,
-      });
+      joinRoomMutation.mutate(
+        { roomReadable: queryRoom },
+        {
+          onSuccess: (data) => {
+            setRoomId(data.roomId);
+            setRoomReadable(data.roomReadable);
+            setRecentRoom(data.roomReadable);
+            setVoting(null);
+            setSpectator(false);
+            sendTrackPageView({
+              userId,
+              route: RouteType.ROOM,
+              roomId: data.roomId,
+              setUserId,
+              logger,
+            });
+          },
+        },
+      );
     }
 
     setFirstLoad(false);
-    logger.with({ visitorId, room: room ?? queryRoom, queryRoom });
+    logger.with({ userId, roomId });
 
     if (!username) {
       setModelOpen(true);
@@ -136,25 +143,25 @@ const RoomWrapper = () => {
             />
           );
         }
-        if (
-          room &&
-          room.replace(/[^A-Za-z0-9]/g, "").length >= 3 &&
-          room.replace(/[^A-Za-z0-9]/g, "").length <= 15
-        ) {
+        if (roomId && roomReadable) {
           return (
             <>
               <WebsocketReceiver
                 username={username}
-                room={room}
+                roomId={roomId}
                 logger={logger}
               />
-              <Table room={room} username={username} logger={logger} />
-              <Interactions room={room} username={username} logger={logger} />
+              <Table roomId={roomId} username={username} logger={logger} />
+              <Interactions
+                roomId={roomId}
+                roomReadable={roomReadable}
+                username={username}
+                logger={logger}
+              />
             </>
           );
         }
-        // return <Loader variant="bars" />;
-        return <h1>TEST</h1>;
+        return <Loader variant="bars" />;
       })()}
     </main>
   );

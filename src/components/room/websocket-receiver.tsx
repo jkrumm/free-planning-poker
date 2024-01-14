@@ -11,18 +11,18 @@ import { Types } from "ably";
 import PresenceMessage = Types.PresenceMessage;
 
 export const WebsocketReceiver = ({
-  room,
+  roomId,
   username,
   logger,
 }: {
-  room: string;
+  roomId: number;
   username: string;
   logger: Logger;
 }) => {
   const voting = useLocalstorageStore((store) => store.voting);
   const setVoting = useLocalstorageStore((store) => store.setVoting);
   const spectator = useLocalstorageStore((store) => store.spectator);
-  const visitorId = useLocalstorageStore((store) => store.visitorId);
+  const userId = useLocalstorageStore((store) => store.userId);
 
   const wsChannel = useWsStore((store) => store.channel);
   const setChannel = useWsStore((store) => store.setChannel);
@@ -33,14 +33,14 @@ export const WebsocketReceiver = ({
   const handleMessage = useWsStore((store) => store.handleMessage);
   const updatePresences = useWsStore((store) => store.updatePresences);
 
-  const [channel] = useChannel(`room:${room}`, (message) => {
+  const [channel] = useChannel(`room:${roomId}`, (message) => {
     logger.debug("RECEIVED MESSAGE", message);
     if (message.name === "flip") {
       const localVoting = localStorage.getItem("vote");
       const localSpectator = localStorage.getItem("spectator");
       sendTrackEstimation({
-        visitorId,
-        room,
+        userId,
+        roomId,
         estimation: localVoting ? parseInt(localVoting) : null,
         spectator: localSpectator === "true",
         logger,
@@ -63,7 +63,7 @@ export const WebsocketReceiver = ({
       }
       presenceUpdates.forEach((presenceUpdate) => {
         logger.debug("FETCHED PRESENCE", {
-          visitorId,
+          userId,
           action: presenceUpdate.action,
           username,
           voting,
@@ -75,7 +75,7 @@ export const WebsocketReceiver = ({
     });
   }, [clientId]);
 
-  usePresence(`room:${room}`, { username }, (presenceUpdate) => {
+  usePresence(`room:${roomId}`, { username }, (presenceUpdate) => {
     const presenceUpdateBody: PresenceUpdate = {
       username,
       voting,
@@ -91,7 +91,7 @@ export const WebsocketReceiver = ({
       channel.presence.update(presenceUpdateBody);
     }
     logger.debug("RECEIVED PRESENCE", {
-      visitorId,
+      userId,
       action: presenceUpdate.action,
       username,
       voting,

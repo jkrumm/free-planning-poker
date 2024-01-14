@@ -11,8 +11,10 @@ import { type RouteType } from "fpp/server/db/schema";
  */
 
 interface GlobalLoggingType {
-  visitorId?: string | null;
-  room?: string;
+  userId?: string | null;
+  roomId?: string;
+  roomReadable?: string;
+  roomNumber?: string;
   route?: keyof typeof RouteType;
   event?: keyof typeof roomEvent;
 }

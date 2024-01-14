@@ -7,11 +7,11 @@ import { api } from "fpp/utils/api";
 import { type Logger } from "next-axiom";
 
 export const Table = ({
-  room,
+  roomId,
   username,
   logger,
 }: {
-  room: string;
+  roomId: number;
   username: string;
   logger: Logger;
 }) => {
@@ -27,7 +27,7 @@ export const Table = ({
 
   function flip() {
     sendVote.mutate({
-      room,
+      roomId,
       estimations: votes
         .filter((vote) => vote !== null)
         .map((vote) => vote.number!),

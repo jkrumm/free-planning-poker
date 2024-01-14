@@ -9,49 +9,49 @@ import { type RouteType } from "fpp/server/db/schema";
 export const useTrackPageView = (
   route: keyof typeof RouteType,
   logger: Logger,
-  room?: string,
+  roomId?: number,
 ) => {
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
-  const setVisitorId = useLocalstorageStore((state) => state.setVisitorId);
+  const userId = useLocalstorageStore((state) => state.userId);
+  const setUserId = useLocalstorageStore((state) => state.setUserId);
 
   useEffect(() => {
-    sendTrackPageView({ visitorId, route, room, setVisitorId, logger });
-  }, [route, room]);
+    sendTrackPageView({ userId, route, roomId, setUserId, logger });
+  }, [route, roomId]);
 };
 
 export const sendTrackPageView = ({
-  visitorId,
+  userId,
   route,
-  room,
-  setVisitorId,
+  roomId,
+  setUserId,
   logger,
 }: {
-  visitorId: string | null;
+  userId: string | null;
   route: keyof typeof RouteType;
-  room?: string;
-  setVisitorId: (visitorId: string) => void;
+  roomId?: number;
+  setUserId: (userId: string) => void;
   logger: Logger;
 }) => {
-  logger.with({ visitorId, route, room });
+  logger.with({ userId, route, roomId });
 
   try {
     const body = JSON.stringify({
-      visitorId,
+      userId,
       route,
-      room,
+      roomId,
     });
     const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
 
-    if (navigator.sendBeacon && visitorId) {
+    if (navigator.sendBeacon && userId) {
       navigator.sendBeacon(url, body);
       logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
         withBeacon: true,
       });
     } else {
       fetch(url, { body, method: "POST", keepalive: true })
-        .then((res) => res.json() as Promise<{ visitorId: string }>)
-        .then(({ visitorId }) => {
-          setVisitorId(visitorId);
+        .then((res) => res.json() as Promise<{ userId: string }>)
+        .then(({ userId }) => {
+          setUserId(userId);
           logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
             withBeacon: false,
           });
@@ -75,9 +75,9 @@ export const sendTrackPageView = ({
           endpoint: logEndpoint.TRACK_PAGE_VIEW,
         },
         extra: {
-          visitorId,
+          userId,
           route,
-          room,
+          roomId,
         },
       });
     }

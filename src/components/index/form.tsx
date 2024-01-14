@@ -8,25 +8,34 @@ import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { type Logger } from "next-axiom";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
+import { api } from "fpp/utils/api";
 
 const IndexForm = ({ logger }: { logger: Logger }) => {
   const router = useRouter();
 
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const userId = useLocalstorageStore((state) => state.userId);
 
-  const room = useLocalstorageStore((state) => state.room);
-  const setRoom = useLocalstorageStore((state) => state.setRoom);
+  const roomReadable = useLocalstorageStore((state) => state.roomReadable);
+  const setRoomReadable = useLocalstorageStore(
+    (state) => state.setRoomReadable,
+  );
+
+  const { data: randomRoomNumber } = api.room.getOpenRoomNumber.useQuery();
 
   useEffect(() => {
-    if (!room || room === "null" || room === "undefined") {
-      setRoom(null);
+    if (
+      !roomReadable ||
+      roomReadable === "null" ||
+      roomReadable === "undefined"
+    ) {
+      setRoomReadable(null);
     } else {
       router
-        .push(`/room/${room}`)
+        .push(`/room/${roomReadable}`)
         .then(() => ({}))
         .catch(() => ({}));
     }
-  }, [room]);
+  }, [roomReadable]);
 
   const form = useForm({
     initialValues: {
@@ -56,18 +65,17 @@ const IndexForm = ({ logger }: { logger: Logger }) => {
         role="button"
         aria-label="Start Planning"
         onClick={() => {
-          const randomRoom = String(
-            Math.floor(Math.random() * (999999 - 100000) + 100000), //NOSONAR
-          );
-          console.log("randomRoom", randomRoom);
-          setRoom(randomRoom);
+          if (!randomRoomNumber) {
+            console.error("No random room number found");
+          }
+          setRoomReadable(String(randomRoomNumber));
           logger.info(logMsg.TRACK_ROOM_EVENT, {
-            visitorId,
-            room: randomRoom,
+            userId,
+            roomNumber: String(randomRoomNumber),
             event: roomEvent.ENTER_RANDOM_ROOM,
           });
           router
-            .push(`/room/${randomRoom}`)
+            .push(`/room/${randomRoomNumber}`)
             .then(() => ({}))
             .catch(() => ({}));
         }}
@@ -78,9 +86,9 @@ const IndexForm = ({ logger }: { logger: Logger }) => {
         className="pl-8"
         onSubmit={form.onSubmit(() => {
           const roomValue = form.values.room.toLowerCase();
-          setRoom(roomValue);
+          setRoomReadable(roomValue);
           logger.info(logMsg.TRACK_ROOM_EVENT, {
-            visitorId,
+            userId,
             room: roomValue,
             event: roomEvent.ENTER_NEW_ROOM,
           });
