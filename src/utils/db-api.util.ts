@@ -1,37 +1,25 @@
 import { BadRequestError, NotFoundError } from "fpp/constants/error.constant";
-import { eq, type InferSelectModel, sql } from "drizzle-orm";
-import { visitors } from "fpp/server/db/schema";
-// import db from "fpp/server/db";
-import { type SQLiteTable } from "drizzle-orm/sqlite-core";
-import { type LibSQLDatabase } from "drizzle-orm/libsql";
-import db from "fpp/server/db";
+import { eq, sql } from "drizzle-orm";
+import { type IUser, users } from "fpp/server/db/schema";
+import db from "fpp/server/db/db";
+import { type MySqlTable } from "drizzle-orm/mysql-core/table";
 
-export async function findVisitorById(
-  // db: LibSQLDatabase,
-  visitorId: string | null,
-): Promise<InferSelectModel<typeof visitors>> {
-  if (!visitorId || visitorId.length !== 36) {
+export async function findUserById(userId: string | null): Promise<IUser> {
+  if (!userId || userId.length !== 21) {
     throw new BadRequestError("invalid visitorId");
   }
 
-  let visitor: InferSelectModel<typeof visitors> | null = null;
-  if (visitorId) {
-    visitor =
-      (await db.select().from(visitors).where(eq(visitors.id, visitorId)))[0] ??
-      null;
-  }
+  const user: IUser | null =
+    (await db.select().from(users).where(eq(users.id, userId)))[0] ?? null;
 
-  if (!visitor) {
+  if (!user) {
     throw new NotFoundError("visitor not found");
   }
 
-  return visitor;
+  return user;
 }
 
-export async function countTable(
-  db: LibSQLDatabase<Record<string, unknown>>,
-  table: SQLiteTable,
-) {
+export async function countTable(table: MySqlTable) {
   return Number(
     (await db.select({ count: sql<number>`count(*)` }).from(table))[0]?.count ??
       0,

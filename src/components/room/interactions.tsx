@@ -10,11 +10,13 @@ import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { RouteType } from "fpp/server/db/schema";
 
 export const Interactions = ({
-  room,
+  roomId,
+  roomReadable,
   username,
   logger,
 }: {
-  room: string;
+  roomId: number;
+  roomReadable: string;
   username: string;
   logger: Logger;
 }) => {
@@ -23,11 +25,14 @@ export const Interactions = ({
   const clientId = useWsStore((store) => store.clientId);
   const channel = useWsStore((store) => store.channel);
 
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const userId = useLocalstorageStore((state) => state.userId);
   const voting = useLocalstorageStore((store) => store.voting);
   const setVoting = useLocalstorageStore((store) => store.setVoting);
   const setSpectator = useLocalstorageStore((store) => store.setSpectator);
-  const setRoom = useLocalstorageStore((store) => store.setRoom);
+  const setRoomId = useLocalstorageStore((store) => store.setRoomId);
+  const setRoomReadable = useLocalstorageStore(
+    (store) => store.setRoomReadable,
+  );
 
   const votes = useWsStore((store) => store.votes);
   const spectators = useWsStore((store) => store.spectators);
@@ -88,9 +93,11 @@ export const Interactions = ({
                 });
               }}
             >
-              {/^\d+$/.test(room) && room.length === 6
-                ? room.slice(0, 3) + " " + room.slice(3)
-                : room.toUpperCase()}
+              {/^\d+$/.test(roomReadable) &&
+              roomReadable.length === 6 &&
+              Number.isInteger(roomReadable)
+                ? roomReadable.slice(0, 3) + " " + roomReadable.slice(3)
+                : roomReadable.toUpperCase()}
             </h2>
           </Button>
           <div>
@@ -107,17 +114,20 @@ export const Interactions = ({
             </Button>
             <Button
               variant={"default"}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={async () => {
+              onClick={() => {
                 logger.info(logMsg.TRACK_ROOM_EVENT, {
                   event: roomEvent.LEAVE_ROOM,
-                  room,
-                  visitorId,
+                  roomId,
+                  userId,
                   route: RouteType.ROOM,
                 });
-                setRoom(null);
+                setRoomId(null);
+                setRoomReadable(null);
                 setVoting(null);
-                await router.push(`/`);
+                router
+                  .push(`/`)
+                  .then(() => ({}))
+                  .catch(() => ({}));
               }}
             >
               Leave Room

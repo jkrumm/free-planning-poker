@@ -8,12 +8,13 @@ import { type AxiomRequest } from "next-axiom";
 import { withLogger } from "fpp/utils/api-logger.util";
 import { decodeBlob } from "fpp/utils/decode.util";
 import { logEndpoint } from "fpp/constants/logging.constant";
-import db from "fpp/server/db";
-import { pageViews, RouteType, visitors } from "fpp/server/db/schema";
+import db from "fpp/server/db/db";
+import { pageViews, RouteType, users } from "fpp/server/db/schema";
 import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 export const runtime = "edge";
-export const preferredRegion = ["fra1", "sfo1", "sin1"];
+export const preferredRegion = "fra1";
 
 const TrackPageView = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });
@@ -24,65 +25,42 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
   }
 
   // eslint-disable-next-line prefer-const
-  let { visitorId, route, room } = await decodeBlob<{
-    visitorId: string | null;
+  let { userId, route, roomId } = await decodeBlob<{
+    userId: string | null;
     route: keyof typeof RouteType;
-    room?: string;
+    roomId?: number;
   }>(req);
-  req.log.with({ visitorId, route, room });
+  req.log.with({ userId, route, roomId });
   if (userAgent(req).isBot) {
     req.log.with({ isBot: true });
-  }
-
-  validateInput({ visitorId, route, room });
-  visitorId = visitorId ?? crypto.randomUUID();
-
-  const visitorExists = !!(
-    await db.select().from(visitors).where(eq(visitors.id, visitorId))
-  )[0];
-
-  if (!visitorExists) {
-    const visitorPayload = getVisitorPayload(req);
-    await db.insert(visitors).values({
-      id: visitorId,
-      ...visitorPayload,
-    });
-  }
-
-  await db.insert(pageViews).values({
-    visitorId,
-    route,
-    room,
-  });
-
-  return NextResponse.json({ visitorId }, { status: 200 });
-});
-
-const validateInput = ({
-  visitorId,
-  route,
-  room,
-}: {
-  visitorId: string | null;
-  route: keyof typeof RouteType;
-  room?: string;
-}): void => {
-  if (visitorId && visitorId.length !== 36) {
-    throw new BadRequestError("invalid visitorId");
   }
 
   if (RouteType[route] === undefined) {
     throw new BadRequestError("invalid route");
   }
 
-  const roomCleaned = room
-    ? room.replace(/[^A-Za-z0-9]/g, "").toLowerCase()
-    : null;
+  userId = !userId || userId.length !== 21 ? nanoid() : userId;
 
-  if (room && (room !== roomCleaned || room.length > 15 || room.length < 3)) {
-    throw new BadRequestError("invalid room");
+  const userExists = !!(
+    await db.select().from(users).where(eq(users.id, userId))
+  )[0];
+
+  if (!userExists) {
+    const userPayload = getVisitorPayload(req);
+    await db.insert(users).values({
+      id: userId,
+      ...userPayload,
+    });
   }
-};
+
+  await db.insert(pageViews).values({
+    userId,
+    route,
+    roomId,
+  });
+
+  return NextResponse.json({ userId }, { status: 200 });
+});
 
 const getVisitorPayload = (req: AxiomRequest) => {
   if (req instanceof NextRequest) {

@@ -3,23 +3,23 @@ import * as Sentry from "@sentry/nextjs";
 import { type Logger } from "next-axiom";
 
 export function sendTrackEstimation({
-  visitorId,
+  userId,
   estimation,
-  room,
+  roomId,
   spectator,
   logger,
 }: {
-  visitorId: string | null;
-  room: string;
+  userId: string | null;
+  roomId: number;
   estimation: number | null;
   spectator: boolean;
   logger: Logger;
 }) {
   try {
     const body = JSON.stringify({
-      visitorId,
+      userId,
       estimation,
-      room,
+      roomId,
       spectator,
     });
     if (navigator.sendBeacon) {
@@ -41,7 +41,7 @@ export function sendTrackEstimation({
       logger.error(logEndpoint.TRACK_ESTIMATION, {
         endpoint: logEndpoint.TRACK_ESTIMATION,
         estimation,
-        room,
+        roomId,
         spectator,
         error: {
           message: e.message,
@@ -54,8 +54,8 @@ export function sendTrackEstimation({
           endpoint: logEndpoint.TRACK_ESTIMATION,
         },
         extra: {
-          visitorId,
-          room,
+          userId,
+          roomId,
           estimation,
           spectator,
         },

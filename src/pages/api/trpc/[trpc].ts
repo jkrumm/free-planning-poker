@@ -9,7 +9,7 @@ import { env } from "fpp/env.mjs";
 
 export const config = {
   runtime: "edge",
-  region: ["fra1", "sfo1", "sin1"],
+  region: "fra1",
 };
 
 export default async function handler(req: NextRequest) {
@@ -35,7 +35,10 @@ const trpcErrorHandler = ({
 }) => {
   const inputObj = input != null && typeof input === "object" ? input : {};
   const errorObj = { error, type, path };
-  if (error.code === "INTERNAL_SERVER_ERROR") {
+  if (
+    error.constructor.name === "Error" ||
+    error.code === "INTERNAL_SERVER_ERROR"
+  ) {
     console.error("TRPC ERROR", { ...inputObj, ...errorObj });
     Sentry.captureException(errorObj, {
       tags: {

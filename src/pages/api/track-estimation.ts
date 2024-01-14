@@ -8,12 +8,12 @@ import { withLogger } from "fpp/utils/api-logger.util";
 import { decodeBlob } from "fpp/utils/decode.util";
 import { logEndpoint } from "fpp/constants/logging.constant";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
-import { findVisitorById } from "fpp/utils/db-api.util";
+import { findUserById } from "fpp/utils/db-api.util";
 import { estimations } from "fpp/server/db/schema";
-import db from "fpp/server/db";
+import db from "fpp/server/db/db";
 
 export const runtime = "edge";
-export const preferredRegion = ["fra1", "sfo1", "sin1"];
+export const preferredRegion = "fra1";
 
 const TrackEstimation = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_ESTIMATION });
@@ -23,25 +23,25 @@ const TrackEstimation = withLogger(async (req: AxiomRequest) => {
     );
   }
 
-  const { visitorId, room, estimation, spectator } = await decodeBlob<{
-    visitorId: string;
-    room: string;
+  const { userId, roomId, estimation, spectator } = await decodeBlob<{
+    userId: string | null;
+    roomId: number;
     estimation: number | null;
     spectator: boolean;
   }>(req);
-  req.log.with({ visitorId, room, estimation, spectator });
-  validateInput({ visitorId, room, estimation, spectator });
+  req.log.with({ userId, roomId, estimation, spectator });
+  validateInput({ userId, roomId, estimation, spectator });
 
   if (userAgent(req).isBot) {
     req.log.with({ isBot: true });
     return NextResponse.json({}, { status: 200 });
   }
 
-  const visitor = await findVisitorById(visitorId);
+  const user = await findUserById(userId);
 
   await db.insert(estimations).values({
-    visitorId: visitor.id,
-    room,
+    userId: user.id,
+    roomId,
     estimation,
     spectator,
   });
@@ -50,26 +50,22 @@ const TrackEstimation = withLogger(async (req: AxiomRequest) => {
 });
 
 const validateInput = ({
-  visitorId,
-  room,
+  userId,
+  roomId,
   estimation,
   spectator,
 }: {
-  visitorId: string;
-  room: string;
+  userId: string | null;
+  roomId: number;
   estimation: number | null;
   spectator: boolean;
 }): void => {
-  if (!visitorId || visitorId.length !== 36) {
-    throw new BadRequestError("invalid visitorId");
+  if (!userId || userId.length !== 21) {
+    throw new BadRequestError("invalid userId");
   }
 
-  const roomCleaned = room
-    ? room.replace(/[^A-Za-z0-9]/g, "").toLowerCase()
-    : null;
-
-  if (room && (room !== roomCleaned || room.length > 15 || room.length < 3)) {
-    throw new BadRequestError("invalid room");
+  if (!roomId) {
+    throw new BadRequestError("no roomId provided");
   }
 
   if (!estimation && !spectator) {

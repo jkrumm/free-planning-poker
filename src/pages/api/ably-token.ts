@@ -21,55 +21,59 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
 
   const clientId = req.nextUrl.searchParams.get("clientId");
 
-  if (!clientId || !/^[a-zA-Z0-9]{22}$/g.test(clientId)) {
+  if (!clientId || !/^[A-Za-z0-9_~]{21}$/.test(clientId)) {
     throw new BadRequestError("clientId invalid");
   }
 
-  const key = env.ABLY_API_KEY.split(":"),
-    keyName: string = key[0]!,
-    keySecret: string = key[1]!;
+  try {
+    const key = env.ABLY_API_KEY.split(":"),
+      keyName: string = key[0]!,
+      keySecret: string = key[1]!;
 
-  const body = {
-    keyName: keyName,
-    ttl: 60 * 60 * 1000,
-    capability: '{"room:*":["subscribe","publish","presence","history"]}',
-    clientId,
-    timestamp: Date.now(),
-    nonce: crypto.randomUUID(),
-  };
+    const body = {
+      keyName: keyName,
+      ttl: 60 * 60 * 1000,
+      capability: '{"room:*":["subscribe","publish","presence","history"]}',
+      clientId,
+      timestamp: Date.now(),
+      nonce: crypto.randomUUID(),
+    };
 
-  const signText =
-    body.keyName +
-    "\n" +
-    body.ttl +
-    "\n" +
-    body.capability +
-    "\n" +
-    clientId +
-    "\n" +
-    body.timestamp +
-    "\n" +
-    body.nonce +
-    "\n";
+    const signText =
+      body.keyName +
+      "\n" +
+      body.ttl +
+      "\n" +
+      body.capability +
+      "\n" +
+      clientId +
+      "\n" +
+      body.timestamp +
+      "\n" +
+      body.nonce +
+      "\n";
 
-  const mac = await hmacSign(signText, keySecret);
+    const mac = await hmacSign(signText, keySecret);
 
-  const tokenRequestReq = await fetch(
-    `https://rest.ably.io/keys/${keyName}/requestToken`,
-    {
-      body: JSON.stringify({
-        ...body,
-        mac,
-      }),
-      headers: {
-        "Content-Type": "application/json",
+    const tokenRequestReq = await fetch(
+      `https://rest.ably.io/keys/${keyName}/requestToken`,
+      {
+        body: JSON.stringify({
+          ...body,
+          mac,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
       },
-      method: "POST",
-    },
-  );
-  const tokenRequest = (await tokenRequestReq.json()) as object;
+    );
+    const tokenRequest = (await tokenRequestReq.json()) as object;
 
-  return NextResponse.json(tokenRequest);
+    return NextResponse.json(tokenRequest);
+  } catch (e) {
+    throw e;
+  }
 });
 
 async function hmacSign(signText: string, keySecret: string) {

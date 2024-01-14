@@ -15,19 +15,31 @@ function getFromLocalstorage(key: string): string | null {
   return localStorage.getItem(key);
 }
 
+function getIntFromLocalstorage(key: string): number | null {
+  if (
+    typeof window == "undefined" ||
+    Number.isInteger(localStorage.getItem(key))
+  ) {
+    return null;
+  }
+  return Number(localStorage.getItem(key));
+}
+
 interface LocalstorageStore {
   username: string | null;
   voting: number | null;
   spectator: boolean;
-  room: string | null;
+  roomId: number | null;
+  roomReadable: string | null;
   recentRoom: string | null;
-  visitorId: string | null;
+  userId: string | null;
   setUsername: (username: string) => void;
   setVoting: (voting: number | null) => void;
   setSpectator: (spectator: boolean) => void;
-  setRoom: (room: string | null) => void;
+  setRoomId: (room: number | null) => void;
+  setRoomReadable: (room: string | null) => void;
   setRecentRoom: (room: string | null) => void;
-  setVisitorId: (visitorId: string) => void;
+  setUserId: (userId: string) => void;
 }
 
 export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
@@ -36,14 +48,20 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     ? Number(getFromLocalstorage("vote"))
     : null,
   spectator: getFromLocalstorage("spectator") === "true",
-  room: getFromLocalstorage("room"),
+  roomId: getIntFromLocalstorage("roomId"),
+  roomReadable: getFromLocalstorage("roomReadableId"),
   recentRoom: getFromLocalstorage("recentRoom"),
-  visitorId: (() => {
-    const visitorId = getFromLocalstorage("visitorId");
-    if (visitorId !== null) {
-      Sentry.setUser({ id: visitorId });
+  userId: (() => {
+    const userId = getFromLocalstorage("userId");
+    // TODO: remove this after a while (2023-12-08)
+    if (userId?.length !== 21 && typeof window !== "undefined") {
+      localStorage.removeItem("vote");
+      return null;
     }
-    return visitorId;
+    if (userId !== null) {
+      Sentry.setUser({ id: userId });
+    }
+    return userId;
   })(),
   setUsername: (username: string) => {
     username = username.replace(/[^A-Za-z]/g, "");
@@ -70,25 +88,35 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     localStorage.setItem("spectator", spectator.toString());
     set({ spectator });
   },
-  setRoom: (room: string | null) => {
-    if (!room) {
-      localStorage.removeItem("room");
-      set({ room: null });
+  setRoomId: (roomId: number | null) => {
+    if (!roomId) {
+      localStorage.removeItem("roomId");
+      set({ roomId: null });
       return;
     }
-    if (get().room === room) {
+    if (get().roomId === roomId) {
       return;
     }
 
-    room = room.replace(/[^A-Za-z0-9]/g, "");
+    saveToLocalstorage("roomId", String(roomId));
+    set({ roomId });
+  },
+  setRoomReadable: (roomReadable: string | null) => {
+    if (!roomReadable) {
+      localStorage.removeItem("roomReadable");
+      set({ roomReadable: null });
+      return;
+    }
 
-    if (room.length < 3) {
+    roomReadable = roomReadable.replace(/[^A-Za-z0-9]/g, "");
+
+    if (roomReadable.length < 3) {
       throw new Error("room too short");
     }
 
-    room = room.slice(0, 15).toLowerCase();
-    saveToLocalstorage("room", room);
-    set({ room });
+    roomReadable = roomReadable.slice(0, 15).toLowerCase();
+    saveToLocalstorage("roomReadable", roomReadable);
+    set({ roomReadable });
   },
   setRecentRoom: (recentRoom: string | null) => {
     if (!recentRoom) {
@@ -107,12 +135,12 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     saveToLocalstorage("recentRoom", recentRoom);
     set({ recentRoom });
   },
-  setVisitorId: (visitorId: string) => {
-    if (get().visitorId === visitorId) {
+  setUserId: (userId: string) => {
+    if (get().userId === userId) {
       return;
     }
-    Sentry.setUser({ id: visitorId });
-    saveToLocalstorage("visitorId", visitorId);
-    set({ visitorId });
+    Sentry.setUser({ id: userId });
+    saveToLocalstorage("userId", userId);
+    set({ userId });
   },
 }));

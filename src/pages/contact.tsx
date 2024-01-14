@@ -31,7 +31,7 @@ const Contact: NextPage = () => {
   );
 
   const username = useLocalstorageStore((state) => state.username);
-  const visitorId = useLocalstorageStore((state) => state.visitorId);
+  const userId = useLocalstorageStore((state) => state.userId);
 
   const sendMail = api.contact.sendMail.useMutation();
 
@@ -81,7 +81,7 @@ const Contact: NextPage = () => {
               });
               sendTrackEvent({
                 event: EventType.CONTACT_FORM_SUBMISSION,
-                visitorId,
+                userId,
                 logger,
               });
             })}

@@ -9,7 +9,6 @@ export const featureFlagRouter = createTRPCRouter({
         .select({ name: featureFlags.name })
         .from(featureFlags)
         .where(sql`${featureFlags.enabled} = 1`)
-        .all()
     ).map((row) => row.name);
 
     return Object.keys(FeatureFlagType).map((name) => ({

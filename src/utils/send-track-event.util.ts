@@ -4,16 +4,16 @@ import { type Logger } from "next-axiom";
 
 export function sendTrackEvent({
   event,
-  visitorId,
+  userId,
   logger,
 }: {
   event: string;
-  visitorId: string | null;
+  userId: string | null;
   logger: Logger;
 }) {
   try {
     const body = JSON.stringify({
-      visitorId,
+      userId,
       event,
     });
     if (navigator.sendBeacon) {
@@ -46,7 +46,7 @@ export function sendTrackEvent({
           endpoint: logEndpoint.TRACK_EVENT,
         },
         extra: {
-          visitorId,
+          userId,
           event,
         },
       });

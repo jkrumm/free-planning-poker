@@ -1,57 +1,128 @@
 import {
-  index,
-  integer,
-  sqliteTableCreator,
-  text,
-} from "drizzle-orm/sqlite-core";
-
-const getDefaultDate = () => Date.now();
-const getUuid = () => crypto.randomUUID();
+  boolean,
+  decimal,
+  int,
+  mediumint,
+  mysqlEnum,
+  mysqlTableCreator,
+  smallint,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
+import {
+  type InferInsertModel,
+  type InferSelectModel,
+  relations,
+} from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 /**
  * Multi-project schema feature of Drizzle ORM. Use the same database instance for multiple projects.
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const sqliteTable = sqliteTableCreator((name) => `fpp_${name}`);
+export const mysqlTable = mysqlTableCreator((name) => `fpp_${name}`);
 
-export const rooms = sqliteTable("rooms", {
-  name: text("name").primaryKey().notNull(),
-  lastUsedAt: integer("last_used_at").notNull(),
-  firstUsedAt: integer("first_used_at").$defaultFn(getDefaultDate),
+/**
+ * ROOMS
+ */
+
+export const rooms = mysqlTable("rooms", {
+  id: int("id").autoincrement().primaryKey().notNull(),
+  number: mediumint("number").unique("rooms_number_unique_idx").notNull(),
+  name: varchar("name", { length: 15 }).unique("rooms_name_unique_idx"),
+  firstUsedAt: timestamp("first_used_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at").defaultNow().onUpdateNow().notNull(),
 });
 
-export const votes = sqliteTable(
-  "votes",
-  {
-    id: integer("id").primaryKey(),
-    room: text("room")
-      .notNull()
-      .references(() => rooms.name, { onDelete: "cascade" }),
-    avgEstimation: integer("avg_estimation").notNull(),
-    maxEstimation: integer("max_estimation").notNull(),
-    minEstimation: integer("min_estimation").notNull(),
-    finalEstimation: integer("final_estimation"),
-    // TODO: change to amount_of_estimations
-    amountOfEstimations: integer("amount_of_estimation").notNull(),
-    amountOfSpectators: integer("amount_of_spectators").notNull(),
-    duration: integer("duration").notNull(),
-    votedAt: integer("voted_at").$defaultFn(getDefaultDate),
-  },
-  (table) => ({
-    roomIdx: index("votes_room_idx").on(table.room),
+export type IRoom = InferSelectModel<typeof rooms>;
+export type ICreateRoom = InferInsertModel<typeof rooms>;
+
+/**
+ * VOTES
+ */
+
+export const votes = mysqlTable("votes", {
+  id: int("id").autoincrement().primaryKey().notNull(),
+  roomId: int("room_id").notNull(),
+  avgEstimation: decimal("avg_estimation", {
+    precision: 4,
+    scale: 2,
+  }).notNull(),
+  maxEstimation: decimal("max_estimation", {
+    precision: 4,
+    scale: 2,
+  }).notNull(),
+  minEstimation: decimal("min_estimation", {
+    precision: 4,
+    scale: 2,
+  }).notNull(),
+  amountOfEstimations: decimal("amount_of_estimations", {
+    precision: 4,
+    scale: 2,
+  }).notNull(),
+  amountOfSpectators: smallint("amount_of_spectators").notNull(),
+  duration: smallint("duration").notNull(),
+  votedAt: timestamp("voted_at").defaultNow().notNull(),
+});
+
+export type IVote = InferSelectModel<typeof votes>;
+export type ICreateVote = InferInsertModel<typeof votes>;
+
+export const votesRelations = relations(votes, ({ one }) => ({
+  room: one(rooms, {
+    fields: [votes.roomId],
+    references: [rooms.id],
   }),
-);
+}));
 
-export const visitors = sqliteTable("visitors", {
-  id: text("id").primaryKey().$defaultFn(getUuid),
-  device: text("device"),
-  os: text("os"),
-  browser: text("browser"),
-  country: text("country"),
-  region: text("region"),
-  city: text("city"),
-  firstVisitedAt: integer("first_visited_at").$defaultFn(getDefaultDate),
+/**
+ * USERS
+ */
+
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 21 }).primaryKey().$defaultFn(nanoid).notNull(),
+  device: varchar("device", { length: 50 }),
+  os: varchar("os", { length: 50 }),
+  browser: varchar("browser", { length: 50 }),
+  country: varchar("country", { length: 5 }),
+  region: varchar("region", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type IUser = InferSelectModel<typeof users>;
+export type ICreateUser = InferInsertModel<typeof users>;
+
+/**
+ * ESTIMATIONS
+ */
+
+export const estimations = mysqlTable("estimations", {
+  id: int("id").primaryKey().autoincrement().notNull(),
+  userId: varchar("user_id", { length: 21 }).notNull(),
+  roomId: int("room_id").notNull(),
+  estimation: smallint("estimation"),
+  spectator: boolean("spectator").default(false).notNull(),
+  estimatedAt: timestamp("estimated_at").defaultNow().notNull(),
+});
+
+export type IEstimation = InferSelectModel<typeof estimations>;
+export type ICreateEstimation = InferInsertModel<typeof estimations>;
+
+export const estimationsRelations = relations(estimations, ({ one }) => ({
+  users: one(users, {
+    fields: [estimations.userId],
+    references: [users.id],
+  }),
+  rooms: one(rooms, {
+    fields: [estimations.roomId],
+    references: [rooms.id],
+  }),
+}));
+
+/**
+ * PAGE_VIEWS
+ */
 
 export const RouteType = {
   HOME: "HOME",
@@ -62,71 +133,82 @@ export const RouteType = {
   ROADMAP: "ROADMAP",
 } as const;
 
-export const pageViews = sqliteTable(
-  "page_views",
-  {
-    id: integer("id").primaryKey(),
-    visitorId: text("visitor_id")
-      .references(() => visitors.id, { onDelete: "cascade" })
-      .notNull(),
-    route: text("route", {
-      enum: Object.keys(RouteType) as [string, ...string[]],
-    }).notNull(),
-    room: text("room"),
-    viewedAt: integer("viewed_at").$defaultFn(getDefaultDate),
-  },
-  (table) => ({
-    visitorIdx: index("page_views_visitor_idx").on(table.visitorId),
+export const pageViews = mysqlTable("page_views", {
+  id: int("id").primaryKey().autoincrement().notNull(),
+  userId: varchar("user_id", { length: 21 }).notNull(),
+  route: mysqlEnum("route", Object.values(RouteType) as [string]).notNull(),
+  roomId: int("room_id"),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+});
+
+export type IPageView = InferSelectModel<typeof pageViews>;
+export type ICreatePageView = InferInsertModel<typeof pageViews>;
+
+export const pageViewsRelations = relations(pageViews, ({ one }) => ({
+  users: one(users, {
+    fields: [pageViews.roomId],
+    references: [users.id],
   }),
-);
+}));
+
+/**
+ * EVENTS
+ */
 
 export const EventType = {
   CONTACT_FORM_SUBMISSION: "CONTACT_FORM_SUBMISSION",
 } as const;
 
-export const events = sqliteTable(
-  "events",
-  {
-    id: integer("id").primaryKey(),
-    visitorId: text("visitor_id")
-      .references(() => visitors.id, { onDelete: "cascade" })
-      .notNull(),
-    event: text("event", {
-      enum: Object.keys(EventType) as [string, ...string[]],
-    }).notNull(),
-  },
-  (table) => ({
-    visitorIdx: index("events_visitor_idx").on(table.visitorId),
-  }),
-);
+export const events = mysqlTable("events", {
+  id: int("id").primaryKey().autoincrement().notNull(),
+  userId: varchar("user_id", { length: 21 }).notNull(),
+  event: mysqlEnum("event", Object.keys(EventType) as [string]).notNull(),
+  eventAt: timestamp("event_at").defaultNow().notNull(),
+});
 
-export const estimations = sqliteTable(
-  "estimations",
-  {
-    id: integer("id").primaryKey(),
-    visitorId: text("visitor_id")
-      .references(() => visitors.id, { onDelete: "cascade" })
-      .notNull(),
-    room: text("room").notNull(),
-    estimation: integer("estimation"),
-    spectator: integer("spectator", { mode: "boolean" })
-      .default(false)
-      .notNull(),
-    estimatedAt: integer("estimated_at").$defaultFn(getDefaultDate).notNull(),
-  },
-  (table) => ({
-    visitorIdx: index("estimations_visitor_idx").on(table.visitorId),
+export type IEvent = InferSelectModel<typeof events>;
+export type ICreateEvent = InferInsertModel<typeof events>;
+
+export const eventsRelations = relations(events, ({ one }) => ({
+  users: one(users, {
+    fields: [events.userId],
+    references: [users.id],
   }),
-);
+}));
+
+/**
+ * USERS_RELATIONS
+ */
+
+export const usersRelations = relations(users, ({ many }) => ({
+  pageViews: many(pageViews),
+  estimations: many(estimations),
+  events: many(events),
+}));
+
+/**
+ * ROOMS_RELATIONS
+ */
+
+export const roomsRelations = relations(rooms, ({ many }) => ({
+  votes: many(votes),
+  pageViews: many(pageViews),
+  estimations: many(estimations),
+}));
+
+/** ------------------------------------------------------------------ */
+
+/**
+ * FEATURE_FLAGS
+ */
 
 export const FeatureFlagType = {
   CONTACT_FORM: "CONTACT_FORM",
 } as const;
 
-export const featureFlags = sqliteTable("feature_flags", {
-  id: integer("id").primaryKey(),
-  name: text("name", {
-    enum: Object.keys(FeatureFlagType) as [string, ...string[]],
-  }).notNull(),
-  enabled: integer("enabled", { mode: "boolean" }).default(false).notNull(),
+export const featureFlags = mysqlTable("feature_flags", {
+  name: mysqlEnum("name", Object.keys(FeatureFlagType) as [string])
+    .unique("feature_flags_name_unique_idx")
+    .notNull(),
+  enabled: boolean("enabled").default(false).notNull(),
 });
