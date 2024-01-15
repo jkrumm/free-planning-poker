@@ -1,6 +1,8 @@
 import { env } from "fpp/env.mjs";
 import { RoomStateServer } from "fpp/server/room-state/room-state.entity";
 import { Redis } from "@upstash/redis";
+import { type PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless/driver";
+import { estimations, votes } from "fpp/server/db/schema";
 
 const redis = new Redis({
   url: env.UPSTASH_REDIS_REST_URL_ROOM_STATE,
@@ -41,15 +43,36 @@ export async function setRoomState({
   roomId,
   userId,
   roomState,
+  db,
 }: {
   roomId: number;
   userId: string;
   roomState: RoomStateServer;
+  db: PlanetScaleDatabase<typeof import("../db/schema")>;
 }): Promise<void> {
+  // NOTE: allow any because prisma and redis have all kind of different promises
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const promises: Promise<any>[] = [setHeartbeat(userId, Date.now())];
 
-  // If the room state has changed, we update Redis and publish it to it's WebSocket channel
+  if (roomState.isFlipAction) {
+    if (!db) {
+      throw new Error("Cannot flip without a database connection");
+    }
+    promises.push(db.insert(votes).values(roomState.calculateVote()));
+    for (const user of roomState.users) {
+      promises.push(
+        db.insert(estimations).values({
+          userId: user.id,
+          roomId,
+          estimation: user.estimation,
+          spectator: user.isSpectator,
+        }),
+      );
+    }
+    roomState.isFlipAction = false;
+  }
+
+  // If the room state has changed, we update Redis and publish to it's WebSocket channel
   if (roomState.hasChanged) {
     roomState.lastUpdated = Date.now();
     promises.push(
@@ -72,7 +95,7 @@ export async function setRoomState({
       }),
     );
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
     return;
   }
 
@@ -82,7 +105,7 @@ export async function setRoomState({
     promises.push(redis.expire(`room:${roomId}`, 60 * 5));
   }
 
-  await Promise.all(promises);
+  await Promise.allSettled(promises);
 }
 
 export async function getActiveUserIds(userIds: string[]): Promise<string[]> {

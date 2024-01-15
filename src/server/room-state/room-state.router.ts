@@ -41,9 +41,10 @@ export const roomStateRouter = createTRPCRouter({
           roomId,
           userId,
           roomState,
+          db,
         });
 
-        return roomState;
+        return roomState.toJson();
       },
     ),
   get: publicProcedure
@@ -53,7 +54,7 @@ export const roomStateRouter = createTRPCRouter({
     }),
   heartbeat: publicProcedure
     .input(z.object({ roomId: z.number(), userId: z.string() }))
-    .mutation(async ({ ctx, input: { roomId, userId } }) => {
+    .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
       const userIds = roomState.getUserIds();
 
@@ -74,11 +75,12 @@ export const roomStateRouter = createTRPCRouter({
         roomId,
         userId,
         roomState,
+        db,
       });
     }),
   flip: publicProcedure
     .input(z.object({ roomId: z.number(), userId: z.string() }))
-    .mutation(async ({ ctx, input: { roomId, userId } }) => {
+    .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
       roomState.flip();
@@ -87,6 +89,7 @@ export const roomStateRouter = createTRPCRouter({
         roomId,
         userId,
         roomState,
+        db,
       });
     }),
   estimate: publicProcedure
@@ -97,17 +100,20 @@ export const roomStateRouter = createTRPCRouter({
         estimation: z.number().nullable(),
       }),
     )
-    .mutation(async ({ ctx, input: { roomId, userId, estimation } }) => {
-      const roomState = await getRoomStateOrFail(roomId);
+    .mutation(
+      async ({ ctx: { db }, input: { roomId, userId, estimation } }) => {
+        const roomState = await getRoomStateOrFail(roomId);
 
-      roomState.setEstimation(userId, estimation);
+        roomState.setEstimation(userId, estimation);
 
-      await setRoomState({
-        roomId,
-        userId,
-        roomState,
-      });
-    }),
+        await setRoomState({
+          roomId,
+          userId,
+          roomState,
+          db,
+        });
+      },
+    ),
   spectator: publicProcedure
     .input(
       z.object({
@@ -116,17 +122,20 @@ export const roomStateRouter = createTRPCRouter({
         isSpectator: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input: { roomId, userId, isSpectator } }) => {
-      const roomState = await getRoomStateOrFail(roomId);
+    .mutation(
+      async ({ ctx: { db }, input: { roomId, userId, isSpectator } }) => {
+        const roomState = await getRoomStateOrFail(roomId);
 
-      roomState.setSpectator(userId, isSpectator);
+        roomState.setSpectator(userId, isSpectator);
 
-      await setRoomState({
-        roomId,
-        userId,
-        roomState,
-      });
-    }),
+        await setRoomState({
+          roomId,
+          userId,
+          roomState,
+          db,
+        });
+      },
+    ),
   autoFlip: publicProcedure
     .input(
       z.object({
@@ -135,20 +144,23 @@ export const roomStateRouter = createTRPCRouter({
         isAutoFlip: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input: { roomId, userId, isAutoFlip } }) => {
-      const roomState = await getRoomStateOrFail(roomId);
+    .mutation(
+      async ({ ctx: { db }, input: { roomId, userId, isAutoFlip } }) => {
+        const roomState = await getRoomStateOrFail(roomId);
 
-      roomState.setAutoFlip(isAutoFlip);
+        roomState.setAutoFlip(isAutoFlip);
 
-      await setRoomState({
-        roomId,
-        userId,
-        roomState,
-      });
-    }),
+        await setRoomState({
+          roomId,
+          userId,
+          roomState,
+          db,
+        });
+      },
+    ),
   reset: publicProcedure
     .input(z.object({ roomId: z.number(), userId: z.string() }))
-    .mutation(async ({ ctx, input: { roomId, userId } }) => {
+    .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
       roomState.reset();
@@ -157,11 +169,12 @@ export const roomStateRouter = createTRPCRouter({
         roomId,
         userId,
         roomState,
+        db,
       });
     }),
   leave: publicProcedure
     .input(z.object({ roomId: z.number(), userId: z.string() }))
-    .mutation(async ({ ctx, input: { roomId, userId } }) => {
+    .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
       roomState.removeUser(userId);
@@ -170,6 +183,7 @@ export const roomStateRouter = createTRPCRouter({
         roomId,
         userId,
         roomState,
+        db,
       });
     }),
 });

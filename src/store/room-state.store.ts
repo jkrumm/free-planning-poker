@@ -12,6 +12,7 @@ type RoomStateStore = {
   isSpectator: boolean;
   // Game State
   users: User[];
+  startedAt: number | null;
   isFlipped: boolean;
   isFlippable: boolean;
   isAutoFlip: boolean;
@@ -32,6 +33,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   isSpectator: false,
   // Game State
   users: [],
+  startedAt: null,
   isFlipped: false,
   isFlippable: false,
   isAutoFlip: false,
@@ -49,6 +51,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       isSpectator: user.isSpectator,
       // Game State
       users: roomStateClient.users,
+      startedAt: roomStateClient.startedAt,
       isFlipped: roomStateClient.isFlipped,
       isFlippable: roomStateClient.isFlippable,
       isAutoFlip: roomStateClient.isAutoFlip,
@@ -67,8 +70,13 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       isSpectator: false,
       // Game State
       users: [],
+      startedAt: null,
       isFlipped: false,
       isAutoFlip: false,
+      stackedEstimations: [],
+      averageEstimation: null,
+      // Interactions
+      isConnecting: true,
     });
   },
 }));

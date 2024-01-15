@@ -1,54 +1,11 @@
 import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { z } from "zod";
-import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { DateTime } from "luxon";
-import { type ICreateVote, votes } from "fpp/server/db/schema";
+import { votes } from "fpp/server/db/schema";
 import { sql } from "drizzle-orm";
 import { round } from "fpp/utils/number.utils";
 import { countTable } from "fpp/utils/db-api.util";
 
 export const voteRouter = createTRPCRouter({
-  vote: publicProcedure
-    .input(
-      z.object({
-        roomId: z.number(),
-        estimations: z
-          .array(z.number())
-          .min(1)
-          .refine(
-            (values) =>
-              values.every((value) => fibonacciSequence.includes(value)),
-            {
-              message: "Every vote must be a valid fibonacci number",
-            },
-          ),
-        duration: z.number().min(0),
-        amountOfSpectators: z.number().min(0),
-      }),
-    )
-    .mutation(
-      async ({
-        ctx: { db },
-        input: { roomId, estimations, duration, amountOfSpectators },
-      }) => {
-        const vote: ICreateVote = {
-          roomId,
-          avgEstimation: String(
-            estimations.reduce((a, b) => a + b, 0) / estimations.length,
-          ),
-          maxEstimation: String(
-            estimations.reduce((a, b) => Math.max(a, b), 1),
-          ),
-          minEstimation: String(
-            estimations.reduce((a, b) => Math.min(a, b), 21),
-          ),
-          amountOfEstimations: String(estimations.length),
-          amountOfSpectators,
-          duration,
-        };
-        await db.insert(votes).values(vote);
-      },
-    ),
   getVotes: publicProcedure.query(async ({ ctx: { db } }) => {
     const averages = (await db.execute(sql`
         SELECT AVG(avg_estimation)  as avg_avgEstimation,
