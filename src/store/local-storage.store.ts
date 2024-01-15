@@ -28,14 +28,14 @@ function getIntFromLocalstorage(key: string): number | null {
 interface LocalstorageStore {
   username: string | null;
   voting: number | null;
-  spectator: boolean;
+  isSpectator: boolean;
   roomId: number | null;
   roomReadable: string | null;
   recentRoom: string | null;
   userId: string | null;
   setUsername: (username: string) => void;
   setVoting: (voting: number | null) => void;
-  setSpectator: (spectator: boolean) => void;
+  setIsSpectator: (spectator: boolean) => void;
   setRoomId: (room: number | null) => void;
   setRoomReadable: (room: string | null) => void;
   setRecentRoom: (room: string | null) => void;
@@ -47,7 +47,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   voting: getFromLocalstorage("vote")
     ? Number(getFromLocalstorage("vote"))
     : null,
-  spectator: getFromLocalstorage("spectator") === "true",
+  isSpectator: getFromLocalstorage("isSpectator") === "true",
   roomId: getIntFromLocalstorage("roomId"),
   roomReadable: getFromLocalstorage("roomReadableId"),
   recentRoom: getFromLocalstorage("recentRoom"),
@@ -84,9 +84,9 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     }
     set({ voting });
   },
-  setSpectator: (spectator: boolean) => {
-    localStorage.setItem("spectator", spectator.toString());
-    set({ spectator });
+  setIsSpectator: (isSpectator: boolean) => {
+    localStorage.setItem("isSpectator", isSpectator.toString());
+    set({ isSpectator });
   },
   setRoomId: (roomId: number | null) => {
     if (!roomId) {

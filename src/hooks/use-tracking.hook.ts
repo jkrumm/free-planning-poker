@@ -12,10 +12,20 @@ export const useTrackPageView = (
   roomId?: number,
 ) => {
   const userId = useLocalstorageStore((state) => state.userId);
-  const setUserId = useLocalstorageStore((state) => state.setUserId);
+  const setUserIdLocalStorage = useLocalstorageStore(
+    (state) => state.setUserId,
+  );
+  const setUserIdRoomState = useLocalstorageStore((state) => state.setUserId);
 
   useEffect(() => {
-    sendTrackPageView({ userId, route, roomId, setUserId, logger });
+    sendTrackPageView({
+      userId,
+      route,
+      roomId,
+      setUserIdLocalStorage,
+      setUserIdRoomState,
+      logger,
+    });
   }, [route, roomId]);
 };
 
@@ -23,13 +33,15 @@ export const sendTrackPageView = ({
   userId,
   route,
   roomId,
-  setUserId,
+  setUserIdLocalStorage,
+  setUserIdRoomState,
   logger,
 }: {
   userId: string | null;
   route: keyof typeof RouteType;
   roomId?: number;
-  setUserId: (userId: string) => void;
+  setUserIdLocalStorage: (userId: string) => void;
+  setUserIdRoomState: (userId: string) => void;
   logger: Logger;
 }) => {
   logger.with({ userId, route, roomId });
@@ -51,7 +63,8 @@ export const sendTrackPageView = ({
       fetch(url, { body, method: "POST", keepalive: true })
         .then((res) => res.json() as Promise<{ userId: string }>)
         .then(({ userId }) => {
-          setUserId(userId);
+          setUserIdLocalStorage(userId);
+          setUserIdRoomState(userId);
           logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
             withBeacon: false,
           });

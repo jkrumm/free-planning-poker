@@ -33,7 +33,7 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
     const body = {
       keyName: keyName,
       ttl: 60 * 60 * 1000,
-      capability: '{"room:*":["subscribe","publish","presence","history"]}',
+      capability: '{"room:*":["subscribe"]}',
       clientId,
       timestamp: Date.now(),
       nonce: crypto.randomUUID(),
@@ -68,9 +68,10 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
         method: "POST",
       },
     );
-    const tokenRequest = (await tokenRequestReq.json()) as object;
 
-    return NextResponse.json(tokenRequest);
+    const tokenRequest = (await tokenRequestReq.json()) as { token: string };
+
+    return NextResponse.json(tokenRequest.token);
   } catch (e) {
     throw e;
   }

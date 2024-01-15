@@ -3,9 +3,6 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { UsernameModel } from "fpp/components/room/username-model";
-import { Table } from "fpp/components/room/table";
-import { WebsocketReceiver } from "fpp/components/room/websocket-receiver";
-import { Interactions } from "fpp/components/room/interactions";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { useLogger } from "next-axiom";
@@ -13,9 +10,12 @@ import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { type ClientLog } from "fpp/constants/error.constant";
 import { api } from "fpp/utils/api";
 import { RouteType } from "fpp/server/db/schema";
-import { configureAbly } from "@ably-labs/react-hooks";
 import { env } from "fpp/env.mjs";
 import { Loader } from "@mantine/core";
+import * as Ably from "ably";
+import { AblyProvider } from "ably/react";
+import { Room } from "fpp/components/room/room";
+import { useRoomStateStore } from "fpp/store/room-state.store";
 
 const RoomWrapper = () => {
   const router = useRouter();
@@ -23,10 +23,18 @@ const RoomWrapper = () => {
 
   const username = useLocalstorageStore((store) => store.username);
   const userId = useLocalstorageStore((state) => state.userId);
-  const setUserId = useLocalstorageStore((state) => state.setUserId);
+  const setUserIdLocalStorage = useLocalstorageStore(
+    (state) => state.setUserId,
+  );
 
+  const setUserIdRoomState = useRoomStateStore((state) => state.setUserId);
   if (userId) {
-    configureAbly({
+    setUserIdRoomState(userId);
+  }
+
+  let ablyClient;
+  if (userId) {
+    ablyClient = new Ably.Realtime.Promise({
       authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
       clientId: userId,
     });
@@ -41,9 +49,6 @@ const RoomWrapper = () => {
     (store) => store.setRoomReadable,
   );
   const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
-
-  const setVoting = useLocalstorageStore((store) => store.setVoting);
-  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
 
   const [firstLoad, setFirstLoad] = React.useState(true);
   const [modelOpen, setModelOpen] = React.useState(false);
@@ -105,17 +110,16 @@ const RoomWrapper = () => {
       joinRoomMutation.mutate(
         { roomReadable: queryRoom },
         {
-          onSuccess: (data) => {
-            setRoomId(data.roomId);
-            setRoomReadable(data.roomReadable);
-            setRecentRoom(data.roomReadable);
-            setVoting(null);
-            setSpectator(false);
+          onSuccess: ({ roomId, roomReadable }) => {
+            setRoomId(roomId);
+            setRoomReadable(roomReadable);
+            setRecentRoom(roomReadable);
             sendTrackPageView({
               userId,
               route: RouteType.ROOM,
-              roomId: data.roomId,
-              setUserId,
+              roomId,
+              setUserIdLocalStorage,
+              setUserIdRoomState,
               logger,
             });
           },
@@ -143,22 +147,17 @@ const RoomWrapper = () => {
             />
           );
         }
-        if (roomId && roomReadable) {
+        if (roomId && userId && ablyClient && roomReadable) {
           return (
-            <>
-              <WebsocketReceiver
-                username={username}
-                roomId={roomId}
-                logger={logger}
-              />
-              <Table roomId={roomId} username={username} logger={logger} />
-              <Interactions
+            <AblyProvider client={ablyClient}>
+              <Room
                 roomId={roomId}
                 roomReadable={roomReadable}
+                userId={userId}
                 username={username}
                 logger={logger}
               />
-            </>
+            </AblyProvider>
           );
         }
         return <Loader variant="bars" />;

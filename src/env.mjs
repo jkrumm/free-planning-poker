@@ -19,7 +19,10 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string(),
+    UPSTASH_REDIS_REST_URL_ROOM_STATE: z.string().url(),
+    UPSTASH_REDIS_REST_TOKEN_ROOM_STATE: z.string(),
     ABLY_API_KEY: z.string(),
+    ABLY_API_KEY_BASE64: z.string(),
     TARGET_EMAIL: z.string().email(),
     SEND_EMAIL: z.string().email(),
     SEND_EMAIL_PASSWORD: z.string(),
@@ -44,7 +47,12 @@ export const env = createEnv({
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    UPSTASH_REDIS_REST_URL_ROOM_STATE:
+      process.env.UPSTASH_REDIS_REST_URL_ROOM_STATE,
+    UPSTASH_REDIS_REST_TOKEN_ROOM_STATE:
+      process.env.UPSTASH_REDIS_REST_TOKEN_ROOM_STATE,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
+    ABLY_API_KEY_BASE64: btoa(process.env.ABLY_API_KEY || ""),
     TARGET_EMAIL: process.env.TARGET_EMAIL,
     SEND_EMAIL: process.env.SEND_EMAIL,
     SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
