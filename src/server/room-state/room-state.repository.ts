@@ -1,0 +1,106 @@
+import { env } from "fpp/env.mjs";
+import { RoomStateServer } from "fpp/server/room-state/room-state.entity";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: env.UPSTASH_REDIS_REST_URL_ROOM_STATE,
+  token: env.UPSTASH_REDIS_REST_TOKEN_ROOM_STATE,
+});
+
+export async function getRoomStateOrFail(
+  roomId: number,
+): Promise<RoomStateServer> {
+  const roomState = await redis.get<RoomStateServer>(`room:${roomId}`);
+
+  if (!roomState) {
+    throw new Error(`Room ${roomId} not found`);
+  }
+
+  return RoomStateServer.fromJson(roomState);
+}
+
+export async function getRoomStateOrCreate(
+  roomId: number,
+): Promise<RoomStateServer> {
+  const roomState = await redis.get<RoomStateServer>(`room:${roomId}`);
+
+  if (!roomState) {
+    return new RoomStateServer(roomId);
+  }
+
+  return RoomStateServer.fromJson(roomState);
+}
+
+export async function getRoomStateOrNull(
+  roomId: number,
+): Promise<RoomStateServer | null> {
+  return (await redis.get<RoomStateServer>(`room:${roomId}`)) ?? null;
+}
+
+export async function setRoomState({
+  roomId,
+  userId,
+  roomState,
+}: {
+  roomId: number;
+  userId: string;
+  roomState: RoomStateServer;
+}): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const promises: Promise<any>[] = [setHeartbeat(userId, Date.now())];
+
+  // If the room state has changed, we update Redis and publish it to it's WebSocket channel
+  if (roomState.hasChanged) {
+    roomState.lastUpdated = Date.now();
+    promises.push(
+      redis.set(`room:${roomId}`, roomState, { ex: 60 * 5 }),
+      fetch(`https://rest.ably.io/channels/room:${roomId}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${env.ABLY_API_KEY_BASE64}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "room-state",
+          clientId: userId,
+          data: roomState.toJson(),
+        }),
+      }).then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to publish message to Ably: ${res.status}`);
+        }
+      }),
+    );
+
+    await Promise.all(promises);
+    return;
+  }
+
+  // If the room state hasn't changed in the last 5 minutes minus 20 seconds, we extend the expiration time
+  // TODO: close the room after 5 minutes of inactivity
+  if (roomState.lastUpdated > Date.now() - 1000 * 60 * 5 - 1000 * 20) {
+    promises.push(redis.expire(`room:${roomId}`, 60 * 5));
+  }
+
+  await Promise.all(promises);
+}
+
+export async function getActiveUserIds(userIds: string[]): Promise<string[]> {
+  const heartbeats = await redis.mget<(number | null)[]>(
+    userIds.map((userId) => `heartbeat:${userId}`),
+  );
+  return userIds.map((userId, i) => {
+    if (heartbeats[i] != null) {
+      return userId;
+    }
+  }) as string[];
+}
+
+export async function setHeartbeat(
+  userId: string,
+  heartbeat: number,
+): Promise<void> {
+  await redis.set(`heartbeat:${userId}`, heartbeat, {
+    ex: 15,
+  });
+}

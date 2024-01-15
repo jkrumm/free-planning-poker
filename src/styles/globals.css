@@ -93,6 +93,12 @@ article h3 {
   margin-bottom: 10px !important;
 }
 
+article h4 {
+  text-align: center;
+  margin-top: 20px !important;
+  margin-bottom: 5px !important;
+}
+
 article p {
   line-height: 1.8 !important;
 }

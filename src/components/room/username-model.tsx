@@ -12,7 +12,6 @@ export const UsernameModel = ({
   room: string | undefined;
 }) => {
   const [error, setError] = useState(false);
-
   const [inputUsername, setInputUsername] = useState("");
 
   const setUsername = useLocalstorageStore((store) => store.setUsername);

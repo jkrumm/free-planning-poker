@@ -1,56 +1,47 @@
 import { Button, Switch } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { type PresenceUpdate, useWsStore } from "fpp/store/ws.store";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/router";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { type Logger } from "next-axiom";
 import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { RouteType } from "fpp/server/db/schema";
+import { useRoomStateStore } from "fpp/store/room-state.store";
+import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import { api } from "fpp/utils/api";
 
 export const Interactions = ({
   roomId,
   roomReadable,
-  username,
+  userId,
   logger,
 }: {
   roomId: number;
   roomReadable: string;
-  username: string;
+  userId: string;
   logger: Logger;
 }) => {
   const router = useRouter();
 
-  const clientId = useWsStore((store) => store.clientId);
-  const channel = useWsStore((store) => store.channel);
-
-  const userId = useLocalstorageStore((state) => state.userId);
-  const voting = useLocalstorageStore((store) => store.voting);
-  const setVoting = useLocalstorageStore((store) => store.setVoting);
-  const setSpectator = useLocalstorageStore((store) => store.setSpectator);
   const setRoomId = useLocalstorageStore((store) => store.setRoomId);
   const setRoomReadable = useLocalstorageStore(
     (store) => store.setRoomReadable,
   );
 
-  const votes = useWsStore((store) => store.votes);
-  const spectators = useWsStore((store) => store.spectators);
-  const presences = useWsStore((store) => store.presences);
-  const flipped = useWsStore((store) => store.flipped);
-  const autoShow = useWsStore((store) => store.autoShow);
+  // User state
+  const estimation = useRoomStateStore((store) => store.estimation);
+  const estimateMutation = api.roomState.estimate.useMutation();
+  const isSpectator = useRoomStateStore((store) => store.isSpectator);
+  const setIsSpectator = useLocalstorageStore((store) => store.setIsSpectator);
+  const spectatorMutation = api.roomState.spectator.useMutation();
+  const leaveMutation = api.roomState.leave.useMutation();
 
-  useEffect(() => {
-    if (!channel || !clientId) return;
-    const presenceUpdate: PresenceUpdate = {
-      username,
-      voting,
-      spectator: spectators.includes(clientId),
-      presencesLength: presences.length,
-    };
-    logger.debug("SEND OWN PRESENCE ON INIT", presenceUpdate);
-    channel.presence.update(presenceUpdate);
-  }, [channel]);
+  // Room state
+  const isFlipped = useRoomStateStore((store) => store.isFlipped);
+  const resetMutation = api.roomState.reset.useMutation();
+  const isAutoFlip = useRoomStateStore((store) => store.isAutoFlip);
+  const autoFlipMutation = api.roomState.autoFlip.useMutation();
+  const resetRoomState = useRoomStateStore((store) => store.reset);
 
   const roomRef = useRef(null);
 
@@ -67,16 +58,15 @@ export const Interactions = ({
             <h2
               className="uppercase"
               ref={roomRef}
-              onKeyPress={() => ({})}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={async () => {
+              onClick={() => {
                 if (!window.location) {
                   return;
                 }
                 if ("clipboard" in navigator) {
-                  await navigator.clipboard.writeText(
-                    window.location.toString(),
-                  );
+                  navigator.clipboard
+                    .writeText(window.location.toString())
+                    .then(() => ({}))
+                    .catch(() => ({}));
                 } else {
                   document.execCommand(
                     "copy",
@@ -102,15 +92,16 @@ export const Interactions = ({
           </Button>
           <div>
             <Button
-              variant={flipped ? "default" : "filled"}
-              disabled={flipped}
+              variant={isFlipped ? "filled" : "default"}
               className={"mr-5"}
               onClick={() => {
-                if (!channel) return;
-                channel.publish("reset", {});
+                resetMutation.mutate({
+                  roomId,
+                  userId,
+                });
               }}
             >
-              New Round
+              {isFlipped ? "New Round" : "Reset"}
             </Button>
             <Button
               variant={"default"}
@@ -123,7 +114,11 @@ export const Interactions = ({
                 });
                 setRoomId(null);
                 setRoomReadable(null);
-                setVoting(null);
+                leaveMutation.mutate({
+                  roomId,
+                  userId,
+                });
+                resetRoomState();
                 router
                   .push(`/`)
                   .then(() => ({}))
@@ -138,31 +133,17 @@ export const Interactions = ({
           <Button.Group className="w-full">
             {fibonacciSequence.map((number) => (
               <Button
-                disabled={
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  (clientId && spectators.includes(clientId)) || !flipped
-                }
-                variant={
-                  votes.some(
-                    (item) =>
-                      item.clientId === clientId && item.number === number,
-                  )
-                    ? "filled"
-                    : "default"
-                }
+                disabled={isSpectator || isFlipped}
+                variant={estimation === number ? "filled" : "default"}
                 size={"lg"}
                 fullWidth
                 key={number}
                 onClick={() => {
-                  if (!channel || !clientId) return;
-                  setVoting(number);
-                  const presenceUpdate: PresenceUpdate = {
-                    username,
-                    voting: number,
-                    spectator: spectators.includes(clientId),
-                    presencesLength: presences.length,
-                  };
-                  channel.presence.update(presenceUpdate);
+                  estimateMutation.mutate({
+                    roomId,
+                    userId,
+                    estimation: estimation === number ? null : number,
+                  });
                 }}
               >
                 {number}
@@ -174,31 +155,27 @@ export const Interactions = ({
       <div className="switch-bar">
         <Switch
           className="mb-2 cursor-pointer"
-          disabled={!flipped}
+          disabled={isFlipped}
           label="Spectator"
-          checked={clientId ? spectators.includes(clientId) : false}
+          checked={isSpectator}
           onChange={(event) => {
-            if (!channel) return;
-            setSpectator(event.currentTarget.checked);
-            setVoting(null);
-            const presenceUpdate: Partial<PresenceUpdate> = {
-              username,
-              voting: null,
-              spectator: event.currentTarget.checked,
-              presencesLength: presences.length,
-            };
-            channel.presence.update(presenceUpdate);
+            setIsSpectator(event.currentTarget.checked);
+            spectatorMutation.mutate({
+              roomId,
+              userId,
+              isSpectator: event.currentTarget.checked,
+            });
           }}
         />
         <Switch
-          label="Auto Show"
-          disabled={true}
+          label="Auto Flip"
           className="cursor-pointer"
-          checked={autoShow}
+          checked={isAutoFlip}
           onChange={(event) => {
-            if (!channel) return;
-            channel.publish("auto-show", {
-              autoShow: event.currentTarget.checked,
+            autoFlipMutation.mutate({
+              roomId,
+              userId,
+              isAutoFlip: event.currentTarget.checked,
             });
           }}
         />
