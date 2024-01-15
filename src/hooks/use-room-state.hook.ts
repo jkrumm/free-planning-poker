@@ -39,9 +39,7 @@ export const useRoomState = ({
       },
       {
         onSuccess: (roomStateJson) => {
-          updateRoomState(
-            RoomStateClient.fromJson(roomStateJson as RoomStateDto),
-          );
+          updateRoomState(RoomStateClient.fromJson(roomStateJson));
           setIsConnecting(false);
         },
       },

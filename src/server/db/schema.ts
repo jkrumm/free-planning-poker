@@ -48,18 +48,9 @@ export const votes = mysqlTable("votes", {
     precision: 4,
     scale: 2,
   }).notNull(),
-  maxEstimation: decimal("max_estimation", {
-    precision: 4,
-    scale: 2,
-  }).notNull(),
-  minEstimation: decimal("min_estimation", {
-    precision: 4,
-    scale: 2,
-  }).notNull(),
-  amountOfEstimations: decimal("amount_of_estimations", {
-    precision: 4,
-    scale: 2,
-  }).notNull(),
+  maxEstimation: smallint("max_estimation").notNull(),
+  minEstimation: smallint("min_estimation").notNull(),
+  amountOfEstimations: smallint("amount_of_estimations").notNull(),
   amountOfSpectators: smallint("amount_of_spectators").notNull(),
   duration: smallint("duration").notNull(),
   votedAt: timestamp("voted_at").defaultNow().notNull(),

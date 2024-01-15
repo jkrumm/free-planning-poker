@@ -1,3 +1,5 @@
+import { type ICreateVote } from "fpp/server/db/schema";
+
 export interface CreateUserDto {
   id: string;
   name: string;
@@ -7,10 +9,12 @@ export interface CreateUserDto {
 
 export interface RoomStateDto {
   id: number;
+  startedAt: number;
   lastUpdated: number;
   users: CreateUserDto[];
   isFlipped: boolean;
   isAutoFlip: boolean;
+  isFlippable: boolean;
 }
 
 export class User {
@@ -39,29 +43,20 @@ export class User {
 
 class RoomStateBase {
   readonly id: number;
+  startedAt: number;
   lastUpdated: number;
 
   users: User[] = [];
   isFlipped = false;
   isAutoFlip = false;
 
-  static fromJson<T extends RoomStateBase>(
-    this: new (id: number) => T,
-    roomStateJson: RoomStateDto,
-  ) {
-    const roomState = new this(roomStateJson.id);
-    roomState.lastUpdated = roomStateJson.lastUpdated;
-    roomState.users = roomStateJson.users.map((user) => new User(user));
-    roomState.isFlipped = roomStateJson.isFlipped;
-    roomState.isAutoFlip = roomStateJson.isAutoFlip;
-    return roomState;
-  }
-
   get isFlippable() {
     return (
       this.users.every(
         (user) => user.estimation !== null || user.isSpectator,
-      ) && this.users.some((user) => !user.isSpectator)
+      ) &&
+      this.users.some((user) => !user.isSpectator) &&
+      !this.isFlipped
     );
   }
 
@@ -78,11 +73,28 @@ class RoomStateBase {
 
   constructor(id: number) {
     this.id = id;
+    this.startedAt = Date.now();
     this.lastUpdated = Date.now();
   }
 
-  toJson() {
+  static fromJson<T extends RoomStateBase>(
+    this: new (id: number) => T,
+    roomStateJson: RoomStateDto,
+  ) {
+    const roomState = new this(roomStateJson.id);
+    roomState.startedAt = roomStateJson.startedAt;
+    roomState.lastUpdated = roomStateJson.lastUpdated;
+    roomState.users = roomStateJson.users.map((user) => new User(user));
+    roomState.isFlipped = roomStateJson.isFlipped;
+    roomState.isAutoFlip = roomStateJson.isAutoFlip;
+    return roomState;
+  }
+
+  toJson(): RoomStateDto {
     return {
+      id: this.id,
+      startedAt: this.startedAt,
+      lastUpdated: this.lastUpdated,
       users: this.users,
       isFlipped: this.isFlipped,
       isAutoFlip: this.isAutoFlip,
@@ -122,6 +134,7 @@ export class RoomStateClient extends RoomStateBase {
 
 export class RoomStateServer extends RoomStateBase {
   hasChanged = false;
+  isFlipAction = false;
 
   /**
   /* USER MANAGEMENT
@@ -151,6 +164,7 @@ export class RoomStateServer extends RoomStateBase {
     this.users = this.users.map((user) => {
       if (user.id === userId) {
         user.estimation = estimation;
+        user.isSpectator = false;
         this.hasChanged = true;
       }
       return user;
@@ -162,6 +176,7 @@ export class RoomStateServer extends RoomStateBase {
     this.users = this.users.map((user) => {
       if (user.id === userId) {
         user.isSpectator = isSpectator;
+        user.estimation = null;
         this.hasChanged = true;
       }
       return user;
@@ -175,10 +190,11 @@ export class RoomStateServer extends RoomStateBase {
     }
     this.isFlipped = true;
     this.hasChanged = true;
+    this.isFlipAction = true;
   }
 
   private autoFlip() {
-    if (this.isFlippable && this.isAutoFlip) {
+    if (this.isAutoFlip && this.isFlippable && !this.isFlipped) {
       this.flip();
     }
   }
@@ -190,19 +206,41 @@ export class RoomStateServer extends RoomStateBase {
   }
 
   reset() {
+    this.startedAt = Date.now();
+    this.lastUpdated = Date.now();
     this.users = this.users.map((user) => {
       user.estimation = null;
       return user;
     });
     this.isFlipped = false;
-    this.isAutoFlip = false;
     this.hasChanged = true;
   }
 
-  fullReset() {
-    this.users = [];
-    this.isFlipped = false;
-    this.isAutoFlip = false;
-    this.hasChanged = true;
+  /**
+   * ANALYTICS
+   */
+  calculateVote(): ICreateVote {
+    const estimations = this.users
+      .map((user) => user.estimation)
+      .filter((estimation) => estimation !== null) as number[];
+    if (estimations.length === 0) {
+      throw new Error("Cannot calculateCreateVote when no estimations");
+    }
+
+    return {
+      roomId: this.id,
+      avgEstimation: String(
+        estimations.reduce((a, b) => a + b, 0) / estimations.length,
+      ),
+      maxEstimation: String(
+        estimations.reduce((a, b) => Math.max(a, b), 1),
+      ) as unknown as number,
+      minEstimation: String(
+        estimations.reduce((a, b) => Math.min(a, b), 21),
+      ) as unknown as number,
+      amountOfEstimations: String(estimations.length) as unknown as number,
+      amountOfSpectators: this.users.filter((user) => user.isSpectator).length,
+      duration: Math.ceil((Date.now() - this.startedAt) / 1000),
+    };
   }
 }
