@@ -23,13 +23,13 @@ export const useRoomState = ({
   const isSpectator = useLocalstorageStore((store) => store.isSpectator);
 
   const updateRoomState = useRoomStateStore((store) => store.update);
-  const setIsConnecting = useRoomStateStore((store) => store.setIsConnecting);
-  const isConnecting = useRoomStateStore((store) => store.isConnecting);
+  const setConnectedAt = useRoomStateStore((store) => store.setConnectedAt);
+  const connectedAt = useRoomStateStore((store) => store.connectedAt);
 
   const enterRoomMutation = api.roomState.enter.useMutation();
 
   useEffect(() => {
-    if (!isConnecting) return;
+    if (connectedAt) return;
     enterRoomMutation.mutate(
       {
         roomId,
@@ -40,7 +40,7 @@ export const useRoomState = ({
       {
         onSuccess: (roomStateDto) => {
           updateRoomState(RoomStateClient.fromJson(roomStateDto));
-          setIsConnecting(false);
+          setConnectedAt();
         },
       },
     );

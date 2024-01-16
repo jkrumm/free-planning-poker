@@ -5,6 +5,7 @@ import {
 import { env } from "fpp/env.mjs";
 import { type ICreateVote } from "fpp/server/db/schema";
 import { TRPCError } from "@trpc/server";
+import { notifications } from "@mantine/notifications";
 
 export async function publishWebSocketEvent({
   roomState,
@@ -66,6 +67,7 @@ export function getICreateVoteFromRoomState(
     amountOfSpectators: roomState.users.filter((user) => user.isSpectator)
       .length,
     duration: Math.ceil((Date.now() - roomState.startedAt) / 1000),
+    wasAutoFlip: roomState.isAutoFlip,
   };
 }
 
@@ -96,4 +98,70 @@ export function getStackedEstimationsFromUsers(
     }
   });
   return voting.slice(0, getAverageFromUsers(users) > 9 ? 3 : 4);
+}
+
+export function notifyOnRoomStateChanges({
+  newRoomState,
+  oldRoomState,
+  userId,
+  connectedAt,
+}: {
+  newRoomState: {
+    users: User[];
+    isAutoFlip: boolean;
+  };
+  oldRoomState: {
+    users: User[];
+    isAutoFlip: boolean;
+  };
+  userId: string | null;
+  connectedAt: number | null;
+}) {
+  // Notify on auto flip enabled
+  if (newRoomState.isAutoFlip && !oldRoomState.isAutoFlip) {
+    notifications.show({
+      color: "orange",
+      autoClose: 5000,
+      withCloseButton: true,
+      title: "Auto Flip enabled",
+      message: "Voting will flip automatically once everyone estimated",
+    });
+    return;
+  }
+  const recentlyConnected =
+    connectedAt === null || connectedAt > Date.now() - 1000 * 5;
+  if (recentlyConnected) {
+    return;
+  }
+
+  // Notify once new user joins and who it is
+  const newUser = newRoomState.users.find(
+    (user) => !oldRoomState.users.some((oldUser) => oldUser.id === user.id),
+  );
+
+  if (newUser && newUser.id !== userId) {
+    notifications.show({
+      color: "blue",
+      autoClose: 5000,
+      withCloseButton: true,
+      title: `${newUser.name} joined`,
+      message: "User joined the room",
+    });
+    return;
+  }
+
+  // Notify once user leaves and who it is
+  const leftUser = oldRoomState.users.find(
+    (user) => !newRoomState.users.some((newUser) => newUser.id === user.id),
+  );
+  if (leftUser) {
+    notifications.show({
+      color: "red",
+      autoClose: 5000,
+      withCloseButton: true,
+      title: `${leftUser.name} left`,
+      message: "User left the room",
+    });
+    return;
+  }
 }

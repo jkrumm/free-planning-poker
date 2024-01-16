@@ -9,44 +9,19 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import { RouteType } from "fpp/server/db/schema";
 import IndexFormSkeleton from "fpp/components/index/form-skeleton";
 import Image from "next/image";
-import Link from "next/link";
+import { Hero } from "fpp/components/layout/hero";
 
 const IndexForm = lazy(() => import("fpp/components/index/form"));
-
-// const ScrollButtonsWithNoSSR = dynamic<{
-//   inView: boolean;
-// }>(() => import("../components/index/scroll-buttons"), {
-//   ssr: false,
-// });
 
 const Home: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.HOME });
   useTrackPageView(RouteType.HOME, logger);
 
-  // const { ref, inView } = useInView({
-  //   rootMargin: "-300px",
-  //   triggerOnce: false,
-  // });
-
   return (
     <div className="homepage">
       <Meta />
-      <Link href="/" className="block pt-12 no-underline">
-        <div className="logo" />
-        <h1
-          className={`center m-0 block p-0 text-center text-[42px] font-bold md:text-[62px]`}
-        >
-          <Text
-            component="span"
-            variant="gradient"
-            gradient={{ from: "#228BE6", to: "#228BE6", deg: 100 }}
-            inherit
-          >
-            Free-Planning-Poker.com
-          </Text>
-        </h1>
-      </Link>
-      <main className="mt-10 flex flex-col items-center justify-center p-6">
+      <Hero />
+      <main className="flex flex-col items-center justify-center p-6">
         <div className="gradients"></div>
         <div className="mb-20 text-center">
           <Title order={2}>Estimate your story points faster than ever</Title>
@@ -58,7 +33,7 @@ const Home: NextPage = () => {
           </Title>
         </div>
         <Suspense fallback={<IndexFormSkeleton />}>
-          <IndexForm logger={logger} />
+          <IndexForm />
         </Suspense>
         <div className="mx-8 md:hidden">
           <Alert
@@ -86,9 +61,7 @@ const Home: NextPage = () => {
             priority={true}
           />
         </div>
-        {/*<ScrollButtonsWithNoSSR inView={inView} />*/}
         <div className="mt-16 w-full max-w-[1200px] px-4 pb-16">
-          {/*<article id="master-the-art-of-planning-poker" ref={ref}>*/}
           <article id="master-the-art-of-planning-poker">
             <header>
               <Title order={2} className="pt-[60px] text-center">

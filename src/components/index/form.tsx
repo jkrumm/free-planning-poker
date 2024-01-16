@@ -6,19 +6,15 @@ import React, { useEffect } from "react";
 import { Button, Group, TextInput } from "@mantine/core";
 import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
 import { useRouter } from "next/router";
-import { type Logger } from "next-axiom";
-import { logMsg, roomEvent } from "fpp/constants/logging.constant";
 import { api } from "fpp/utils/api";
+import { RoomEvent } from "fpp/server/db/schema";
 
-const IndexForm = ({ logger }: { logger: Logger }) => {
+const IndexForm = () => {
   const router = useRouter();
 
-  const userId = useLocalstorageStore((state) => state.userId);
-
   const roomReadable = useLocalstorageStore((state) => state.roomReadable);
-  const setRoomReadable = useLocalstorageStore(
-    (state) => state.setRoomReadable,
-  );
+  const setRoomReadable = useLocalstorageStore((state) => state.setRoomName);
+  const setRoomEvent = useLocalstorageStore((state) => state.setRoomEvent);
 
   const { data: randomRoomNumber } = api.room.getOpenRoomNumber.useQuery();
 
@@ -48,7 +44,9 @@ const IndexForm = ({ logger }: { logger: Logger }) => {
     },
   });
 
+  // let secondRender = false;
   useEffect(() => {
+    // secondRender = true;
     const roomValue = form.values.room
       .replace(/[^A-Za-z0-9]/g, "")
       .toUpperCase();
@@ -69,11 +67,7 @@ const IndexForm = ({ logger }: { logger: Logger }) => {
             console.error("No random room number found");
           }
           setRoomReadable(String(randomRoomNumber));
-          logger.info(logMsg.TRACK_ROOM_EVENT, {
-            userId,
-            roomNumber: String(randomRoomNumber),
-            event: roomEvent.ENTER_RANDOM_ROOM,
-          });
+          setRoomEvent(RoomEvent.ENTERED_RANDOM_ROOM);
           router
             .push(`/room/${randomRoomNumber}`)
             .then(() => ({}))
@@ -87,11 +81,7 @@ const IndexForm = ({ logger }: { logger: Logger }) => {
         onSubmit={form.onSubmit(() => {
           const roomValue = form.values.room.toLowerCase();
           setRoomReadable(roomValue);
-          logger.info(logMsg.TRACK_ROOM_EVENT, {
-            userId,
-            room: roomValue,
-            event: roomEvent.ENTER_NEW_ROOM,
-          });
+          setRoomEvent(RoomEvent.ENTERED_ROOM_DIRECTLY);
           router
             .push(`/room/${roomValue}`)
             .then(() => ({}))

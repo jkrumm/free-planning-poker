@@ -4,30 +4,29 @@ import { useRef } from "react";
 import { useRouter } from "next/router";
 import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
 import { type Logger } from "next-axiom";
-import { logMsg, roomEvent } from "fpp/constants/logging.constant";
-import { RouteType } from "fpp/server/db/schema";
 import { useRoomStateStore } from "fpp/store/room-state.store";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { api } from "fpp/utils/api";
 import { roomStateStatus } from "fpp/server/room-state/room-state.entity";
+import { sendTrackEvent } from "fpp/utils/send-track-event.util";
+import { EventType } from "fpp/server/db/schema";
+import { isValidMediumint } from "fpp/utils/number.utils";
 
 export const Interactions = ({
   roomId,
-  roomReadable,
+  roomName,
   userId,
   logger,
 }: {
   roomId: number;
-  roomReadable: string;
+  roomName: string;
   userId: string;
   logger: Logger;
 }) => {
   const router = useRouter();
 
   const setRoomId = useLocalstorageStore((store) => store.setRoomId);
-  const setRoomReadable = useLocalstorageStore(
-    (store) => store.setRoomReadable,
-  );
+  const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
 
   // User state
   const estimation = useRoomStateStore((store) => store.estimation);
@@ -82,13 +81,16 @@ export const Interactions = ({
                   title: "Room url copied to clipboard",
                   message: "Share it with your team!",
                 });
+                sendTrackEvent({
+                  event: EventType.COPIED_ROOM_LINK,
+                  userId,
+                  logger,
+                });
               }}
             >
-              {/^\d+$/.test(roomReadable) &&
-              roomReadable.length === 6 &&
-              Number.isInteger(roomReadable)
-                ? roomReadable.slice(0, 3) + " " + roomReadable.slice(3)
-                : roomReadable.toUpperCase()}
+              {isValidMediumint(roomName) && roomName.length === 6
+                ? roomName.slice(0, 3) + " " + roomName.slice(3)
+                : roomName.toUpperCase()}
             </h2>
           </Button>
           <div>
@@ -109,12 +111,6 @@ export const Interactions = ({
             <Button
               variant={"default"}
               onClick={() => {
-                logger.info(logMsg.TRACK_ROOM_EVENT, {
-                  event: roomEvent.LEAVE_ROOM,
-                  roomId,
-                  userId,
-                  route: RouteType.ROOM,
-                });
                 setRoomId(null);
                 setRoomReadable(null);
                 leaveMutation.mutate({

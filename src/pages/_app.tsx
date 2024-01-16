@@ -10,6 +10,7 @@ import React, { Suspense } from "react";
 import { AxiomWebVitals } from "next-axiom";
 import { MantineProvider } from "@mantine/core";
 import { FeatureFlagLoaderUtil } from "fpp/utils/feature-flag-loader.util";
+import { Notifications } from "@mantine/notifications";
 
 // const theme = createTheme({});
 
@@ -29,6 +30,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       <Suspense fallback={<></>}>
         <AxiomWebVitals />
         <FeatureFlagLoaderUtil />
+        <Notifications position="top-right" />
       </Suspense>
       <main className={GeistSans.className}>
         <Component {...pageProps} />

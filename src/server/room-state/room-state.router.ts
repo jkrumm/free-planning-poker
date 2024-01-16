@@ -4,8 +4,11 @@ import {
   getActiveUserIds,
   getRoomStateOrCreate,
   getRoomStateOrFail,
+  getRoomStateOrNull,
+  setHeartbeat,
   setRoomState,
 } from "fpp/server/room-state/room-state.repository";
+import { events, EventType, type ICreateEvent } from "fpp/server/db/schema";
 
 export const roomStateRouter = createTRPCRouter({
   enter: publicProcedure
@@ -53,9 +56,15 @@ export const roomStateRouter = createTRPCRouter({
       return await getRoomStateOrFail(roomId);
     }),
   heartbeat: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string() }))
+    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
-      const roomState = await getRoomStateOrFail(roomId);
+      const roomState = await getRoomStateOrNull(roomId);
+      if (!roomState) {
+        console.warn("heartbeat for non-existing room", { roomId, userId });
+        await setHeartbeat(userId, Date.now());
+        return;
+      }
+
       const userIds = roomState.users.map((user) => user.id);
 
       const activeUserIds = await getActiveUserIds(userIds);
@@ -79,7 +88,7 @@ export const roomStateRouter = createTRPCRouter({
       });
     }),
   flip: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string() }))
+    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
@@ -96,7 +105,7 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string(),
+        userId: z.string().length(21),
         estimation: z.number().nullable(),
       }),
     )
@@ -118,7 +127,7 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string(),
+        userId: z.string().length(21),
         isSpectator: z.boolean(),
       }),
     )
@@ -140,7 +149,7 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string(),
+        userId: z.string().length(21),
         isAutoFlip: z.boolean(),
       }),
     )
@@ -159,7 +168,7 @@ export const roomStateRouter = createTRPCRouter({
       },
     ),
   reset: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string() }))
+    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
@@ -173,11 +182,17 @@ export const roomStateRouter = createTRPCRouter({
       });
     }),
   leave: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string() }))
+    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
       roomState.removeUser(userId);
+
+      const event: ICreateEvent = {
+        userId,
+        event: EventType.LEFT_ROOM,
+      };
+      await db.insert(events).values(event);
 
       await setRoomState({
         roomId,

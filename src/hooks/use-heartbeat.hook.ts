@@ -15,12 +15,12 @@ export const useHeartbeat = ({
   const heartbeatMutation = api.roomState.heartbeat.useMutation();
   const heartbeat = useRef(Date.now());
 
-  const isConnecting = useRoomStateStore((store) => store.isConnecting);
+  const connectedAt = useRoomStateStore((store) => store.connectedAt);
 
   // TODO: respect own room state updates and don't send heartbeat
 
   useEffect(() => {
-    if (isConnecting) return;
+    if (!connectedAt) return;
     const interval = setInterval(() => {
       if (Date.now() - heartbeat.current > 1000 * 12) {
         const conservativeHeartbeat = Date.now();
@@ -36,5 +36,5 @@ export const useHeartbeat = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isConnecting]);
+  }, [connectedAt]);
 };

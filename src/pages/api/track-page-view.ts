@@ -62,7 +62,7 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
   return NextResponse.json({ userId }, { status: 200 });
 });
 
-const getVisitorPayload = (req: AxiomRequest) => {
+export const getVisitorPayload = (req: AxiomRequest) => {
   if (req instanceof NextRequest) {
     const ua = userAgent(req);
 

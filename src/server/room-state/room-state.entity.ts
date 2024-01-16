@@ -144,6 +144,7 @@ export class RoomStateServer extends RoomStateBase {
       this.users = this.users.filter((user) => user.id !== userId);
       this.hasChanged = true;
     }
+    this.autoFlip();
   }
 
   /**
