@@ -53,6 +53,7 @@ export async function setRoomState({
   roomId: number;
   userId: string;
   roomState: RoomStateServer;
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   db: PlanetScaleDatabase<typeof import("../db/schema")>;
 }): Promise<void> {
   // NOTE: allow any because prisma and redis have all kind of different promises

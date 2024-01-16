@@ -29,7 +29,9 @@ export const mysqlTable = mysqlTableCreator((name) => `fpp_${name}`);
 export const rooms = mysqlTable("rooms", {
   id: int("id").autoincrement().primaryKey().notNull(),
   number: mediumint("number").unique("rooms_number_unique_idx").notNull(),
-  name: varchar("name", { length: 15 }).unique("rooms_name_unique_idx"),
+  name: varchar("name", { length: 15 })
+    .unique("rooms_name_unique_idx")
+    .notNull(),
   firstUsedAt: timestamp("first_used_at").defaultNow().notNull(),
   lastUsedAt: timestamp("last_used_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -53,6 +55,7 @@ export const votes = mysqlTable("votes", {
   amountOfEstimations: smallint("amount_of_estimations").notNull(),
   amountOfSpectators: smallint("amount_of_spectators").notNull(),
   duration: smallint("duration").notNull(),
+  wasAutoFlip: boolean("was_auto_flip").notNull(),
   votedAt: timestamp("voted_at").defaultNow().notNull(),
 });
 
@@ -147,7 +150,22 @@ export const pageViewsRelations = relations(pageViews, ({ one }) => ({
  */
 
 export const EventType = {
+  // CONTACT FORM EVENTS
   CONTACT_FORM_SUBMISSION: "CONTACT_FORM_SUBMISSION",
+  // ENTER ROOM EVENTS
+  ENTERED_RANDOM_ROOM: "ENTERED_RANDOM_ROOM",
+  ENTERED_NEW_ROOM: "ENTERED_NEW_ROOM",
+  ENTERED_EXISTING_ROOM: "ENTERED_EXISTING_ROOM",
+  ENTERED_RECENT_ROOM: "ENTERED_RECENT_ROOM",
+  // ROOM INTERACTION EVENTS
+  LEFT_ROOM: "LEFT_ROOM",
+  COPIED_ROOM_LINK: "COPIED_ROOM_LINK",
+} as const;
+
+export const RoomEvent = {
+  ENTERED_RANDOM_ROOM: "ENTERED_RANDOM_ROOM",
+  ENTERED_RECENT_ROOM: "ENTERED_RECENT_ROOM",
+  ENTERED_ROOM_DIRECTLY: "ENTERED_ROOM_DIRECTLY",
 } as const;
 
 export const events = mysqlTable("events", {

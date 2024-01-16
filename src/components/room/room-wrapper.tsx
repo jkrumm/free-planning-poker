@@ -6,8 +6,6 @@ import { UsernameModel } from "fpp/components/room/username-model";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
 import { useLogger } from "next-axiom";
-import { logMsg, roomEvent } from "fpp/constants/logging.constant";
-import { type ClientLog } from "fpp/constants/error.constant";
 import { api } from "fpp/utils/api";
 import { RouteType } from "fpp/server/db/schema";
 import { env } from "fpp/env.mjs";
@@ -44,11 +42,10 @@ const RoomWrapper = () => {
   const queryRoom = router.query.room as string;
   const roomId = useLocalstorageStore((store) => store.roomId);
   const setRoomId = useLocalstorageStore((store) => store.setRoomId);
-  const roomReadable = useLocalstorageStore((store) => store.roomReadable);
-  const setRoomReadable = useLocalstorageStore(
-    (store) => store.setRoomReadable,
-  );
+  const roomName = useLocalstorageStore((store) => store.roomName);
+  const setRoomName = useLocalstorageStore((store) => store.setRoomName);
   const setRecentRoom = useLocalstorageStore((store) => store.setRecentRoom);
+  const roomEvent = useLocalstorageStore((store) => store.roomEvent);
 
   const [firstLoad, setFirstLoad] = React.useState(true);
   const [modelOpen, setModelOpen] = React.useState(false);
@@ -69,7 +66,7 @@ const RoomWrapper = () => {
       ) {
         willLeave = true;
         setRoomId(null);
-        setRoomReadable(null);
+        setRoomName(null);
         setRecentRoom(null);
         router
           .push(`/`)
@@ -83,9 +80,7 @@ const RoomWrapper = () => {
 
       if (queryRoom !== correctedRoom) {
         willLeave = true;
-        // TODO: FIX BELOW
-        // setRoomId(null);
-        setRoomReadable(correctedRoom);
+        setRoomName(correctedRoom);
         setRecentRoom(correctedRoom);
         router
           .push(`/room/${correctedRoom}`)
@@ -97,23 +92,23 @@ const RoomWrapper = () => {
         return;
       }
 
-      if (queryRoom !== roomReadable) {
-        const logPayload: ClientLog = {
-          userId,
-          event: roomEvent.ENTER_DIRECTLY,
-          roomReadable: queryRoom,
-          route: RouteType.ROOM,
-        };
-        logger.info(logMsg.TRACK_ROOM_EVENT, logPayload);
-      }
-
       joinRoomMutation.mutate(
-        { roomReadable: queryRoom },
+        { queryRoom, userId, roomEvent },
         {
-          onSuccess: ({ roomId, roomReadable }) => {
+          onSuccess: ({ userId, roomId, roomName }) => {
+            setUserIdLocalStorage(userId);
+            setUserIdRoomState(userId);
             setRoomId(roomId);
-            setRoomReadable(roomReadable);
-            setRecentRoom(roomReadable);
+            setRoomName(roomName);
+            setRecentRoom(roomName);
+
+            if (queryRoom !== roomName) {
+              router
+                .push(`/room/${roomName}`)
+                .then(() => ({}))
+                .catch(() => ({}));
+            }
+
             sendTrackPageView({
               userId,
               route: RouteType.ROOM,
@@ -147,12 +142,12 @@ const RoomWrapper = () => {
             />
           );
         }
-        if (roomId && userId && ablyClient && roomReadable) {
+        if (roomId && userId && ablyClient && roomName) {
           return (
             <AblyProvider client={ablyClient}>
               <Room
                 roomId={roomId}
-                roomReadable={roomReadable}
+                roomName={roomName}
                 userId={userId}
                 username={username}
                 logger={logger}

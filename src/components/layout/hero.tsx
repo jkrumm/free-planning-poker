@@ -2,7 +2,7 @@ import { Button, Container, Text } from "@mantine/core";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-export function Hero(props: { withDescription?: true; full?: true }) {
+export function Hero(props: { full?: true }) {
   const router = useRouter();
 
   // which page are we on
@@ -87,20 +87,6 @@ export function Hero(props: { withDescription?: true; full?: true }) {
               </Link>
             </nav>
           </>
-        )}
-        {props.withDescription && (
-          <Text className={`mt-12 text-center text-[22px]`}>
-            <p>
-              Say goodbye to complicated and expensive planning poker tools with
-              this
-              <br className="hidden md:block" />
-              user-friendly app. Based on the Fibonacci sequence for story point
-              estimation,
-              <br className="hidden md:block" />
-              this tool is suitable for any agile project management needs,
-              whether you use Scrum, Kanban, or your own custom Jira workflow.
-            </p>
-          </Text>
         )}
       </Container>
     </header>

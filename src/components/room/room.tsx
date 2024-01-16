@@ -7,13 +7,13 @@ import { useRoomState } from "fpp/hooks/use-room-state.hook";
 
 export const Room = ({
   roomId,
-  roomReadable,
+  roomName,
   userId,
   username,
   logger,
 }: {
   roomId: number;
-  roomReadable: string;
+  roomName: string;
   userId: string;
   username: string;
   logger: Logger;
@@ -38,7 +38,7 @@ export const Room = ({
       <Table roomId={roomId} userId={userId} logger={logger} />
       <Interactions
         roomId={roomId}
-        roomReadable={roomReadable}
+        roomName={roomName}
         userId={userId}
         logger={logger}
       />

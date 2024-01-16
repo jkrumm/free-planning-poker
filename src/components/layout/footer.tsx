@@ -2,16 +2,16 @@ import Link from "next/link";
 
 const links = [
   {
-    url: "/imprint",
-    title: "Imprint & Privacy Policy",
-  },
-  {
     url: "/analytics",
     title: "Analytics",
   },
   {
     url: "/contact",
     title: "Contact",
+  },
+  {
+    url: "/imprint",
+    title: "Imprint & Privacy Policy",
   },
 ];
 
@@ -38,6 +38,15 @@ export function Footer() {
           </Link>
         </div>
         <div className="hidden w-1/2 flex-row items-end justify-end lg:flex ">
+          {links.map((link) => (
+            <Link
+              href={link.url}
+              key={link.url}
+              className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+            >
+              {link.title}
+            </Link>
+          ))}
           <a
             href="https://paypal.me/johanneskrum"
             target="_blank"
@@ -54,15 +63,6 @@ export function Footer() {
           >
             GitHub
           </a>
-          {links.map((link) => (
-            <Link
-              href={link.url}
-              key={link.url}
-              className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
-            >
-              {link.title}
-            </Link>
-          ))}
         </div>
       </div>
     </footer>

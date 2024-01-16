@@ -4,6 +4,7 @@ import {
   type roomStateStatus,
   type User,
 } from "fpp/server/room-state/room-state.entity";
+import { notifyOnRoomStateChanges } from "fpp/server/room-state/room-state.utils";
 
 type RoomStateStore = {
   // User
@@ -17,8 +18,8 @@ type RoomStateStore = {
   isAutoFlip: boolean;
   status: keyof typeof roomStateStatus;
   // Interactions
-  isConnecting: boolean;
-  setIsConnecting: (isConnecting: boolean) => void;
+  connectedAt: number | null;
+  setConnectedAt: () => void;
   update: (roomState: RoomStateClient) => void;
   reset: () => void;
 };
@@ -39,10 +40,22 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   stackedEstimations: [],
   averageEstimation: null,
   // Initial Connection
-  isConnecting: true,
-  setIsConnecting: (isConnecting) => set({ isConnecting }),
+  connectedAt: null,
+  setConnectedAt: () => set({ connectedAt: Date.now() }),
   // Interactions
   update: (roomState: RoomStateClient) => {
+    notifyOnRoomStateChanges({
+      newRoomState: {
+        users: roomState.users,
+        isAutoFlip: roomState.isAutoFlip,
+      },
+      oldRoomState: {
+        users: get().users,
+        isAutoFlip: get().isAutoFlip,
+      },
+      userId: get().userId,
+      connectedAt: get().connectedAt,
+    });
     const user = roomState.getUser(get().userId);
     set({
       // User
@@ -66,7 +79,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       isAutoFlip: false,
       status: "estimating",
       // Interactions
-      isConnecting: true,
+      connectedAt: null,
     });
   },
 }));

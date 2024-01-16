@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import * as Sentry from "@sentry/nextjs";
+import { RoomEvent } from "fpp/server/db/schema";
 
 function saveToLocalstorage(key: string, value: string) {
   if (typeof window == "undefined") {
@@ -30,15 +31,17 @@ interface LocalstorageStore {
   voting: number | null;
   isSpectator: boolean;
   roomId: number | null;
-  roomReadable: string | null;
+  roomName: string | null;
   recentRoom: string | null;
+  roomEvent: keyof typeof RoomEvent;
   userId: string | null;
   setUsername: (username: string) => void;
   setVoting: (voting: number | null) => void;
   setIsSpectator: (spectator: boolean) => void;
   setRoomId: (room: number | null) => void;
-  setRoomReadable: (room: string | null) => void;
+  setRoomName: (room: string | null) => void;
   setRecentRoom: (room: string | null) => void;
+  setRoomEvent: (roomEvent: keyof typeof RoomEvent) => void;
   setUserId: (userId: string) => void;
 }
 
@@ -49,8 +52,9 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     : null,
   isSpectator: getFromLocalstorage("isSpectator") === "true",
   roomId: getIntFromLocalstorage("roomId"),
-  roomReadable: getFromLocalstorage("roomReadableId"),
+  roomName: getFromLocalstorage("roomName"),
   recentRoom: getFromLocalstorage("recentRoom"),
+  roomEvent: RoomEvent.ENTERED_ROOM_DIRECTLY,
   userId: (() => {
     const userId = getFromLocalstorage("userId");
     // TODO: remove this after a while (2023-12-08)
@@ -101,22 +105,22 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     saveToLocalstorage("roomId", String(roomId));
     set({ roomId });
   },
-  setRoomReadable: (roomReadable: string | null) => {
-    if (!roomReadable) {
-      localStorage.removeItem("roomReadable");
-      set({ roomReadable: null });
+  setRoomName: (roomName: string | null) => {
+    if (!roomName) {
+      localStorage.removeItem("roomName");
+      set({ roomName: null });
       return;
     }
 
-    roomReadable = roomReadable.replace(/[^A-Za-z0-9]/g, "");
+    roomName = roomName.replace(/[^A-Za-z0-9]/g, "");
 
-    if (roomReadable.length < 3) {
+    if (roomName.length < 3) {
       throw new Error("room too short");
     }
 
-    roomReadable = roomReadable.slice(0, 15).toLowerCase();
-    saveToLocalstorage("roomReadable", roomReadable);
-    set({ roomReadable });
+    roomName = roomName.slice(0, 15).toLowerCase();
+    saveToLocalstorage("roomName", roomName);
+    set({ roomName });
   },
   setRecentRoom: (recentRoom: string | null) => {
     if (!recentRoom) {
@@ -134,6 +138,9 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     recentRoom = recentRoom.slice(0, 15).toLowerCase();
     saveToLocalstorage("recentRoom", recentRoom);
     set({ recentRoom });
+  },
+  setRoomEvent: (roomEvent: keyof typeof RoomEvent) => {
+    set({ roomEvent });
   },
   setUserId: (userId: string) => {
     if (get().userId === userId) {
