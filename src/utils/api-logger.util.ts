@@ -103,12 +103,6 @@ export function withLogger(handler: NextHandler) {
 
       const e = error as BaseError;
 
-      console.error("EEROR:", {
-        name: e?.name,
-        stack: e?.stack,
-        message: e?.message,
-      });
-
       let errorLogPayload = {
         ...report,
         ...reportExtension,

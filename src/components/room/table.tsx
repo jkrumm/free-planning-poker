@@ -5,6 +5,14 @@ import { api } from "fpp/utils/api";
 import { type Logger } from "next-axiom";
 import { useRoomStateStore } from "fpp/store/room-state.store";
 import { Button } from "@mantine/core";
+import {
+  roomStateStatus,
+  type User,
+} from "fpp/server/room-state/room-state.entity";
+import {
+  getAverageFromUsers,
+  getStackedEstimationsFromUsers,
+} from "fpp/server/room-state/room-state.utils";
 
 export const Table = ({
   roomId,
@@ -16,57 +24,22 @@ export const Table = ({
   logger: Logger;
 }) => {
   const users = useRoomStateStore((store) => store.users);
-  const isFlipped = useRoomStateStore((store) => store.isFlipped);
-  const isFlippable = useRoomStateStore((store) => store.isFlippable);
-  const averageEstimation = useRoomStateStore(
-    (store) => store.averageEstimation,
-  );
-  const stackedEstimations = useRoomStateStore(
-    (store) => store.stackedEstimations,
-  );
-
-  const flipMutation = api.roomState.flip.useMutation();
+  const status = useRoomStateStore((store) => store.status);
 
   return (
     <div className="table">
       <div className="card-place">
-        {isFlipped && (
-          <>
-            {stackedEstimations.slice(0, 4).map((item, index) => (
-              <div key={index} className={`card-wrapper amount-${item.amount}`}>
-                {(function () {
-                  const cards = [];
-                  for (let i = 0; i < item.amount; i++) {
-                    cards.push(
-                      <div className="card" key={i}>
-                        {item.number}
-                      </div>,
-                    );
-                  }
-                  return cards;
-                })()}
-              </div>
-            ))}
-            <div className="average">{averageEstimation}</div>
-          </>
-        )}
-        {!isFlipped && !isFlippable && <div className="vote">VOTE</div>}
-        {!isFlipped && isFlippable && (
-          <div className="relative flex h-full w-full items-center justify-center">
-            <Button
-              size="lg"
-              className="center"
-              onClick={() => {
-                flipMutation.mutate({
-                  roomId,
-                  userId,
-                });
-              }}
-            >
-              Show Votes
-            </Button>
-          </div>
-        )}
+        {(function () {
+          switch (status) {
+            case roomStateStatus.flipped:
+              return <StackedEstimations users={users} />;
+            case roomStateStatus.flippable:
+              return <ShowVotesButton roomId={roomId} userId={userId} />;
+            case roomStateStatus.estimating:
+            default:
+              return <div className="vote">VOTE</div>;
+          }
+        })()}
       </div>
 
       <div className="players">
@@ -76,7 +49,11 @@ export const Table = ({
             <div className={`name ${user.id === userId && "font-bold"}`}>
               {user.name}
             </div>
-            <div className={`card ${isFlipped && "flipped"} ${user.status}`}>
+            <div
+              className={`card ${roomStateStatus.flipped && "flipped"} ${
+                user.status
+              }`}
+            >
               {user.estimation}
             </div>
           </div>
@@ -85,3 +62,53 @@ export const Table = ({
     </div>
   );
 };
+
+function StackedEstimations({ users }: { users: User[] }) {
+  return (
+    <>
+      {getStackedEstimationsFromUsers(users).map((item, index) => (
+        <div key={index} className={`card-wrapper amount-${item.amount}`}>
+          {(function () {
+            const cards = [];
+            for (let i = 0; i < item.amount; i++) {
+              cards.push(
+                <div className="card" key={i}>
+                  {item.number}
+                </div>,
+              );
+            }
+            return cards;
+          })()}
+        </div>
+      ))}
+      <div className="average">{getAverageFromUsers(users)}</div>
+    </>
+  );
+}
+
+function ShowVotesButton({
+  roomId,
+  userId,
+}: {
+  roomId: number;
+  userId: string;
+}) {
+  const flipMutation = api.roomState.flip.useMutation();
+
+  return (
+    <div className="relative flex h-full w-full items-center justify-center">
+      <Button
+        size="lg"
+        className="center"
+        onClick={() => {
+          flipMutation.mutate({
+            roomId,
+            userId,
+          });
+        }}
+      >
+        Show Votes
+      </Button>
+    </div>
+  );
+}

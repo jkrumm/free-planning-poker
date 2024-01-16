@@ -3,6 +3,11 @@ import { RoomStateServer } from "fpp/server/room-state/room-state.entity";
 import { Redis } from "@upstash/redis";
 import { type PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless/driver";
 import { estimations, votes } from "fpp/server/db/schema";
+import {
+  getICreateVoteFromRoomState,
+  publishWebSocketEvent,
+} from "fpp/server/room-state/room-state.utils";
+import { TRPCError } from "@trpc/server";
 
 const redis = new Redis({
   url: env.UPSTASH_REDIS_REST_URL_ROOM_STATE,
@@ -15,7 +20,7 @@ export async function getRoomStateOrFail(
   const roomState = await redis.get<RoomStateServer>(`room:${roomId}`);
 
   if (!roomState) {
-    throw new Error(`Room ${roomId} not found`);
+    throw new TRPCError({ message: `Room not found`, code: "NOT_FOUND" });
   }
 
   return RoomStateServer.fromJson(roomState);
@@ -56,9 +61,14 @@ export async function setRoomState({
 
   if (roomState.isFlipAction) {
     if (!db) {
-      throw new Error("Cannot flip without a database connection");
+      throw new TRPCError({
+        message: `Cannot flip without a database connection`,
+        code: "INTERNAL_SERVER_ERROR",
+      });
     }
-    promises.push(db.insert(votes).values(roomState.calculateVote()));
+    promises.push(
+      db.insert(votes).values(getICreateVoteFromRoomState(roomState)),
+    );
     for (const user of roomState.users) {
       promises.push(
         db.insert(estimations).values({
@@ -77,31 +87,16 @@ export async function setRoomState({
     roomState.lastUpdated = Date.now();
     promises.push(
       redis.set(`room:${roomId}`, roomState, { ex: 60 * 5 }),
-      fetch(`https://rest.ably.io/channels/room:${roomId}/messages`, {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${env.ABLY_API_KEY_BASE64}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: "room-state",
-          clientId: userId,
-          data: roomState.toJson(),
-        }),
-      }).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to publish message to Ably: ${res.status}`);
-        }
-      }),
+      publishWebSocketEvent({ roomState, userId }),
     );
-
-    await Promise.allSettled(promises);
-    return;
   }
 
   // If the room state hasn't changed in the last 5 minutes minus 20 seconds, we extend the expiration time
   // TODO: close the room after 5 minutes of inactivity
-  if (roomState.lastUpdated > Date.now() - 1000 * 60 * 5 - 1000 * 20) {
+  if (
+    !roomState.hasChanged &&
+    roomState.lastUpdated > Date.now() - 1000 * 60 * 5 - 1000 * 20
+  ) {
     promises.push(redis.expire(`room:${roomId}`, 60 * 5));
   }
 

@@ -352,7 +352,7 @@ h2 span {
   background-color: rgb(224, 49, 49);
 }
 
-.players .player .avatar.voted {
+.players .player .avatar.estimated {
   background-color: rgb(47, 158, 68);
 }
 
@@ -618,7 +618,7 @@ h2 span {
   background-size: 12px 12px;
 }
 
-.card.flipped.voted:after {
+.card.flipped.estimated:after {
   border-color: rgb(47, 158, 68);
   background-size: 12px 12px;
 }

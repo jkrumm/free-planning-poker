@@ -1,4 +1,4 @@
-import { type ICreateVote } from "fpp/server/db/schema";
+import { TRPCError } from "@trpc/server";
 
 export interface CreateUserDto {
   id: string;
@@ -7,14 +7,25 @@ export interface CreateUserDto {
   isSpectator: boolean;
 }
 
+export const roomStateStatus = {
+  estimating: "estimating",
+  flippable: "flippable",
+  flipped: "flipped",
+} as const;
+
+export const userStatus = {
+  pending: "pending",
+  estimated: "estimated",
+  spectator: "spectator",
+} as const;
+
 export interface RoomStateDto {
   id: number;
   startedAt: number;
   lastUpdated: number;
   users: CreateUserDto[];
-  isFlipped: boolean;
   isAutoFlip: boolean;
-  isFlippable: boolean;
+  status: keyof typeof roomStateStatus;
 }
 
 export class User {
@@ -23,14 +34,14 @@ export class User {
   estimation: number | null = null;
   isSpectator: boolean;
 
-  get status(): "spectator" | "voted" | "pending" {
+  get status(): keyof typeof userStatus {
     if (this.isSpectator) {
-      return "spectator";
+      return userStatus.spectator;
     }
     if (this.estimation) {
-      return "voted";
+      return userStatus.estimated;
     }
-    return "pending";
+    return userStatus.pending;
   }
 
   constructor({ id, name, estimation, isSpectator }: CreateUserDto) {
@@ -60,15 +71,14 @@ class RoomStateBase {
     );
   }
 
-  getUser(userId: string | null) {
-    if (!userId) {
-      throw new Error(`User not found - userId not given`);
+  get status(): keyof typeof roomStateStatus {
+    if (this.isFlipped) {
+      return roomStateStatus.flipped;
     }
-    const user = this.users.find((user) => user.id === userId);
-    if (!user) {
-      throw new Error(`User not found - userId ${userId} not found`);
+    if (this.isFlippable) {
+      return roomStateStatus.flippable;
     }
-    return user;
+    return roomStateStatus.estimating;
   }
 
   constructor(id: number) {
@@ -79,14 +89,14 @@ class RoomStateBase {
 
   static fromJson<T extends RoomStateBase>(
     this: new (id: number) => T,
-    roomStateJson: RoomStateDto,
+    roomStateDto: RoomStateDto,
   ) {
-    const roomState = new this(roomStateJson.id);
-    roomState.startedAt = roomStateJson.startedAt;
-    roomState.lastUpdated = roomStateJson.lastUpdated;
-    roomState.users = roomStateJson.users.map((user) => new User(user));
-    roomState.isFlipped = roomStateJson.isFlipped;
-    roomState.isAutoFlip = roomStateJson.isAutoFlip;
+    const roomState = new this(roomStateDto.id);
+    roomState.startedAt = roomStateDto.startedAt;
+    roomState.lastUpdated = roomStateDto.lastUpdated;
+    roomState.users = roomStateDto.users.map((user) => new User(user));
+    roomState.isFlipped = roomStateDto.status === roomStateStatus.flipped;
+    roomState.isAutoFlip = roomStateDto.isAutoFlip;
     return roomState;
   }
 
@@ -96,39 +106,22 @@ class RoomStateBase {
       startedAt: this.startedAt,
       lastUpdated: this.lastUpdated,
       users: this.users,
-      isFlipped: this.isFlipped,
       isAutoFlip: this.isAutoFlip,
-      isFlippable: this.isFlippable,
+      status: this.status,
     };
   }
 }
 
 export class RoomStateClient extends RoomStateBase {
-  calculateAverage(): number {
-    const estimations = this.users
-      .filter((user) => user.estimation !== null)
-      .map((user) => user.estimation) as number[];
-    if (estimations.length === 0) {
-      throw new Error("Cannot calculate average when no estimations");
+  getUser(userId: string | null) {
+    if (!userId) {
+      throw new Error(`User not found - userId not given`);
     }
-    return (
-      estimations.reduce((sum, estimation) => sum + estimation, 0) /
-      estimations.length
-    );
-  }
-
-  stackEstimations(): { number: number; amount: number }[] {
-    const voting: { number: number; amount: number }[] = [];
-    this.users.forEach((item) => {
-      if (!item.estimation) return;
-      const index = voting.findIndex((v) => v.number === item.estimation);
-      if (index === -1) {
-        voting.push({ number: item.estimation, amount: 1 });
-      } else {
-        voting[index]!.amount++;
-      }
-    });
-    return voting.slice(0, this.calculateAverage() > 9 ? 3 : 4);
+    const user = this.users.find((user) => user.id === userId);
+    if (!user) {
+      throw new Error(`User not found - userId ${userId} not found`);
+    }
+    return user;
   }
 }
 
@@ -144,10 +137,6 @@ export class RoomStateServer extends RoomStateBase {
       this.users.push(new User(user));
       this.hasChanged = true;
     }
-  }
-
-  getUserIds() {
-    return this.users.map((user) => user.id);
   }
 
   removeUser(userId: string) {
@@ -186,7 +175,10 @@ export class RoomStateServer extends RoomStateBase {
 
   flip() {
     if (!this.isFlippable) {
-      throw new Error("Cannot flip when not flippable");
+      throw new TRPCError({
+        message: "Cannot flip when not flippable",
+        code: "INTERNAL_SERVER_ERROR",
+      });
     }
     this.isFlipped = true;
     this.hasChanged = true;
@@ -214,33 +206,5 @@ export class RoomStateServer extends RoomStateBase {
     });
     this.isFlipped = false;
     this.hasChanged = true;
-  }
-
-  /**
-   * ANALYTICS
-   */
-  calculateVote(): ICreateVote {
-    const estimations = this.users
-      .map((user) => user.estimation)
-      .filter((estimation) => estimation !== null) as number[];
-    if (estimations.length === 0) {
-      throw new Error("Cannot calculateCreateVote when no estimations");
-    }
-
-    return {
-      roomId: this.id,
-      avgEstimation: String(
-        estimations.reduce((a, b) => a + b, 0) / estimations.length,
-      ),
-      maxEstimation: String(
-        estimations.reduce((a, b) => Math.max(a, b), 1),
-      ) as unknown as number,
-      minEstimation: String(
-        estimations.reduce((a, b) => Math.min(a, b), 21),
-      ) as unknown as number,
-      amountOfEstimations: String(estimations.length) as unknown as number,
-      amountOfSpectators: this.users.filter((user) => user.isSpectator).length,
-      duration: Math.ceil((Date.now() - this.startedAt) / 1000),
-    };
   }
 }

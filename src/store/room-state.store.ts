@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   type RoomStateClient,
+  type roomStateStatus,
   type User,
 } from "fpp/server/room-state/room-state.entity";
 
@@ -13,11 +14,8 @@ type RoomStateStore = {
   // Game State
   users: User[];
   startedAt: number | null;
-  isFlipped: boolean;
-  isFlippable: boolean;
   isAutoFlip: boolean;
-  stackedEstimations: { number: number; amount: number }[];
-  averageEstimation: number | null;
+  status: keyof typeof roomStateStatus;
   // Interactions
   isConnecting: boolean;
   setIsConnecting: (isConnecting: boolean) => void;
@@ -37,31 +35,25 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   isFlipped: false,
   isFlippable: false,
   isAutoFlip: false,
+  status: "estimating",
   stackedEstimations: [],
   averageEstimation: null,
   // Initial Connection
   isConnecting: true,
   setIsConnecting: (isConnecting) => set({ isConnecting }),
   // Interactions
-  update: (roomStateClient: RoomStateClient) => {
-    const user = roomStateClient.getUser(get().userId);
+  update: (roomState: RoomStateClient) => {
+    const user = roomState.getUser(get().userId);
     set({
       // User
       estimation: user.estimation,
       isSpectator: user.isSpectator,
       // Game State
-      users: roomStateClient.users,
-      startedAt: roomStateClient.startedAt,
-      isFlipped: roomStateClient.isFlipped,
-      isFlippable: roomStateClient.isFlippable,
-      isAutoFlip: roomStateClient.isAutoFlip,
+      users: roomState.users,
+      startedAt: roomState.startedAt,
+      isAutoFlip: roomState.isAutoFlip,
+      status: roomState.status,
     });
-    if (roomStateClient.isFlipped) {
-      set({
-        stackedEstimations: roomStateClient.stackEstimations(),
-        averageEstimation: roomStateClient.calculateAverage(),
-      });
-    }
   },
   reset: () => {
     set({
@@ -71,10 +63,8 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       // Game State
       users: [],
       startedAt: null,
-      isFlipped: false,
       isAutoFlip: false,
-      stackedEstimations: [],
-      averageEstimation: null,
+      status: "estimating",
       // Interactions
       isConnecting: true,
     });

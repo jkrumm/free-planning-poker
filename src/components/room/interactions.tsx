@@ -9,6 +9,7 @@ import { RouteType } from "fpp/server/db/schema";
 import { useRoomStateStore } from "fpp/store/room-state.store";
 import { useLocalstorageStore } from "fpp/store/local-storage.store";
 import { api } from "fpp/utils/api";
+import { roomStateStatus } from "fpp/server/room-state/room-state.entity";
 
 export const Interactions = ({
   roomId,
@@ -37,7 +38,7 @@ export const Interactions = ({
   const leaveMutation = api.roomState.leave.useMutation();
 
   // Room state
-  const isFlipped = useRoomStateStore((store) => store.isFlipped);
+  const status = useRoomStateStore((store) => store.status);
   const resetMutation = api.roomState.reset.useMutation();
   const isAutoFlip = useRoomStateStore((store) => store.isAutoFlip);
   const autoFlipMutation = api.roomState.autoFlip.useMutation();
@@ -92,7 +93,9 @@ export const Interactions = ({
           </Button>
           <div>
             <Button
-              variant={isFlipped ? "filled" : "default"}
+              variant={
+                status === roomStateStatus.flipped ? "filled" : "default"
+              }
               className={"mr-5"}
               onClick={() => {
                 resetMutation.mutate({
@@ -101,7 +104,7 @@ export const Interactions = ({
                 });
               }}
             >
-              {isFlipped ? "New Round" : "Reset"}
+              {status === roomStateStatus.flipped ? "New Round" : "Reset"}
             </Button>
             <Button
               variant={"default"}
@@ -133,7 +136,7 @@ export const Interactions = ({
           <Button.Group className="w-full">
             {fibonacciSequence.map((number) => (
               <Button
-                disabled={isSpectator || isFlipped}
+                disabled={isSpectator || status === roomStateStatus.flipped}
                 variant={estimation === number ? "filled" : "default"}
                 size={"lg"}
                 fullWidth
@@ -155,7 +158,7 @@ export const Interactions = ({
       <div className="switch-bar">
         <Switch
           className="mb-2 cursor-pointer"
-          disabled={isFlipped}
+          disabled={status === roomStateStatus.flipped}
           label="Spectator"
           checked={isSpectator}
           onChange={(event) => {
