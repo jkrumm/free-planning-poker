@@ -56,7 +56,7 @@ export const roomStateRouter = createTRPCRouter({
     .input(z.object({ roomId: z.number(), userId: z.string() }))
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
-      const userIds = roomState.getUserIds();
+      const userIds = roomState.users.map((user) => user.id);
 
       const activeUserIds = await getActiveUserIds(userIds);
       if (!activeUserIds.includes(userId)) {
@@ -64,7 +64,7 @@ export const roomStateRouter = createTRPCRouter({
       }
 
       if (activeUserIds.length !== userIds.length) {
-        for (const userId of roomState.getUserIds()) {
+        for (const userId of userIds) {
           if (!activeUserIds.includes(userId)) {
             roomState.removeUser(userId);
           }

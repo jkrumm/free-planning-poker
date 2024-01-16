@@ -53,12 +53,12 @@ const trpcErrorHandler = ({
     });
 
     if (env.NEXT_PUBLIC_NODE_ENV === "production") {
-      return new TRPCError({
+      throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Internal Server Error",
       });
     } else {
-      return error;
+      throw error;
     }
   }
   console.warn("TRPC ERROR", { ...inputObj, ...errorObj });

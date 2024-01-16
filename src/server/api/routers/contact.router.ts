@@ -2,7 +2,7 @@ import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
 import { z } from "zod";
 import { featureFlags, FeatureFlagType } from "fpp/server/db/schema";
 import { eq } from "drizzle-orm";
-import { NotImplementedError } from "fpp/constants/error.constant";
+import { TRPCError } from "@trpc/server";
 
 export const contactRouter = createTRPCRouter({
   sendMail: publicProcedure
@@ -19,11 +19,12 @@ export const contactRouter = createTRPCRouter({
         .select()
         .from(featureFlags)
         .where(eq(featureFlags.name, FeatureFlagType.CONTACT_FORM))
-        .get();
-      if (!featureFlagEntry?.enabled) {
-        throw new NotImplementedError(
-          "CONTACT_FORM feature flag is not enabled",
-        );
+        .execute();
+      if (!featureFlagEntry[0]?.enabled) {
+        throw new TRPCError({
+          message: "CONTACT_FORM feature flag is not enabled",
+          code: "NOT_IMPLEMENTED",
+        });
       }
 
       // const mailData = {

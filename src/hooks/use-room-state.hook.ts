@@ -38,8 +38,8 @@ export const useRoomState = ({
         isSpectator,
       },
       {
-        onSuccess: (roomStateJson) => {
-          updateRoomState(RoomStateClient.fromJson(roomStateJson));
+        onSuccess: (roomStateDto) => {
+          updateRoomState(RoomStateClient.fromJson(roomStateDto));
           setIsConnecting(false);
         },
       },
