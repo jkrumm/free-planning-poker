@@ -1,22 +1,31 @@
-import React, { Suspense } from "react";
-import { api } from "fpp/utils/api";
-import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { Card, Collapse, Group, SimpleGrid, Text, Title } from "@mantine/core";
-import { RouteType } from "fpp/server/db/schema";
-import { Meta } from "fpp/components/meta";
-import { Hero } from "fpp/components/layout/hero";
-import { type Todo } from "fpp/server/api/routers/roadmap.router";
-import { useDisclosure } from "@mantine/hooks";
-import { IconArrowBadgeDownFilled } from "@tabler/icons-react";
-import { useLogger } from "next-axiom";
-import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { appRouter } from "fpp/server/api/root";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { createTRPCContext } from "fpp/server/api/trpc";
-import superjson from "superjson";
-import { logMsg } from "fpp/constants/logging.constant";
-import * as Sentry from "@sentry/nextjs";
-import dynamic from "next/dynamic";
+import React, { Suspense } from 'react';
+
+import dynamic from 'next/dynamic';
+
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
+
+import { Card, Collapse, Group, SimpleGrid, Text, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+
+import * as Sentry from '@sentry/nextjs';
+import { IconArrowBadgeDownFilled } from '@tabler/icons-react';
+import { useLogger } from 'next-axiom';
+import superjson from 'superjson';
+
+import { logMsg } from 'fpp/constants/logging.constant';
+
+import { api } from 'fpp/utils/api';
+
+import { appRouter } from 'fpp/server/api/root';
+import { type Todo } from 'fpp/server/api/routers/roadmap.router';
+import { createTRPCContext } from 'fpp/server/api/trpc';
+import { RouteType } from 'fpp/server/db/schema';
+
+import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import { Hero } from 'fpp/components/layout/hero';
+import { Meta } from 'fpp/components/meta';
 
 export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
   const helpers = createServerSideHelpers({
@@ -90,7 +99,7 @@ const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
   );
 };
 
-const Markdown = dynamic(() => import("fpp/components/markdown"), {
+const Markdown = dynamic(() => import('fpp/components/markdown'), {
   ssr: false,
 });
 
@@ -105,7 +114,7 @@ const RoadmapCard = ({
 
   return (
     <Card p={0} withBorder radius="sm" className="mb-3">
-      {description === "" ? (
+      {description === '' ? (
         <div className="p-2">
           <Text>{title}</Text>
         </div>
@@ -122,8 +131,8 @@ const RoadmapCard = ({
                 size={26}
                 style={{
                   opacity: 0.5,
-                  transition: "transform 300ms ease",
-                  transform: opened ? "rotate(180deg)" : "rotate(0)",
+                  transition: 'transform 300ms ease',
+                  transform: opened ? 'rotate(180deg)' : 'rotate(0)',
                 }}
               />
               <Text>{title}</Text>

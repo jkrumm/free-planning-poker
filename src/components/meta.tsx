@@ -1,6 +1,8 @@
-import Head from "next/head";
-import React from "react";
-import { ColorSchemeScript } from "@mantine/core";
+import React from 'react';
+
+import Head from 'next/head';
+
+import { ColorSchemeScript } from '@mantine/core';
 
 export const Meta = ({
   title,
@@ -16,11 +18,11 @@ export const Meta = ({
         content="Estimate your story points faster than ever. Free agile scrum sprint planning poker app based on fibanocci. Open source and privacy focused."
       />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <meta name="robots" content={robots ?? "all"} />
+      <meta name="robots" content={robots ?? 'all'} />
       <title>
         {title
           ? `Free Planning Poker - ${title}`
-          : "Free Planning Poker | Estimate story points fast"}
+          : 'Free Planning Poker | Estimate story points fast'}
       </title>
       <meta
         property="og:description"

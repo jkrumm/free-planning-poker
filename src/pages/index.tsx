@@ -1,17 +1,23 @@
-import React, { lazy, Suspense } from "react";
-import { type NextPage } from "next";
-import { Alert, Text, Title } from "@mantine/core";
-import PointsTable from "fpp/components/index/points-table";
-import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { Meta } from "fpp/components/meta";
-import { useLogger } from "next-axiom";
-import { IconAlertCircle } from "@tabler/icons-react";
-import { RouteType } from "fpp/server/db/schema";
-import IndexFormSkeleton from "fpp/components/index/form-skeleton";
-import Image from "next/image";
-import { Hero } from "fpp/components/layout/hero";
+import React, { Suspense, lazy } from 'react';
 
-const IndexForm = lazy(() => import("fpp/components/index/form"));
+import { type NextPage } from 'next';
+import Image from 'next/image';
+
+import { Alert, Text, Title } from '@mantine/core';
+
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useLogger } from 'next-axiom';
+
+import { RouteType } from 'fpp/server/db/schema';
+
+import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import IndexFormSkeleton from 'fpp/components/index/form-skeleton';
+import PointsTable from 'fpp/components/index/points-table';
+import { Hero } from 'fpp/components/layout/hero';
+import { Meta } from 'fpp/components/meta';
+
+const IndexForm = lazy(() => import('fpp/components/index/form'));
 
 const Home: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.HOME });
@@ -57,7 +63,7 @@ const Home: NextPage = () => {
             className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
             alt="Picture of the free planning poker app ui"
             placeholder="blur"
-            blurDataURL={"/fpp_screenshot.png"}
+            blurDataURL={'/fpp_screenshot.png'}
             priority={true}
           />
         </div>
@@ -74,10 +80,10 @@ const Home: NextPage = () => {
               <Title order={3}>The Essence of Planning Poker</Title>
 
               <Text component="p">
-                At the core of Agile methodologies such as{" "}
+                At the core of Agile methodologies such as{' '}
                 <b>Scrum, Kanban, and Jira</b> lies the principle of iterative
                 development and efficient task estimation. One of the most
-                popular estimation techniques used across these methods is{" "}
+                popular estimation techniques used across these methods is{' '}
                 <b>Planning Poker</b>, which combines collective intelligence,
                 game theory, and the Fibonacci sequence to provide accurate and
                 reasonable workload estimations.

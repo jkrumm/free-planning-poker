@@ -1,10 +1,15 @@
-import { useEffect } from "react";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { env } from "fpp/env.mjs";
-import { logEndpoint } from "fpp/constants/logging.constant";
-import { type Logger } from "next-axiom";
-import * as Sentry from "@sentry/nextjs";
-import { type RouteType } from "fpp/server/db/schema";
+import { useEffect } from 'react';
+
+import { env } from 'fpp/env.mjs';
+
+import * as Sentry from '@sentry/nextjs';
+import { type Logger } from 'next-axiom';
+
+import { logEndpoint } from 'fpp/constants/logging.constant';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+
+import { type RouteType } from 'fpp/server/db/schema';
 
 export const useTrackPageView = (
   route: keyof typeof RouteType,
@@ -60,7 +65,7 @@ export const sendTrackPageView = ({
         withBeacon: true,
       });
     } else {
-      fetch(url, { body, method: "POST", keepalive: true })
+      fetch(url, { body, method: 'POST', keepalive: true })
         .then((res) => res.json() as Promise<{ userId: string }>)
         .then(({ userId }) => {
           setUserIdLocalStorage(userId);

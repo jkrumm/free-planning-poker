@@ -1,26 +1,30 @@
-import { NextRequest, NextResponse, userAgent } from "next/server";
+import { NextRequest, NextResponse, userAgent } from 'next/server';
+
+import { eq } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+import { type AxiomRequest } from 'next-axiom';
+
 import {
   BadRequestError,
-  log,
   MethodNotAllowedError,
-} from "fpp/constants/error.constant";
-import { type AxiomRequest } from "next-axiom";
-import { withLogger } from "fpp/utils/api-logger.util";
-import { decodeBlob } from "fpp/utils/decode.util";
-import { logEndpoint } from "fpp/constants/logging.constant";
-import db from "fpp/server/db/db";
-import { pageViews, RouteType, users } from "fpp/server/db/schema";
-import { eq } from "drizzle-orm";
-import { nanoid } from "nanoid";
+  log,
+} from 'fpp/constants/error.constant';
+import { logEndpoint } from 'fpp/constants/logging.constant';
 
-export const runtime = "edge";
-export const preferredRegion = "fra1";
+import { withLogger } from 'fpp/utils/api-logger.util';
+import { decodeBlob } from 'fpp/utils/decode.util';
+
+import db from 'fpp/server/db/db';
+import { RouteType, pageViews, users } from 'fpp/server/db/schema';
+
+export const runtime = 'edge';
+export const preferredRegion = 'fra1';
 
 const TrackPageView = withLogger(async (req: AxiomRequest) => {
   req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });
-  if (req.method !== "POST") {
+  if (req.method !== 'POST') {
     throw new MethodNotAllowedError(
-      "TRACK_PAGE_VIEW only accepts POST requests",
+      'TRACK_PAGE_VIEW only accepts POST requests',
     );
   }
 
@@ -36,7 +40,7 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
   }
 
   if (RouteType[route] === undefined) {
-    throw new BadRequestError("invalid route");
+    throw new BadRequestError('invalid route');
   }
 
   userId = !userId || userId.length !== 21 ? nanoid() : userId;
@@ -67,15 +71,15 @@ export const getVisitorPayload = (req: AxiomRequest) => {
     const ua = userAgent(req);
 
     if (!ua.browser || !ua.os) {
-      log.warn("userAgent undefined", {
+      log.warn('userAgent undefined', {
         browser: ua?.browser?.name ?? null,
-        device: ua?.device?.type ?? "desktop",
+        device: ua?.device?.type ?? 'desktop',
         os: ua?.os?.name ?? null,
       });
     }
 
     if (!req?.geo?.country || !req?.geo?.region || !req?.geo?.city) {
-      log.warn("geo undefined", {
+      log.warn('geo undefined', {
         country: req?.geo?.country ?? null,
         region: req?.geo?.region ?? null,
         city: req?.geo?.city ?? null,
@@ -90,7 +94,7 @@ export const getVisitorPayload = (req: AxiomRequest) => {
 
     return {
       browser: ua?.browser?.name ?? null,
-      device: ua.isBot ? "bot" : ua?.device?.type ?? "desktop",
+      device: ua.isBot ? 'bot' : ua?.device?.type ?? 'desktop',
       os: ua?.os?.name ?? null,
       city: geo?.city ?? null,
       country: geo?.country ?? null,
@@ -99,7 +103,7 @@ export const getVisitorPayload = (req: AxiomRequest) => {
   }
   return {
     browser: null,
-    device: "desktop",
+    device: 'desktop',
     os: null,
     city: null,
     country: null,

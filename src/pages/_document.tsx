@@ -1,7 +1,10 @@
-import { createGetInitialProps } from "@mantine/next";
-import Document, { Head, Html, Main, NextScript } from "next/document";
-import Footer from "fpp/components/layout/footer";
-import React from "react";
+import React from 'react';
+
+import Document, { Head, Html, Main, NextScript } from 'next/document';
+
+import { createGetInitialProps } from '@mantine/next';
+
+import Footer from 'fpp/components/layout/footer';
 
 const getInitialProps = createGetInitialProps();
 

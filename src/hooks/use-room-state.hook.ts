@@ -1,13 +1,17 @@
-import { type Logger } from "next-axiom";
-import { useChannel } from "ably/react";
-import { useRoomStateStore } from "fpp/store/room-state.store";
+import { useEffect } from 'react';
+
+import { useChannel } from 'ably/react';
+import { type Logger } from 'next-axiom';
+
+import { api } from 'fpp/utils/api';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+import { useRoomStateStore } from 'fpp/store/room-state.store';
+
 import {
   RoomStateClient,
   type RoomStateDto,
-} from "fpp/server/room-state/room-state.entity";
-import { useEffect } from "react";
-import { api } from "fpp/utils/api";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
+} from 'fpp/server/room-state/room-state.entity';
 
 export const useRoomState = ({
   roomId,
@@ -46,8 +50,8 @@ export const useRoomState = ({
     );
   }, []);
 
-  useChannel(`room:${roomId}`, "room-state", (message) => {
-    logger.debug("RECEIVED ROOM-STATE MESSAGE", message);
+  useChannel(`room:${roomId}`, 'room-state', (message) => {
+    logger.debug('RECEIVED ROOM-STATE MESSAGE', message);
     updateRoomState(RoomStateClient.fromJson(message.data as RoomStateDto));
   });
 };

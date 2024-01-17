@@ -1,6 +1,7 @@
-import { logEndpoint } from "fpp/constants/logging.constant";
-import * as Sentry from "@sentry/nextjs";
-import { type Logger } from "next-axiom";
+import * as Sentry from '@sentry/nextjs';
+import { type Logger } from 'next-axiom';
+
+import { logEndpoint } from 'fpp/constants/logging.constant';
 
 export function sendTrackEvent({
   event,
@@ -24,7 +25,7 @@ export function sendTrackEvent({
     } else {
       fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/track-event`, {
         body,
-        method: "POST",
+        method: 'POST',
         keepalive: true,
       }).catch((e) => {
         throw e;

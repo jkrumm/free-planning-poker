@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { Button, FocusTrap, Modal, TextInput } from "@mantine/core";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
+import React, { useState } from 'react';
+
+import { Button, FocusTrap, Modal, TextInput } from '@mantine/core';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 export const UsernameModel = ({
   modelOpen,
@@ -12,7 +14,7 @@ export const UsernameModel = ({
   room: string | undefined;
 }) => {
   const [error, setError] = useState(false);
-  const [inputUsername, setInputUsername] = useState("");
+  const [inputUsername, setInputUsername] = useState('');
 
   const setUsername = useLocalstorageStore((store) => store.setUsername);
 
@@ -26,7 +28,7 @@ export const UsernameModel = ({
       closeOnClickOutside={false}
     >
       <h1 className="m-0 mb-5">
-        Join room: <strong>{room?.toUpperCase() ?? ""}</strong>
+        Join room: <strong>{room?.toUpperCase() ?? ''}</strong>
       </h1>
       <FocusTrap active={true}>
         <form>
@@ -34,7 +36,7 @@ export const UsernameModel = ({
             autoFocus
             data-autofocus
             label="Your Name"
-            error={error && "Required"}
+            error={error && 'Required'}
             size="xl"
             withAsterisk
             value={inputUsername}
@@ -45,21 +47,21 @@ export const UsernameModel = ({
           />
           <Button
             variant="gradient"
-            gradient={{ from: "blue", to: "cyan" }}
+            gradient={{ from: 'blue', to: 'cyan' }}
             size="xl"
             className={`my-8 w-full px-0`}
             type="submit"
             disabled={
               !inputUsername ||
-              inputUsername?.replace(/[^A-Za-z]/g, "").length < 3 ||
-              inputUsername?.replace(/[^A-Za-z]/g, "").length > 15
+              inputUsername?.replace(/[^A-Za-z]/g, '').length < 3 ||
+              inputUsername?.replace(/[^A-Za-z]/g, '').length > 15
             }
             onClick={(e) => {
               e.preventDefault();
               if (
                 !inputUsername ||
-                inputUsername?.replace(/[^A-Za-z]/g, "").length < 3 ||
-                inputUsername?.replace(/[^A-Za-z]/g, "").length > 15
+                inputUsername?.replace(/[^A-Za-z]/g, '').length < 3 ||
+                inputUsername?.replace(/[^A-Za-z]/g, '').length > 15
               ) {
                 setError(true);
               } else {
@@ -68,7 +70,7 @@ export const UsernameModel = ({
               }
             }}
           >
-            Join room:&nbsp;<strong>{room?.toUpperCase() ?? ""}</strong>
+            Join room:&nbsp;<strong>{room?.toUpperCase() ?? ''}</strong>
           </Button>
         </form>
       </FocusTrap>

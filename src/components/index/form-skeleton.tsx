@@ -1,6 +1,8 @@
-import React from "react";
-import { Button, Group, TextInput } from "@mantine/core";
-import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
+import React from 'react';
+
+import { Button, Group, TextInput } from '@mantine/core';
+
+import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 
 const IndexFormSkeleton = () => {
   return (

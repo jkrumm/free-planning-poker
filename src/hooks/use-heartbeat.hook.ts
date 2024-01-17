@@ -1,7 +1,10 @@
-import { api } from "fpp/utils/api";
-import { useEffect, useRef } from "react";
-import { type Logger } from "next-axiom";
-import { useRoomStateStore } from "fpp/store/room-state.store";
+import { useEffect, useRef } from 'react';
+
+import { type Logger } from 'next-axiom';
+
+import { api } from 'fpp/utils/api';
+
+import { useRoomStateStore } from 'fpp/store/room-state.store';
 
 export const useHeartbeat = ({
   roomId,

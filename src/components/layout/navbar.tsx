@@ -1,5 +1,6 @@
-import { Button, Group, Title } from "@mantine/core";
-import Link from "next/link";
+import Link from 'next/link';
+
+import { Button, Group, Title } from '@mantine/core';
 
 const Navbar = () => {
   return (
@@ -18,7 +19,7 @@ const Navbar = () => {
           <Button
             size="lg"
             variant="gradient"
-            gradient={{ from: "blue", to: "cyan" }}
+            gradient={{ from: 'blue', to: 'cyan' }}
             className={`hidden md:block`}
           >
             Start Planning

@@ -1,5 +1,6 @@
-import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { env } from "fpp/env.mjs";
+import { env } from 'fpp/env.mjs';
+
+import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 
 type Task = {
   section_id: string;
@@ -22,7 +23,7 @@ export const roadmapRouter = createTRPCRouter({
     const tasks = (await fetch(
       `https://api.todoist.com/rest/v2/tasks?project_id=2315663023`,
       {
-        method: "GET",
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${env.TODOIST_SECRET}`,
         },
@@ -31,21 +32,21 @@ export const roadmapRouter = createTRPCRouter({
 
     return {
       todo: tasks
-        .filter((task) => task.section_id === "127907867")
+        .filter((task) => task.section_id === '127907867')
         .sort((a, b) => a.order - b.order)
         .map((task) => ({
           title: task.content,
           description: task.description,
         })),
       inProgress: tasks
-        .filter((task) => task.section_id === "127907869")
+        .filter((task) => task.section_id === '127907869')
         .sort((a, b) => a.order - b.order)
         .map((task) => ({
           title: task.content,
           description: task.description,
         })),
       done: tasks
-        .filter((task) => task.section_id === "127907872")
+        .filter((task) => task.section_id === '127907872')
         .sort((a, b) => a.order - b.order)
         .map((task) => ({
           title: task.content,

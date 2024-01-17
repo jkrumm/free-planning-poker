@@ -1,6 +1,7 @@
-import { Button, Container, Text } from "@mantine/core";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+
+import { Button, Container, Text } from '@mantine/core';
 
 export function Hero(props: { full?: true }) {
   const router = useRouter();
@@ -8,11 +9,11 @@ export function Hero(props: { full?: true }) {
   // which page are we on
   const page = router.pathname;
 
-  const onHome = page === "/";
-  const onRoadmap = page === "/roadmap";
-  const onAnalytics = page === "/analytics";
-  const onContact = page === "/contact";
-  const onImprint = page === "/imprint";
+  const onHome = page === '/';
+  const onRoadmap = page === '/roadmap';
+  const onAnalytics = page === '/analytics';
+  const onContact = page === '/contact';
+  const onImprint = page === '/imprint';
 
   return (
     <header>
@@ -25,7 +26,7 @@ export function Hero(props: { full?: true }) {
             <Text
               component="span"
               variant="gradient"
-              gradient={{ from: "blue", to: "cyan" }}
+              gradient={{ from: 'blue', to: 'cyan' }}
               inherit
               className="mb-4 block"
             >
@@ -38,12 +39,12 @@ export function Hero(props: { full?: true }) {
             <h2
               className={`mb-12 mt-0 hidden text-center text-[18px] opacity-80 md:block md:text-[24px]`}
             >
-              Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span>{" "}
+              Fast <span>|</span> Easy <span>|</span> Realtime <span>|</span>{' '}
               Open Source <span>|</span> Privacy Focused
             </h2>
             <nav className="flex flex-col justify-center align-middle md:flex-row md:space-x-4">
               <Link href="/">
-                <Button color={onHome ? "dark" : "gray"} variant="outline">
+                <Button color={onHome ? 'dark' : 'gray'} variant="outline">
                   Home
                 </Button>
               </Link>
@@ -66,22 +67,22 @@ export function Hero(props: { full?: true }) {
                 </Button>
               </a>
               <Link href="/roadmap">
-                <Button color={onRoadmap ? "dark" : "gray"} variant="outline">
+                <Button color={onRoadmap ? 'dark' : 'gray'} variant="outline">
                   Roadmap
                 </Button>
               </Link>
               <Link href="/analytics" className="lg:hidden">
-                <Button color={onAnalytics ? "dark" : "gray"} variant="outline">
+                <Button color={onAnalytics ? 'dark' : 'gray'} variant="outline">
                   Analytics
                 </Button>
               </Link>
               <Link href="/contact">
-                <Button color={onContact ? "dark" : "gray"} variant="outline">
+                <Button color={onContact ? 'dark' : 'gray'} variant="outline">
                   Contact
                 </Button>
               </Link>
               <Link href="/imprint" className="lg:hidden">
-                <Button color={onImprint ? "dark" : "gray"} variant="outline">
+                <Button color={onImprint ? 'dark' : 'gray'} variant="outline">
                   Imprint
                 </Button>
               </Link>

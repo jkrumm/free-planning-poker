@@ -1,18 +1,23 @@
-"use client";
+'use client';
 
-import React from "react";
-import { api } from "fpp/utils/api";
-import { type Logger } from "next-axiom";
-import { useRoomStateStore } from "fpp/store/room-state.store";
-import { Button } from "@mantine/core";
+import React from 'react';
+
+import { Button } from '@mantine/core';
+
+import { type Logger } from 'next-axiom';
+
+import { api } from 'fpp/utils/api';
+
+import { useRoomStateStore } from 'fpp/store/room-state.store';
+
 import {
-  roomStateStatus,
   type User,
-} from "fpp/server/room-state/room-state.entity";
+  roomStateStatus,
+} from 'fpp/server/room-state/room-state.entity';
 import {
   getAverageFromUsers,
   getStackedEstimationsFromUsers,
-} from "fpp/server/room-state/room-state.utils";
+} from 'fpp/server/room-state/room-state.utils';
 
 export const Table = ({
   roomId,
@@ -46,11 +51,11 @@ export const Table = ({
         {users.map((user, index) => (
           <div key={index} className={`player player-${index + 1}`}>
             <div className={`avatar bg-gray-800 ${user.status}`} />
-            <div className={`name ${user.id === userId && "font-bold"}`}>
+            <div className={`name ${user.id === userId && 'font-bold'}`}>
               {user.name}
             </div>
             <div
-              className={`card ${roomStateStatus.flipped && "flipped"} ${
+              className={`card ${roomStateStatus.flipped && 'flipped'} ${
                 user.status
               }`}
             >

@@ -1,16 +1,17 @@
-import { create } from "zustand";
-import * as Sentry from "@sentry/nextjs";
-import { RoomEvent } from "fpp/server/db/schema";
+import * as Sentry from '@sentry/nextjs';
+import { create } from 'zustand';
+
+import { RoomEvent } from 'fpp/server/db/schema';
 
 function saveToLocalstorage(key: string, value: string) {
-  if (typeof window == "undefined") {
+  if (typeof window == 'undefined') {
     return;
   }
   localStorage.setItem(key, value);
 }
 
 function getFromLocalstorage(key: string): string | null {
-  if (typeof window == "undefined") {
+  if (typeof window == 'undefined') {
     return null;
   }
   return localStorage.getItem(key);
@@ -18,7 +19,7 @@ function getFromLocalstorage(key: string): string | null {
 
 function getIntFromLocalstorage(key: string): number | null {
   if (
-    typeof window == "undefined" ||
+    typeof window == 'undefined' ||
     Number.isInteger(localStorage.getItem(key))
   ) {
     return null;
@@ -46,20 +47,20 @@ interface LocalstorageStore {
 }
 
 export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
-  username: getFromLocalstorage("username"),
-  voting: getFromLocalstorage("vote")
-    ? Number(getFromLocalstorage("vote"))
+  username: getFromLocalstorage('username'),
+  voting: getFromLocalstorage('vote')
+    ? Number(getFromLocalstorage('vote'))
     : null,
-  isSpectator: getFromLocalstorage("isSpectator") === "true",
-  roomId: getIntFromLocalstorage("roomId"),
-  roomName: getFromLocalstorage("roomName"),
-  recentRoom: getFromLocalstorage("recentRoom"),
+  isSpectator: getFromLocalstorage('isSpectator') === 'true',
+  roomId: getIntFromLocalstorage('roomId'),
+  roomName: getFromLocalstorage('roomName'),
+  recentRoom: getFromLocalstorage('recentRoom'),
   roomEvent: RoomEvent.ENTERED_ROOM_DIRECTLY,
   userId: (() => {
-    const userId = getFromLocalstorage("userId");
+    const userId = getFromLocalstorage('userId');
     // TODO: remove this after a while (2023-12-08)
-    if (userId?.length !== 21 && typeof window !== "undefined") {
-      localStorage.removeItem("vote");
+    if (userId?.length !== 21 && typeof window !== 'undefined') {
+      localStorage.removeItem('vote');
       return null;
     }
     if (userId !== null) {
@@ -68,33 +69,33 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     return userId;
   })(),
   setUsername: (username: string) => {
-    username = username.replace(/[^A-Za-z]/g, "");
+    username = username.replace(/[^A-Za-z]/g, '');
 
     if (username.length < 3) {
-      throw new Error("username too short");
+      throw new Error('username too short');
     }
 
     username =
       username.slice(0, 15).charAt(0).toUpperCase() + username.slice(1);
 
-    saveToLocalstorage("username", username);
+    saveToLocalstorage('username', username);
     set({ username });
   },
   setVoting: (voting: number | null) => {
     if (voting === null) {
-      localStorage.removeItem("vote");
+      localStorage.removeItem('vote');
     } else {
-      localStorage.setItem("vote", voting.toString());
+      localStorage.setItem('vote', voting.toString());
     }
     set({ voting });
   },
   setIsSpectator: (isSpectator: boolean) => {
-    localStorage.setItem("isSpectator", isSpectator.toString());
+    localStorage.setItem('isSpectator', isSpectator.toString());
     set({ isSpectator });
   },
   setRoomId: (roomId: number | null) => {
     if (!roomId) {
-      localStorage.removeItem("roomId");
+      localStorage.removeItem('roomId');
       set({ roomId: null });
       return;
     }
@@ -102,41 +103,41 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
       return;
     }
 
-    saveToLocalstorage("roomId", String(roomId));
+    saveToLocalstorage('roomId', String(roomId));
     set({ roomId });
   },
   setRoomName: (roomName: string | null) => {
     if (!roomName) {
-      localStorage.removeItem("roomName");
+      localStorage.removeItem('roomName');
       set({ roomName: null });
       return;
     }
 
-    roomName = roomName.replace(/[^A-Za-z0-9]/g, "");
+    roomName = roomName.replace(/[^A-Za-z0-9]/g, '');
 
     if (roomName.length < 3) {
-      throw new Error("room too short");
+      throw new Error('room too short');
     }
 
     roomName = roomName.slice(0, 15).toLowerCase();
-    saveToLocalstorage("roomName", roomName);
+    saveToLocalstorage('roomName', roomName);
     set({ roomName });
   },
   setRecentRoom: (recentRoom: string | null) => {
     if (!recentRoom) {
-      localStorage.removeItem("recentRoom");
+      localStorage.removeItem('recentRoom');
       set({ recentRoom: null });
       return;
     }
 
-    recentRoom = recentRoom.replace(/[^A-Za-z0-9]/g, "");
+    recentRoom = recentRoom.replace(/[^A-Za-z0-9]/g, '');
 
     if (recentRoom.length < 3) {
-      throw new Error("room too short");
+      throw new Error('room too short');
     }
 
     recentRoom = recentRoom.slice(0, 15).toLowerCase();
-    saveToLocalstorage("recentRoom", recentRoom);
+    saveToLocalstorage('recentRoom', recentRoom);
     set({ recentRoom });
   },
   setRoomEvent: (roomEvent: keyof typeof RoomEvent) => {
@@ -147,7 +148,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
       return;
     }
     Sentry.setUser({ id: userId });
-    saveToLocalstorage("userId", userId);
+    saveToLocalstorage('userId', userId);
     set({ userId });
   },
 }));

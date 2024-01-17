@@ -1,11 +1,15 @@
+import { env } from 'fpp/env.mjs';
+
+import { TRPCError } from '@trpc/server';
+
+import { notifications } from '@mantine/notifications';
+
+import { type ICreateVote } from 'fpp/server/db/schema';
+
 import {
   type RoomStateServer,
   type User,
-} from "fpp/server/room-state/room-state.entity";
-import { env } from "fpp/env.mjs";
-import { type ICreateVote } from "fpp/server/db/schema";
-import { TRPCError } from "@trpc/server";
-import { notifications } from "@mantine/notifications";
+} from 'fpp/server/room-state/room-state.entity';
 
 export async function publishWebSocketEvent({
   roomState,
@@ -15,13 +19,13 @@ export async function publishWebSocketEvent({
   userId: string;
 }) {
   return fetch(`https://rest.ably.io/channels/room:${roomState.id}/messages`, {
-    method: "POST",
+    method: 'POST',
     headers: {
       Authorization: `Basic ${env.ABLY_API_KEY_BASE64}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      name: "room-state",
+      name: 'room-state',
       clientId: userId,
       data: roomState.toJson(),
     }),
@@ -29,7 +33,7 @@ export async function publishWebSocketEvent({
     if (!res.ok) {
       throw new TRPCError({
         message: `Failed to publish message to Ably`,
-        code: "INTERNAL_SERVER_ERROR",
+        code: 'INTERNAL_SERVER_ERROR',
         cause: res.text().then((text) => {
           return new Error(text);
         }),
@@ -43,7 +47,7 @@ function getEstimationsFromUsers(users: User[]): number[] {
     .map((user) => user.estimation)
     .filter((estimation) => estimation !== null) as number[];
   if (estimations.length === 0) {
-    throw new Error("Cannot calculateCreateVote when no estimations");
+    throw new Error('Cannot calculateCreateVote when no estimations');
   }
   return estimations;
 }
@@ -120,11 +124,11 @@ export function notifyOnRoomStateChanges({
   // Notify on auto flip enabled
   if (newRoomState.isAutoFlip && !oldRoomState.isAutoFlip) {
     notifications.show({
-      color: "orange",
+      color: 'orange',
       autoClose: 5000,
       withCloseButton: true,
-      title: "Auto Flip enabled",
-      message: "Voting will flip automatically once everyone estimated",
+      title: 'Auto Flip enabled',
+      message: 'Voting will flip automatically once everyone estimated',
     });
     return;
   }
@@ -141,11 +145,11 @@ export function notifyOnRoomStateChanges({
 
   if (newUser && newUser.id !== userId) {
     notifications.show({
-      color: "blue",
+      color: 'blue',
       autoClose: 5000,
       withCloseButton: true,
       title: `${newUser.name} joined`,
-      message: "User joined the room",
+      message: 'User joined the room',
     });
     return;
   }
@@ -156,11 +160,11 @@ export function notifyOnRoomStateChanges({
   );
   if (leftUser) {
     notifications.show({
-      color: "red",
+      color: 'red',
       autoClose: 5000,
       withCloseButton: true,
       title: `${leftUser.name} left`,
-      message: "User left the room",
+      message: 'User left the room',
     });
     return;
   }

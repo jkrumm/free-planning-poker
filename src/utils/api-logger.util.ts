@@ -1,12 +1,14 @@
-import { type AxiomRequest, Logger } from "next-axiom";
-import { type NextRequest, NextResponse, userAgent } from "next/server";
-import { type RequestReport } from "next-axiom/src/logger";
+import { type NextRequest, NextResponse, userAgent } from 'next/server';
+
+import * as Sentry from '@sentry/nextjs';
+import { type AxiomRequest, Logger } from 'next-axiom';
+import { type RequestReport } from 'next-axiom/src/logger';
+
 import {
   type BaseError,
-  removeNulls,
   type ServerLog,
-} from "fpp/constants/error.constant";
-import * as Sentry from "@sentry/nextjs";
+  removeNulls,
+} from 'fpp/constants/error.constant';
 
 type NextHandler = (
   req: AxiomRequest,
@@ -23,22 +25,22 @@ export function withLogger(handler: NextHandler) {
       city: string | undefined;
     } = {
       country: undefined,
-      region: "",
+      region: '',
       city: undefined,
     };
-    if ("geo" in req) {
+    if ('geo' in req) {
       geoObj = {
         country: req.geo?.country,
-        region: req.geo?.region ?? "",
+        region: req.geo?.region ?? '',
         city: req.geo?.city,
       };
     }
 
     let ip;
-    if ("ip" in req) {
+    if ('ip' in req) {
       ip = req.ip;
-      if (ip === undefined || ip === "::1") {
-        ip = req.headers.get("x-forwarded-for");
+      if (ip === undefined || ip === '::1') {
+        ip = req.headers.get('x-forwarded-for');
       }
     }
 
@@ -46,10 +48,10 @@ export function withLogger(handler: NextHandler) {
       startTime,
       path: req.url,
       method: req.method,
-      host: req.headers.get("host"),
-      userAgent: req.headers.get("user-agent"),
-      scheme: "https",
-      ip: ip ?? req.headers.get("x-forwarded-for"),
+      host: req.headers.get('host'),
+      userAgent: req.headers.get('user-agent'),
+      scheme: 'https',
+      ip: ip ?? req.headers.get('x-forwarded-for'),
       region: geoObj.region,
     };
     const ua = userAgent(req);
@@ -57,20 +59,20 @@ export function withLogger(handler: NextHandler) {
       country: geoObj.country,
       city: geoObj.city,
       browser: ua?.browser?.name,
-      device: ua?.device?.type ?? "desktop",
+      device: ua?.device?.type ?? 'desktop',
       os: ua?.os?.name,
     });
     const isEdgeRuntime = !!globalThis.EdgeRuntime;
 
     const logger = new Logger({
       req: { ...report, ...reportExtension },
-      source: isEdgeRuntime ? "edge" : "lambda",
+      source: isEdgeRuntime ? 'edge' : 'lambda',
     });
     const axiomContext = req as AxiomRequest;
     axiomContext.log = logger;
 
     try {
-      logger.debug("Called Next route handler", {
+      logger.debug('Called Next route handler', {
         ...report,
         ...reportExtension,
         startTime,
@@ -79,7 +81,7 @@ export function withLogger(handler: NextHandler) {
       const res = await handler(axiomContext);
 
       const endTime = Date.now();
-      logger.debug("Success Next route handler", {
+      logger.debug('Success Next route handler', {
         ...report,
         ...reportExtension,
         startTime,
@@ -134,16 +136,16 @@ export function withLogger(handler: NextHandler) {
       });
 
       switch (e.constructor.name) {
-        case "BadRequestError":
-        case "NotFoundError":
-        case "NotImplementedError":
-        case "TooManyRequestsError":
-          logger.warn("Warn in Next route handler", errorLogPayload);
+        case 'BadRequestError':
+        case 'NotFoundError':
+        case 'NotImplementedError':
+        case 'TooManyRequestsError':
+          logger.warn('Warn in Next route handler', errorLogPayload);
           break;
-        case "InternalServerError":
-        case "Error":
+        case 'InternalServerError':
+        case 'Error':
         default:
-          logger.error("Error in Next route handler", errorLogPayload);
+          logger.error('Error in Next route handler', errorLogPayload);
           break;
       }
 
@@ -158,7 +160,7 @@ export function withLogger(handler: NextHandler) {
         return NextResponse.json({ error: e.message }, { status: e.httpCode });
       }
       return NextResponse.json(
-        { error: "InternalServerError" },
+        { error: 'InternalServerError' },
         { status: 500 },
       );
     }

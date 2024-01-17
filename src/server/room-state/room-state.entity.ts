@@ -1,4 +1,8 @@
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from '@trpc/server';
+
+/**
+ * Users can estimate or spectate
+ */
 
 export interface CreateUserDto {
   id: string;
@@ -7,26 +11,11 @@ export interface CreateUserDto {
   isSpectator: boolean;
 }
 
-export const roomStateStatus = {
-  estimating: "estimating",
-  flippable: "flippable",
-  flipped: "flipped",
-} as const;
-
 export const userStatus = {
-  pending: "pending",
-  estimated: "estimated",
-  spectator: "spectator",
+  pending: 'pending',
+  estimated: 'estimated',
+  spectator: 'spectator',
 } as const;
-
-export interface RoomStateDto {
-  id: number;
-  startedAt: number;
-  lastUpdated: number;
-  users: CreateUserDto[];
-  isAutoFlip: boolean;
-  status: keyof typeof roomStateStatus;
-}
 
 export class User {
   readonly id: string;
@@ -50,6 +39,32 @@ export class User {
     this.estimation = estimation;
     this.isSpectator = isSpectator;
   }
+}
+
+/**
+ * RoomState has a list of Users and a status
+ * The status is either estimating, flippable or flipped
+ * If auto flip is enabled, the room will flip automatically once everyone estimated
+ *
+ * RoomStateDto is the serialized version of RoomState that is sent to the users using WebSocket
+ * RoomStateBase is the base class which has methods to map between RoomState and RoomStateDto
+ * RoomStateClient is the version of RoomState that is used on the frontend
+ * RoomStateServer is the version of RoomState that is used on the backend it has additional methods to mutate the state
+ */
+
+export const roomStateStatus = {
+  estimating: 'estimating',
+  flippable: 'flippable',
+  flipped: 'flipped',
+} as const;
+
+export interface RoomStateDto {
+  id: number;
+  startedAt: number;
+  lastUpdated: number;
+  users: CreateUserDto[];
+  isAutoFlip: boolean;
+  status: keyof typeof roomStateStatus;
 }
 
 class RoomStateBase {
@@ -87,6 +102,7 @@ class RoomStateBase {
     this.lastUpdated = Date.now();
   }
 
+  // Possible to create instances of RoomStateClient and RoomStateServer
   static fromJson<T extends RoomStateBase>(
     this: new (id: number) => T,
     roomStateDto: RoomStateDto,
@@ -114,12 +130,13 @@ class RoomStateBase {
 
 export class RoomStateClient extends RoomStateBase {
   getUser(userId: string | null) {
+    // NOTE: you can never trust frontends
     if (!userId) {
       throw new Error(`User not found - userId not given`);
     }
     const user = this.users.find((user) => user.id === userId);
     if (!user) {
-      throw new Error(`User not found - userId ${userId} not found`);
+      throw new Error(`User not found - userId not found`);
     }
     return user;
   }
@@ -132,6 +149,7 @@ export class RoomStateServer extends RoomStateBase {
   /**
   /* USER MANAGEMENT
   */
+
   addUser(user: CreateUserDto) {
     if (!this.users.some((u) => u.id === user.id)) {
       this.users.push(new User(user));
@@ -150,6 +168,7 @@ export class RoomStateServer extends RoomStateBase {
   /**
    * INTERACTIONS
    */
+
   setEstimation(userId: string, estimation: number | null) {
     this.users = this.users.map((user) => {
       if (user.id === userId) {
@@ -177,8 +196,8 @@ export class RoomStateServer extends RoomStateBase {
   flip() {
     if (!this.isFlippable) {
       throw new TRPCError({
-        message: "Cannot flip when not flippable",
-        code: "INTERNAL_SERVER_ERROR",
+        message: 'Cannot flip when not flippable',
+        code: 'INTERNAL_SERVER_ERROR',
       });
     }
     this.isFlipped = true;

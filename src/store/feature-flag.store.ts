@@ -1,5 +1,6 @@
-import { create } from "zustand";
-import { FeatureFlagType } from "fpp/server/db/schema";
+import { create } from 'zustand';
+
+import { FeatureFlagType } from 'fpp/server/db/schema';
 
 type FeatureFlagStore = {
   featureFlags: {
