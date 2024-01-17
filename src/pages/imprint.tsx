@@ -1,12 +1,18 @@
-import { type NextPage } from "next";
-import React from "react";
-import { Hero } from "fpp/components/layout/hero";
-import Link from "next/link";
-import { Button } from "@mantine/core";
-import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { RouteType } from "fpp/server/db/schema";
-import { Meta } from "fpp/components/meta";
-import { useLogger } from "next-axiom";
+import React from 'react';
+
+import { type NextPage } from 'next';
+import Link from 'next/link';
+
+import { Button } from '@mantine/core';
+
+import { useLogger } from 'next-axiom';
+
+import { RouteType } from 'fpp/server/db/schema';
+
+import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import { Hero } from 'fpp/components/layout/hero';
+import { Meta } from 'fpp/components/meta';
 
 const Imprint: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.IMPRINT });
@@ -48,7 +54,7 @@ const Imprint: NextPage = () => {
             type, OS, browser), approximate geolocation (incorporating country,
             city, region), and a random unique session ID stored in your local
             storage. We use a professional IP address api service (ipapi.co) to
-            acquire this anonymized geolocation data. You may refer to{" "}
+            acquire this anonymized geolocation data. You may refer to{' '}
             <a
               href="https://ipapi.co/privacy/"
               target="_blank"
@@ -86,7 +92,7 @@ const Imprint: NextPage = () => {
             are actively present in the room.
             <br />
             <br />
-            Personal details volunteered through our{" "}
+            Personal details volunteered through our{' '}
             <strong>contact form</strong> (name and email), falling in line with
             GDPR definitions, are handled with utmost confidentiality, and used
             specifically for responding to your inquiries. Consent is sought
@@ -98,11 +104,11 @@ const Imprint: NextPage = () => {
             Our website is supported by a database managed by Planetscale,
             operating in convergence with an eu-central-1 hosted AWS MySQL
             database. To assure data integrity, all transfers are encrypted.
-            However, the{" "}
+            However, the{' '}
             <strong>
               database usage is limited to storing the anonymized website usage
               analytics
-            </strong>{" "}
+            </strong>{' '}
             and bears no link to specific usernames or individual votes.
             Information collected in no way contributes to individual profiles.
             <br />
@@ -139,10 +145,10 @@ const Imprint: NextPage = () => {
             upkeep and development of this tool. Any funds received are
             acknowledged not as formal, tax-deductible donations, or as a
             commercial transaction involving an exchange of goods or services.
-            They are considered as supportive contributions aiding in this{" "}
+            They are considered as supportive contributions aiding in this{' '}
             {/* eslint-disable-next-line react/no-unescaped-entities */}
             tool's further development. As such, these arrangements are not
-            governed by German Civil Code (BGB) or Consumer Rights Directive{" "}
+            governed by German Civil Code (BGB) or Consumer Rights Directive{' '}
             {/* eslint-disable-next-line react/no-unescaped-entities */}
             (2011/83/EU). The use of the term "donation" herein is a common
             terminology in online platforms, and it is important to note its

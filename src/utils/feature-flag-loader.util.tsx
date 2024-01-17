@@ -1,8 +1,10 @@
-"use client";
+'use client';
 
-import { useFeatureFlagStore } from "fpp/store/feature-flag.store";
-import { FeatureFlagType } from "fpp/server/db/schema";
-import { api } from "fpp/utils/api";
+import { api } from 'fpp/utils/api';
+
+import { useFeatureFlagStore } from 'fpp/store/feature-flag.store';
+
+import { FeatureFlagType } from 'fpp/server/db/schema';
 
 export const FeatureFlagLoaderUtil = () => {
   const setFeatureFlags = useFeatureFlagStore((state) => state.setFeatureFlags);
@@ -15,7 +17,7 @@ export const FeatureFlagLoaderUtil = () => {
       retry: false,
     });
 
-  if (status === "success") {
+  if (status === 'success') {
     setFeatureFlags(featureFlags);
   } else {
     setFeatureFlags(

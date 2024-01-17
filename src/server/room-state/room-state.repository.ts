@@ -1,18 +1,29 @@
-import { env } from "fpp/env.mjs";
-import { RoomStateServer } from "fpp/server/room-state/room-state.entity";
-import { Redis } from "@upstash/redis";
-import { type PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless/driver";
-import { estimations, votes } from "fpp/server/db/schema";
+import { env } from 'fpp/env.mjs';
+
+import { TRPCError } from '@trpc/server';
+
+import { Redis } from '@upstash/redis';
+import { type PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless/driver';
+
+import { estimations, votes } from 'fpp/server/db/schema';
+
+import {
+  type RoomStateDto,
+  RoomStateServer,
+} from 'fpp/server/room-state/room-state.entity';
 import {
   getICreateVoteFromRoomState,
   publishWebSocketEvent,
-} from "fpp/server/room-state/room-state.utils";
-import { TRPCError } from "@trpc/server";
+} from 'fpp/server/room-state/room-state.utils';
 
 const redis = new Redis({
   url: env.UPSTASH_REDIS_REST_URL_ROOM_STATE,
   token: env.UPSTASH_REDIS_REST_TOKEN_ROOM_STATE,
 });
+
+/**
+ * Redis RoomState query methods
+ */
 
 export async function getRoomStateOrFail(
   roomId: number,
@@ -20,7 +31,10 @@ export async function getRoomStateOrFail(
   const roomState = await redis.get<RoomStateServer>(`room:${roomId}`);
 
   if (!roomState) {
-    throw new TRPCError({ message: `Room not found`, code: "NOT_FOUND" });
+    throw new TRPCError({
+      message: `Room not found in Redis`,
+      code: 'NOT_FOUND',
+    });
   }
 
   return RoomStateServer.fromJson(roomState);
@@ -41,8 +55,14 @@ export async function getRoomStateOrCreate(
 export async function getRoomStateOrNull(
   roomId: number,
 ): Promise<RoomStateServer | null> {
-  return (await redis.get<RoomStateServer>(`room:${roomId}`)) ?? null;
+  const roomState = await redis.get<RoomStateDto>(`room:${roomId}`);
+  if (!roomState) return null;
+  return RoomStateServer.fromJson(roomState);
 }
+
+/**
+ * Update Redis RoomState and the users heartbeat and publish to WebSocket channel
+ */
 
 export async function setRoomState({
   roomId,
@@ -54,7 +74,7 @@ export async function setRoomState({
   userId: string;
   roomState: RoomStateServer;
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  db: PlanetScaleDatabase<typeof import("../db/schema")>;
+  db: PlanetScaleDatabase<typeof import('../db/schema')>;
 }): Promise<void> {
   // NOTE: allow any because prisma and redis have all kind of different promises
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,7 +84,7 @@ export async function setRoomState({
     if (!db) {
       throw new TRPCError({
         message: `Cannot flip without a database connection`,
-        code: "INTERNAL_SERVER_ERROR",
+        code: 'INTERNAL_SERVER_ERROR',
       });
     }
     promises.push(
@@ -92,17 +112,40 @@ export async function setRoomState({
     );
   }
 
-  // If the room state hasn't changed in the last 5 minutes minus 20 seconds, we extend the expiration time
+  // If the room state hasn't changed in the last 4 minutes, we extend the expiration time
   // TODO: close the room after 5 minutes of inactivity
   if (
     !roomState.hasChanged &&
-    roomState.lastUpdated > Date.now() - 1000 * 60 * 5 - 1000 * 20
+    roomState.lastUpdated > Date.now() - 1000 * 60 * 4
   ) {
     promises.push(redis.expire(`room:${roomId}`, 60 * 5));
   }
 
-  await Promise.allSettled(promises);
+  await Promise.allSettled(promises).then((results) => {
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        console.error('Failed to fully set room state', {
+          roomId,
+          userId,
+          error: {
+            message: result.reason.message,
+            code: result.reason.code,
+            stack: result.reason.stack,
+          },
+        });
+      }
+    }
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        throw result.reason;
+      }
+    }
+  });
 }
+
+/**
+ * Redis heartbeat methods
+ */
 
 export async function getActiveUserIds(userIds: string[]): Promise<string[]> {
   const heartbeats = await redis.mget<(number | null)[]>(

@@ -1,9 +1,11 @@
-import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { DateTime } from "luxon";
-import { votes } from "fpp/server/db/schema";
-import { sql } from "drizzle-orm";
-import { round } from "fpp/utils/number.utils";
-import { countTable } from "fpp/utils/db-api.util";
+import { sql } from 'drizzle-orm';
+import { DateTime } from 'luxon';
+
+import { countTable } from 'fpp/utils/db-api.util';
+import { round } from 'fpp/utils/number.utils';
+
+import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
+import { votes } from 'fpp/server/db/schema';
 
 export const voteRouter = createTRPCRouter({
   getVotes: publicProcedure.query(async ({ ctx: { db } }) => {
@@ -37,7 +39,7 @@ export const voteRouter = createTRPCRouter({
     const votesPerDay =
       Math.ceil(
         (totalVotes /
-          DateTime.now().diff(DateTime.fromMillis(oldestVote), "days").days) *
+          DateTime.now().diff(DateTime.fromMillis(oldestVote), 'days').days) *
           100,
       ) / 100;
 

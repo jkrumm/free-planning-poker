@@ -1,19 +1,28 @@
-"use client";
+'use client';
 
-import React, { useEffect } from "react";
-import { useRouter } from "next/router";
-import { UsernameModel } from "fpp/components/room/username-model";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { sendTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { useLogger } from "next-axiom";
-import { api } from "fpp/utils/api";
-import { RouteType } from "fpp/server/db/schema";
-import { env } from "fpp/env.mjs";
-import { Loader } from "@mantine/core";
-import * as Ably from "ably";
-import { AblyProvider } from "ably/react";
-import { Room } from "fpp/components/room/room";
-import { useRoomStateStore } from "fpp/store/room-state.store";
+import React, { useEffect } from 'react';
+
+import { useRouter } from 'next/router';
+
+import { env } from 'fpp/env.mjs';
+
+import { Loader } from '@mantine/core';
+
+import * as Ably from 'ably';
+import { AblyProvider } from 'ably/react';
+import { useLogger } from 'next-axiom';
+
+import { api } from 'fpp/utils/api';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+import { useRoomStateStore } from 'fpp/store/room-state.store';
+
+import { RouteType } from 'fpp/server/db/schema';
+
+import { sendTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import { Room } from 'fpp/components/room/room';
+import { UsernameModel } from 'fpp/components/room/username-model';
 
 const RoomWrapper = () => {
   const router = useRouter();
@@ -54,12 +63,12 @@ const RoomWrapper = () => {
     let willLeave = false;
     if (!firstLoad && queryRoom) {
       const correctedRoom = queryRoom
-        .replace(/[^A-Za-z0-9]/g, "")
+        .replace(/[^A-Za-z0-9]/g, '')
         .toLowerCase();
       if (
         window.innerWidth < 768 ||
         !queryRoom ||
-        queryRoom === "undefined" ||
+        queryRoom === 'undefined' ||
         !correctedRoom ||
         correctedRoom.length < 3 ||
         correctedRoom.length > 15

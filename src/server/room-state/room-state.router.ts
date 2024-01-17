@@ -1,5 +1,10 @@
-import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { z } from "zod";
+import { z } from 'zod';
+
+import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
+
+import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
+import { EventType, type ICreateEvent, events } from 'fpp/server/db/schema';
+
 import {
   getActiveUserIds,
   getRoomStateOrCreate,
@@ -7,8 +12,7 @@ import {
   getRoomStateOrNull,
   setHeartbeat,
   setRoomState,
-} from "fpp/server/room-state/room-state.repository";
-import { events, EventType, type ICreateEvent } from "fpp/server/db/schema";
+} from 'fpp/server/room-state/room-state.repository';
 
 export const roomStateRouter = createTRPCRouter({
   enter: publicProcedure
@@ -17,7 +21,7 @@ export const roomStateRouter = createTRPCRouter({
         roomId: z.number(),
         userId: z
           .string()
-          .regex(/^[A-Za-z0-9_~]{21}$/, "userId regex mismatch"),
+          .regex(/^[A-Za-z0-9_~]{21}$/, 'userId regex mismatch'),
         username: z
           .string()
           .min(3)
@@ -59,12 +63,18 @@ export const roomStateRouter = createTRPCRouter({
     .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrNull(roomId);
+
+      // If heartbeat executed before roomState is created in Redis just ignore
       if (!roomState) {
-        console.warn("heartbeat for non-existing room", { roomId, userId });
+        console.warn('Heartbeat for room which is not found in Redis', {
+          roomId,
+          userId,
+        });
         await setHeartbeat(userId, Date.now());
         return;
       }
 
+      // Validate if users are still active
       const userIds = roomState.users.map((user) => user.id);
 
       const activeUserIds = await getActiveUserIds(userIds);
@@ -106,7 +116,14 @@ export const roomStateRouter = createTRPCRouter({
       z.object({
         roomId: z.number(),
         userId: z.string().length(21),
-        estimation: z.number().nullable(),
+        estimation: z
+          .number()
+          .refine((estimation) => {
+            return (
+              fibonacciSequence.includes(estimation) || estimation === null
+            );
+          }, 'estimation is not a fibonacci number or null')
+          .nullable(),
       }),
     )
     .mutation(

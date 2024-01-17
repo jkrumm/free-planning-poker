@@ -1,20 +1,28 @@
-import React from "react";
-import { api } from "fpp/utils/api";
-import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { Card, Group, SimpleGrid, Text, Title } from "@mantine/core";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { appRouter } from "fpp/server/api/root";
-import { createTRPCContext } from "fpp/server/api/trpc";
-import { Meta } from "fpp/components/meta";
-import { Hero } from "fpp/components/layout/hero";
-import { PageViewChart } from "fpp/components/charts/page-view-chart";
-import { type CountResult } from "fpp/server/api/routers/tracking.router";
-import superjson from "superjson";
-import { useLogger } from "next-axiom";
-import { logMsg } from "fpp/constants/logging.constant";
-import * as Sentry from "@sentry/nextjs";
-import { RouteType } from "fpp/server/db/schema";
-import { type FetchCreateContextFnOptions } from "@trpc/server/dist/adapters/fetch";
+import React from 'react';
+
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import { type FetchCreateContextFnOptions } from '@trpc/server/dist/adapters/fetch';
+
+import { Card, Group, SimpleGrid, Text, Title } from '@mantine/core';
+
+import * as Sentry from '@sentry/nextjs';
+import { useLogger } from 'next-axiom';
+import superjson from 'superjson';
+
+import { logMsg } from 'fpp/constants/logging.constant';
+
+import { api } from 'fpp/utils/api';
+
+import { appRouter } from 'fpp/server/api/root';
+import { type CountResult } from 'fpp/server/api/routers/tracking.router';
+import { createTRPCContext } from 'fpp/server/api/trpc';
+import { RouteType } from 'fpp/server/db/schema';
+
+import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import { PageViewChart } from 'fpp/components/charts/page-view-chart';
+import { Hero } from 'fpp/components/layout/hero';
+import { Meta } from 'fpp/components/meta';
 
 export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
   const helpers = createServerSideHelpers({
@@ -138,15 +146,15 @@ const Analytics = () => {
             spacing="md"
           >
             <AnalyticsCard
-              headline={"Countries"}
+              headline={'Countries'}
               data={aggregatedVisitorInfo.countryCounts}
             />
             <AnalyticsCard
-              headline={"Regions"}
+              headline={'Regions'}
               data={aggregatedVisitorInfo.regionCounts}
             />
             <AnalyticsCard
-              headline={"Cities"}
+              headline={'Cities'}
               data={aggregatedVisitorInfo.cityCounts}
             />
           </SimpleGrid>
@@ -159,15 +167,15 @@ const Analytics = () => {
             spacing="md"
           >
             <AnalyticsCard
-              headline={"Operating Systems"}
+              headline={'Operating Systems'}
               data={aggregatedVisitorInfo.osCounts}
             />
             <AnalyticsCard
-              headline={"Devices"}
+              headline={'Devices'}
               data={aggregatedVisitorInfo.deviceCounts}
             />
             <AnalyticsCard
-              headline={"Browsers"}
+              headline={'Browsers'}
               data={aggregatedVisitorInfo.browserCounts}
             />
           </SimpleGrid>

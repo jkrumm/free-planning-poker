@@ -1,26 +1,34 @@
-import { type NextPage } from "next";
-import React from "react";
-import { Hero } from "fpp/components/layout/hero";
+import React from 'react';
+
+import { type NextPage } from 'next';
+
 import {
   Alert,
   Button,
   Group,
   SimpleGrid,
   Text,
-  Textarea,
   TextInput,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { api } from "fpp/utils/api";
-import { notifications } from "@mantine/notifications";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { useTrackPageView } from "fpp/hooks/use-tracking.hook";
-import { EventType, FeatureFlagType, RouteType } from "fpp/server/db/schema";
-import { Meta } from "fpp/components/meta";
-import { sendTrackEvent } from "fpp/utils/send-track-event.util";
-import { useLogger } from "next-axiom";
-import { useFeatureFlagStore } from "fpp/store/feature-flag.store";
-import { IconAlertCircle } from "@tabler/icons-react";
+  Textarea,
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useLogger } from 'next-axiom';
+
+import { api } from 'fpp/utils/api';
+import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
+
+import { useFeatureFlagStore } from 'fpp/store/feature-flag.store';
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+
+import { EventType, FeatureFlagType, RouteType } from 'fpp/server/db/schema';
+
+import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import { Hero } from 'fpp/components/layout/hero';
+import { Meta } from 'fpp/components/meta';
 
 const Contact: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.CONTACT });
@@ -37,10 +45,10 @@ const Contact: NextPage = () => {
 
   const form = useForm({
     initialValues: {
-      name: username ?? "",
-      email: "",
-      subject: "",
-      message: "",
+      name: username ?? '',
+      email: '',
+      subject: '',
+      message: '',
     },
     validate: {
       name: (value) => value.trim().length > 40,
@@ -65,17 +73,17 @@ const Contact: NextPage = () => {
               sendMail.mutate(form.values, {
                 onSuccess: () => {
                   notifications.show({
-                    title: "Email sent",
-                    color: "green",
+                    title: 'Email sent',
+                    color: 'green',
                     message:
-                      "Thank you for your message, we will get back to you as soon as possible",
+                      'Thank you for your message, we will get back to you as soon as possible',
                   });
                 },
                 onError: () => {
                   notifications.show({
-                    title: "Email not sent",
-                    color: "red",
-                    message: "Something went wrong, please try again later",
+                    title: 'Email not sent',
+                    color: 'red',
+                    message: 'Something went wrong, please try again later',
                   });
                 },
               });
@@ -98,7 +106,7 @@ const Contact: NextPage = () => {
                 placeholder="Your name"
                 name="name"
                 variant="filled"
-                {...form.getInputProps("name")}
+                {...form.getInputProps('name')}
                 disabled={sendMail.isSuccess}
               />
               <TextInput
@@ -106,7 +114,7 @@ const Contact: NextPage = () => {
                 placeholder="Your email"
                 name="email"
                 variant="filled"
-                {...form.getInputProps("email")}
+                {...form.getInputProps('email')}
                 disabled={sendMail.isSuccess}
               />
             </SimpleGrid>
@@ -117,7 +125,7 @@ const Contact: NextPage = () => {
               mt="md"
               name="subject"
               variant="filled"
-              {...form.getInputProps("subject")}
+              {...form.getInputProps('subject')}
               disabled={sendMail.isSuccess}
             />
             <Textarea
@@ -129,7 +137,7 @@ const Contact: NextPage = () => {
               autosize
               name="message"
               variant="filled"
-              {...form.getInputProps("message")}
+              {...form.getInputProps('message')}
               disabled={sendMail.isSuccess}
             />
 

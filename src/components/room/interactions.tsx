@@ -1,16 +1,24 @@
-import { Button, Switch } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
-import { useRef } from "react";
-import { useRouter } from "next/router";
-import { fibonacciSequence } from "fpp/constants/fibonacci.constant";
-import { type Logger } from "next-axiom";
-import { useRoomStateStore } from "fpp/store/room-state.store";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import { api } from "fpp/utils/api";
-import { roomStateStatus } from "fpp/server/room-state/room-state.entity";
-import { sendTrackEvent } from "fpp/utils/send-track-event.util";
-import { EventType } from "fpp/server/db/schema";
-import { isValidMediumint } from "fpp/utils/number.utils";
+import { useRef } from 'react';
+
+import { useRouter } from 'next/router';
+
+import { Button, Switch } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+
+import { type Logger } from 'next-axiom';
+
+import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
+
+import { api } from 'fpp/utils/api';
+import { isValidMediumint } from 'fpp/utils/number.utils';
+import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+import { useRoomStateStore } from 'fpp/store/room-state.store';
+
+import { EventType } from 'fpp/server/db/schema';
+
+import { roomStateStatus } from 'fpp/server/room-state/room-state.entity';
 
 export const Interactions = ({
   roomId,
@@ -62,24 +70,24 @@ export const Interactions = ({
                 if (!window.location) {
                   return;
                 }
-                if ("clipboard" in navigator) {
+                if ('clipboard' in navigator) {
                   navigator.clipboard
                     .writeText(window.location.toString())
                     .then(() => ({}))
                     .catch(() => ({}));
                 } else {
                   document.execCommand(
-                    "copy",
+                    'copy',
                     true,
                     window.location.toString(),
                   );
                 }
                 notifications.show({
-                  color: "green",
+                  color: 'green',
                   autoClose: 3000,
                   withCloseButton: true,
-                  title: "Room url copied to clipboard",
-                  message: "Share it with your team!",
+                  title: 'Room url copied to clipboard',
+                  message: 'Share it with your team!',
                 });
                 sendTrackEvent({
                   event: EventType.COPIED_ROOM_LINK,
@@ -89,16 +97,16 @@ export const Interactions = ({
               }}
             >
               {isValidMediumint(roomName) && roomName.length === 6
-                ? roomName.slice(0, 3) + " " + roomName.slice(3)
+                ? roomName.slice(0, 3) + ' ' + roomName.slice(3)
                 : roomName.toUpperCase()}
             </h2>
           </Button>
           <div>
             <Button
               variant={
-                status === roomStateStatus.flipped ? "filled" : "default"
+                status === roomStateStatus.flipped ? 'filled' : 'default'
               }
-              className={"mr-5"}
+              className={'mr-5'}
               onClick={() => {
                 resetMutation.mutate({
                   roomId,
@@ -106,10 +114,10 @@ export const Interactions = ({
                 });
               }}
             >
-              {status === roomStateStatus.flipped ? "New Round" : "Reset"}
+              {status === roomStateStatus.flipped ? 'New Round' : 'Reset'}
             </Button>
             <Button
-              variant={"default"}
+              variant={'default'}
               onClick={() => {
                 setRoomId(null);
                 setRoomReadable(null);
@@ -133,8 +141,8 @@ export const Interactions = ({
             {fibonacciSequence.map((number) => (
               <Button
                 disabled={isSpectator || status === roomStateStatus.flipped}
-                variant={estimation === number ? "filled" : "default"}
-                size={"lg"}
+                variant={estimation === number ? 'filled' : 'default'}
+                size={'lg'}
                 fullWidth
                 key={number}
                 onClick={() => {

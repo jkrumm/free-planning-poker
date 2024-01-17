@@ -1,32 +1,36 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { env } from "fpp/env.mjs";
-import { withLogger } from "fpp/utils/api-logger.util";
-import { type AxiomRequest, type Logger } from "next-axiom";
-import { logEndpoint } from "fpp/constants/logging.constant";
+import { type NextRequest, NextResponse } from 'next/server';
+
+import { env } from 'fpp/env.mjs';
+
+import { type AxiomRequest, type Logger } from 'next-axiom';
+
 import {
   BadRequestError,
   MethodNotAllowedError,
-} from "fpp/constants/error.constant";
+} from 'fpp/constants/error.constant';
+import { logEndpoint } from 'fpp/constants/logging.constant';
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic"; // no caching
+import { withLogger } from 'fpp/utils/api-logger.util';
+
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic'; // no caching
 
 const AblyToken = withLogger(async (request: AxiomRequest) => {
   const req = request as NextRequest & { log: Logger };
   req.log.with({ endpoint: logEndpoint.ABLY_TOKEN });
 
-  if (req.method !== "GET") {
-    throw new MethodNotAllowedError("ABLY_TOKEN only accepts GET requests");
+  if (req.method !== 'GET') {
+    throw new MethodNotAllowedError('ABLY_TOKEN only accepts GET requests');
   }
 
-  const clientId = req.nextUrl.searchParams.get("clientId");
+  const clientId = req.nextUrl.searchParams.get('clientId');
 
   if (!clientId || !/^[A-Za-z0-9_~]{21}$/.test(clientId)) {
-    throw new BadRequestError("clientId invalid");
+    throw new BadRequestError('clientId invalid');
   }
 
   try {
-    const key = env.ABLY_API_KEY.split(":"),
+    const key = env.ABLY_API_KEY.split(':'),
       keyName: string = key[0]!,
       keySecret: string = key[1]!;
 
@@ -41,17 +45,17 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
 
     const signText =
       body.keyName +
-      "\n" +
+      '\n' +
       body.ttl +
-      "\n" +
+      '\n' +
       body.capability +
-      "\n" +
+      '\n' +
       clientId +
-      "\n" +
+      '\n' +
       body.timestamp +
-      "\n" +
+      '\n' +
       body.nonce +
-      "\n";
+      '\n';
 
     const mac = await hmacSign(signText, keySecret);
 
@@ -63,9 +67,9 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
           mac,
         }),
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        method: "POST",
+        method: 'POST',
       },
     );
 
@@ -82,14 +86,14 @@ async function hmacSign(signText: string, keySecret: string) {
   const keySecretEncoded = new TextEncoder().encode(keySecret);
 
   const key = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     keySecretEncoded,
-    { name: "HMAC", hash: "SHA-256" },
+    { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ["sign"],
+    ['sign'],
   );
 
-  const signature = await crypto.subtle.sign("HMAC", key, signTextEncoded);
+  const signature = await crypto.subtle.sign('HMAC', key, signTextEncoded);
 
   // convert ArrayBuffer to Array
   const array = Array.from(new Uint8Array(signature));

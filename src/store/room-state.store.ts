@@ -1,10 +1,11 @@
-import { create } from "zustand";
+import { create } from 'zustand';
+
 import {
   type RoomStateClient,
-  type roomStateStatus,
   type User,
-} from "fpp/server/room-state/room-state.entity";
-import { notifyOnRoomStateChanges } from "fpp/server/room-state/room-state.utils";
+  type roomStateStatus,
+} from 'fpp/server/room-state/room-state.entity';
+import { notifyOnRoomStateChanges } from 'fpp/server/room-state/room-state.utils';
 
 type RoomStateStore = {
   // User
@@ -36,7 +37,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   isFlipped: false,
   isFlippable: false,
   isAutoFlip: false,
-  status: "estimating",
+  status: 'estimating',
   stackedEstimations: [],
   averageEstimation: null,
   // Initial Connection
@@ -77,7 +78,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       users: [],
       startedAt: null,
       isAutoFlip: false,
-      status: "estimating",
+      status: 'estimating',
       // Interactions
       connectedAt: null,
     });

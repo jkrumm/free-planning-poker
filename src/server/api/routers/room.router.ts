@@ -1,22 +1,25 @@
-import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { z } from "zod";
+import { type PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless/driver';
+import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
+import { nanoid } from 'nanoid';
+import { type AxiomRequest } from 'next-axiom';
+import { z } from 'zod';
+
+import { isValidMediumint } from 'fpp/utils/number.utils';
+import { generateRoomNumber } from 'fpp/utils/room-number.util';
+
+import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import {
-  events,
   EventType,
   type IRoom,
   RoomEvent,
+  events,
   rooms,
   users,
-} from "fpp/server/db/schema";
-import { eq, or } from "drizzle-orm/sql/expressions/conditions";
-import { generateRoomNumber } from "fpp/utils/room-number.util";
-import { type PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless/driver";
+} from 'fpp/server/db/schema';
 
-import type * as schema from "/Users/jkrumm/SourceRoot/free-planning-poker/src/server/db/schema";
-import { getVisitorPayload } from "fpp/pages/api/track-page-view";
-import { type AxiomRequest } from "next-axiom";
-import { nanoid } from "nanoid";
-import { isValidMediumint } from "fpp/utils/number.utils";
+import { getVisitorPayload } from 'fpp/pages/api/track-page-view';
+
+import type * as schema from '/Users/jkrumm/SourceRoot/free-planning-poker/src/server/db/schema';
 
 const findOpenRoomNumber = async (db: PlanetScaleDatabase<typeof schema>) => {
   let retries = 0;
@@ -28,7 +31,7 @@ const findOpenRoomNumber = async (db: PlanetScaleDatabase<typeof schema>) => {
     if (!room) {
       return number;
     }
-    console.warn("Room number collision, trying again", { retries });
+    console.warn('Room number collision, trying again', { retries });
     retries++;
   }
 };
@@ -119,12 +122,12 @@ export const roomRouter = createTRPCRouter({
 
               if (retryCount > 10) {
                 throw new Error(
-                  "Failed to find open room number after 10 tries",
+                  'Failed to find open room number after 10 tries',
                 );
               }
 
               roomNumber = await findOpenRoomNumber(db);
-              console.warn("Room number collision", {
+              console.warn('Room number collision', {
                 roomNumber,
                 retryCount,
               });

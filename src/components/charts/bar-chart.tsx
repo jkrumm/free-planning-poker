@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import dynamic from "next/dynamic";
-import { type ApexOptions } from "apexcharts";
+import React, { useState } from 'react';
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+import dynamic from 'next/dynamic';
+
+import { type ApexOptions } from 'apexcharts';
+
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 export const BarChart = ({
   headline,
@@ -13,8 +15,8 @@ export const BarChart = ({
 }) => {
   const [options] = useState<ApexOptions>({
     chart: {
-      id: headline.replace(" ", "-"),
-      foreColor: "#C1C2C5",
+      id: headline.replace(' ', '-'),
+      foreColor: '#C1C2C5',
       animations: {
         enabled: false,
       },
@@ -22,21 +24,21 @@ export const BarChart = ({
     xaxis: {
       categories: data.map((d) => d.name),
     },
-    noData: { text: "Loading..." },
-    colors: ["#1971c2"],
+    noData: { text: 'Loading...' },
+    colors: ['#1971c2'],
     tooltip: {
       fillSeriesColor: true, //This is for the tooltip color
-      theme: "dark", //You will need to work with this option to apply the dark theme.
+      theme: 'dark', //You will need to work with this option to apply the dark theme.
     },
     theme: {
-      palette: "palette2", //Check the list of available palettes and choose one.
+      palette: 'palette2', //Check the list of available palettes and choose one.
     },
     plotOptions: {
       bar: {
         borderRadius: 4,
       },
     },
-    grid: { borderColor: "#3e3e3e" },
+    grid: { borderColor: '#3e3e3e' },
   });
 
   const [series] = useState<ApexAxisChartSeries | ApexNonAxisChartSeries>([

@@ -1,6 +1,7 @@
-import { createTRPCRouter, publicProcedure } from "fpp/server/api/trpc";
-import { featureFlags, FeatureFlagType } from "fpp/server/db/schema";
-import { sql } from "drizzle-orm";
+import { sql } from 'drizzle-orm';
+
+import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
+import { FeatureFlagType, featureFlags } from 'fpp/server/db/schema';
 
 export const featureFlagRouter = createTRPCRouter({
   getFeatureFlags: publicProcedure.query(async ({ ctx: { db } }) => {

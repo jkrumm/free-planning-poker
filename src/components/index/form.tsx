@@ -1,13 +1,19 @@
-"use client";
+'use client';
 
-import { useForm } from "@mantine/form";
-import { useLocalstorageStore } from "fpp/store/local-storage.store";
-import React, { useEffect } from "react";
-import { Button, Group, TextInput } from "@mantine/core";
-import { IconArrowBadgeRightFilled } from "@tabler/icons-react";
-import { useRouter } from "next/router";
-import { api } from "fpp/utils/api";
-import { RoomEvent } from "fpp/server/db/schema";
+import React, { useEffect } from 'react';
+
+import { useRouter } from 'next/router';
+
+import { Button, Group, TextInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
+
+import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
+
+import { api } from 'fpp/utils/api';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+
+import { RoomEvent } from 'fpp/server/db/schema';
 
 const IndexForm = () => {
   const router = useRouter();
@@ -21,8 +27,8 @@ const IndexForm = () => {
   useEffect(() => {
     if (
       !roomReadable ||
-      roomReadable === "null" ||
-      roomReadable === "undefined"
+      roomReadable === 'null' ||
+      roomReadable === 'undefined'
     ) {
       setRoomReadable(null);
     } else {
@@ -35,12 +41,12 @@ const IndexForm = () => {
 
   const form = useForm({
     initialValues: {
-      room: "",
+      room: '',
     },
     validate: {
       room: (value) =>
-        value.replace(/[^A-Za-z0-9]/g, "").length < 3 ||
-        value.replace(/[^A-Za-z0-9]/g, "").length > 15,
+        value.replace(/[^A-Za-z0-9]/g, '').length < 3 ||
+        value.replace(/[^A-Za-z0-9]/g, '').length > 15,
     },
   });
 
@@ -48,9 +54,9 @@ const IndexForm = () => {
   useEffect(() => {
     // secondRender = true;
     const roomValue = form.values.room
-      .replace(/[^A-Za-z0-9]/g, "")
+      .replace(/[^A-Za-z0-9]/g, '')
       .toUpperCase();
-    form.setFieldValue("room", roomValue);
+    form.setFieldValue('room', roomValue);
   }, [form.values.room]);
 
   return (
@@ -64,7 +70,7 @@ const IndexForm = () => {
         aria-label="Start Planning"
         onClick={() => {
           if (!randomRoomNumber) {
-            console.error("No random room number found");
+            console.error('No random room number found');
           }
           setRoomReadable(String(randomRoomNumber));
           setRoomEvent(RoomEvent.ENTERED_RANDOM_ROOM);
@@ -95,7 +101,7 @@ const IndexForm = () => {
                 placeholder="Join room"
                 className={`absolute my-6 w-[300px] rounded-md border-[2px] border-solid border-[#1971C2]`}
                 size="xl"
-                {...form.getInputProps("room")}
+                {...form.getInputProps('room')}
               />
               <Button
                 role="button"

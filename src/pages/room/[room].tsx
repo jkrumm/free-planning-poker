@@ -1,10 +1,15 @@
-import { Meta } from "fpp/components/meta";
-import { useRouter } from "next/router";
-import { Alert, Button, Loader, Text } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons-react";
-import Link from "next/link";
-import React, { Suspense } from "react";
-import dynamic from "next/dynamic";
+import React, { Suspense } from 'react';
+
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+
+import { Alert, Button, Loader, Text } from '@mantine/core';
+
+import { IconAlertCircle } from '@tabler/icons-react';
+
+import { Meta } from 'fpp/components/meta';
+
 // import RoomWrapper from "fpp/components/room/room-wrapper";
 
 const CenteredLoader = () => (
@@ -14,7 +19,7 @@ const CenteredLoader = () => (
 );
 
 const RoomWrapper = dynamic(
-  () => import("../../components/room/room-wrapper"),
+  () => import('../../components/room/room-wrapper'),
   { ssr: false },
 );
 

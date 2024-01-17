@@ -1,9 +1,12 @@
-import { type Logger } from "next-axiom";
-import { Table } from "fpp/components/room/table";
-import { Interactions } from "fpp/components/room/interactions";
-import React from "react";
-import { useHeartbeat } from "fpp/hooks/use-heartbeat.hook";
-import { useRoomState } from "fpp/hooks/use-room-state.hook";
+import React from 'react';
+
+import { type Logger } from 'next-axiom';
+
+import { useHeartbeat } from 'fpp/hooks/use-heartbeat.hook';
+import { useRoomState } from 'fpp/hooks/use-room-state.hook';
+
+import { Interactions } from 'fpp/components/room/interactions';
+import { Table } from 'fpp/components/room/table';
 
 export const Room = ({
   roomId,

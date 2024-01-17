@@ -1,5 +1,6 @@
-import { Card, Table } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+
+import { Card, Table } from '@mantine/core';
 
 const PointsTable = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -10,43 +11,43 @@ const PointsTable = () => {
     };
 
     // this condition will prevent the unexpected behavior on the server side
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       // set initial state
       setIsSmallScreen(window.innerWidth < 950);
 
-      window.addEventListener("resize", handleResize);
+      window.addEventListener('resize', handleResize);
       return () => {
-        window.removeEventListener("resize", handleResize);
+        window.removeEventListener('resize', handleResize);
       };
     }
   }, []);
 
   const data = [
     [
-      "1",
-      "Straight forward task, requiring adjustments at few places",
-      "Max. 1h",
+      '1',
+      'Straight forward task, requiring adjustments at few places',
+      'Max. 1h',
     ],
     [
-      "2",
-      "Straight forward task, requires more work in implementation, increased documentation or information requirement",
-      "2-4h",
+      '2',
+      'Straight forward task, requires more work in implementation, increased documentation or information requirement',
+      '2-4h',
     ],
     [
-      "3",
-      "Either a straightforward task with high implementation effort or a complex task with clear problem-solution path",
-      "4-8h",
+      '3',
+      'Either a straightforward task with high implementation effort or a complex task with clear problem-solution path',
+      '4-8h',
     ],
-    ["5", "Complex tasks with unclear solutions and implementations", "8-16h"],
+    ['5', 'Complex tasks with unclear solutions and implementations', '8-16h'],
     [
-      "8",
-      "Complex tasks with unclear solutions leading to high implementation efforts",
-      "16-32h",
+      '8',
+      'Complex tasks with unclear solutions leading to high implementation efforts',
+      '16-32h',
     ],
     [
-      "13",
-      "Very complex tasks with unclear solutions leading to very high implementation efforts",
-      "At least one week",
+      '13',
+      'Very complex tasks with unclear solutions leading to very high implementation efforts',
+      'At least one week',
     ],
   ];
 

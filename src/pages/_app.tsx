@@ -1,16 +1,19 @@
-import { type AppType } from "next/app";
+import React, { Suspense } from 'react';
 
-import { api } from "fpp/utils/api";
-import "normalize.css/normalize.css";
-import "@mantine/core/styles.css";
-import "@mantine/notifications/styles.css";
-import "fpp/styles/globals.css";
-import { GeistSans } from "geist/font/sans";
-import React, { Suspense } from "react";
-import { AxiomWebVitals } from "next-axiom";
-import { MantineProvider } from "@mantine/core";
-import { FeatureFlagLoaderUtil } from "fpp/utils/feature-flag-loader.util";
-import { Notifications } from "@mantine/notifications";
+import { type AppType } from 'next/app';
+
+import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
+import { Notifications } from '@mantine/notifications';
+import '@mantine/notifications/styles.css';
+import 'fpp/styles/globals.css';
+import { GeistSans } from 'geist/font/sans';
+import 'normalize.css/normalize.css';
+
+import { AxiomWebVitals } from 'next-axiom';
+
+import { api } from 'fpp/utils/api';
+import { FeatureFlagLoaderUtil } from 'fpp/utils/feature-flag-loader.util';
 
 // const theme = createTheme({});
 

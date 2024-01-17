@@ -1,5 +1,5 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
 
 export const env = createEnv({
   // server-side environment variables schema ensures the app isn't built with invalid env vars.
@@ -7,12 +7,12 @@ export const env = createEnv({
     // DATABASE_URL: z.string().url(),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    NEXT_PUBLIC_NODE_ENV: z.enum(["development", "test", "production"]),
+    NEXT_PUBLIC_NODE_ENV: z.enum(['development', 'test', 'production']),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     NEXT_PUBLIC_API_ROOT: z.enum([
-      "http://localhost:3000/",
-      "https://free-planning-poker.com/",
+      'http://localhost:3000/',
+      'https://free-planning-poker.com/',
     ]),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -31,10 +31,10 @@ export const env = createEnv({
   // client-side environment variables schema ensures the app isn't built with invalid env vars.
   // To expose them to the client, prefix them with `NEXT_PUBLIC_`
   client: {
-    NEXT_PUBLIC_NODE_ENV: z.enum(["development", "test", "production"]),
+    NEXT_PUBLIC_NODE_ENV: z.enum(['development', 'test', 'production']),
     NEXT_PUBLIC_API_ROOT: z.enum([
-      "http://localhost:3000/",
-      "https://free-planning-poker.com/",
+      'http://localhost:3000/',
+      'https://free-planning-poker.com/',
     ]),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
   },
@@ -52,7 +52,7 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_TOKEN_ROOM_STATE:
       process.env.UPSTASH_REDIS_REST_TOKEN_ROOM_STATE,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
-    ABLY_API_KEY_BASE64: btoa(process.env.ABLY_API_KEY || ""),
+    ABLY_API_KEY_BASE64: btoa(process.env.ABLY_API_KEY || ''),
     TARGET_EMAIL: process.env.TARGET_EMAIL,
     SEND_EMAIL: process.env.SEND_EMAIL,
     SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
