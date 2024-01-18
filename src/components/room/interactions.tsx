@@ -66,6 +66,7 @@ export const Interactions = ({
             <h2
               className="uppercase"
               ref={roomRef}
+              onKeyDown={() => ({})}
               onClick={() => {
                 if (!window.location) {
                   return;

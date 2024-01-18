@@ -19,9 +19,10 @@ import {
 
 import { getVisitorPayload } from 'fpp/pages/api/track-page-view';
 
-import type * as schema from '/Users/jkrumm/SourceRoot/free-planning-poker/src/server/db/schema';
-
-const findOpenRoomNumber = async (db: PlanetScaleDatabase<typeof schema>) => {
+const findOpenRoomNumber = async (
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  db: PlanetScaleDatabase<typeof import('../../db/schema')>,
+) => {
   let retries = 0;
   while (true) {
     const number = generateRoomNumber();
@@ -116,7 +117,7 @@ export const roomRouter = createTRPCRouter({
           } catch (error) {
             if (
               error instanceof Error &&
-              /.*Duplicate.*rooms_number_unique_idx.*/.test(error.message)
+              /.*Duplicate.*rooms_number_unique_idx.*/.test(error.message) // NOSONAR
             ) {
               retryCount++;
 

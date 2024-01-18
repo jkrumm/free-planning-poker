@@ -39,7 +39,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
   },
   // You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
-  // middlewares) or client-side so we need to destruct manually.
+  // middlewares) or client-side, so we need to destruct manually.
   runtimeEnv: {
     // DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -52,7 +52,7 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_TOKEN_ROOM_STATE:
       process.env.UPSTASH_REDIS_REST_TOKEN_ROOM_STATE,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
-    ABLY_API_KEY_BASE64: btoa(process.env.ABLY_API_KEY || ''),
+    ABLY_API_KEY_BASE64: btoa(process.env.ABLY_API_KEY ?? ''),
     TARGET_EMAIL: process.env.TARGET_EMAIL,
     SEND_EMAIL: process.env.SEND_EMAIL,
     SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
