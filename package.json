@@ -19,7 +19,9 @@
     "format": "prettier --write \"{src,test}/**\"",
     "format:check": "prettier --check \"{src,test}/**\"",
     "type-check": "tsc --noEmit",
-    "pre": "npm run lint && npm run type-check && npm run format:check && npm run build"
+    "prepare": "husky install",
+    "pre": "npm run lint && npm run type-check && npm run format:check && npm run build",
+    "release": "release-it"
   },
   "dependencies": {
     "@ably-labs/react-hooks": "^2.1.2",
@@ -68,6 +70,9 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@commitlint/cli": "^18.4.4",
+    "@commitlint/config-conventional": "^18.4.4",
+    "@release-it/conventional-changelog": "^8.0.1",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/eslint": "^8.56.1",
     "@types/luxon": "^3.4.0",
@@ -83,14 +88,86 @@
     "drizzle-kit": "^0.20.13",
     "eslint": "^8.55.0",
     "eslint-config-next": "^14.0.3",
+    "husky": "^8.0.3",
     "postcss": "^8.4.33",
     "prettier": "^3.1.1",
     "prettier-plugin-tailwindcss": "^0.5.11",
+    "release-it": "^17.0.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "undici": "^5.28.2"
   },
   "ct3aMetadata": {
     "initVersion": "7.18.1-beta.e1ce1f5"
+  },
+  "release-it": {
+    "git": {
+      "requireBranch": "master",
+      "commitMessage": "chore: release v${version}"
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": false
+    }
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          {
+            "type": "feat",
+            "section": "Features"
+          },
+          {
+            "type": "fix",
+            "section": "Bug Fixes"
+          },
+          {
+            "type": "docs",
+            "section": "Documentation"
+          },
+          {
+            "type": "style",
+            "section": "Styling"
+          },
+          {
+            "type": "test",
+            "section": "Tests"
+          },
+          {
+            "type": "perf",
+            "section": "Performance"
+          },
+          {
+            "type": "build",
+            "section": "Build System"
+          },
+          {
+            "type": "refactor",
+            "section": "Refactor"
+          },
+          {
+            "type": "ci",
+            "section": "Continuous Integration"
+          },
+          {
+            "type": "revert",
+            "section": "Reverts"
+          },
+          {
+            "type": "chore",
+            "section": "Other Changes"
+          },
+          {
+            "type": "wip",
+            "hidden": true
+          }
+        ]
+      }
+    }
   }
 }
