@@ -123,7 +123,7 @@ export async function setRoomState({
 
   await Promise.allSettled(promises).then((results) => {
     for (const result of results) {
-      if (result.status === 'rejected') {
+      if (result.status === 'rejected' && result.reason instanceof TRPCError) {
         console.error('Failed to fully set room state', {
           roomId,
           userId,

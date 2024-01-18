@@ -18,26 +18,22 @@ import { RoomEvent } from 'fpp/server/db/schema';
 const IndexForm = () => {
   const router = useRouter();
 
-  const roomReadable = useLocalstorageStore((state) => state.roomReadable);
+  const roomName = useLocalstorageStore((state) => state.roomName);
   const setRoomReadable = useLocalstorageStore((state) => state.setRoomName);
   const setRoomEvent = useLocalstorageStore((state) => state.setRoomEvent);
 
   const { data: randomRoomNumber } = api.room.getOpenRoomNumber.useQuery();
 
   useEffect(() => {
-    if (
-      !roomReadable ||
-      roomReadable === 'null' ||
-      roomReadable === 'undefined'
-    ) {
+    if (!roomName || roomName === 'null' || roomName === 'undefined') {
       setRoomReadable(null);
     } else {
       router
-        .push(`/room/${roomReadable}`)
+        .push(`/room/${roomName}`)
         .then(() => ({}))
         .catch(() => ({}));
     }
-  }, [roomReadable]);
+  }, [roomName]);
 
   const form = useForm({
     initialValues: {
