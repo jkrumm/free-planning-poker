@@ -1,5 +1,7 @@
 
 
+## [2.2.11](https://github.com/jkrumm/free-planning-poker/compare/2.2.10...2.2.11) (2024-01-19)
+
 ## [2.2.10](https://github.com/jkrumm/free-planning-poker/compare/2.2.9...2.2.10) (2024-01-19)
 
 ## [2.2.9](https://github.com/jkrumm/free-planning-poker/compare/2.2.8...2.2.9) (2024-01-19)
