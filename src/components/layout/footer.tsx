@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { useConfigStore } from 'fpp/store/config.store';
+
 const links = [
   {
     url: '/analytics',
@@ -16,6 +18,8 @@ const links = [
 ];
 
 export function Footer() {
+  const latestTag = useConfigStore((state) => state.latestTag);
+
   return (
     <footer>
       <div className="pointer-events-none fixed bottom-0 z-40 block min-h-[50px] min-w-full bg-[#121314] sm:min-h-[30px]" />
@@ -28,6 +32,14 @@ export function Footer() {
           >
             free-planning-poker.com
           </Link>{' '}
+          <a
+            href="https://github.com/jkrumm/free-planning-poker/releases"
+            target="_blank"
+            className="pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2] cursor-pointer"
+            rel="noopener noreferrer"
+          >
+            {latestTag}
+          </a>{' '}
           is licensed under{' '}
           <Link
             href="/imprint#license"

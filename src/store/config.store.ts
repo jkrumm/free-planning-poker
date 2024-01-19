@@ -2,7 +2,9 @@ import { create } from 'zustand';
 
 import { FeatureFlagType } from 'fpp/server/db/schema';
 
-type FeatureFlagStore = {
+type ConfigStore = {
+  latestTag: string;
+  setLatestTag: (tag: string) => void;
   featureFlags: {
     name: keyof typeof FeatureFlagType;
     enabled: boolean;
@@ -16,7 +18,9 @@ type FeatureFlagStore = {
   activeFeatureFlags: string[];
 };
 
-export const useFeatureFlagStore = create<FeatureFlagStore>((set, get) => ({
+export const useConfigStore = create<ConfigStore>((set, get) => ({
+  latestTag: '2.0.0',
+  setLatestTag: (tag: string) => set({ latestTag: tag }),
   featureFlags: Object.keys(FeatureFlagType).map((name) => ({
     name: name as keyof typeof FeatureFlagType,
     enabled: false,
