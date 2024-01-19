@@ -1,5 +1,12 @@
 
 
+## [2.4.8](https://github.com/jkrumm/free-planning-poker/compare/2.4.6...2.4.8) (2024-01-19)
+
+
+### Other Changes
+
+* release v2.4.7 ([cc60526](https://github.com/jkrumm/free-planning-poker/commit/cc6052632c53da8614b69090100f25c42ab98ab3))
+
 ## [2.4.7](https://github.com/jkrumm/free-planning-poker/compare/2.4.6...2.4.7) (2024-01-19)
 
 ## [2.4.6](https://github.com/jkrumm/free-planning-poker/compare/2.4.5...2.4.6) (2024-01-19)
