@@ -8,7 +8,7 @@
   "author": "Johannes Krumm",
   "description": "Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.",
   "homepage": "https://free-planning-poker.com/",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "private": true,
   "scripts": {
     "build": "next build",
