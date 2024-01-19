@@ -49,7 +49,7 @@
     "apexcharts": "^3.45.1",
     "country-region-data": "^3.0.0",
     "drizzle-orm": "^0.29.3",
-    "framer-motion": "^10.17.9",
+    "framer-motion": "^10.18.0",
     "geist": "^1.2.0",
     "luxon": "^3.4.4",
     "nanoid": "^5.0.4",
