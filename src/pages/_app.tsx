@@ -13,11 +13,13 @@ import 'normalize.css/normalize.css';
 import { AxiomWebVitals } from 'next-axiom';
 
 import { api } from 'fpp/utils/api';
-import { FeatureFlagLoaderUtil } from 'fpp/utils/feature-flag-loader.util';
+import { useConfigLoader } from 'fpp/utils/config-loader.hook';
 
 // const theme = createTheme({});
 
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
+  useConfigLoader();
+
   return (
     <MantineProvider
       // withNormalizeCSS
@@ -32,7 +34,6 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
     >
       <Suspense fallback={<></>}>
         <AxiomWebVitals />
-        <FeatureFlagLoaderUtil />
         <Notifications position="top-right" />
       </Suspense>
       <main className={GeistSans.className}>

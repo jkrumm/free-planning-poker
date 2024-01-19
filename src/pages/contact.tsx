@@ -20,7 +20,7 @@ import { useLogger } from 'next-axiom';
 import { api } from 'fpp/utils/api';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
-import { useFeatureFlagStore } from 'fpp/store/feature-flag.store';
+import { useConfigStore } from 'fpp/store/config.store';
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 import { EventType, FeatureFlagType, RouteType } from 'fpp/server/db/schema';
@@ -34,7 +34,7 @@ const Contact: NextPage = () => {
   const logger = useLogger().with({ route: RouteType.CONTACT });
   useTrackPageView(RouteType.CONTACT, logger);
 
-  const activeFeatureFlags = useFeatureFlagStore(
+  const activeFeatureFlags = useConfigStore(
     (state) => state.activeFeatureFlags,
   );
 
