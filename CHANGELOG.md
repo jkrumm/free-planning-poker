@@ -1,5 +1,24 @@
 
 
+## [2.1.0](https://github.com/jkrumm/free-planning-poker/compare/2.0.0...2.1.0) (2024-01-19)
+
+
+### Features
+
+* fetch latest tag and show in footer ([5a7e559](https://github.com/jkrumm/free-planning-poker/commit/5a7e5594dfc63e40641272b28c40657226cc3ba3))
+* update room lastUsedAt on vote and join ([d3a4605](https://github.com/jkrumm/free-planning-poker/commit/d3a460532ec6bd7cf2477c36954950cfb4947d5c))
+
+
+### Bug Fixes
+
+* correct NanoId validation and better reassignment ([8b5fa44](https://github.com/jkrumm/free-planning-poker/commit/8b5fa444b93317d8e9b973811bb8663c7d52615d))
+
+
+### Continuous Integration
+
+* automatic Semantic Release on merge to master ([f33d7ad](https://github.com/jkrumm/free-planning-poker/commit/f33d7adec368cef9423674cb5ca86fb1ce620329))
+* delete automatic Semantic Release ([562fef9](https://github.com/jkrumm/free-planning-poker/commit/562fef93946771c4fa718da17cd3dd65a74297d9))
+
 ## [2.0.0](https://github.com/jkrumm/free-planning-poker/compare/1.0.0...2.0.0) (2024-01-19)
 
 
