@@ -3,9 +3,10 @@ import { env } from 'fpp/env.mjs';
 import { TRPCError } from '@trpc/server';
 
 import { Redis } from '@upstash/redis';
+import { eq } from 'drizzle-orm';
 import { type PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless/driver';
 
-import { estimations, votes } from 'fpp/server/db/schema';
+import { estimations, rooms, votes } from 'fpp/server/db/schema';
 
 import {
   type RoomStateDto,
@@ -100,6 +101,14 @@ export async function setRoomState({
         }),
       );
     }
+    promises.push(
+      db
+        .update(rooms)
+        .set({
+          lastUsedAt: new Date(),
+        })
+        .where(eq(rooms.id, roomId)),
+    );
     roomState.isFlipAction = false;
   }
 
