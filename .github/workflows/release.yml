@@ -1,22 +1,20 @@
 name: "Semantic Release"
 
-on:
-  push:
-    branches:
-      - master
+on: workflow_dispatch
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: git config
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Install the dependencies
+        run: npm ci
+      - name: Initialize Git user
         run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-      - run: npm ci
-      - run: npm run release --ci
+      - name: Run release
+        run: npm run release --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
