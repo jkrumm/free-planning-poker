@@ -89,6 +89,12 @@ export const roomRouter = createTRPCRouter({
             userId: userId!,
             event,
           });
+          await db
+            .update(rooms)
+            .set({
+              lastUsedAt: new Date(),
+            })
+            .where(eq(rooms.id, room.id));
           return {
             userId: userId!,
             roomId: room.id,
