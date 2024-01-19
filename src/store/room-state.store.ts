@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
 import {
   type RoomStateClient,
   type User,
@@ -28,7 +30,7 @@ type RoomStateStore = {
 export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   // User
   userId: null,
-  setUserId: (userId) => set({ userId }),
+  setUserId: (userId) => validateNanoId(userId) && set({ userId }),
   estimation: null,
   isSpectator: false,
   // Game State

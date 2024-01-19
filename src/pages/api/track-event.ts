@@ -11,6 +11,7 @@ import { logEndpoint } from 'fpp/constants/logging.constant';
 import { withLogger } from 'fpp/utils/api-logger.util';
 import { findUserById } from 'fpp/utils/db-api.util';
 import { decodeBlob } from 'fpp/utils/decode.util';
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
 import { EventType, events } from 'fpp/server/db/schema';
@@ -53,8 +54,8 @@ const validateInput = ({
   userId: string;
   event: keyof typeof EventType;
 }): void => {
-  if (!userId || userId.length !== 21) {
-    throw new BadRequestError('invalid visitorId');
+  if (!validateNanoId(userId)) {
+    throw new BadRequestError('invalid userId');
   }
 
   if (EventType[event] === undefined) {

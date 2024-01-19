@@ -3,16 +3,18 @@ import { type MySqlTable } from 'drizzle-orm/mysql-core/table';
 
 import { BadRequestError, NotFoundError } from 'fpp/constants/error.constant';
 
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
 import db from 'fpp/server/db/db';
 import { type IUser, users } from 'fpp/server/db/schema';
 
 export async function findUserById(userId: string | null): Promise<IUser> {
-  if (!userId || userId.length !== 21) {
-    throw new BadRequestError('invalid visitorId');
+  if (!validateNanoId(userId)) {
+    throw new BadRequestError('invalid userId');
   }
 
   const user: IUser | null =
-    (await db.select().from(users).where(eq(users.id, userId)))[0] ?? null;
+    (await db.select().from(users).where(eq(users.id, userId!)))[0] ?? null;
 
   if (!user) {
     throw new NotFoundError('visitor not found');

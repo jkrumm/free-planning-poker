@@ -13,6 +13,7 @@ import { AblyProvider } from 'ably/react';
 import { useLogger } from 'next-axiom';
 
 import { api } from 'fpp/utils/api';
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStateStore } from 'fpp/store/room-state.store';
@@ -35,15 +36,15 @@ const RoomWrapper = () => {
   );
 
   const setUserIdRoomState = useRoomStateStore((state) => state.setUserId);
-  if (userId) {
-    setUserIdRoomState(userId);
+  if (validateNanoId(userId)) {
+    setUserIdRoomState(userId!);
   }
 
   let ablyClient;
-  if (userId) {
+  if (validateNanoId(userId)) {
     ablyClient = new Ably.Realtime.Promise({
       authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
-      clientId: userId,
+      clientId: userId!,
     });
   }
 

@@ -1,6 +1,8 @@
 import * as Sentry from '@sentry/nextjs';
 import { create } from 'zustand';
 
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
 import { RoomEvent } from 'fpp/server/db/schema';
 
 function saveToLocalstorage(key: string, value: string) {
@@ -58,9 +60,9 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   roomEvent: RoomEvent.ENTERED_ROOM_DIRECTLY,
   userId: (() => {
     const userId = getFromLocalstorage('userId');
-    // TODO: remove this after a while (2023-12-08)
-    if (userId?.length !== 21 && typeof window !== 'undefined') {
-      localStorage.removeItem('vote');
+    if (!validateNanoId(userId) && typeof window !== 'undefined') {
+      localStorage.removeItem('userId');
+      set({ userId: null });
       return null;
     }
     if (userId !== null) {
@@ -144,7 +146,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     set({ roomEvent });
   },
   setUserId: (userId: string) => {
-    if (get().userId === userId) {
+    if (get().userId === userId || !validateNanoId(userId)) {
       return;
     }
     Sentry.setUser({ id: userId });

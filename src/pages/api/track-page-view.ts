@@ -13,6 +13,7 @@ import { logEndpoint } from 'fpp/constants/logging.constant';
 
 import { withLogger } from 'fpp/utils/api-logger.util';
 import { decodeBlob } from 'fpp/utils/decode.util';
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
 import { RouteType, pageViews, users } from 'fpp/server/db/schema';
@@ -43,7 +44,7 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
     throw new BadRequestError('invalid route');
   }
 
-  userId = !userId || userId.length !== 21 ? nanoid() : userId;
+  userId = (!validateNanoId(userId) ? nanoid() : userId)!;
 
   const userExists = !!(
     await db.select().from(users).where(eq(users.id, userId))

@@ -7,6 +7,8 @@ import { type Logger } from 'next-axiom';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 import { type RouteType } from 'fpp/server/db/schema';
@@ -59,7 +61,7 @@ export const sendTrackPageView = ({
     });
     const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
 
-    if (navigator.sendBeacon && userId) {
+    if (navigator.sendBeacon && userId && validateNanoId(userId)) {
       navigator.sendBeacon(url, body);
       logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
         withBeacon: true,
