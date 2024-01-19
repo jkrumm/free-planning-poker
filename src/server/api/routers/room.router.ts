@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { generateRoomNumber } from 'fpp/utils/room-number.util';
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import {
@@ -45,7 +46,7 @@ export const roomRouter = createTRPCRouter({
     .input(
       z.object({
         queryRoom: z.string().max(15).min(2).toLowerCase().trim(),
-        userId: z.string().length(21).nullable(),
+        userId: z.string().nullable(),
         roomEvent: z.enum([
           RoomEvent.ENTERED_ROOM_DIRECTLY,
           RoomEvent.ENTERED_RECENT_ROOM,
@@ -57,7 +58,7 @@ export const roomRouter = createTRPCRouter({
       async ({ ctx: { req, db }, input: { queryRoom, userId, roomEvent } }) => {
         let room: IRoom | undefined;
 
-        if (!userId) {
+        if (!validateNanoId(userId)) {
           userId = nanoid();
           const userPayload = getVisitorPayload(req as AxiomRequest);
           await db.insert(users).values({
@@ -85,11 +86,11 @@ export const roomRouter = createTRPCRouter({
               ? EventType.ENTERED_EXISTING_ROOM
               : roomEvent;
           await db.insert(events).values({
-            userId,
+            userId: userId!,
             event,
           });
           return {
-            userId,
+            userId: userId!,
             roomId: room.id,
             roomNumber: room.number,
             roomName: room.name,
@@ -148,12 +149,12 @@ export const roomRouter = createTRPCRouter({
             ? EventType.ENTERED_NEW_ROOM
             : roomEvent;
         await db.insert(events).values({
-          userId,
+          userId: userId!,
           event,
         });
 
         return {
-          userId,
+          userId: userId!,
           roomId: room!.id,
           roomNumber: room!.number,
           roomName: room!.name,

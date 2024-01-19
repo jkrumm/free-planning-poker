@@ -11,6 +11,7 @@ import {
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
 import { withLogger } from 'fpp/utils/api-logger.util';
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic'; // no caching
@@ -25,8 +26,8 @@ const AblyToken = withLogger(async (request: AxiomRequest) => {
 
   const clientId = req.nextUrl.searchParams.get('clientId');
 
-  if (!clientId || !/^[A-Za-z0-9_~]{21}$/.test(clientId)) {
-    throw new BadRequestError('clientId invalid');
+  if (!validateNanoId(clientId)) {
+    throw new BadRequestError('userId invalid');
   }
 
   try {

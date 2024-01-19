@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import { EventType, type ICreateEvent, events } from 'fpp/server/db/schema';
 
@@ -19,9 +21,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z
-          .string()
-          .regex(/^[A-Za-z0-9_~]{21}$/, 'userId regex mismatch'),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
         username: z
           .string()
           .min(3)
@@ -60,7 +62,14 @@ export const roomStateRouter = createTRPCRouter({
       return await getRoomStateOrFail(roomId);
     }),
   heartbeat: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
+    .input(
+      z.object({
+        roomId: z.number(),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
+      }),
+    )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrNull(roomId);
 
@@ -98,7 +107,14 @@ export const roomStateRouter = createTRPCRouter({
       });
     }),
   flip: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
+    .input(
+      z.object({
+        roomId: z.number(),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
+      }),
+    )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
@@ -115,7 +131,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().length(21),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
         estimation: z
           .number()
           .refine((estimation) => {
@@ -144,7 +162,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().length(21),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
         isSpectator: z.boolean(),
       }),
     )
@@ -166,7 +186,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().length(21),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
         isAutoFlip: z.boolean(),
       }),
     )
@@ -185,7 +207,14 @@ export const roomStateRouter = createTRPCRouter({
       },
     ),
   reset: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
+    .input(
+      z.object({
+        roomId: z.number(),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
+      }),
+    )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
@@ -199,7 +228,14 @@ export const roomStateRouter = createTRPCRouter({
       });
     }),
   leave: publicProcedure
-    .input(z.object({ roomId: z.number(), userId: z.string().length(21) }))
+    .input(
+      z.object({
+        roomId: z.number(),
+        userId: z.string().refine((userId) => {
+          return validateNanoId(userId);
+        }, 'not a valid nanoId'),
+      }),
+    )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
 
