@@ -68,8 +68,8 @@ def upsert_table(cursor, table_name, dtypes_def):
     if table_name != "fpp_users":
         df = pd.concat([df_mysql, df_parquet])
         df.to_parquet(parquet_file)
-
-    df_mysql.to_parquet(parquet_file)
+    else:
+        df_mysql.to_parquet(parquet_file)
 
     logger.info(f"Upserted records for in read model", {
         "table_name": table_name,
