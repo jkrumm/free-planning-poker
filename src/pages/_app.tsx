@@ -13,7 +13,10 @@ import 'normalize.css/normalize.css';
 import { AxiomWebVitals } from 'next-axiom';
 
 import { api } from 'fpp/utils/api';
-import { useConfigLoader } from 'fpp/utils/config-loader.hook';
+
+import { useConfigLoader } from 'fpp/hooks/config-loader.hook';
+
+import Footer from 'fpp/components/layout/footer';
 
 // const theme = createTheme({});
 
@@ -39,6 +42,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       <main className={GeistSans.className}>
         <Component {...pageProps} />
       </main>
+      <Footer />
     </MantineProvider>
   );
 };
