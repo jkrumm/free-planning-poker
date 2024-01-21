@@ -8,7 +8,7 @@ def calc_behaviour():
     df_page_views = pd.read_parquet("./data/fpp_page_views.parquet", columns=["route", "room_id"])
 
     # amount of page views for each route
-    page_views = df_page_views.groupby("route", observed=False).size().to_dict()
+    routes = df_page_views.groupby("route", observed=False).size().to_dict()
 
     # load event data with column 'event'
     df_events = pd.read_parquet("./data/fpp_events.parquet", columns=["event"])
@@ -26,12 +26,12 @@ def calc_behaviour():
     df_votes = df_votes.join(df_rooms, on="room_id", how="left")
 
     # amount of votes for each room
-    votes = df_votes.groupby("name").size().to_dict()
+    rooms = df_votes.groupby("name").size().to_dict()
 
     behaviour = {
-        "page_views": page_views,
+        "routes": routes,
         "events": events,
-        "votes": votes
+        "rooms": rooms
     }
 
     logger.debug("Behaviour calculated", behaviour)

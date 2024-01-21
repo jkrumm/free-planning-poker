@@ -16,17 +16,21 @@ def calc_location_and_user_agent():
 
     country = df_users.groupby("country", observed=False).size().to_dict()
 
-    region = df_users.groupby("region", observed=False).size().to_dict()
+    # find the country of each region
+    country_region = df_users.groupby(["country", "region"], observed=False).size().reset_index(name="count")
+    country_region = country_region.to_dict(orient="records")
 
-    city = df_users.groupby("city", observed=False).size().to_dict()
+    # find the country of each city
+    country_city = df_users.groupby(["country", "city"], observed=False).size().reset_index(name="count")
+    country_city = country_city.to_dict(orient="records")
 
     location_and_user_agent = {
         "device": device,
         "os": os,
         "browser": browser,
         "country": country,
-        "region": region,
-        "city": city
+        "country_region": country_region,
+        "country_city": country_city
     }
 
     logger.debug("Location and user agent calculated", location_and_user_agent)

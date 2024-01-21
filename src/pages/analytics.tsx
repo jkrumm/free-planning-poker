@@ -14,7 +14,6 @@ import { logMsg } from 'fpp/constants/logging.constant';
 import { api } from 'fpp/utils/api';
 
 import { appRouter } from 'fpp/server/api/root';
-import { type CountResult } from 'fpp/server/api/routers/tracking.router';
 import { createTRPCContext } from 'fpp/server/api/trpc';
 import { RouteType } from 'fpp/server/db/schema';
 
@@ -31,13 +30,11 @@ export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
     transformer: superjson,
   });
 
-  await helpers.tracking.getPageViews.prefetch();
-  await helpers.vote.getVotes.prefetch();
-  await helpers.tracking.getAggregatedVisitorInfo.prefetch();
+  await helpers.analytics.getAnalytics.prefetch();
 
   return {
     props: { trpcState: helpers.dehydrate() },
-    revalidate: 3600,
+    revalidate: 600,
   };
 };
 
@@ -45,31 +42,21 @@ const Analytics = () => {
   const logger = useLogger().with({ route: RouteType.ANALYTICS });
   useTrackPageView(RouteType.ANALYTICS, logger);
 
-  const { data: pageViews } = api.tracking.getPageViews.useQuery(undefined, {
+  const { data: analytics } = api.analytics.getAnalytics.useQuery(undefined, {
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: false,
   });
-  const { data: votes } = api.vote.getVotes.useQuery(undefined, {
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    retry: false,
-  });
-  const { data: aggregatedVisitorInfo } =
-    api.tracking.getAggregatedVisitorInfo.useQuery(undefined, {
-      staleTime: Infinity,
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-      retry: false,
-    });
 
-  if (!pageViews || !votes || !aggregatedVisitorInfo) {
+  if (!analytics) {
     logger.error(logMsg.SSG_FAILED);
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
   }
+
+  const { behaviour, historical, location_and_user_agent, traffic, votes } =
+    analytics;
 
   return (
     <>
@@ -87,12 +74,12 @@ const Analytics = () => {
             spacing="md"
             className="pb-8"
           >
-            <StatsCard name="Total page views" value={pageViews.stats.total} />
-            <StatsCard name="Unique visitors" value={pageViews.stats.unique} />
-            <StatsCard name="Duration" value={pageViews.stats.duration} />
+            <StatsCard name="Unique users" value={traffic.unique_users} />
+            <StatsCard name="Total page views" value={traffic.page_views} />
+            <StatsCard name="Duration" value={traffic.average_duration} />
             <StatsCard
               name="Bounce rate"
-              value={pageViews.stats.bounceRate}
+              value={traffic.bounce_rate * 100}
               valueAppend="%"
             />
           </SimpleGrid>
@@ -105,29 +92,35 @@ const Analytics = () => {
             spacing="md"
             className="pb-8"
           >
-            <StatsCard name="Total votes" value={votes.totalVotes} />
-            <StatsCard name="Votes per day" value={votes.votesPerDay} />
-            <StatsCard name="Votes per visitor" value={votes.votesPerVisitor} />
+            <StatsCard name="Total votes" value={votes.total_votes} />
             <StatsCard
-              name="Avg amount of estimations"
-              value={votes.avgAmountOfEstimations}
+              name="Total estimations"
+              value={votes.total_estimations}
             />
             <StatsCard
-              name="Avg amount of spectators"
-              value={votes.avgAmountOfSpectators}
+              name="Avg Estimations"
+              value={votes.avg_estimations_per_vote}
             />
             <StatsCard
-              name="Avg lowest estimation"
-              value={votes.avgMinEstimation}
+              name="Avg Spectators"
+              value={votes.avg_spectators_per_vote}
             />
-            <StatsCard name="Avg estimation" value={votes.avgAvgEstimation} />
             <StatsCard
-              name="Avg highest estimation"
-              value={votes.avgMaxEstimation}
+              name="Avg min estimation"
+              value={votes.avg_min_estimation}
+            />
+            <StatsCard name="Avg estimation" value={votes.avg_estimation} />
+            <StatsCard
+              name="Avg max estimation"
+              value={votes.avg_max_estimation}
+            />
+            <StatsCard
+              name="Avg duration"
+              value={votes.avg_duration_per_vote}
             />
           </SimpleGrid>
           <h1>Historical data</h1>
-          <PageViewChart pageViews={pageViews} />
+          <PageViewChart historical={historical} />
           <h1 className="mb-2 mt-[60px]">Location data</h1>
           <SimpleGrid
             cols={{
@@ -138,15 +131,15 @@ const Analytics = () => {
           >
             <AnalyticsCard
               headline={'Countries'}
-              data={aggregatedVisitorInfo.countryCounts}
+              data={location_and_user_agent.country}
             />
             <AnalyticsCard
               headline={'Regions'}
-              data={aggregatedVisitorInfo.regionCounts}
+              data={location_and_user_agent.region}
             />
             <AnalyticsCard
               headline={'Cities'}
-              data={aggregatedVisitorInfo.cityCounts}
+              data={location_and_user_agent.city}
             />
           </SimpleGrid>
           <h1 className="mb-2 mt-[60px]">User Agent data</h1>
@@ -159,15 +152,15 @@ const Analytics = () => {
           >
             <AnalyticsCard
               headline={'Operating Systems'}
-              data={aggregatedVisitorInfo.osCounts}
+              data={location_and_user_agent.os}
             />
             <AnalyticsCard
               headline={'Devices'}
-              data={aggregatedVisitorInfo.deviceCounts}
+              data={location_and_user_agent.device}
             />
             <AnalyticsCard
               headline={'Browsers'}
-              data={aggregatedVisitorInfo.browserCounts}
+              data={location_and_user_agent.browser}
             />
           </SimpleGrid>
         </div>
@@ -180,11 +173,14 @@ export const AnalyticsCard = ({
   data,
   headline,
 }: {
-  data: CountResult;
+  data: Record<string, number>;
   headline: string;
 }) => {
-  const sortedData = data.sort((a, b) => b.value - a.value);
-  const highestValue = sortedData[0]?.value ?? 0;
+  const sortedData = Object.entries(data)
+    .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
+    .map(([name, value]) => ({ name, value })); // Map to objects with name and value
+
+  const highestValue = sortedData[0]?.value ?? 0; // Get the highest value
 
   return (
     <Card withBorder shadow="sm" radius="md">
@@ -197,13 +193,13 @@ export const AnalyticsCard = ({
         {sortedData.map((item, index) => (
           <Group key={index} className="relative py-2">
             <div
-              className="absolute h-[40px] w-full rounded bg-[#2C2E33]"
+              className="absolute h-[40px] w-full rounded bg-[#242424]"
               style={{ width: `${(item.value / highestValue) * 100}%` }}
             />
             <Text fz="md" className="z-10 m-2">
               {item.name}
             </Text>
-            <Text fz="md" className="z-10 m-2">
+            <Text fz="md" className="z-10 m-2 ml-auto">
               {item.value}
             </Text>
           </Group>

@@ -22,7 +22,7 @@ def calc_historical():
     historical = []
     for date in date_range:
         # find the amount of users created on this date
-        users = len(df_users[df_users["created_at"].dt.date == date.date()])
+        new_users = len(df_users[df_users["created_at"].dt.date == date.date()])
 
         # find the amount of page views on this date
         page_views = len(df_page_views[df_page_views["viewed_at"].dt.date == date.date()])
@@ -36,7 +36,7 @@ def calc_historical():
         # add the date and the amount of users, page views and estimations to the list
         historical.append({
             "date": date,
-            "users": users,
+            "new_users": new_users,
             "page_views": page_views,
             "estimations": estimations
         })

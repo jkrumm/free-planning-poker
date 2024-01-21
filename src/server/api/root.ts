@@ -1,3 +1,4 @@
+import { analyticsRouter } from 'fpp/server/api/routers/analytics.router';
 import { configRouter } from 'fpp/server/api/routers/config.router';
 import { contactRouter } from 'fpp/server/api/routers/contact.router';
 import { roadmapRouter } from 'fpp/server/api/routers/roadmap.router';
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   tracking: trackingRouter,
   vote: voteRouter,
   roadmap: roadmapRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;
