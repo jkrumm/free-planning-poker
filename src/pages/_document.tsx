@@ -4,8 +4,6 @@ import Document, { Head, Html, Main, NextScript } from 'next/document';
 
 import { createGetInitialProps } from '@mantine/next';
 
-import Footer from 'fpp/components/layout/footer';
-
 const getInitialProps = createGetInitialProps();
 
 export default class _Document extends Document {
@@ -19,7 +17,6 @@ export default class _Document extends Document {
           <Main />
           <NextScript />
         </body>
-        <Footer />
       </Html>
     );
   }

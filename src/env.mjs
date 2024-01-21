@@ -1,5 +1,5 @@
-import { createEnv } from '@t3-oss/env-nextjs';
-import { z } from 'zod';
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
 
 export const env = createEnv({
   // server-side environment variables schema ensures the app isn't built with invalid env vars.
@@ -14,6 +14,7 @@ export const env = createEnv({
       'http://localhost:3000/',
       'https://free-planning-poker.com/',
     ]),
+    VERCEL_GIT_COMMIT_SHA: z.string(),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
@@ -44,6 +45,7 @@ export const env = createEnv({
     // DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_API_ROOT: process.env.NEXT_PUBLIC_API_ROOT,
+    VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
