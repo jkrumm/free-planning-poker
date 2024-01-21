@@ -24,10 +24,6 @@
     "release": "release-it"
   },
   "dependencies": {
-    "@ably-labs/react-hooks": "^2.1.2",
-    "@emotion/react": "^11.11.3",
-    "@emotion/server": "^11.10.0",
-    "@libsql/client": "^0.3.1",
     "@mantine/core": "^7.4.2",
     "@mantine/form": "^7.4.2",
     "@mantine/hooks": "^7.4.2",
@@ -58,13 +54,11 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.8",
     "normalize.css": "^8.0.1",
-    "random-words": "^2.0.0",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^9.5.3",
     "react-markdown": "^9.0.0",
-    "short-uuid": "^4.2.2",
     "superjson": "^2.2.1",
     "zod": "^3.21.4",
     "zustand": "^4.4.7"
@@ -78,7 +72,6 @@
     "@types/luxon": "^3.4.1",
     "@types/node": "^20.11.5",
     "@types/nodemailer": "^6.4.14",
-    "@types/random-words": "^1.2.0",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
@@ -94,8 +87,7 @@
     "prettier-plugin-tailwindcss": "^0.5.11",
     "release-it": "^17.0.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
-    "undici": "^5.28.2"
+    "typescript": "^5.3.3"
   },
   "ct3aMetadata": {
     "initVersion": "7.18.1-beta.e1ce1f5"
