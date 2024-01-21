@@ -70,7 +70,7 @@ export const configRouter = createTRPCRouter({
 
             console.warn('fetched latest tag', {
               redisLatestCommitSha,
-              commitSha: env.VERCEL_GIT_COMMIT_SHA as string,
+              commitSha: env.VERCEL_GIT_COMMIT_SHA,
               nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
               latestTag,
             });

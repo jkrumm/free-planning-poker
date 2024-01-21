@@ -20,7 +20,7 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
-import { PageViewChart } from 'fpp/components/charts/page-view-chart';
+import { PageViewChart } from 'fpp/components/analytics/page-view-chart';
 import { Hero } from 'fpp/components/layout/hero';
 import { Meta } from 'fpp/components/meta';
 
@@ -81,28 +81,19 @@ const Analytics = () => {
           <SimpleGrid
             cols={{
               xs: 2,
-              sm: 3,
-              md: 6,
+              sm: 2,
+              md: 4,
             }}
             spacing="md"
             className="pb-8"
           >
             <StatsCard name="Total page views" value={pageViews.stats.total} />
             <StatsCard name="Unique visitors" value={pageViews.stats.unique} />
-            <StatsCard
-              name="Page views per day"
-              value={pageViews.stats.avgPerDay}
-            />
-            <StatsCard
-              name="Views per visitor"
-              value={pageViews.stats.viewsPerVisit}
-            />
             <StatsCard name="Duration" value={pageViews.stats.duration} />
             <StatsCard
               name="Bounce rate"
               value={pageViews.stats.bounceRate}
               valueAppend="%"
-              // tooltip="Unique visitors who have voted"
             />
           </SimpleGrid>
           <h1>Vote analytics</h1>
