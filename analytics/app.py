@@ -4,8 +4,14 @@ from dotenv import load_dotenv
 
 from flask import Flask, request, abort
 
+from scripts.calc_behaviour import calc_behaviour
+from scripts.calc_historical import calc_historical
+from scripts.calc_location_and_user_agent import calc_location_and_user_agent
+from scripts.calc_traffic import calc_traffic
+from scripts.calc_votes import calc_votes
 from scripts.update_read_model import update_read_model
 from util.log_util import logger
+from util.number_util import r
 
 app = Flask(__name__)
 
@@ -14,7 +20,7 @@ ANALYTICS_SECRET_TOKEN = os.getenv("ANALYTICS_SECRET_TOKEN")
 
 
 @app.route("/")
-def hello_world():
+def run_script():
     token = request.headers.get('Authorization')
 
     if token != ANALYTICS_SECRET_TOKEN or ANALYTICS_SECRET_TOKEN is None:
@@ -22,14 +28,46 @@ def hello_world():
 
     start_time = time.time()
 
+    results = {}
+
     try:
         update_read_model()
     except Exception as e:
         logger.error(f"Script update_read_model failed", {"error": e})
 
+    try:
+        results["calc_traffic"] = calc_traffic()
+    except Exception as e:
+        logger.error(f"Script calc_traffic failed", {"error": e})
+
+    try:
+        results["calc_votes"] = calc_votes()
+    except Exception as e:
+        logger.error(f"Script calc_votes failed", {"error": e})
+
+    try:
+        results["calc_behaviour"] = calc_behaviour()
+    except Exception as e:
+        logger.error(f"Script calc_behaviour failed", {"error": e})
+
+    try:
+        results["calc_historical"] = calc_historical()
+    except Exception as e:
+        logger.error(f"Script calc_historical failed", {"error": e})
+
+    try:
+        results["calc_location_and_user_agent"] = calc_location_and_user_agent()
+    except Exception as e:
+        logger.error(f"Script calc_location_and_user_agent failed", {"error": e})
+
+    duration = r(time.time() - start_time)
+    data_size_in_gb = r(sum(
+        os.path.getsize(f"./data/{f}") for f in os.listdir("./data") if os.path.isfile(f"./data/{f}")) / 1024 / 1024)
+    logs_size_in_gb = r(sum(
+        os.path.getsize(f"./logs/{f}") for f in os.listdir("./logs") if os.path.isfile(f"./logs/{f}")) / 1024 / 1024)
+    logger.info("Script executed successfully!",
+                {"duration": duration, "data_size_in_gb": data_size_in_gb, "logs_size": logs_size_in_gb})
+
     logger.flush()
 
-    return {
-        "message": 'Script executed successfully!',
-        "time_taken": f"{time.time() - start_time:.2f}s"
-    }
+    return results

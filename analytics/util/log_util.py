@@ -45,11 +45,14 @@ class LoggerClass:
         log_filename = './logs/logs_' + time.strftime("%Y%m%d") + '.txt'  # Creates file name like 'logs_20220101.txt'
         with open(log_filename, 'a') as log_file:
             for log in self.logs:
-                log_line = f"[{log['timestamp']}][{log['level']}]: {log['msg']}"
-                if log['properties']:
-                    log_line += f" - {json.dumps(log['properties'])}"
-                print(log_line)  # Print to console
-                log_file.write(log_line + '\n')  # Write to file
+                try:
+                    log_line = f"[{log['timestamp']}][{log['level']}]: {log['msg']}"
+                    if log['properties']:
+                        log_line += f" - {json.dumps(log['properties'])}"
+                    print(log_line)  # Print to console
+                    log_file.write(log_line + '\n')  # Write to file
+                except Exception as e:
+                    print(f"Failed to write log to file: {e}")
         self.logs = []  # Clear logs in memory
         delete_old_logs(self)
 
