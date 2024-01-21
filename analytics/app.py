@@ -3,6 +3,7 @@ import time
 from dotenv import load_dotenv
 
 from flask import Flask, request, abort
+from flask_wtf.csrf import CSRFProtect
 
 from scripts.calc_behaviour import calc_behaviour
 from scripts.calc_historical import calc_historical
@@ -14,6 +15,7 @@ from util.log_util import logger
 from util.number_util import r
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
 
 load_dotenv()
 ANALYTICS_SECRET_TOKEN = os.getenv("ANALYTICS_SECRET_TOKEN")
@@ -36,27 +38,27 @@ def run_script():
         logger.error(f"Script update_read_model failed", {"error": e})
 
     try:
-        results["calc_traffic"] = calc_traffic()
+        results["traffic"] = calc_traffic()
     except Exception as e:
         logger.error(f"Script calc_traffic failed", {"error": e})
 
     try:
-        results["calc_votes"] = calc_votes()
+        results["votes"] = calc_votes()
     except Exception as e:
         logger.error(f"Script calc_votes failed", {"error": e})
 
     try:
-        results["calc_behaviour"] = calc_behaviour()
+        results["behaviour"] = calc_behaviour()
     except Exception as e:
         logger.error(f"Script calc_behaviour failed", {"error": e})
 
     try:
-        results["calc_historical"] = calc_historical()
+        results["historical"] = calc_historical()
     except Exception as e:
         logger.error(f"Script calc_historical failed", {"error": e})
 
     try:
-        results["calc_location_and_user_agent"] = calc_location_and_user_agent()
+        results["location_and_user_agent"] = calc_location_and_user_agent()
     except Exception as e:
         logger.error(f"Script calc_location_and_user_agent failed", {"error": e})
 

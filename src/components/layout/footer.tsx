@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { useConfigStore } from 'fpp/store/config.store';
 
 const links = [
-  // {
-  //   url: '/analytics',
-  //   title: 'Analytics',
-  // },
+  {
+    url: '/analytics',
+    title: 'Analytics',
+  },
   {
     url: '/contact',
     title: 'Contact',

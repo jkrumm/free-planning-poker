@@ -18,6 +18,8 @@ export const env = createEnv({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
+    ANALYTICS_SECRET_TOKEN: z.string(),
+    ANALYTICS_URL: z.string().url(),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string(),
     UPSTASH_REDIS_REST_URL_ROOM_STATE: z.string().url(),
@@ -47,6 +49,8 @@ export const env = createEnv({
     NEXT_PUBLIC_API_ROOT: process.env.NEXT_PUBLIC_API_ROOT,
     VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
+    ANALYTICS_SECRET_TOKEN: process.env.ANALYTICS_SECRET_TOKEN,
+    ANALYTICS_URL: process.env.ANALYTICS_URL,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     UPSTASH_REDIS_REST_URL_ROOM_STATE:

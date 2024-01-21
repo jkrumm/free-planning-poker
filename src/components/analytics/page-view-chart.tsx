@@ -4,11 +4,18 @@ import dynamic from 'next/dynamic';
 
 import { type ApexOptions } from 'apexcharts';
 
-import { type PageViews } from 'fpp/server/api/routers/tracking.router';
-
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-export const PageViewChart = ({ pageViews }: { pageViews: PageViews }) => {
+export const PageViewChart = ({
+  historical,
+}: {
+  historical: {
+    date: string;
+    estimations: number;
+    page_views: number;
+    new_users: number;
+  }[];
+}) => {
   const [options] = useState<ApexOptions>({
     chart: {
       id: 'basic-bar',
@@ -40,25 +47,25 @@ export const PageViewChart = ({ pageViews }: { pageViews: PageViews }) => {
     {
       name: 'Total page views',
       color: '#1971c2',
-      data: pageViews.totalViews.map((pageView) => ({
-        x: pageView.date,
-        y: pageView.count,
+      data: historical.map((obj) => ({
+        x: obj.date,
+        y: obj.page_views,
       })),
     },
     {
       name: 'Unique visitors',
       color: '#2F9E44',
-      data: pageViews.uniqueViews.map((pageView) => ({
-        x: pageView.date,
-        y: pageView.count,
+      data: historical.map((obj) => ({
+        x: obj.date,
+        y: obj.new_users,
       })),
     },
     {
       name: 'Total estimations',
       color: '#F08C00',
-      data: pageViews.totalVotes.map((pageView) => ({
-        x: pageView.date,
-        y: pageView.count,
+      data: historical.map((obj) => ({
+        x: obj.date,
+        y: obj.estimations,
       })),
     },
   ]);
