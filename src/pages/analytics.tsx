@@ -64,7 +64,7 @@ const Analytics = () => {
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
-          <h1>Site Traffic</h1>
+          <h1>Traffic</h1>
           <SimpleGrid
             cols={{
               xs: 2,
@@ -83,7 +83,7 @@ const Analytics = () => {
               valueAppend="%"
             />
           </SimpleGrid>
-          <h1>Vote analytics</h1>
+          <h1>Votes</h1>
           <SimpleGrid
             cols={{
               sm: 2,
@@ -119,15 +119,29 @@ const Analytics = () => {
               value={votes.avg_duration_per_vote}
             />
           </SimpleGrid>
-          <h1>Historical data</h1>
+          <h1>Historical</h1>
           <PageViewChart historical={historical} />
-          <h1 className="mb-2 mt-[60px]">Location data</h1>
+          <h1 className="pt-8">Behaviour</h1>
           <SimpleGrid
             cols={{
               sm: 1,
               md: 3,
             }}
             spacing="md"
+            className="pb-8"
+          >
+            <AnalyticsCard headline={'Events'} data={behaviour.routes} />
+            <AnalyticsCard headline={'Join'} data={behaviour.events} />
+            <AnalyticsCard headline={'Rooms'} data={behaviour.rooms} />
+          </SimpleGrid>
+          <h1>Location</h1>
+          <SimpleGrid
+            cols={{
+              sm: 1,
+              md: 3,
+            }}
+            spacing="md"
+            className="pb-8"
           >
             <AnalyticsCard
               headline={'Countries'}
@@ -142,13 +156,14 @@ const Analytics = () => {
               data={location_and_user_agent.city}
             />
           </SimpleGrid>
-          <h1 className="mb-2 mt-[60px]">User Agent data</h1>
+          <h1>User Agent</h1>
           <SimpleGrid
             cols={{
               sm: 1,
               md: 3,
             }}
             spacing="md"
+            className="pb-8"
           >
             <AnalyticsCard
               headline={'Operating Systems'}
@@ -178,6 +193,7 @@ export const AnalyticsCard = ({
 }) => {
   const sortedData = Object.entries(data)
     .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
+    .slice(0, 30) // Get the first 30 entries
     .map(([name, value]) => ({ name, value })); // Map to objects with name and value
 
   const highestValue = sortedData[0]?.value ?? 0; // Get the highest value
@@ -189,7 +205,7 @@ export const AnalyticsCard = ({
           {headline}
         </Title>
       </Card.Section>
-      <Card.Section className="px-2">
+      <Card.Section className="px-2 overflow-y-scroll max-h-[400px] scrollbar-hide">
         {sortedData.map((item, index) => (
           <Group key={index} className="relative py-2">
             <div

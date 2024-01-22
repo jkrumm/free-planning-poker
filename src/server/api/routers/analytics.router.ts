@@ -31,9 +31,10 @@ export const analyticsRouter = createTRPCRouter({
     const countryCounts: Record<string, number> = {};
     Object.entries(analytics.location_and_user_agent.country).forEach(
       ([country, count]) => {
-        const countryName =
+        const countryName = `${country} - ${
           countryRegions.find((c) => c.countryShortCode === country)
-            ?.countryName ?? country;
+            ?.countryName ?? country
+        }`;
         countryCounts[countryName] = count;
       },
     );

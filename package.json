@@ -86,6 +86,7 @@
     "prettier": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "release-it": "^17.0.1",
+    "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"
   },
