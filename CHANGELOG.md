@@ -1,5 +1,28 @@
 
 
+## [2.2.0](https://github.com/jkrumm/free-planning-poker/compare/2.1.0...2.2.0) (2024-01-22)
+
+
+### Features
+
+* **analytics:** adjusted analytics page to new data model ([35a9424](https://github.com/jkrumm/free-planning-poker/commit/35a942453f51f4856e449f11a063a648e97df231))
+* **analytics:** all scripts for analytics calculation ([d269027](https://github.com/jkrumm/free-planning-poker/commit/d26902715e92ffaa038dc607daa19cd5479fa60e))
+* **analytics:** behaviour in analytics ([f7a7c22](https://github.com/jkrumm/free-planning-poker/commit/f7a7c22f93ba6f437298f0bcb9abfb5d496b1b5b))
+* **analytics:** python setup & read model sync & logger ([70819fb](https://github.com/jkrumm/free-planning-poker/commit/70819fbef9fc24e3f51222f25f6c371150aa8327))
+* **analytics:** seperated user read model sync ([0fcbe3c](https://github.com/jkrumm/free-planning-poker/commit/0fcbe3cf8acbbd81e1a5c6726c46cabbd9df398b))
+* fetch GitHub latest tag server side and cache in Redis ([cda98c6](https://github.com/jkrumm/free-planning-poker/commit/cda98c6881f2697473362832365835b6e02762b9))
+
+
+### Continuous Integration
+
+* **analytics:** automatically deploy analytics to domcloud ([f3a6865](https://github.com/jkrumm/free-planning-poker/commit/f3a6865fbabada65cc9d4ce807227831e0d547ad))
+
+
+### Other Changes
+
+* delete packages not used anymore ([4865171](https://github.com/jkrumm/free-planning-poker/commit/48651717e78b5da0d853c01354b4cfe8fc0bc3e9))
+* tailwind always dark theme ([68aeb0e](https://github.com/jkrumm/free-planning-poker/commit/68aeb0edfd68836320a6e2a94ea71a79039e259d))
+
 ## [2.1.0](https://github.com/jkrumm/free-planning-poker/compare/2.0.0...2.1.0) (2024-01-19)
 
 
