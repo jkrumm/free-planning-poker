@@ -1,0 +1,23 @@
+name: Deploy Analytics
+
+'on':
+  workflow_dispatch: { }
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke deployment hook
+        uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: https://my.domcloud.co/api/githubdeploy
+          webhook_secret: ${{ secrets.ANALYTICS_WEBHOOK_SECRET }}
+          webhook_auth: ${{ secrets.ANALYTICS_WEBHOOK_AUTH }}
+          data: >-
+            {"features":["python
+            latest",{"root":"public_html/free-planning-poker/analytics"}],"nginx":{"ssl":"off","passenger":{"enabled":"on","app_root":"public_html/free-planning-poker/analytics","python":".pyenv/shims/python"}},"commands":["cd
+            free-planning-poker","git pull","cd analytics","pip install -r
+            requirements.txt"]}
