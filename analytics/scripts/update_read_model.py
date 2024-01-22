@@ -12,7 +12,7 @@ connection = MySQLdb.connect(
     autocommit=True,
     ssl_mode="VERIFY_IDENTITY",
     ssl={
-        "ca": "/etc/ssl/cert.pem"
+        "ca": "/etc/pki/tls/certs/ca-bundle.crt"
     }
 )
 
