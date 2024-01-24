@@ -1,5 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
-import { type MySqlTable } from 'drizzle-orm/mysql-core/table';
+import { eq } from 'drizzle-orm';
 
 import { BadRequestError, NotFoundError } from 'fpp/constants/error.constant';
 
@@ -17,15 +16,8 @@ export async function findUserById(userId: string | null): Promise<IUser> {
     (await db.select().from(users).where(eq(users.id, userId!)))[0] ?? null;
 
   if (!user) {
-    throw new NotFoundError('visitor not found');
+    throw new NotFoundError('user not found');
   }
 
   return user;
-}
-
-export async function countTable(table: MySqlTable) {
-  return Number(
-    (await db.select({ count: sql<number>`count(*)` }).from(table))[0]?.count ??
-      0,
-  );
 }

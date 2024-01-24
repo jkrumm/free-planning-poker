@@ -1,12 +1,12 @@
 // This file configures the initialization of Sentry on the client.
 // The config you add here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
+import { env } from 'fpp/env.mjs';
 
-import * as Sentry from "@sentry/nextjs";
-import { env } from "fpp/env.mjs";
+import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  enabled: env.NEXT_PUBLIC_NODE_ENV !== "development",
+  enabled: env.NEXT_PUBLIC_NODE_ENV !== 'development',
 
   dsn: env.NEXT_PUBLIC_SENTRY_DSN,
 
@@ -16,7 +16,7 @@ Sentry.init({
   tracesSampleRate: 0.1,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
+  debug: env.NEXT_PUBLIC_NODE_ENV === 'development',
 
   // TODO: think about Session Replay
 

@@ -51,7 +51,7 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
   )[0];
 
   if (!userExists) {
-    const userPayload = getVisitorPayload(req);
+    const userPayload = getUserPayload(req);
     await db.insert(users).values({
       id: userId,
       ...userPayload,
@@ -67,7 +67,7 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
   return NextResponse.json({ userId }, { status: 200 });
 });
 
-export const getVisitorPayload = (req: AxiomRequest) => {
+export const getUserPayload = (req: AxiomRequest) => {
   if (req instanceof NextRequest) {
     const ua = userAgent(req);
 
