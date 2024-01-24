@@ -76,7 +76,11 @@ const Analytics = () => {
           >
             <StatsCard name="Unique users" value={traffic.unique_users} />
             <StatsCard name="Total page views" value={traffic.page_views} />
-            <StatsCard name="Duration" value={traffic.average_duration} />
+            <StatsCard
+              name="Duration"
+              value={traffic.average_duration}
+              valueAppend="minutes"
+            />
             <StatsCard
               name="Bounce rate"
               value={traffic.bounce_rate * 100}
@@ -117,6 +121,7 @@ const Analytics = () => {
             <StatsCard
               name="Avg duration"
               value={votes.avg_duration_per_vote}
+              valueAppend="minutes"
             />
           </SimpleGrid>
           <h1>Historical</h1>
