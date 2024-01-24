@@ -80,8 +80,13 @@ interface AnalyticsResponse {
   historical: {
     date: string;
     estimations: number;
+    acc_estimations: number;
+    votes: number;
+    acc_votes: number;
     page_views: number;
+    acc_page_views: number;
     new_users: number;
+    acc_new_users: number;
   }[];
   location_and_user_agent: {
     browser: Record<string, number>;

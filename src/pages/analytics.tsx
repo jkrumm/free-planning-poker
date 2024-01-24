@@ -19,7 +19,7 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
-import { PageViewChart } from 'fpp/components/analytics/page-view-chart';
+import { HistoricalChart } from 'fpp/components/analytics/historical-chart';
 import { Hero } from 'fpp/components/layout/hero';
 import { Meta } from 'fpp/components/meta';
 
@@ -120,7 +120,7 @@ const Analytics = () => {
             />
           </SimpleGrid>
           <h1>Historical</h1>
-          <PageViewChart historical={historical} />
+          <HistoricalChart historical={historical} />
           <h1 className="pt-8">Behaviour</h1>
           <SimpleGrid
             cols={{
