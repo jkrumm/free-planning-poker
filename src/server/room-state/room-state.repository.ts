@@ -157,14 +157,14 @@ export async function setRoomState({
  */
 
 export async function getActiveUserIds(userIds: string[]): Promise<string[]> {
-  const heartbeats = await redis.mget<(number | null)[]>(
-    userIds.map((userId) => `heartbeat:${userId}`),
-  );
-  return userIds.map((userId, i) => {
-    if (heartbeats[i] != null) {
-      return userId;
+  const activeUserIds = [];
+  for (const userId of userIds) {
+    const heartbeat = await redis.get(`heartbeat:${userId}`);
+    if (heartbeat != null) {
+      activeUserIds.push(userId);
     }
-  }) as string[];
+  }
+  return activeUserIds;
 }
 
 export async function setHeartbeat(

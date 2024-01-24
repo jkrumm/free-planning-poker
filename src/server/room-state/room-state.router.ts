@@ -21,9 +21,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
         username: z
           .string()
           .min(3)
@@ -65,9 +65,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
       }),
     )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
@@ -110,13 +110,22 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
       }),
     )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
       const roomState = await getRoomStateOrFail(roomId);
+
+      if (!roomState.isFlippable) {
+        console.warn('Room is not in estimating state during flip endpoint', {
+          roomId,
+          userId,
+          status: roomState.status,
+        });
+        return;
+      }
 
       roomState.flip();
 
@@ -131,9 +140,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
         estimation: z
           .number()
           .refine((estimation) => {
@@ -162,9 +171,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
         isSpectator: z.boolean(),
       }),
     )
@@ -186,9 +195,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
         isAutoFlip: z.boolean(),
       }),
     )
@@ -210,9 +219,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
       }),
     )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {
@@ -231,9 +240,9 @@ export const roomStateRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.number(),
-        userId: z.string().refine((userId) => {
-          return validateNanoId(userId);
-        }, 'not a valid nanoId'),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
       }),
     )
     .mutation(async ({ ctx: { db }, input: { roomId, userId } }) => {

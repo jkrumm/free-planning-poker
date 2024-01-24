@@ -18,7 +18,7 @@ import {
   users,
 } from 'fpp/server/db/schema';
 
-import { getVisitorPayload } from 'fpp/pages/api/track-page-view';
+import { getUserPayload } from 'fpp/pages/api/track-page-view';
 
 const findOpenRoomNumber = async (
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -60,7 +60,7 @@ export const roomRouter = createTRPCRouter({
 
         if (!validateNanoId(userId)) {
           userId = nanoid();
-          const userPayload = getVisitorPayload(req as AxiomRequest);
+          const userPayload = getUserPayload(req as AxiomRequest);
           await db.insert(users).values({
             id: userId,
             ...userPayload,

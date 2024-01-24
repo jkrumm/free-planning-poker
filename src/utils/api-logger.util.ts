@@ -113,8 +113,8 @@ export function withLogger(handler: NextHandler) {
         endTime,
         duration: endTime - startTime,
         httpCode: e?.httpCode ?? 500,
-        visitorId: logger.config.args?.visitorId
-          ? String(logger.config.args?.visitorId)
+        userId: logger.config.args?.userId
+          ? String(logger.config.args?.userId)
           : null,
         error: {
           name: e?.name,
