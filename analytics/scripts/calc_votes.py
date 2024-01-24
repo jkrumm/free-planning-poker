@@ -23,7 +23,7 @@ def calc_votes():
     avg_spectators_per_vote = r(df_votes["amount_of_spectators"].mean())
 
     # avg duration per vote
-    avg_duration_per_vote = r(df_votes["duration"].mean())
+    avg_duration_per_vote = r(df_votes["duration"].mean() / 60)
 
     # avg estimation
     avg_estimation = r(df_votes["avg_estimation"].mean())
