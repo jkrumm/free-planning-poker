@@ -17,7 +17,7 @@ const links = [
   },
 ];
 
-export function Footer() {
+function Footer() {
   const latestTag = useConfigStore((state) => state.latestTag);
 
   return (

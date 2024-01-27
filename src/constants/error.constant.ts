@@ -27,6 +27,15 @@ export interface ServerLog extends GlobalLoggingType {
   city?: string | null;
   country?: string | null;
   region?: string | null;
+  startTime?: number;
+  endTime?: number;
+  duration?: number;
+  httpCode?: number;
+  error?: {
+    name?: string;
+    message?: string;
+    stack?: string;
+  };
 }
 
 export interface ClientLog extends GlobalLoggingType {
