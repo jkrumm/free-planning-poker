@@ -1,5 +1,25 @@
 
 
+## [2.3.0](https://github.com/jkrumm/free-planning-poker/compare/2.2.0...2.3.0) (2024-01-27)
+
+
+### Features
+
+* **analytics:** calculate accumulating historical data & total votes historical ([1f1d18c](https://github.com/jkrumm/free-planning-poker/commit/1f1d18ca26994b1ff58ec0bb15f8583a5acb0838))
+* **analytics:** durations format and append minutes ([b6d2aa1](https://github.com/jkrumm/free-planning-poker/commit/b6d2aa1387ee71e2cb017d793a97ad6c43b7e672))
+* **analytics:** switch to ag charts ([93346e4](https://github.com/jkrumm/free-planning-poker/commit/93346e4d0cc89e744728d7611716a1ee4be5dedc))
+
+
+### Bug Fixes
+
+* bugs in the heartbeat method and flip mutation ([14a0073](https://github.com/jkrumm/free-planning-poker/commit/14a0073a088bf24e4bc86962e739fdf6a3554d04))
+
+
+### Other Changes
+
+* integrated knip and little code cleanup ([af88dad](https://github.com/jkrumm/free-planning-poker/commit/af88dade5bf3c66394a25f6e46587479b8b257ec))
+* update dependencies ([ed04c98](https://github.com/jkrumm/free-planning-poker/commit/ed04c98a9c25e3d9f1c4e1a738106f1010aed1bc))
+
 ## [2.2.0](https://github.com/jkrumm/free-planning-poker/compare/2.1.0...2.2.0) (2024-01-22)
 
 
