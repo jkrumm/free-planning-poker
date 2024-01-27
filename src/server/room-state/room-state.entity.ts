@@ -11,7 +11,7 @@ export interface CreateUserDto {
   isSpectator: boolean;
 }
 
-export const userStatus = {
+const userStatus = {
   pending: 'pending',
   estimated: 'estimated',
   spectator: 'spectator',

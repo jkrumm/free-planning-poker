@@ -41,7 +41,7 @@
     "@upstash/ratelimit": "^1.0.0",
     "@upstash/redis": "^1.28.1",
     "ably": "^1.2.48",
-    "apexcharts": "^3.45.1",
+    "ag-charts-react": "^9.0.2",
     "country-region-data": "^3.0.0",
     "drizzle-orm": "^0.29.3",
     "framer-motion": "^11.0.3",
@@ -52,7 +52,6 @@
     "nodemailer": "^6.9.8",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
-    "react-apexcharts": "^1.4.1",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^9.5.3",
     "react-markdown": "^9.0.0",
@@ -89,9 +88,6 @@
   },
   "ct3aMetadata": {
     "initVersion": "7.18.1-beta.e1ce1f5"
-  },
-  "knip": {
-
   },
   "release-it": {
     "git": {
