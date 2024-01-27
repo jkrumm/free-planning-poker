@@ -55,8 +55,12 @@ const Analytics = () => {
     return <div>Loading...</div>;
   }
 
-  const { behaviour, historical, location_and_user_agent, traffic, votes } =
-    analytics;
+  const { behaviour, location_and_user_agent, traffic, votes } = analytics;
+
+  const historical = analytics.historical.map((obj) => ({
+    ...obj,
+    date: new Date(obj.date),
+  }));
 
   return (
     <>
@@ -125,6 +129,7 @@ const Analytics = () => {
             />
           </SimpleGrid>
           <h1>Historical</h1>
+          {/*<HistoricalChart historical={historical} />*/}
           <HistoricalChart historical={historical} />
           <h1 className="pt-8">Behaviour</h1>
           <SimpleGrid
