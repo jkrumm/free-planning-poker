@@ -5,8 +5,13 @@ import { type AxiomRequest, Logger } from 'next-axiom';
 import { type RequestReport } from 'next-axiom/src/logger';
 
 import {
+  BadRequestError,
   type BaseError,
+  InternalServerError,
+  NotFoundError,
+  NotImplementedError,
   type ServerLog,
+  TooManyRequestsError,
   removeNulls,
 } from 'fpp/constants/error.constant';
 
@@ -105,7 +110,7 @@ export function withLogger(handler: NextHandler) {
 
       const e = error as BaseError;
 
-      let errorLogPayload = {
+      let errorLogPayload: ServerLog = {
         ...report,
         ...reportExtension,
         ...e?.meta,
@@ -121,7 +126,7 @@ export function withLogger(handler: NextHandler) {
           stack: e?.stack,
           message: e?.message,
         },
-      } as ServerLog;
+      };
       errorLogPayload = removeNulls(errorLogPayload);
 
       Sentry.captureException(error, {
@@ -136,14 +141,14 @@ export function withLogger(handler: NextHandler) {
       });
 
       switch (e.constructor.name) {
-        case 'BadRequestError':
-        case 'NotFoundError':
-        case 'NotImplementedError':
-        case 'TooManyRequestsError':
+        case BadRequestError.name:
+        case NotFoundError.name:
+        case NotImplementedError.name:
+        case TooManyRequestsError.name:
           logger.warn('Warn in Next route handler', errorLogPayload);
           break;
-        case 'InternalServerError':
-        case 'Error':
+        case InternalServerError.name:
+        case Error.name:
         default:
           logger.error('Error in Next route handler', errorLogPayload);
           break;

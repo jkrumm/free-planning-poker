@@ -83,7 +83,7 @@ export function getAverageFromUsers(users: User[]): number {
   );
 }
 
-export interface IStackedEstimation {
+interface IStackedEstimation {
   number: number;
   amount: number;
 }
