@@ -112,22 +112,17 @@ export async function setRoomState({
     roomState.isFlipAction = false;
   }
 
-  // If the room state has changed, we update Redis and publish to it's WebSocket channel
-  if (roomState.hasChanged) {
+  // If the room state has changed or if the room state hasn't changed in the last 4 minutes
+  // we update the room state in Redis and publish to the WebSocket channel
+  if (
+    roomState.hasChanged ||
+    roomState.lastUpdated < Date.now() - 1000 * 60 * 4
+  ) {
     roomState.lastUpdated = Date.now();
     promises.push(
       redis.set(`room:${roomId}`, roomState, { ex: 60 * 5 }),
       publishWebSocketEvent({ roomState, userId }),
     );
-  }
-
-  // If the room state hasn't changed in the last 4 minutes, we extend the expiration time
-  // TODO: close the room after 5 minutes of inactivity
-  if (
-    !roomState.hasChanged &&
-    roomState.lastUpdated > Date.now() - 1000 * 60 * 4
-  ) {
-    promises.push(redis.expire(`room:${roomId}`, 60 * 5));
   }
 
   await Promise.allSettled(promises).then((results) => {
