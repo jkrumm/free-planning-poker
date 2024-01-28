@@ -4,6 +4,8 @@ import { TRPCError } from '@trpc/server';
 
 import { notifications } from '@mantine/notifications';
 
+import { getFromLocalstorage } from 'fpp/store/local-storage.store';
+
 import { type ICreateVote } from 'fpp/server/db/schema';
 
 import {
@@ -104,6 +106,35 @@ export function getStackedEstimationsFromUsers(
   return voting.slice(0, getAverageFromUsers(users) > 9 ? 3 : 4);
 }
 
+function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
+  if (getFromLocalstorage('isPlaySound') === 'false') return;
+  const audio = new Audio(`/sounds/${sound}.wav`);
+  audio.volume = sound === 'success' || sound === 'tick' ? 0.4 : 0.3;
+  audio
+    .play()
+    .then(() => ({}))
+    .catch(() => ({}));
+}
+
+function notify({
+  color,
+  title,
+  message,
+}: {
+  color: 'red' | 'orange' | 'blue';
+  title: string;
+  message: string;
+}) {
+  if (getFromLocalstorage('isNotificationsEnabled') === 'false') return;
+  notifications.show({
+    color,
+    autoClose: 5000,
+    withCloseButton: true,
+    title,
+    message,
+  });
+}
+
 export function notifyOnRoomStateChanges({
   newRoomState,
   oldRoomState,
@@ -113,56 +144,73 @@ export function notifyOnRoomStateChanges({
   newRoomState: {
     users: User[];
     isAutoFlip: boolean;
+    isFlipped: boolean;
   };
   oldRoomState: {
     users: User[];
     isAutoFlip: boolean;
+    isFlipped: boolean;
   };
   userId: string | null;
   connectedAt: number | null;
 }) {
+  // Make tick sound if an estimation or isSpectator changed
+  for (const newUser of newRoomState.users) {
+    const oldUser = oldRoomState.users.find((user) => user.id === newUser.id);
+    if (
+      oldUser &&
+      (oldUser.estimation !== newUser.estimation ||
+        oldUser.isSpectator !== newUser.isSpectator)
+    ) {
+      playSound('tick');
+    }
+  }
+
+  // Make success sound if flipped
+  if (!oldRoomState.isFlipped && newRoomState.isFlipped) {
+    playSound('success');
+  }
+
   // Notify on auto flip enabled
   if (newRoomState.isAutoFlip && !oldRoomState.isAutoFlip) {
-    notifications.show({
+    notify({
       color: 'orange',
-      autoClose: 5000,
-      withCloseButton: true,
-      title: 'Auto Flip enabled',
-      message: 'Voting will flip automatically once everyone estimated',
+      title: 'Auto flip enabled',
+      message: 'The cards will be flipped automatically once everyone voted',
     });
     return;
   }
+
+  // Early return if user is connected in the last 5 seconds to prevent spam on entry
   const recentlyConnected =
     connectedAt === null || connectedAt > Date.now() - 1000 * 5;
   if (recentlyConnected) {
     return;
   }
 
-  // Notify once new user joins and who it is
+  // Notify and join sound once new user joins and who it is
   const newUser = newRoomState.users.find(
     (user) => !oldRoomState.users.some((oldUser) => oldUser.id === user.id),
   );
 
   if (newUser && newUser.id !== userId) {
-    notifications.show({
+    playSound('join');
+    notify({
       color: 'blue',
-      autoClose: 5000,
-      withCloseButton: true,
       title: `${newUser.name} joined`,
       message: 'User joined the room',
     });
     return;
   }
 
-  // Notify once user leaves and who it is
+  // Notify and leave sound once user leaves and who it is
   const leftUser = oldRoomState.users.find(
     (user) => !newRoomState.users.some((newUser) => newUser.id === user.id),
   );
   if (leftUser) {
-    notifications.show({
+    playSound('leave');
+    notify({
       color: 'red',
-      autoClose: 5000,
-      withCloseButton: true,
       title: `${leftUser.name} left`,
       message: 'User left the room',
     });

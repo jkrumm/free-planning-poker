@@ -49,18 +49,6 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   setConnectedAt: () => set({ connectedAt: Date.now() }),
   // Interactions
   update: (roomState: RoomStateClient) => {
-    notifyOnRoomStateChanges({
-      newRoomState: {
-        users: roomState.users,
-        isAutoFlip: roomState.isAutoFlip,
-      },
-      oldRoomState: {
-        users: get().users,
-        isAutoFlip: get().isAutoFlip,
-      },
-      userId: get().userId,
-      connectedAt: get().connectedAt,
-    });
     const user = roomState.getUser(get().userId);
     set({
       // User
@@ -71,6 +59,20 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       startedAt: roomState.startedAt,
       isAutoFlip: roomState.isAutoFlip,
       status: roomState.status,
+    });
+    notifyOnRoomStateChanges({
+      newRoomState: {
+        users: roomState.users,
+        isAutoFlip: roomState.isAutoFlip,
+        isFlipped: roomState.isFlipped,
+      },
+      oldRoomState: {
+        users: get().users,
+        isAutoFlip: get().isAutoFlip,
+        isFlipped: get().isFlipped,
+      },
+      userId: get().userId,
+      connectedAt: get().connectedAt,
     });
   },
   reset: () => {

@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { Tooltip } from '@mantine/core';
-
 import {
   type MotionValue,
   motion,
@@ -45,22 +43,23 @@ function Counter() {
 
   return (
     <div className="mb-[19px] border-2 border-amber-300">
-      <Tooltip label="Duration in minutes and seconds" color="#2E2E2E">
-        <div
-          style={{ fontSize }}
-          className="flex min-w-[90px] max-w-[90px] overflow-hidden justify-items-start text-white cursor-default"
-        >
-          <Digit place={10} value={minutes} />
-          <Digit place={1} value={minutes} />
-          <Digit place={10} value={seconds} />
-          <Digit place={1} value={seconds} />
-        </div>
-      </Tooltip>
+      <div
+        style={{ fontSize }}
+        className="flex min-w-[90px] max-w-[90px] overflow-hidden justify-items-start text-white cursor-default"
+      >
+        <DigitComponent place={10} value={minutes} />
+        <DigitComponent place={1} value={minutes} />
+        <DigitComponent place={10} value={seconds} />
+        <DigitComponent place={1} value={seconds} />
+      </div>
     </div>
   );
 }
 
-function Digit({ place, value }: { place: 1 | 10; value: number }) {
+function DigitComponent({
+  place,
+  value,
+}: Readonly<{ place: 1 | 10; value: number }>) {
   const valueRoundedToPlace = Math.floor(value / place);
   const animatedValue = useSpring(valueRoundedToPlace);
 
@@ -79,13 +78,16 @@ function Digit({ place, value }: { place: 1 | 10; value: number }) {
       className={`relative w-[1ch] tabular-nums border border-[#fff] text-[#C1C2C5] bg-[#1F1F1F] px-3 ${additionalClasses}`}
     >
       {[...Array(10).keys()].map((i) => (
-        <Number key={i} mv={animatedValue} number={i} />
+        <NumberComponent key={i} mv={animatedValue} number={i} />
       ))}
     </div>
   );
 }
 
-function Number({ mv, number }: { mv: MotionValue; number: number }) {
+function NumberComponent({
+  mv,
+  number,
+}: Readonly<{ mv: MotionValue; number: number }>) {
   const y = useTransform(mv, (latest) => {
     const placeValue = latest % 10;
     const offset = (10 + number - placeValue) % 10;

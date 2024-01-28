@@ -5,6 +5,12 @@ import { useRouter } from 'next/router';
 import { Button, Switch } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
+import {
+  IconBell,
+  IconBellOff,
+  IconVolume,
+  IconVolumeOff,
+} from '@tabler/icons-react';
 import { type Logger } from 'next-axiom';
 
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
@@ -35,6 +41,15 @@ export const Interactions = ({
 }) => {
   const router = useRouter();
 
+  // User localstorage state
+  const isPlaySound = useLocalstorageStore((store) => store.isPlaySound);
+  const setIsPlaySound = useLocalstorageStore((store) => store.setIsPlaySound);
+  const isNotificationsEnabled = useLocalstorageStore(
+    (store) => store.isNotificationsEnabled,
+  );
+  const setIsNotificationsEnabled = useLocalstorageStore(
+    (store) => store.setIsNotificationsEnabled,
+  );
   const setRoomId = useLocalstorageStore((store) => store.setRoomId);
   const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
 
@@ -104,12 +119,35 @@ export const Interactions = ({
                 : roomName.toUpperCase()}
             </h2>
           </Button>
-          <div>
+          <Button.Group>
+            <Button
+              variant={'default'}
+              onClick={() => {
+                setIsPlaySound(!isPlaySound);
+              }}
+            >
+              {isPlaySound ? (
+                <IconVolume size={20} />
+              ) : (
+                <IconVolumeOff size={20} />
+              )}
+            </Button>
+            <Button
+              variant={'default'}
+              onClick={() => {
+                setIsNotificationsEnabled(!isNotificationsEnabled);
+              }}
+            >
+              {isNotificationsEnabled ? (
+                <IconBell size={20} />
+              ) : (
+                <IconBellOff size={20} />
+              )}
+            </Button>
             <Button
               variant={
                 status === roomStateStatus.flipped ? 'filled' : 'default'
               }
-              className={'mr-5'}
               onClick={() => {
                 resetMutation.mutate({
                   roomId,
@@ -137,7 +175,7 @@ export const Interactions = ({
             >
               Leave
             </Button>
-          </div>
+          </Button.Group>
         </div>
         <div className="voting-bar">
           <Button.Group className="w-full">
@@ -179,7 +217,7 @@ export const Interactions = ({
           }}
         />
         <Switch
-          label="Auto Flip"
+          label="Auto Show"
           className="cursor-pointer"
           checked={isAutoFlip}
           onChange={(event) => {
