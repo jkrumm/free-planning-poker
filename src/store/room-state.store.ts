@@ -49,6 +49,11 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   setConnectedAt: () => set({ connectedAt: Date.now() }),
   // Interactions
   update: (roomState: RoomStateClient) => {
+    const oldRoomState = {
+      users: get().users,
+      isAutoFlip: get().isAutoFlip,
+      isFlipped: get().isFlipped,
+    };
     const user = roomState.getUser(get().userId);
     set({
       // User
@@ -66,12 +71,8 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
         isAutoFlip: roomState.isAutoFlip,
         isFlipped: roomState.isFlipped,
       },
-      oldRoomState: {
-        users: get().users,
-        isAutoFlip: get().isAutoFlip,
-        isFlipped: get().isFlipped,
-      },
-      userId: get().userId,
+      oldRoomState,
+      userId: user.id,
       connectedAt: get().connectedAt,
     });
   },
