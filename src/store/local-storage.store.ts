@@ -12,7 +12,7 @@ function saveToLocalstorage(key: string, value: string) {
   localStorage.setItem(key, value);
 }
 
-function getFromLocalstorage(key: string): string | null {
+export function getFromLocalstorage(key: string): string | null {
   if (typeof window == 'undefined') {
     return null;
   }
@@ -31,7 +31,8 @@ function getIntFromLocalstorage(key: string): number | null {
 
 interface LocalstorageStore {
   username: string | null;
-  voting: number | null;
+  isPlaySound: boolean;
+  isNotificationsEnabled: boolean;
   isSpectator: boolean;
   roomId: number | null;
   roomName: string | null;
@@ -39,20 +40,24 @@ interface LocalstorageStore {
   roomEvent: keyof typeof RoomEvent;
   userId: string | null;
   setUsername: (username: string) => void;
-  setVoting: (voting: number | null) => void;
-  setIsSpectator: (spectator: boolean) => void;
-  setRoomId: (room: number | null) => void;
-  setRoomName: (room: string | null) => void;
-  setRecentRoom: (room: string | null) => void;
+  setIsPlaySound: (isPlaySound: boolean) => void;
+  setIsNotificationsEnabled: (isNotificationsEnabled: boolean) => void;
+  setIsSpectator: (isSpectator: boolean) => void;
+  setRoomId: (roomId: number | null) => void;
+  setRoomName: (roomName: string | null) => void;
+  setRecentRoom: (recentRoom: string | null) => void;
   setRoomEvent: (roomEvent: keyof typeof RoomEvent) => void;
   setUserId: (userId: string) => void;
 }
 
 export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   username: getFromLocalstorage('username'),
-  voting: getFromLocalstorage('vote')
-    ? Number(getFromLocalstorage('vote'))
-    : null,
+  isPlaySound: getFromLocalstorage('isPlaySound')
+    ? getFromLocalstorage('isPlaySound') === 'true'
+    : true,
+  isNotificationsEnabled: getFromLocalstorage('isNotificationsEnabled')
+    ? getFromLocalstorage('isNotificationsEnabled') === 'true'
+    : true,
   isSpectator: getFromLocalstorage('isSpectator') === 'true',
   roomId: getIntFromLocalstorage('roomId'),
   roomName: getFromLocalstorage('roomName'),
@@ -83,13 +88,16 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     saveToLocalstorage('username', username);
     set({ username });
   },
-  setVoting: (voting: number | null) => {
-    if (voting === null) {
-      localStorage.removeItem('vote');
-    } else {
-      localStorage.setItem('vote', voting.toString());
-    }
-    set({ voting });
+  setIsPlaySound: (isPlaySound: boolean) => {
+    localStorage.setItem('isPlaySound', isPlaySound.toString());
+    set({ isPlaySound });
+  },
+  setIsNotificationsEnabled: (isNotificationsEnabled: boolean) => {
+    localStorage.setItem(
+      'isNotificationsEnabled',
+      isNotificationsEnabled.toString(),
+    );
+    set({ isNotificationsEnabled });
   },
   setIsSpectator: (isSpectator: boolean) => {
     localStorage.setItem('isSpectator', isSpectator.toString());
