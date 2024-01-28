@@ -17,7 +17,9 @@ type RoomStateStore = {
   isSpectator: boolean;
   // Game State
   users: User[];
-  startedAt: number | null;
+  startedAt: number;
+  isFlipped: boolean;
+  isFlippable: boolean;
   isAutoFlip: boolean;
   status: keyof typeof roomStateStatus;
   // Interactions
@@ -35,7 +37,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
   isSpectator: false,
   // Game State
   users: [],
-  startedAt: null,
+  startedAt: Date.now(),
   isFlipped: false,
   isFlippable: false,
   isAutoFlip: false,
@@ -78,7 +80,7 @@ export const useRoomStateStore = create<RoomStateStore>((set, get) => ({
       isSpectator: false,
       // Game State
       users: [],
-      startedAt: null,
+      startedAt: Date.now(),
       isAutoFlip: false,
       status: 'estimating',
       // Interactions

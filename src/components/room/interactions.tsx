@@ -20,6 +20,8 @@ import { EventType } from 'fpp/server/db/schema';
 
 import { roomStateStatus } from 'fpp/server/room-state/room-state.entity';
 
+import Counter from 'fpp/components/room/counter';
+
 export const Interactions = ({
   roomId,
   roomName,
@@ -133,7 +135,7 @@ export const Interactions = ({
                   .catch(() => ({}));
               }}
             >
-              Leave Room
+              Leave
             </Button>
           </div>
         </div>
@@ -161,6 +163,7 @@ export const Interactions = ({
         </div>
       </div>
       <div className="switch-bar">
+        <Counter />
         <Switch
           className="mb-2 cursor-pointer"
           disabled={status === roomStateStatus.flipped}
