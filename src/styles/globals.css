@@ -605,7 +605,7 @@ h2 span {
   top: 16px;
 }
 
-.card.flipped:after {
+.card.players:after {
   content: '';
   position: absolute;
   width: 100%;
@@ -618,7 +618,10 @@ h2 span {
   background-size: 12px 12px;
 }
 
-.card.flipped.estimated:after {
+.card.players.estimated:after {
   border-color: rgb(47, 158, 68);
-  background-size: 12px 12px;
+}
+
+.card.players.flipped:after {
+  background: none;
 }

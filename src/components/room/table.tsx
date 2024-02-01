@@ -55,7 +55,7 @@ export const Table = ({
               {user.name}
             </div>
             <div
-              className={`card ${roomStateStatus.flipped && 'flipped'} ${
+              className={`card players ${status === roomStateStatus.flipped && 'flipped'} ${
                 user.status
               }`}
             >
