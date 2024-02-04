@@ -65,6 +65,6 @@ def calc_historical():
             "acc_votes": acc_votes
         })
 
-        logger.debug("Historical calculated", historical)
+    logger.debug("Historical calculated", historical[-5:])
 
     return historical
