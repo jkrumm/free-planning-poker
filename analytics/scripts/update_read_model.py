@@ -124,8 +124,7 @@ def update_read_model():
     else:
         logger.debug('Not connected to db')
 
-    upsert_table(cursor, "fpp_estimations",
-                 {'user_id': 'str', 'room_id': 'int16', 'estimation': 'int16', 'spectator': 'int16'})
+    upsert_table(cursor, "fpp_estimations", {'user_id': 'str', 'room_id': 'int16', 'spectator': 'int16'})
     upsert_table(cursor, "fpp_events", {'user_id': 'str', 'event': 'category'})
     upsert_table(cursor, "fpp_page_views", {'user_id': 'str', 'route': 'category', 'room_id': 'Int16'})
     upsert_table(cursor, "fpp_rooms", {'number': 'int16', 'name': 'str'})
