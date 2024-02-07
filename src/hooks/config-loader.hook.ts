@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { startTransition, useEffect } from 'react';
 
 import { api } from 'fpp/utils/api';
 
@@ -28,18 +28,20 @@ export const useConfigLoader = () => {
     });
 
   useEffect(() => {
-    if (statusGetFeatureFlag === 'success') {
-      setFeatureFlags(featureFlags);
-    } else {
-      setFeatureFlags(
-        Object.keys(FeatureFlagType).map((name) => ({
-          name: name as keyof typeof FeatureFlagType,
-          enabled: false,
-        })),
-      );
-    }
-    if (statusGetLatestTag === 'success') {
-      setLatestTag(latestTag);
-    }
+    startTransition(() => {
+      if (statusGetFeatureFlag === 'success') {
+        setFeatureFlags(featureFlags);
+      } else {
+        setFeatureFlags(
+          Object.keys(FeatureFlagType).map((name) => ({
+            name: name as keyof typeof FeatureFlagType,
+            enabled: false,
+          })),
+        );
+      }
+      if (statusGetLatestTag === 'success') {
+        setLatestTag(latestTag);
+      }
+    });
   }, [statusGetFeatureFlag, statusGetLatestTag]);
 };

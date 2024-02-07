@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { startTransition, useEffect } from 'react';
 
 import { env } from 'fpp/env.mjs';
 
@@ -70,8 +70,10 @@ export const sendTrackPageView = ({
       fetch(url, { body, method: 'POST', keepalive: true })
         .then((res) => res.json() as Promise<{ userId: string }>)
         .then(({ userId }) => {
-          setUserIdLocalStorage(userId);
-          setUserIdRoomState(userId);
+          startTransition(() => {
+            setUserIdLocalStorage(userId);
+            setUserIdRoomState(userId);
+          });
           logger.debug(logEndpoint.TRACK_PAGE_VIEW, {
             withBeacon: false,
           });
