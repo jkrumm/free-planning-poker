@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { notifications } from '@mantine/notifications';
 
 import { getFromLocalstorage } from 'fpp/store/local-storage.store';
+import { useSidebarStore } from 'fpp/store/sidebar.store';
 
 import { type ICreateVote } from 'fpp/server/db/schema';
 
@@ -166,9 +167,10 @@ export function notifyOnRoomStateChanges({
     }
   }
 
-  // Make success sound if flipped
+  // Make success sound and close sidebar if flipped
   if (!oldRoomState.isFlipped && newRoomState.isFlipped) {
     playSound('success');
+    useSidebarStore.setState({ tab: null });
   }
 
   // Notify on auto flip enabled

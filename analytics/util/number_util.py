@@ -1,2 +1,2 @@
-def r(number):
-    return float(round(number, 2))
+def r(number, decimals=2):
+    return float(round(number, decimals))

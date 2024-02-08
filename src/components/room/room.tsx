@@ -7,6 +7,7 @@ import { useRoomState } from 'fpp/hooks/use-room-state.hook';
 
 import { Interactions } from 'fpp/components/room/interactions';
 import { Table } from 'fpp/components/room/table';
+import Sidebar from 'fpp/components/sidebar/sidebar';
 
 export const Room = ({
   roomId,
@@ -38,7 +39,12 @@ export const Room = ({
 
   return (
     <>
-      <Table roomId={roomId} userId={userId} logger={logger} />
+      <div className="w-screen h-screen hidden items-start md:flex">
+        <div className="flex-1">
+          <Table roomId={roomId} userId={userId} logger={logger} />
+        </div>
+        <Sidebar />
+      </div>
       <Interactions
         roomId={roomId}
         roomName={roomName}
