@@ -58,7 +58,7 @@ export const roomStateRouter = createTRPCRouter({
     ),
   get: publicProcedure
     .input(z.object({ roomId: z.number() }))
-    .query(async ({ ctx, input: { roomId } }) => {
+    .query(async ({ input: { roomId } }) => {
       return await getRoomStateOrFail(roomId);
     }),
   heartbeat: publicProcedure
@@ -255,6 +255,32 @@ export const roomStateRouter = createTRPCRouter({
         event: EventType.LEFT_ROOM,
       };
       await db.insert(events).values(event);
+
+      await setRoomState({
+        roomId,
+        userId,
+        roomState,
+        db,
+      });
+    }),
+  changeUsername: publicProcedure
+    .input(
+      z.object({
+        roomId: z.number(),
+        userId: z
+          .string()
+          .refine((userId) => validateNanoId(userId), 'not a valid nanoId'),
+        username: z
+          .string()
+          .min(3)
+          .max(15)
+          .regex(/^[A-Za-z]+$/),
+      }),
+    )
+    .mutation(async ({ ctx: { db }, input: { roomId, userId, username } }) => {
+      const roomState = await getRoomStateOrFail(roomId);
+
+      roomState.changeUsername(userId, username);
 
       await setRoomState({
         roomId,
