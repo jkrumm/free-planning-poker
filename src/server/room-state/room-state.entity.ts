@@ -19,7 +19,7 @@ const userStatus = {
 
 export class User {
   readonly id: string;
-  readonly name: string;
+  name: string;
   estimation: number | null = null;
   isSpectator: boolean;
 
@@ -63,6 +63,7 @@ export interface RoomStateDto {
   startedAt: number;
   lastUpdated: number;
   users: CreateUserDto[];
+  isFlipped: boolean;
   isAutoFlip: boolean;
   status: keyof typeof roomStateStatus;
 }
@@ -111,7 +112,7 @@ class RoomStateBase {
     roomState.startedAt = roomStateDto.startedAt;
     roomState.lastUpdated = roomStateDto.lastUpdated;
     roomState.users = roomStateDto.users.map((user) => new User(user));
-    roomState.isFlipped = roomStateDto.status === roomStateStatus.flipped;
+    roomState.isFlipped = roomStateDto.isFlipped;
     roomState.isAutoFlip = roomStateDto.isAutoFlip;
     return roomState;
   }
@@ -122,6 +123,7 @@ class RoomStateBase {
       startedAt: this.startedAt,
       lastUpdated: this.lastUpdated,
       users: this.users,
+      isFlipped: this.isFlipped,
       isAutoFlip: this.isAutoFlip,
       status: this.status,
     };
@@ -163,6 +165,16 @@ export class RoomStateServer extends RoomStateBase {
       this.hasChanged = true;
     }
     this.autoFlip();
+  }
+
+  changeUsername(userId: string, name: string) {
+    this.users = this.users.map((user) => {
+      if (user.id === userId) {
+        user.name = name;
+        this.hasChanged = true;
+      }
+      return user;
+    });
   }
 
   /**
