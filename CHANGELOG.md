@@ -1,5 +1,29 @@
 
 
+## [3.0.0](https://github.com/jkrumm/free-planning-poker/compare/2.3.0...3.0.0) (2024-02-08)
+
+
+### Features
+
+* **v3:** play sound effects ([41a69dd](https://github.com/jkrumm/free-planning-poker/commit/41a69dd8f27b9e1e8d0eddc719d00d8b0da26fbf))
+* **v3:** room sidebar & room analytics sidebar ([11a29a6](https://github.com/jkrumm/free-planning-poker/commit/11a29a6de31343fec7585c9027717259e739661a))
+* **v3:** user settings sidebar to change username ([30e2d5b](https://github.com/jkrumm/free-planning-poker/commit/30e2d5be3f2a001192d9e676b0949fa47b6029d4))
+* **v3:** vote duration counter ([50d8c10](https://github.com/jkrumm/free-planning-poker/commit/50d8c10e575dbd14255f66187c881c28cc59ec6a))
+
+
+### Bug Fixes
+
+* **analytics:** estimations not parsed to int due to spectators ([1c083a2](https://github.com/jkrumm/free-planning-poker/commit/1c083a2cf8b207f0ee48dc00ae1f519027f2887b))
+* deffer state updates causing issues for google indexing ([9bee393](https://github.com/jkrumm/free-planning-poker/commit/9bee3932708e70b20a5b68e9150a4d0991d274d2))
+* heartbeat now keeps room alive ([623a5ee](https://github.com/jkrumm/free-planning-poker/commit/623a5ee10761dd0ac4f47fed7adfe719161b9071))
+* show player cards after vote ([635ddeb](https://github.com/jkrumm/free-planning-poker/commit/635ddebaf999dca7e5e92e905fa9aecbb1976dad))
+* **v3:** notify before local room state update ([03c3ecc](https://github.com/jkrumm/free-planning-poker/commit/03c3ecc184183f29d1c93725773e3d718c0c72ec))
+
+
+### Other Changes
+
+* update dependencies ([06623cc](https://github.com/jkrumm/free-planning-poker/commit/06623cc03fdda6fe588889df09faf49fea247f47))
+
 ## [2.3.0](https://github.com/jkrumm/free-planning-poker/compare/2.2.0...2.3.0) (2024-01-27)
 
 
