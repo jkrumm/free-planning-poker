@@ -1,8 +1,15 @@
+import { env } from 'fpp/env.mjs';
+
+import { TRPCError } from '@trpc/server';
+
+import * as Sentry from '@sentry/nextjs';
 import { type PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
 import { nanoid } from 'nanoid';
 import { type AxiomRequest } from 'next-axiom';
 import { z } from 'zod';
+
+import { logEndpoint } from 'fpp/constants/logging.constant';
 
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { generateRoomNumber } from 'fpp/utils/room-number.util';
@@ -42,6 +49,53 @@ export const roomRouter = createTRPCRouter({
   getOpenRoomNumber: publicProcedure.query(async ({ ctx: { db } }) => {
     return await findOpenRoomNumber(db);
   }),
+  getRoomStats: publicProcedure
+    .input(
+      z.object({
+        roomId: z.number(),
+      }),
+    )
+    .query(async ({ ctx: { db }, input: { roomId } }) => {
+      // Validate room exists
+      const room = await db.query.rooms.findFirst({
+        where: eq(rooms.id, roomId),
+      });
+      if (!room) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Room not found',
+        });
+      }
+
+      // Fetch room stats from analytics service
+      return (await fetch(`${env.ANALYTICS_URL}/room/${roomId}/stats`, {
+        headers: {
+          Authorization: env.ANALYTICS_SECRET_TOKEN,
+        },
+      })
+        .then((res) => res.json())
+        .catch((e) => {
+          console.error('Error fetching room stats', e);
+          Sentry.captureException(e, {
+            extra: {
+              roomId,
+            },
+            tags: {
+              endpoint: logEndpoint.GET_ANALYTICS,
+            },
+          });
+        })) as {
+        votes: number;
+        duration: number;
+        estimations: number;
+        estimations_per_vote: number;
+        avg_min_estimation: number;
+        avg_avg_estimation: number;
+        avg_max_estimation: number;
+        spectators: number;
+        spectators_per_vote: number;
+      };
+    }),
   joinRoom: publicProcedure
     .input(
       z.object({

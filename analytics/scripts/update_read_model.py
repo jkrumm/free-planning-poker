@@ -133,3 +133,21 @@ def update_read_model():
                                        'duration': 'int16'})
 
     upsert_users(cursor)
+
+
+def update_votes_read_model():
+    logger.debug("update_votes read_model called!")
+
+    # Create cursor and use it to execute SQL command
+    cursor = connection.cursor()
+    cursor.execute("select @@version")
+    version = cursor.fetchone()
+
+    if version:
+        logger.debug(f"Running version: ${version}")
+    else:
+        logger.debug('Not connected to db')
+
+    upsert_table(cursor, "fpp_votes", {'room_id': 'int16', 'min_estimation': 'int16', 'max_estimation': 'int16',
+                                       'amount_of_estimations': 'int16', 'amount_of_spectators': 'int16',
+                                       'duration': 'int16'})

@@ -35,7 +35,7 @@ export const UsernameModel = ({
           <TextInput
             autoFocus
             data-autofocus
-            label="Your Name"
+            label="Your Username"
             error={error && 'Required'}
             size="xl"
             withAsterisk
