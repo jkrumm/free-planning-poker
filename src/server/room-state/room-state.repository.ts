@@ -1,10 +1,10 @@
-import { env } from 'fpp/env.mjs';
+import { env } from 'fpp/env';
 
 import { TRPCError } from '@trpc/server';
 
 import { Redis } from '@upstash/redis';
 import { eq } from 'drizzle-orm';
-import { type PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless/driver';
+import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 
 import { estimations, rooms, votes } from 'fpp/server/db/schema';
 
@@ -75,7 +75,7 @@ export async function setRoomState({
   userId: string;
   roomState: RoomStateServer;
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  db: PlanetScaleDatabase<typeof import('../db/schema')>;
+  db: MySql2Database<typeof import('../db/schema')>;
 }): Promise<void> {
   // NOTE: allow any because prisma and redis have all kind of different promises
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,5 +1,3 @@
-import { log as axiomLog } from 'next-axiom';
-
 import HttpStatusCode from 'fpp/constants/http-status-codes.constant';
 import { type logEndpoint } from 'fpp/constants/logging.constant';
 
@@ -94,50 +92,50 @@ export class TooManyRequestsError extends BaseError {
  * Logging class
  */
 
-export class log {
-  static debug(message: string, meta: ClientLog | ServerLog) {
-    axiomLog.debug(message, removeNulls(meta));
-  }
-  static info(message: string, meta: ClientLog | ServerLog) {
-    axiomLog.info(message, removeNulls(meta));
-  }
-  static warn(message: string, meta: ClientLog | ServerLog) {
-    axiomLog.warn(message, removeNulls(meta));
-  }
-  static error(message: string, meta: ClientLog | ServerLog) {
-    axiomLog.error(message, removeNulls(meta));
-  }
-
-  static handleError(error: BaseError) {
-    switch (error.constructor.name) {
-      case 'BadRequestError':
-      case 'NotFoundError':
-      case 'NotImplementedError':
-      case 'TooManyRequestsError':
-        log.warn(error.message, {
-          ...error.meta,
-          httpCode: error.httpCode,
-          errorName: error.name,
-          errorStack: error.stack ?? 'no stack',
-        } as ServerLog);
-        break;
-      case 'InternalServerError':
-      case 'Error':
-        log.error(error.message, {
-          ...error?.meta,
-          httpCode: error?.httpCode,
-          errorName: error?.name,
-          errorStack: error?.stack ?? 'no stack',
-        } as ServerLog);
-        break;
-      default:
-        log.error('Unknown error', {
-          ...error?.meta,
-          httpCode: error?.httpCode,
-          errorMessage: error?.message,
-          errorName: error?.name,
-          errorStack: error?.stack ?? 'no stack',
-        } as ServerLog);
-    }
-  }
-}
+// export class log {
+//   static debug(message: string, meta: ClientLog | ServerLog) {
+//     axiomLog.debug(message, removeNulls(meta));
+//   }
+//   static info(message: string, meta: ClientLog | ServerLog) {
+//     axiomLog.info(message, removeNulls(meta));
+//   }
+//   static warn(message: string, meta: ClientLog | ServerLog) {
+//     axiomLog.warn(message, removeNulls(meta));
+//   }
+//   static error(message: string, meta: ClientLog | ServerLog) {
+//     axiomLog.error(message, removeNulls(meta));
+//   }
+//
+//   static handleError(error: BaseError) {
+//     switch (error.constructor.name) {
+//       case 'BadRequestError':
+//       case 'NotFoundError':
+//       case 'NotImplementedError':
+//       case 'TooManyRequestsError':
+//         log.warn(error.message, {
+//           ...error.meta,
+//           httpCode: error.httpCode,
+//           errorName: error.name,
+//           errorStack: error.stack ?? 'no stack',
+//         } as ServerLog);
+//         break;
+//       case 'InternalServerError':
+//       case 'Error':
+//         log.error(error.message, {
+//           ...error?.meta,
+//           httpCode: error?.httpCode,
+//           errorName: error?.name,
+//           errorStack: error?.stack ?? 'no stack',
+//         } as ServerLog);
+//         break;
+//       default:
+//         log.error('Unknown error', {
+//           ...error?.meta,
+//           httpCode: error?.httpCode,
+//           errorMessage: error?.message,
+//           errorName: error?.name,
+//           errorStack: error?.stack ?? 'no stack',
+//         } as ServerLog);
+//     }
+//   }
+// }

@@ -5,15 +5,11 @@ import pandas as pd
 from util.log_util import logger
 
 connection = MySQLdb.connect(
-    host="aws.connect.psdb.cloud",
+    host=os.getenv("DB_HOST"),
     user=os.getenv("DB_USERNAME"),
     passwd=os.getenv("DB_PASSWORD"),
-    db="database",
+    db="free-planning-poker",
     autocommit=True,
-    ssl_mode="VERIFY_IDENTITY",
-    ssl={
-        "ca": os.getenv("DB_SSL")
-    }
 )
 
 

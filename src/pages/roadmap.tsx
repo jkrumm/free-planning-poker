@@ -3,14 +3,13 @@ import React, { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
+import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
 import { Card, Collapse, Group, SimpleGrid, Text, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
 import * as Sentry from '@sentry/nextjs';
 import { IconArrowBadgeDownFilled } from '@tabler/icons-react';
-import { useLogger } from 'next-axiom';
 import superjson from 'superjson';
 
 import { logMsg } from 'fpp/constants/logging.constant';
@@ -27,7 +26,7 @@ import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 import { Hero } from 'fpp/components/layout/hero';
 import { Meta } from 'fpp/components/meta';
 
-export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
+export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: createTRPCContext(context),
@@ -43,8 +42,7 @@ export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
 };
 
 const Roadmap = () => {
-  const logger = useLogger().with({ route: RouteType.ROADMAP });
-  useTrackPageView(RouteType.ROADMAP, logger);
+  useTrackPageView(RouteType.ROADMAP);
 
   const { data: roadmap } = api.roadmap.getRoadmap.useQuery(undefined, {
     staleTime: Infinity,
@@ -54,7 +52,6 @@ const Roadmap = () => {
   });
 
   if (!roadmap) {
-    logger.error(logMsg.SSG_FAILED);
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
   }
@@ -156,7 +153,7 @@ const RoadmapCard = ({
     </Card>
   );
 };
-//
+
 // const Markdown = lazy(() => import("fpp/components/index/form"));
 //
 // const Markdown = ({ description }: { description: string }) => {

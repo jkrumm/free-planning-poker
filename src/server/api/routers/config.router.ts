@@ -1,4 +1,4 @@
-import { env } from 'fpp/env.mjs';
+import { env } from 'fpp/env';
 
 import * as Sentry from '@sentry/nextjs';
 import { Redis } from '@upstash/redis';

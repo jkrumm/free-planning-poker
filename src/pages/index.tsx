@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { Alert, Text, Title } from '@mantine/core';
 
 import { IconAlertCircle } from '@tabler/icons-react';
-import { useLogger } from 'next-axiom';
 
 import { RouteType } from 'fpp/server/db/schema';
 
@@ -20,8 +19,7 @@ import { Meta } from 'fpp/components/meta';
 const IndexForm = lazy(() => import('fpp/components/index/form'));
 
 const Home: NextPage = () => {
-  const logger = useLogger().with({ route: RouteType.HOME });
-  useTrackPageView(RouteType.HOME, logger);
+  useTrackPageView(RouteType.HOME);
 
   return (
     <div className="homepage">

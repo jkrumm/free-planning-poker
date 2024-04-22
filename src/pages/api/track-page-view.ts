@@ -1,28 +1,23 @@
-import { NextRequest, NextResponse, userAgent } from 'next/server';
+import { userAgentFromString } from 'next/dist/server/web/spec-extension/user-agent';
+
+import type { NextApiRequest } from '@trpc/server/adapters/next';
 
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { type AxiomRequest } from 'next-axiom';
 
 import {
   BadRequestError,
   MethodNotAllowedError,
-  log,
 } from 'fpp/constants/error.constant';
-import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { withLogger } from 'fpp/utils/api-logger.util';
-import { decodeBlob } from 'fpp/utils/decode.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
 import { RouteType, pageViews, users } from 'fpp/server/db/schema';
 
-export const runtime = 'edge';
 export const preferredRegion = 'fra1';
 
-const TrackPageView = withLogger(async (req: AxiomRequest) => {
-  req.log.with({ endpoint: logEndpoint.TRACK_PAGE_VIEW });
+const TrackPageView = async (req: NextApiRequest) => {
   if (req.method !== 'POST') {
     throw new MethodNotAllowedError(
       'TRACK_PAGE_VIEW only accepts POST requests',
@@ -30,28 +25,28 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
   }
 
   // eslint-disable-next-line prefer-const
-  let { userId, route, roomId } = await decodeBlob<{
+  let { userId, route, roomId } = JSON.parse(req.body as string) as {
     userId: string | null;
     route: keyof typeof RouteType;
     roomId?: number;
-  }>(req);
-  req.log.with({ userId, route, roomId });
-  if (userAgent(req).isBot) {
-    req.log.with({ isBot: true });
+  };
+
+  userId = (!validateNanoId(userId) ? nanoid() : userId)!;
+
+  if (userAgentFromString(req.headers['user-agent']).isBot) {
+    return { userId };
   }
 
   if (RouteType[route] === undefined) {
     throw new BadRequestError('invalid route');
   }
 
-  userId = (!validateNanoId(userId) ? nanoid() : userId)!;
-
   const userExists = !!(
     await db.select().from(users).where(eq(users.id, userId))
   )[0];
 
   if (!userExists) {
-    const userPayload = getUserPayload(req);
+    const userPayload = await getUserPayload(req);
     await db.insert(users).values({
       id: userId,
       ...userPayload,
@@ -64,51 +59,73 @@ const TrackPageView = withLogger(async (req: AxiomRequest) => {
     roomId,
   });
 
-  return NextResponse.json({ userId }, { status: 200 });
-});
+  return { userId };
+};
 
-export const getUserPayload = (req: AxiomRequest) => {
-  if (req instanceof NextRequest) {
-    const ua = userAgent(req);
+export const getUserPayload = async (req: NextApiRequest) => {
+  const ua = userAgentFromString(req.headers['user-agent']);
 
-    if (!ua.browser || !ua.os) {
-      log.warn('userAgent undefined', {
-        browser: ua?.browser?.name ?? null,
-        device: ua?.device?.type ?? 'desktop',
-        os: ua?.os?.name ?? null,
-      });
-    }
+  // if (!ua.browser || !ua.os) {
+  //   log.warn('userAgent undefined', {
+  //     browser: ua?.browser?.name ?? null,
+  //     device: ua?.device?.type ?? 'desktop',
+  //     os: ua?.os?.name ?? null,
+  //   });
+  // }
 
-    if (!req?.geo?.country || !req?.geo?.region || !req?.geo?.city) {
-      log.warn('geo undefined', {
-        country: req?.geo?.country ?? null,
-        region: req?.geo?.region ?? null,
-        city: req?.geo?.city ?? null,
-      });
-    }
-
-    const geo = {
-      country: req?.geo?.country ?? null,
-      region: req?.geo?.region ?? null,
-      city: req?.geo?.city ?? null,
-    };
-
-    return {
-      browser: ua?.browser?.name ?? null,
-      device: ua.isBot ? 'bot' : ua?.device?.type ?? 'desktop',
-      os: ua?.os?.name ?? null,
-      city: geo?.city ?? null,
-      country: geo?.country ?? null,
-      region: geo?.region ?? null,
-    };
-  }
-  return {
-    browser: null,
-    device: 'desktop',
-    os: null,
-    city: null,
+  const geo: {
+    country: string | null;
+    region: string | null;
+    city: string | null;
+  } = {
     country: null,
     region: null,
+    city: null,
+  };
+
+  let ip =
+    req?.headers['x-forwarded-for'] ??
+    req?.headers['X-Forwarded-For'] ??
+    req?.headers['x-real-ip'] ??
+    req.socket.remoteAddress ??
+    '::1';
+
+  if (ip instanceof Array && ip.length > 0) {
+    ip = ip[0]!;
+  }
+
+  if (ip.includes(',') && ip instanceof String) {
+    ip = ip.split(',')[0]!;
+  }
+
+  if (ip !== '::1') {
+    try {
+      const geoResponse = await fetch(`http://ip-api.com/json/${ip as string}`);
+      const geoData = (await geoResponse.json()) as {
+        countryCode: string;
+        region: string;
+        city: string;
+      };
+      console.log('geoData', geoData);
+      geo.country = geoData.countryCode;
+      geo.region = geoData.region;
+      geo.city = geoData.city;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('error fetching geo data', {
+          error: error.message,
+        });
+      }
+    }
+  }
+
+  return {
+    browser: ua?.browser?.name ?? null,
+    device: ua.isBot ? 'bot' : ua?.device?.type ?? 'desktop',
+    os: ua?.os?.name ?? null,
+    city: geo.city ?? null,
+    country: geo.country ?? null,
+    region: geo.region ?? null,
   };
 };
 

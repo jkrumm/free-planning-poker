@@ -4,7 +4,7 @@ import {
   NextResponse,
 } from 'next/server';
 
-import { env } from 'fpp/env.mjs';
+import { env } from 'fpp/env';
 
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';

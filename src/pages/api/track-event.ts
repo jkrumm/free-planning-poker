@@ -1,39 +1,34 @@
-import { NextResponse, userAgent } from 'next/server';
+import { userAgentFromString } from 'next/dist/server/web/spec-extension/user-agent';
+import { NextResponse } from 'next/server';
 
-import { type AxiomRequest } from 'next-axiom';
+import { type NextApiRequest } from '@trpc/server/adapters/next';
 
 import {
   BadRequestError,
   MethodNotAllowedError,
 } from 'fpp/constants/error.constant';
-import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { withLogger } from 'fpp/utils/api-logger.util';
 import { findUserById } from 'fpp/utils/db-api.util';
-import { decodeBlob } from 'fpp/utils/decode.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
 import { EventType, events } from 'fpp/server/db/schema';
 
-export const runtime = 'edge';
 export const preferredRegion = 'fra1';
 
-const TrackEvent = withLogger(async (req: AxiomRequest) => {
-  req.log.with({ endpoint: logEndpoint.TRACK_EVENT });
+const TrackEvent = async (req: NextApiRequest) => {
   if (req.method !== 'POST') {
     throw new MethodNotAllowedError('TRACK_EVENT only accepts POST requests');
   }
 
-  const { userId, event } = await decodeBlob<{
+  const { userId, event } = JSON.parse(req.body as string) as {
     userId: string;
     event: keyof typeof EventType;
-  }>(req);
-  req.log.with({ userId, event });
+  };
+
   validateInput({ userId, event });
 
-  if (userAgent(req).isBot) {
-    req.log.with({ isBot: true });
+  if (userAgentFromString(req.headers['user-agent']).isBot) {
     return NextResponse.json({}, { status: 200 });
   }
 
@@ -45,7 +40,7 @@ const TrackEvent = withLogger(async (req: AxiomRequest) => {
   });
 
   return NextResponse.json({}, { status: 200 });
-});
+};
 
 const validateInput = ({
   userId,

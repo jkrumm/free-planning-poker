@@ -15,7 +15,6 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 
 import { IconAlertCircle } from '@tabler/icons-react';
-import { useLogger } from 'next-axiom';
 
 import { api } from 'fpp/utils/api';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
@@ -31,8 +30,7 @@ import { Hero } from 'fpp/components/layout/hero';
 import { Meta } from 'fpp/components/meta';
 
 const Contact: NextPage = () => {
-  const logger = useLogger().with({ route: RouteType.CONTACT });
-  useTrackPageView(RouteType.CONTACT, logger);
+  useTrackPageView(RouteType.CONTACT);
 
   const activeFeatureFlags = useConfigStore(
     (state) => state.activeFeatureFlags,
@@ -90,7 +88,6 @@ const Contact: NextPage = () => {
               sendTrackEvent({
                 event: EventType.CONTACT_FORM_SUBMISSION,
                 userId,
-                logger,
               });
             })}
           >

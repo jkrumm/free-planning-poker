@@ -1,5 +1,5 @@
-export function validateNanoId(nanoId: string | null): boolean {
-  if (nanoId === null) return false;
+export function validateNanoId(nanoId: string | null | undefined): boolean {
+  if (!nanoId) return false;
   const allowedChars =
     '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-';
   return (

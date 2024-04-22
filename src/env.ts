@@ -5,9 +5,12 @@ export const env = createEnv({
   // server-side environment variables schema ensures the app isn't built with invalid env vars.
   server: {
     // DATABASE_URL: z.string().url(),
+    DATABASE_URL: z.string(),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    NEXT_PUBLIC_NODE_ENV: z.enum(['development', 'test', 'production']),
+    NEXT_PUBLIC_NODE_ENV: z
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     NEXT_PUBLIC_API_ROOT: z.enum([
@@ -44,6 +47,7 @@ export const env = createEnv({
   // You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
   // middlewares) or client-side, so we need to destruct manually.
   runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
     // DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_API_ROOT: process.env.NEXT_PUBLIC_API_ROOT,
@@ -68,4 +72,5 @@ export const env = createEnv({
   // Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
   // This is especially useful for Docker builds.
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  emptyStringAsUndefined: true,
 });
