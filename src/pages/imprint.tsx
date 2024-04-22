@@ -5,8 +5,6 @@ import Link from 'next/link';
 
 import { Button } from '@mantine/core';
 
-import { useLogger } from 'next-axiom';
-
 import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
@@ -15,8 +13,7 @@ import { Hero } from 'fpp/components/layout/hero';
 import { Meta } from 'fpp/components/meta';
 
 const Imprint: NextPage = () => {
-  const logger = useLogger().with({ route: RouteType.IMPRINT });
-  useTrackPageView(RouteType.IMPRINT, logger);
+  useTrackPageView(RouteType.IMPRINT);
 
   return (
     <>

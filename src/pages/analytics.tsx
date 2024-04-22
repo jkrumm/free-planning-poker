@@ -1,12 +1,11 @@
 import React from 'react';
 
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { type FetchCreateContextFnOptions } from '@trpc/server/dist/adapters/fetch';
+import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
 import { Card, Group, SimpleGrid, Text, Title } from '@mantine/core';
 
 import * as Sentry from '@sentry/nextjs';
-import { useLogger } from 'next-axiom';
 import superjson from 'superjson';
 
 import { logMsg } from 'fpp/constants/logging.constant';
@@ -23,7 +22,7 @@ import { HistoricalChart } from 'fpp/components/analytics/historical-chart';
 import { Hero } from 'fpp/components/layout/hero';
 import { Meta } from 'fpp/components/meta';
 
-export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
+export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: createTRPCContext(context),
@@ -39,8 +38,7 @@ export const getStaticProps = async (context: FetchCreateContextFnOptions) => {
 };
 
 const Analytics = () => {
-  const logger = useLogger().with({ route: RouteType.ANALYTICS });
-  useTrackPageView(RouteType.ANALYTICS, logger);
+  useTrackPageView(RouteType.ANALYTICS);
 
   const { data: analytics } = api.analytics.getAnalytics.useQuery(undefined, {
     staleTime: Infinity,
@@ -50,7 +48,6 @@ const Analytics = () => {
   });
 
   if (!analytics) {
-    logger.error(logMsg.SSG_FAILED);
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
   }

@@ -1,10 +1,10 @@
-const { withAxiom } = require("next-axiom");
+const { withSentryConfig } = require('@sentry/nextjs');
 
-module.exports = withAxiom({
+const nextConfig = {
   reactStrictMode: true,
   i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+    locales: ['en'],
+    defaultLocale: 'en',
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -13,26 +13,8 @@ module.exports = withAxiom({
     ignoreDuringBuilds: true,
   },
   swcMinify: true,
-  transpilePackages: ["geist"],
-});
-
-// Injected content via Sentry wizard below
-
-const { withSentryConfig } = require("@sentry/nextjs");
-
-module.exports = withSentryConfig(
-  module.exports,
-  {
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options
-
-    // Suppresses source map uploading logs during build
-    silent: true,
-
-    org: "free-planning-poker",
-    project: "free-planning-poker",
-  },
-  {
+  transpilePackages: ['geist'],
+  sentry: {
     // For all available options, see:
     // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
@@ -43,7 +25,7 @@ module.exports = withSentryConfig(
     transpileClientSDK: true,
 
     // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
-    tunnelRoute: "/monitoring",
+    tunnelRoute: '/monitoring',
 
     // Hides source maps from generated client bundles
     hideSourceMaps: true,
@@ -51,4 +33,21 @@ module.exports = withSentryConfig(
     // Automatically tree-shake Sentry logger statements to reduce bundle size
     disableLogger: true,
   },
-);
+};
+
+// Injected content via Sentry wizard below
+
+const sentryWebpackPluginOptions = {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  // Suppresses source map uploading logs during build
+  silent: true,
+
+  org: 'free-planning-poker',
+  project: 'free-planning-poker',
+
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+};
+
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

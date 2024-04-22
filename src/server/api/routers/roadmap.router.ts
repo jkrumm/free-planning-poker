@@ -1,4 +1,4 @@
-import { env } from 'fpp/env.mjs';
+import { env } from 'fpp/env';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 

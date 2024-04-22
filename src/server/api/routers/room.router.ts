@@ -1,12 +1,11 @@
-import { env } from 'fpp/env.mjs';
+import { env } from 'fpp/env';
 
 import { TRPCError } from '@trpc/server';
 
 import * as Sentry from '@sentry/nextjs';
-import { type PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless/driver';
+import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
 import { nanoid } from 'nanoid';
-import { type AxiomRequest } from 'next-axiom';
 import { z } from 'zod';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
@@ -29,7 +28,7 @@ import { getUserPayload } from 'fpp/pages/api/track-page-view';
 
 const findOpenRoomNumber = async (
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  db: PlanetScaleDatabase<typeof import('../../db/schema')>,
+  db: MySql2Database<typeof import('../../db/schema')>,
 ) => {
   let retries = 0;
   while (true) {
@@ -114,7 +113,7 @@ export const roomRouter = createTRPCRouter({
 
         if (!validateNanoId(userId)) {
           userId = nanoid();
-          const userPayload = getUserPayload(req as AxiomRequest);
+          const userPayload = await getUserPayload(req);
           await db.insert(users).values({
             id: userId,
             ...userPayload,
@@ -164,14 +163,11 @@ export const roomRouter = createTRPCRouter({
 
         const recursiveInsert = async () => {
           try {
-            const insertId = Number(
-              (
-                await db.insert(rooms).values({
-                  number: roomNumber,
-                  name: queryRoom,
-                })
-              ).insertId,
-            );
+            const insert = await db.insert(rooms).values({
+              number: roomNumber,
+              name: queryRoom,
+            });
+            const insertId = Number(insert[0].insertId);
             room = await db.query.rooms.findFirst({
               where: eq(rooms.id, insertId),
             });

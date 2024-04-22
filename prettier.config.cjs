@@ -7,7 +7,7 @@ const config = {
   importOrder: [
     "^react(.*)$",
     "^(next(\\/.*)?)$",
-    "^(fpp/env.mjs)(.*)$",
+    "^fpp/env(.*)$",
     "^@trpc(.*)$",
     "^(@mantine|normalize|geist|fpp/styles)(.*)$",
     "<THIRD_PARTY_MODULES>",

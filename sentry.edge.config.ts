@@ -2,12 +2,11 @@
 // The config you add here will be used whenever one of the edge features is loaded.
 // Note that this config is unrelated to the Vercel Edge Runtime and is also required when running locally.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
-
-import * as Sentry from "@sentry/nextjs";
-import { env } from "fpp/env.mjs";
+import * as Sentry from '@sentry/nextjs';
+import { env } from 'fpp/env';
 
 Sentry.init({
-  enabled: env.NEXT_PUBLIC_NODE_ENV !== "development",
+  enabled: env.NEXT_PUBLIC_NODE_ENV !== 'development',
 
   dsn: env.NEXT_PUBLIC_SENTRY_DSN,
 

@@ -4,8 +4,6 @@ import React from 'react';
 
 import { Button } from '@mantine/core';
 
-import { type Logger } from 'next-axiom';
-
 import { api } from 'fpp/utils/api';
 
 import { useRoomStateStore } from 'fpp/store/room-state.store';
@@ -22,11 +20,11 @@ import {
 export const Table = ({
   roomId,
   userId,
-  logger,
+  // logger,
 }: {
   roomId: number;
   userId: string;
-  logger: Logger;
+  // logger: Logger;
 }) => {
   const users = useRoomStateStore((store) => store.users);
   const status = useRoomStateStore((store) => store.status);

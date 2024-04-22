@@ -4,14 +4,14 @@ import React, { useEffect } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { env } from 'fpp/env.mjs';
+import { env } from 'fpp/env';
 
 import { Loader } from '@mantine/core';
 
 import * as Ably from 'ably';
 import { AblyProvider } from 'ably/react';
-import { useLogger } from 'next-axiom';
 
+// import { useLogger } from 'next-axiom';
 import { api } from 'fpp/utils/api';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
@@ -27,7 +27,7 @@ import { UsernameModel } from 'fpp/components/room/username-model';
 
 const RoomWrapper = () => {
   const router = useRouter();
-  const logger = useLogger().with({ route: RouteType.ROOM });
+  // const logger = useLogger().with({ route: RouteType.ROOM });
 
   const username = useLocalstorageStore((store) => store.username);
   const userId = useLocalstorageStore((state) => state.userId);
@@ -125,7 +125,7 @@ const RoomWrapper = () => {
               roomId,
               setUserIdLocalStorage,
               setUserIdRoomState,
-              logger,
+              // logger,
             });
           },
         },
@@ -133,7 +133,7 @@ const RoomWrapper = () => {
     }
 
     setFirstLoad(false);
-    logger.with({ userId, roomId });
+    // logger.with({ userId, roomId });
 
     if (!username) {
       setModelOpen(true);
@@ -160,7 +160,7 @@ const RoomWrapper = () => {
                 roomName={roomName}
                 userId={userId}
                 username={username}
-                logger={logger}
+                // logger={logger}
               />
             </AblyProvider>
           );

@@ -5,8 +5,7 @@ import { useRouter } from 'next/router';
 import { Button, Switch } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
-import { type Logger } from 'next-axiom';
-
+// import { type Logger } from 'next-axiom';
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
 import { api } from 'fpp/utils/api';
@@ -26,12 +25,12 @@ export const Interactions = ({
   roomId,
   roomName,
   userId,
-  logger,
+  // logger,
 }: {
   roomId: number;
   roomName: string;
   userId: string;
-  logger: Logger;
+  // logger: Logger;
 }) => {
   const router = useRouter();
 
@@ -96,7 +95,7 @@ export const Interactions = ({
                 sendTrackEvent({
                   event: EventType.COPIED_ROOM_LINK,
                   userId,
-                  logger,
+                  // logger,
                 });
               }}
             >

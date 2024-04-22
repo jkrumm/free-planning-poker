@@ -1,16 +1,13 @@
 import * as Sentry from '@sentry/nextjs';
-import { type Logger } from 'next-axiom';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
 export function sendTrackEvent({
   event,
   userId,
-  logger,
 }: {
   event: string;
   userId: string | null;
-  logger: Logger;
 }) {
   try {
     const body = JSON.stringify({
@@ -33,15 +30,6 @@ export function sendTrackEvent({
     }
   } catch (e) {
     if (e instanceof Error) {
-      logger.error(logEndpoint.TRACK_EVENT, {
-        endpoint: logEndpoint.TRACK_EVENT,
-        event,
-        error: {
-          message: e.message,
-          stack: e.stack,
-          name: e.name,
-        },
-      });
       Sentry.captureException(e, {
         tags: {
           endpoint: logEndpoint.TRACK_EVENT,

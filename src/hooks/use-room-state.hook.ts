@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 
 import { useChannel } from 'ably/react';
-import { type Logger } from 'next-axiom';
 
 import { api } from 'fpp/utils/api';
 
@@ -17,12 +16,12 @@ export const useRoomState = ({
   roomId,
   userId,
   username,
-  logger,
+  // logger,
 }: {
   roomId: number;
   userId: string;
   username: string;
-  logger: Logger;
+  // logger: Logger;
 }) => {
   const isSpectator = useLocalstorageStore((store) => store.isSpectator);
 
@@ -51,7 +50,7 @@ export const useRoomState = ({
   }, []);
 
   useChannel(`room:${roomId}`, 'room-state', (message) => {
-    logger.debug('RECEIVED ROOM-STATE MESSAGE', message);
+    // logger.debug('RECEIVED ROOM-STATE MESSAGE', message);
     updateRoomState(RoomStateClient.fromJson(message.data as RoomStateDto));
   });
 };

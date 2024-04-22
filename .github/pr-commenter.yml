@@ -14,4 +14,4 @@ comment:
         - '**/schema.ts'
       body: |
         <h3> :warning: Drizzle schema file has been modified :warning: </h3>
-        Please make sure to review and deploy it using Planetscale UI before merging the PR.
+        Please make sure to review and deploy it using `npm run db:push` before merging the PR.

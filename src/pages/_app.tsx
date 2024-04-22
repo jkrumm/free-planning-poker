@@ -10,8 +10,7 @@ import 'fpp/styles/globals.css';
 import { GeistSans } from 'geist/font/sans';
 import 'normalize.css/normalize.css';
 
-import { AxiomWebVitals } from 'next-axiom';
-
+// import { AxiomWebVitals } from 'next-axiom';
 import { api } from 'fpp/utils/api';
 
 import { useConfigLoader } from 'fpp/hooks/config-loader.hook';
@@ -36,7 +35,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       // withGlobalStyles
     >
       <Suspense fallback={<></>}>
-        <AxiomWebVitals />
+        {/*<AxiomWebVitals />*/}
         <Notifications position="top-right" />
       </Suspense>
       <main className={GeistSans.className}>
