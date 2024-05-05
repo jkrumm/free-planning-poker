@@ -1,6 +1,9 @@
 import { userAgentFromString } from 'next/dist/server/web/spec-extension/user-agent';
 
-import type { NextApiRequest } from '@trpc/server/adapters/next';
+import type {
+  NextApiRequest,
+  NextApiResponse,
+} from '@trpc/server/adapters/next';
 
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -17,7 +20,7 @@ import { RouteType, pageViews, users } from 'fpp/server/db/schema';
 
 export const preferredRegion = 'fra1';
 
-const TrackPageView = async (req: NextApiRequest) => {
+const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     throw new MethodNotAllowedError(
       'TRACK_PAGE_VIEW only accepts POST requests',
@@ -59,7 +62,7 @@ const TrackPageView = async (req: NextApiRequest) => {
     roomId,
   });
 
-  return { userId };
+  return res.status(200).json({ userId });
 };
 
 export const getUserPayload = async (req: NextApiRequest) => {

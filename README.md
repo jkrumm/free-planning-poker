@@ -4,7 +4,8 @@
 
 Based on NextJs, tRPC, Drizzle and Mantine UI components.
 
-Mostly using Websocket communication utilizing Ably as Websocket service and Turso for edge DB.
+Mostly using Websocket communication utilizing Ably as Websocket service 
+and self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
 
 All "personal" data is stored only in the visitors local storage.
 
@@ -14,19 +15,10 @@ All "personal" data is stored only in the visitors local storage.
 
 ### Run locally
 
-- Use any Node 18 version
-- Copy the `.env.example` to `.env` and fill in your
-  - Ably API key
-  - MySQL connection string
-
-```bash
-npm ci
-```
-
-```bash
-npm run postinstall
-```
-
-```bash
-npm run dev
-```
+1. Install any Node 18 version and Docker and Docker Compose and Doppler CLI
+2. Clone [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack)
+3. Request access to the Doppler Dev projects `sideproject-docker-stack` and `free-planning-poker`
+4. Run `sideproject-docker-stack` by following the instructions in the README
+5. Set up the `free-planning-poker` Doppler project by running `doppler setup`
+6. Install dependencies with `npm ci` and `npm run postinstall`
+7. Run `doppler run -- npm run dev`

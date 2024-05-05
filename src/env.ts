@@ -14,7 +14,7 @@ export const env = createEnv({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     NEXT_PUBLIC_API_ROOT: z.enum([
-      'http://localhost:3000/',
+      'http://localhost:3001/',
       'https://free-planning-poker.com/',
     ]),
     VERCEL_GIT_COMMIT_SHA: z.string(),
@@ -39,7 +39,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_NODE_ENV: z.enum(['development', 'test', 'production']),
     NEXT_PUBLIC_API_ROOT: z.enum([
-      'http://localhost:3000/',
+      'http://localhost:3001/',
       'https://free-planning-poker.com/',
     ]),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
