@@ -37,7 +37,7 @@
     "@trpc/next": "next",
     "@trpc/react-query": "next",
     "@trpc/server": "next",
-    "@upstash/ratelimit": "^1.1.2",
+    "@upstash/ratelimit": "^1.1.3",
     "@upstash/redis": "^1.30.0",
     "ably": "^1.2.50",
     "ag-charts-react": "^9.2.1",
