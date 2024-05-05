@@ -1,5 +1,15 @@
 
 
+## [3.0.1](https://github.com/jkrumm/free-planning-poker/compare/3.0.0...3.0.1) (2024-05-05)
+
+
+### Other Changes
+
+* transition to sideproject-docker-stack & Doppler secrets ([202e2fd](https://github.com/jkrumm/free-planning-poker/commit/202e2fd4eb117b65701a36794f3fcc716b753fe7))
+* update dependencies ([2cf402c](https://github.com/jkrumm/free-planning-poker/commit/2cf402c228481ad3792d037ce6547912d48462d8))
+* upgrade packages ([4757e2d](https://github.com/jkrumm/free-planning-poker/commit/4757e2d74c51dfd4c05ada1654a0433cb48b0fce))
+* upgrade to NextJs 14 & remove Axiom ([c7cfefe](https://github.com/jkrumm/free-planning-poker/commit/c7cfefe651140a4400afc23a7dd34c36f44b809b))
+
 ## [3.0.0](https://github.com/jkrumm/free-planning-poker/compare/2.3.0...3.0.0) (2024-02-08)
 
 
