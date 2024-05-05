@@ -43,78 +43,88 @@ const Imprint: NextPage = () => {
           <div>
             <h1>Privacy Policy</h1>
             We collect <strong>anonymized website usage analytics</strong> to
-            improve our services and user experience, in full compliance with
-            the General Data Protection Regulation (GDPR), without the use of
-            cookies or other permanent tracking technologies.
+            enhance our services and user experience, ensuring our full
+            compliance with the General Data Protection Regulation (GDPR),
+            without employing cookies or other continuous tracking technologies.
             <br />
-            The data we collect includes generic device information (such as
-            type, OS, browser), approximate geolocation (incorporating country,
-            city, region), and a random unique session ID stored in your local
-            storage. We use a professional IP address api service (ipapi.co) to
-            acquire this anonymized geolocation data. You may refer to{' '}
+            The data we accumulate includes{' '}
+            <strong>generic device details</strong> (such as type, OS, browser),
+            approximate geolocation (incorporating country, city, region), and a
+            randomized unique session ID saved in your local storage. We use a
+            professional IP address API service (ip-api.com) to procure this
+            anonymized geolocation data. You may refer to{' '}
             <a
-              href="https://ipapi.co/privacy/"
+              href="https://ip-api.com/docs/legal"
               target="_blank"
               rel="noopener noreferrer"
             >
-              their privacy policy
+              ip-api.com privacy policy
             </a>
-            . This data acquisition service is fully GDPR compliant and ensures
-            encryption of data in transit. Neither us nor ipapi.co process or
-            store any personally identifiable information or more specially your
-            IP address.
+            . This data acquisition service is entirely GDPR compliant, ensuring
+            the encryption of data in transit. Neither us nor ip-api.com process
+            or store any personally identifiable information or more specially
+            your IP address.
             <br />
-            The unique session id allows us to track your page visits and
-            certain actions on our site, such as entering a room and final vote,
-            to help us understand user behavior and preferences.
+            The <strong>unique session ID</strong> enables us to monitor your
+            page visits and certain activities on our site, such as your
+            entering a room and final vote, helping us to understand user
+            behaviors and preferences.
             {/* eslint-disable-next-line react/no-unescaped-entities */}
-            Such data collection operates under the 'legitimate interests'
-            lawful basis as per GDPR Article 6(1)(f). Since we solely deal with
+            This data collection operates under the 'legitimate interests'
+            lawful basis as per GDPR Article 6(1)(f). As we only deal with
             anonymized data and perform no processing of personally identifiable
-            information, there is no requirement for prior consent. We maintain
-            our steadfast commitment to your privacy and adhere strictly to data
+            information, there is no need for prior consent. We maintain our
+            unwavering commitment to your privacy and strictly adhere to data
             protection principles.
             <br />
             <br />
-            Ably, a WebSocket provider, plays a significant role in our
-            services. Data protection compliance is prioritized by Ably, with
-            adherence to EU GDPR and employing 256-bit AES encryption. Ably
-            ensures that data in transit remains secure and confidential.
-            <br />
-            Within our service, <strong>Ably Websockets</strong> enables the
-            transparent sharing of usernames and votes. However, this data does
-            not persist after exiting the room or once the room remains inactive
-            for a period. Consequently, data from previous sessions, including
-            usernames and votes, cannot be accessed by later visitors unless you
-            are actively present in the room.
-            <br />
-            <br />
-            Personal details volunteered through our{' '}
-            <strong>contact form</strong> (name and email), falling in line with
-            GDPR definitions, are handled with utmost confidentiality, and used
-            specifically for responding to your inquiries. Consent is sought
-            prior to utilizing this data for any other purpose. Furthermore, we
-            are not using any third-party services for our contact form where
-            your data could be stored.
-            <br />
-            <br />
-            Our website is supported by a database managed by Planetscale,
-            operating in convergence with an eu-central-1 hosted AWS MySQL
-            database. To assure data integrity, all transfers are encrypted.
-            However, the{' '}
-            <strong>
-              database usage is limited to storing the anonymized website usage
-              analytics
+            Our service heavily relies on Ably, a <strong>
+              WebSocket
             </strong>{' '}
-            and bears no link to specific usernames or individual votes.
-            Information collected in no way contributes to individual profiles.
+            provider known for making data protection compliance its priority
+            and adhering to EU GDPR while employing 256-bit AES encryption. Ably
+            ensures that data in transit remains secure and confidential. You
+            may refer to{' '}
+            <a
+              href="https://ably.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ablys privacy policy
+            </a>
+            . Within our service, Ably Websockets enable the transparent sharing
+            of usernames and votes. However, this data does not persist after
+            exiting the room or once the room remains inactive for a period.
+            Therefore, data from previous sessions, including usernames and
+            votes, cannot be accessed by later visitors unless actively present
+            in the room.
             <br />
             <br />
-            <strong>Usernames</strong> within our service are purely fictitious.
-            They are not stored or linked to the website usage analytics.
-            Although accessible upon room entry, these names and corresponding
-            votes are not identifiable. We urge avoidance of identifiable
-            information as usernames to ensure GDPR compliance.
+            Personal details offered through our <strong>
+              contact form
+            </strong>{' '}
+            (name and email), in agreement with GDPR definitions, are managed
+            with utmost confidentiality and used solely for responding to your
+            inquiries. We will seek your consent prior to using this data for
+            any unrelated purpose. Moreover, we do not use any third-party
+            services for our contact form, which could store your data.
+            <br />
+            <br />
+            Our website runs on a proprietary <strong>database</strong> system
+            hosted on a MariaDB in a Hetzner VPS located in Nuremberg, Germany.
+            To preserve data integrity, all transfers are encrypted. But the use
+            of the database is confined to storing the anonymized website usage
+            analytics and has no connection to specific usernames or individual
+            votes. Whatever information collected in no way contributes to
+            individual profiles.
+            <br />
+            <br />
+            In our service, <strong>usernames</strong> are entirely fictional.
+            They are neither stored nor connected to the website usage
+            analytics. While these names and corresponding votes are accessible
+            upon entry to the room, they are not identifiable. We insist on the
+            avoidance of identifiable information as usernames to ensure GDPR
+            compliance.
             <br />
             <br />
             <h1 id="license">Project License</h1>

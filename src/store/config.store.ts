@@ -18,8 +18,8 @@ type ConfigStore = {
   activeFeatureFlags: string[];
 };
 
-export const useConfigStore = create<ConfigStore>((set, get) => ({
-  latestTag: '2.0.0',
+export const useConfigStore = create<ConfigStore>((set) => ({
+  latestTag: '3.0.2',
   setLatestTag: (tag: string) => set({ latestTag: tag }),
   featureFlags: Object.keys(FeatureFlagType).map((name) => ({
     name: name as keyof typeof FeatureFlagType,
