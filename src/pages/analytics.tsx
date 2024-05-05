@@ -33,19 +33,14 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 
   return {
     props: { trpcState: helpers.dehydrate() },
-    revalidate: 600,
+    revalidate: 3600,
   };
 };
 
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
 
-  const { data: analytics } = api.analytics.getAnalytics.useQuery(undefined, {
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    retry: false,
-  });
+  const { data: analytics } = api.analytics.getAnalytics.useQuery();
 
   if (!analytics) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));

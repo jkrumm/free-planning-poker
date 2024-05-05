@@ -1,7 +1,10 @@
 import { userAgentFromString } from 'next/dist/server/web/spec-extension/user-agent';
 import { NextResponse } from 'next/server';
 
-import { type NextApiRequest } from '@trpc/server/adapters/next';
+import {
+  type NextApiRequest,
+  type NextApiResponse,
+} from '@trpc/server/adapters/next';
 
 import {
   BadRequestError,
@@ -16,7 +19,7 @@ import { EventType, events } from 'fpp/server/db/schema';
 
 export const preferredRegion = 'fra1';
 
-const TrackEvent = async (req: NextApiRequest) => {
+const TrackEvent = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     throw new MethodNotAllowedError('TRACK_EVENT only accepts POST requests');
   }
@@ -39,7 +42,7 @@ const TrackEvent = async (req: NextApiRequest) => {
     event,
   });
 
-  return NextResponse.json({}, { status: 200 });
+  return res.status(200).end();
 };
 
 const validateInput = ({

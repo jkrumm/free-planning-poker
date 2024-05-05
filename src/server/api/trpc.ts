@@ -10,6 +10,7 @@ import { initTRPC } from '@trpc/server';
 import {
   type CreateNextContextOptions,
   type NextApiRequest,
+  type NextApiResponse,
 } from '@trpc/server/adapters/next';
 
 import superjson from 'superjson';
@@ -38,10 +39,14 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 
-export const createInnerTRPCContext = (req: NextApiRequest) => {
+export const createInnerTRPCContext = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+) => {
   return {
     db,
     req,
+    res,
   };
 };
 
@@ -52,7 +57,7 @@ export const createInnerTRPCContext = (req: NextApiRequest) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext(opts.req);
+  return createInnerTRPCContext(opts.req, opts.res);
 };
 
 /**
