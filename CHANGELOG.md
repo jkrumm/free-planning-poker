@@ -1,5 +1,13 @@
 
 
+## [3.0.2](https://github.com/jkrumm/free-planning-poker/compare/3.0.1...3.0.2) (2024-05-06)
+
+
+### Other Changes
+
+* updated imprint ([10b275a](https://github.com/jkrumm/free-planning-poker/commit/10b275a89e96e142f3e59744eacad420cf1dcd90))
+* upgrade to Node 20 ([ca0e753](https://github.com/jkrumm/free-planning-poker/commit/ca0e753feb51d016d292f023c65d7f67cdf70bf3))
+
 ## [3.0.1](https://github.com/jkrumm/free-planning-poker/compare/3.0.0...3.0.1) (2024-05-05)
 
 
