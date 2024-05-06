@@ -10,6 +10,7 @@ import { useForm } from '@mantine/form';
 import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 
 import { api } from 'fpp/utils/api';
+import { generateRoomNumber } from 'fpp/utils/room-number.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
@@ -22,7 +23,13 @@ const IndexForm = () => {
   const setRoomReadable = useLocalstorageStore((state) => state.setRoomName);
   const setRoomEvent = useLocalstorageStore((state) => state.setRoomEvent);
 
-  const { data: randomRoomNumber } = api.room.getOpenRoomNumber.useQuery();
+  const getOpenRoomNumberQuery = api.room.getOpenRoomNumber.useQuery();
+
+  let openRoomNumber = generateRoomNumber();
+
+  if (getOpenRoomNumberQuery.isSuccess && getOpenRoomNumberQuery.data) {
+    openRoomNumber = getOpenRoomNumberQuery.data;
+  }
 
   useEffect(() => {
     if (!roomName || roomName === 'null' || roomName === 'undefined') {
@@ -46,9 +53,7 @@ const IndexForm = () => {
     },
   });
 
-  // let secondRender = false;
   useEffect(() => {
-    // secondRender = true;
     const roomValue = form.values.room
       .replace(/[^A-Za-z0-9]/g, '')
       .toUpperCase();
@@ -65,13 +70,10 @@ const IndexForm = () => {
         role="button"
         aria-label="Start Planning"
         onClick={() => {
-          if (!randomRoomNumber) {
-            console.error('No random room number found');
-          }
-          setRoomReadable(String(randomRoomNumber));
+          setRoomReadable(String(openRoomNumber));
           setRoomEvent(RoomEvent.ENTERED_RANDOM_ROOM);
           router
-            .push(`/room/${randomRoomNumber}`)
+            .push(`/room/${openRoomNumber}`)
             .then(() => ({}))
             .catch(() => ({}));
         }}

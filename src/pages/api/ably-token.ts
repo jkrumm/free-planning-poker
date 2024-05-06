@@ -22,8 +22,6 @@ const AblyToken = async (req: NextApiRequest) => {
 
   const { clientId } = extractQueryParams(req.url);
 
-  console.log('clientId', clientId);
-
   if (!validateNanoId(clientId)) {
     throw new BadRequestError('userId invalid');
   }
@@ -78,7 +76,7 @@ const AblyToken = async (req: NextApiRequest) => {
 
   const tokenRequest = (await tokenRequestReq.json()) as { token: string };
 
-  return NextResponse.json(tokenRequest.token);
+  return NextResponse.json(tokenRequest.token, { status: 200 });
 };
 
 async function hmacSign(signText: string, keySecret: string) {
