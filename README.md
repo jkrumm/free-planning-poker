@@ -15,7 +15,7 @@ All "personal" data is stored only in the visitors local storage.
 
 ### Run locally
 
-1. Install any Node 18 version and Docker and Docker Compose and Doppler CLI
+1. Install any Node 20 version (exact 20.11.1) and Docker and Docker Compose and Doppler CLI
 2. Clone [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack)
 3. Request access to the Doppler Dev projects `sideproject-docker-stack` and `free-planning-poker`
 4. Run `sideproject-docker-stack` by following the instructions in the README
