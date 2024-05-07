@@ -1,5 +1,17 @@
 
 
+## [3.1.0](https://github.com/jkrumm/free-planning-poker/compare/3.0.2...3.1.0) (2024-05-07)
+
+
+### Features
+
+* **contact:** enabled email sending using bun-email-api service ([0208874](https://github.com/jkrumm/free-planning-poker/commit/0208874d6e9b29be1842453f45f84be0102ee4cd))
+
+
+### Other Changes
+
+* updated dependencies ([b05932d](https://github.com/jkrumm/free-planning-poker/commit/b05932d10a8569e4cfb01c642a8929b34685d8b0))
+
 ## [3.0.2](https://github.com/jkrumm/free-planning-poker/compare/3.0.1...3.0.2) (2024-05-06)
 
 
