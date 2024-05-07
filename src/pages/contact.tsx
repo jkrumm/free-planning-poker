@@ -49,11 +49,11 @@ const Contact: NextPage = () => {
       message: '',
     },
     validate: {
-      name: (value) => value.trim().length > 40,
+      name: (value) => value.trim().length > 50,
       email: (value) =>
         value.trim().length !== 0 &&
         (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value) ||
-          value.trim().length > 60),
+          value.trim().length > 70),
       subject: (value) => value.trim().length < 3 || value.trim().length > 100,
       message: (value) => value.trim().length > 800,
     },

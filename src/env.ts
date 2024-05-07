@@ -22,6 +22,8 @@ export const env = createEnv({
     // @ts-ignore
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
     ANALYTICS_SECRET_TOKEN: z.string(),
+    BEA_SECRET_KEY: z.string(),
+    BEA_BASE_URL: z.string(),
     ANALYTICS_URL: z.string().url(),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string(),
@@ -55,6 +57,8 @@ export const env = createEnv({
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
     ANALYTICS_SECRET_TOKEN: process.env.ANALYTICS_SECRET_TOKEN,
     ANALYTICS_URL: process.env.ANALYTICS_URL,
+    BEA_SECRET_KEY: process.env.BEA_SECRET_KEY,
+    BEA_BASE_URL: process.env.BEA_BASE_URL,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     UPSTASH_REDIS_REST_URL_ROOM_STATE:
