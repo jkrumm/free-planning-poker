@@ -28,7 +28,10 @@ def calc_room_stats(room_id):
     estimations = int(votes['amount_of_estimations'].sum())
 
     # estimations per vote
-    estimations_per_vote = r(estimations / total_votes)
+    if total_votes == 0:
+        estimations_per_vote = 0
+    else:
+        estimations_per_vote = r(estimations / total_votes)
 
     # average min estimation
     avg_min_estimation = r(votes['min_estimation'].mean())

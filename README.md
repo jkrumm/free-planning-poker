@@ -22,3 +22,8 @@ All "personal" data is stored only in the visitors local storage.
 5. Set up the `free-planning-poker` Doppler project by running `doppler setup`
 6. Install dependencies with `npm ci` and `npm run postinstall`
 7. Run `doppler run -- npm run dev`
+
+### Run analytics locally
+1. Activate venv with `source venv/bin/activate`
+2. Install packages `python3 -m pip install -r requirements.txt`
+3. Run Flask app in dev mode `doppler run -- flask run --debug`
