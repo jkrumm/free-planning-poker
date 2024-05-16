@@ -28,6 +28,7 @@ export const Meta = ({
         property="og:description"
         content="Estimate your story points faster than ever. Free agile scrum sprint planning poker app based on fibanocci. Open source and privacy focused."
       />
+      <meta property="og:site_name" content="Free-Planning-Poker.com" />
       <meta property="og:type" content="website" />
       <meta property="og:locale" content="en_US" />
       <meta property="og:url" content="https://free-planning-poker.com/" />
