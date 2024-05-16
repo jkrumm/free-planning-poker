@@ -122,6 +122,7 @@ export const RouteType = {
   HOME: 'HOME',
   CONTACT: 'CONTACT',
   IMPRINT: 'IMPRINT',
+  GUIDE: 'GUIDE',
   ROOM: 'ROOM',
   ANALYTICS: 'ANALYTICS',
   ROADMAP: 'ROADMAP',

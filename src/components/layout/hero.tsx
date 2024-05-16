@@ -17,7 +17,7 @@ export function Hero(props: { full?: true }) {
 
   return (
     <header>
-      <Container size={820} className="pb-7 pt-5 md:pb-10 md:pt-8">
+      <Container size={820} className="mb-6 pt-5 md:mb-8 md:pt-7">
         <Link href="/" className="no-underline">
           <div className="logo" />
           <h1
@@ -28,7 +28,7 @@ export function Hero(props: { full?: true }) {
               variant="gradient"
               gradient={{ from: 'blue', to: 'cyan' }}
               inherit
-              className="mb-4 block"
+              className="mb-3 block"
             >
               Free-Planning-Poker.com
             </Text>
