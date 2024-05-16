@@ -1,5 +1,24 @@
 
 
+## [3.2.0](https://github.com/jkrumm/free-planning-poker/compare/3.1.0...3.2.0) (2024-05-16)
+
+
+### Features
+
+* scrub user data in Sentry config and update imprint ([3592c44](https://github.com/jkrumm/free-planning-poker/commit/3592c44798b2d416a74f7702b82aec5c2f998075))
+
+
+### Bug Fixes
+
+* auto reconnect python db connection ([8e715ad](https://github.com/jkrumm/free-planning-poker/commit/8e715ad713a15a71a24f136f770e1e5b737c59bd))
+* division by zero in analytics ([942d24e](https://github.com/jkrumm/free-planning-poker/commit/942d24efa04f67611ee1b50965e346ff64246650))
+
+
+### Other Changes
+
+* add og:site_name to meta ([bb59148](https://github.com/jkrumm/free-planning-poker/commit/bb59148a38f27357636cb6e37f8ad4b1e79a86aa))
+* upgrade dependencies ([83cc217](https://github.com/jkrumm/free-planning-poker/commit/83cc217c938ac7555487d85b9144a456c787233d))
+
 ## [3.1.0](https://github.com/jkrumm/free-planning-poker/compare/3.0.2...3.1.0) (2024-05-07)
 
 
