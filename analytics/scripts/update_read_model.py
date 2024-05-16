@@ -4,13 +4,28 @@ import pandas as pd
 
 from util.log_util import logger
 
-connection = MySQLdb.connect(
-    host=os.getenv("DB_HOST"),
-    user=os.getenv("DB_USERNAME"),
-    passwd=os.getenv("DB_PASSWORD"),
-    db="free-planning-poker",
-    autocommit=True,
-)
+
+class DB:
+    conn = None
+
+    def connect(self):
+        self.conn = MySQLdb.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USERNAME"),
+            passwd=os.getenv("DB_PASSWORD"),
+            db="free-planning-poker",
+            autocommit=True,
+        )
+
+    def query(self, sql):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(sql)
+        except (AttributeError, MySQLdb.OperationalError):
+            self.connect()
+            cursor = self.conn.cursor()
+            cursor.execute(sql)
+        return cursor
 
 
 def upsert_table(cursor, table_name, dtypes_def):
@@ -111,8 +126,8 @@ def update_read_model():
     logger.debug("update_read_model called!")
 
     # Create cursor and use it to execute SQL command
-    cursor = connection.cursor()
-    cursor.execute("select @@version")
+    db = DB()
+    cursor = db.query("select @@version")
     version = cursor.fetchone()
 
     if version:
@@ -135,8 +150,8 @@ def update_votes_read_model():
     logger.debug("update_votes read_model called!")
 
     # Create cursor and use it to execute SQL command
-    cursor = connection.cursor()
-    cursor.execute("select @@version")
+    db = DB()
+    cursor = db.query("select @@version")
     version = cursor.fetchone()
 
     if version:
