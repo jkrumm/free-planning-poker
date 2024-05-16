@@ -1,5 +1,20 @@
 
 
+## [4.0.0](https://github.com/jkrumm/free-planning-poker/compare/3.2.0...4.0.0) (2024-05-16)
+
+
+### Features
+
+* **v4:** add features section ([c6c52ec](https://github.com/jkrumm/free-planning-poker/commit/c6c52ec8bd6aacc4c9effd27ec9bc2fd65d12fab))
+* **v4:** add privacy section ([a77a056](https://github.com/jkrumm/free-planning-poker/commit/a77a0565f7a95e6e7ad7f6be1dffef44d86a6cf2))
+* **v4:** moved guide to own page ([7dc49e7](https://github.com/jkrumm/free-planning-poker/commit/7dc49e7df441eff3b49332e9432b9cb7fc28b0e1))
+* **v4:** updated main screenshot ([8403085](https://github.com/jkrumm/free-planning-poker/commit/840308545c8722416f5c77a4da3c499b5e8a392b))
+
+
+### Other Changes
+
+* adjust Sentry config to current and deprecated standard ([377073e](https://github.com/jkrumm/free-planning-poker/commit/377073eebad07f8f4a5d419276bb250523d96c6c))
+
 ## [3.2.0](https://github.com/jkrumm/free-planning-poker/compare/3.1.0...3.2.0) (2024-05-16)
 
 
