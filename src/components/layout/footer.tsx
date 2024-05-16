@@ -4,6 +4,10 @@ import { useConfigStore } from 'fpp/store/config.store';
 
 const links = [
   {
+    url: '/guide',
+    title: 'Guide',
+  },
+  {
     url: '/analytics',
     title: 'Analytics',
   },
@@ -23,7 +27,7 @@ function Footer() {
   return (
     <footer>
       <div className="pointer-events-none fixed bottom-0 z-40 block min-h-[50px] min-w-full bg-[#121314] sm:min-h-[30px]" />
-      <div className="fixed bottom-0 z-50 h-[50px] w-full flex-row bg-[#121314] px-4 py-2 text-xs opacity-40 transition-opacity hover:opacity-100 sm:h-[30px] lg:flex">
+      <div className="fixed bottom-0 z-50 h-[50px] w-full flex-row bg-[#121314] px-4 py-2 text-xs opacity-70 transition-opacity hover:opacity-100 sm:h-[30px] lg:flex">
         <div className="xs:flex w-full flex-row lg:w-1/2">
           © {new Date().getFullYear()}{' '}
           <Link
