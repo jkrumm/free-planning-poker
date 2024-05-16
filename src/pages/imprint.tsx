@@ -42,10 +42,25 @@ const Imprint: NextPage = () => {
           </div>
           <div>
             <h1>Privacy Policy</h1>
+            <h2>Summary (TL;DR)</h2>
+            We are highly committed to protecting your privacy. We collect
+            anonymized website usage analytics to improve our services and
+            ensure compliance with the General Data Protection Regulation
+            (GDPR). We do not use cookies or store any personally identifiable
+            information (PII). Any data collected by us or third-party systems
+            is scrubbed, encrypted, and anonymized. Detailed policies are
+            provided below.
+            <br />
+            As an open-source project, we are transparent about our practices
+            and welcome any questions or concerns. Please use our contact form
+            to reach out. We are happy to provide further information.
+            <br />
+            <br />
+            <h2>Detailed Privacy Policy</h2>
             We collect <strong>anonymized website usage analytics</strong> to
             enhance our services and user experience, ensuring our full
-            compliance with the General Data Protection Regulation (GDPR),
-            without employing cookies or other continuous tracking technologies.
+            compliance with the GDPR, without employing cookies or other
+            continuous tracking technologies.
             <br />
             The data we accumulate includes{' '}
             <strong>generic device details</strong> (such as type, OS, browser),
@@ -100,6 +115,31 @@ const Imprint: NextPage = () => {
             in the room.
             <br />
             <br />
+            We utilize <strong>Sentry</strong> for error tracking to improve our
+            services.{' '}
+            <a
+              href="https://sentry.io/trust/privacy/gdpr-best-practices/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              We configured Sentry
+            </a>{' '}
+            to be fully GDPR compliant and ensuring the security and privacy of
+            data. You can read more about their privacy practices here:{' '}
+            <a
+              href="https://sentry.io/trust/privacy/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
+              Sentry's Privacy Policy
+            </a>
+            . In our implementation, we ensure that no PII is sent to Sentry.
+            Our configuration and implementation removes user details (request
+            headers, user context and ip address) before sending an error event
+            to Sentry to maintain our commitment to GDPR compliance.
+            <br />
+            <br />
             Personal details offered through our <strong>
               contact form
             </strong>{' '}
@@ -107,7 +147,8 @@ const Imprint: NextPage = () => {
             with utmost confidentiality and used solely for responding to your
             inquiries. We will seek your consent prior to using this data for
             any unrelated purpose. Moreover, we do not use any third-party
-            services for our contact form, which could store your data.
+            services for our contact form, which could access or store your
+            data.
             <br />
             <br />
             Our website runs on a proprietary <strong>database</strong> system
@@ -125,6 +166,26 @@ const Imprint: NextPage = () => {
             upon entry to the room, they are not identifiable. We insist on the
             avoidance of identifiable information as usernames to ensure GDPR
             compliance.
+            <br />
+            <br />
+            <h2>Data Retention</h2>
+            We ensure that all Ably channels are automatically closed and
+            deleted after 5 minutes of inactivity or when the last user leaves.
+            Our analytics are fully GDPR compliant and are anonymized in such a
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            way that they cannot be linked back to any individual's identity, IP
+            address, email, or username. Therefore, we typically do not aim to
+            delete the analytics data since it is already anonymized and poses
+            no risk to user privacy.
+            <br />
+            <br />
+            <h2>User Rights Under GDPR</h2>
+            You have the right to access, rectify, or delete any data we hold
+            about you. Since we do not store any personally identifiable
+            information, we or third-party tools do not hold any data in this
+            regard. However, we are open to deleting even the anonymized data if
+            requested. Please reach out to us using our contact form for such
+            requests.
             <br />
             <br />
             <h1 id="license">Project License</h1>

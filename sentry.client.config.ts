@@ -18,6 +18,19 @@ Sentry.init({
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: env.NEXT_PUBLIC_NODE_ENV === 'development',
 
+  // Removes personal data from the event to ensure privacy regulations from GDPR
+  beforeSend(event) {
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+      delete event.user.geo;
+    }
+    if (event.request?.headers) {
+      delete event.request.headers;
+    }
+    return event;
+  },
+
   // TODO: think about Session Replay
 
   // replaysOnErrorSampleRate: 1.0,
