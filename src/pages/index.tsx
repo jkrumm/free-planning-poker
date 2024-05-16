@@ -2,8 +2,9 @@ import React, { Suspense, lazy } from 'react';
 
 import { type NextPage } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 
-import { Alert, Text, Title } from '@mantine/core';
+import { Alert, Button, Text, Title } from '@mantine/core';
 
 import { IconAlertCircle } from '@tabler/icons-react';
 
@@ -28,18 +29,18 @@ const Home: NextPage = () => {
       <main className="flex flex-col items-center justify-center p-6">
         <div className="gradients"></div>
         <div className="mb-20 text-center">
-          <Title order={2}>Estimate your story points faster than ever</Title>
+          <Title order={2}>Estimate your Story Points Faster than ever</Title>
           <Title order={3} className="mt-5 font-normal opacity-70">
             Say goodbye to complicated planning poker tools and estimate in
             seconds with this user-friendly app.
             <br />
-            Open source and privacy focused.
+            No signups, open source and privacy focused.
           </Title>
         </div>
         <Suspense fallback={<IndexFormSkeleton />}>
           <IndexForm />
         </Suspense>
-        <div className="mx-8 md:hidden">
+        <div className="mx-8 mb-10 md:hidden">
           <Alert
             icon={<IconAlertCircle size="1rem" />}
             title="Not supported on mobile devices"
@@ -54,18 +55,119 @@ const Home: NextPage = () => {
         </div>
         <div className="gradient-image"></div>
         <div className="z-10 w-[1432px] max-w-full p-6">
-          <Image
-            src="/fpp_screenshot.png"
-            width={2852 / 2}
-            height={1586 / 2}
-            className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
-            alt="Picture of the free planning poker app ui"
-            placeholder="blur"
-            blurDataURL={'/fpp_screenshot.png'}
-            priority={true}
-          />
+          <section id="screenshot">
+            <Image
+              src="/images/fpp_screenshot.png"
+              width={2852 / 2}
+              height={1586 / 2}
+              className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
+              alt="Picture of the free planning poker app ui"
+              placeholder="blur"
+              blurDataURL={'/fpp_screenshot.png'}
+              priority={true}
+            />
+          </section>
         </div>
-        <div className="mt-16 w-full max-w-[1200px] px-4 pb-16">
+        <div className="mt-20 w-full max-w-[1050px] px-4 pb-16">
+          <section id="features" className="mb-20">
+            <Title order={2} className="text-center">
+              Powerful Yet Simple
+            </Title>
+            <Title
+              order={3}
+              className="mt-5 font-normal text-center opacity-70"
+            >
+              Essential Features for Effective Sprint Planning
+            </Title>
+            <div className="feature-grid md:grid grid-cols-10 mt-12 grid-rows-6 gap-10">
+              <div className="col-span-6 row-span-3 mb-8 md:mb-0">
+                <div className="bg-[#242424] w-full rounded-t-md p-2">
+                  <Image
+                    src="/images/fpp_control.png"
+                    width={699 * 0.8}
+                    height={122 * 0.8}
+                    className="h-auto w-full rounded-t-md"
+                    alt="Picture of the controls in the planning poker app"
+                    placeholder="blur"
+                    blurDataURL={'/images/fpp_control.png'}
+                    priority={false}
+                  />
+                </div>
+                <div className="p-3">
+                  <p>
+                    <strong>Share Room URL</strong> - Click the room name to
+                    copy the URL.
+                  </p>
+                  <p>
+                    <strong>Room Reset</strong> - Reset all votes with a single
+                    tap.
+                  </p>
+                  <p>
+                    <strong>Spectator Mode</strong> - For those who are not
+                    involved in estimations.
+                  </p>
+                  <p>
+                    <strong>Auto Show</strong> - Automatically reveal
+                    estimations once everyone has voted.
+                  </p>
+                </div>
+              </div>
+              <div className="col-span-4 row-span-7 col-start-7 mb-8 md:mb-0">
+                <div className="bg-[#242424] w-full rounded-t-md p-2">
+                  <Image
+                    src="/images/fpp_room_stats.png"
+                    width={390 * 0.8}
+                    height={590 * 0.8}
+                    className="h-auto max-w-full mx-auto md:ml-auto block rounded-t-md"
+                    alt="Picture of the room stats in the planning poker app"
+                    placeholder="blur"
+                    blurDataURL={'/images/fpp_room_stats.png'}
+                    priority={false}
+                  />
+                </div>
+                <div className="p-3">
+                  <p>
+                    <strong>Voting analytics</strong> - Gain insights into
+                    participation, efficiency, and trends in your voting
+                    sessions. To improve your sprint planning in the future.
+                  </p>
+                </div>
+              </div>
+              <div className="col-span-3 row-span-4 row-start-4 mb-8 md:mb-0">
+                <div className="bg-[#242424] w-full rounded-t-md p-2">
+                  <Image
+                    src="/images/fpp_user_settings.png"
+                    width={390 * 0.8}
+                    height={590 * 0.8}
+                    className="h-auto max-w-full mx-auto block rounded-t-md"
+                    alt="Picture of the room stats in the planning poker app"
+                    placeholder="blur"
+                    blurDataURL={'/images/fpp_user_settings.png'}
+                    priority={false}
+                  />
+                </div>
+                <div className="p-3">
+                  <p>
+                    <strong>User Settings</strong> Change your username and
+                    toggle sounds and popup notifications.
+                  </p>
+                </div>
+              </div>
+              <div className="col-span-3 row-span-4 col-start-4 row-start-4">
+                <div className="roadmap" />
+                <div className="p-3">
+                  <p>
+                    <strong>Roadmap</strong> - There is much more to come!
+                  </p>
+                  <Link href="/roadmap">
+                    <Button variant="default" fullWidth className="mt-4">
+                      Go to Roadmap
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
           <article id="master-the-art-of-planning-poker">
             <header>
               <Title order={2} className="pt-[60px] text-center">
@@ -73,7 +175,6 @@ const Home: NextPage = () => {
                 Estimation
               </Title>
             </header>
-
             <section className="mx-auto block max-w-[700px] text-justify">
               <Title order={3}>The Essence of Planning Poker</Title>
 
