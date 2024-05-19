@@ -5,11 +5,23 @@ import dynamic from 'next/dynamic';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
-import { Card, Collapse, Group, SimpleGrid, Text, Title } from '@mantine/core';
+import {
+  Card,
+  Collapse,
+  Group,
+  List,
+  SimpleGrid,
+  Text,
+  Title,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
 import * as Sentry from '@sentry/nextjs';
-import { IconArrowBadgeDownFilled } from '@tabler/icons-react';
+import {
+  IconArrowBadgeDownFilled,
+  IconSquare,
+  IconSquareCheck,
+} from '@tabler/icons-react';
 import superjson from 'superjson';
 
 import { logMsg } from 'fpp/constants/logging.constant';
@@ -51,6 +63,8 @@ const Roadmap = () => {
     retry: false,
   });
 
+  console.log(roadmap);
+
   if (!roadmap) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
@@ -61,7 +75,7 @@ const Roadmap = () => {
       <Meta title="Roadmap" />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
+        <div className="container max-w-[1400px] gap-12 px-4 pb-28 pt-8">
           <SimpleGrid
             cols={{
               sm: 1,
@@ -86,11 +100,7 @@ const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
         {title}
       </Title>
       {todos.map((todo, index) => (
-        <RoadmapCard
-          title={todo.title}
-          description={todo.description}
-          key={index}
-        />
+        <RoadmapCard todo={todo} key={index} />
       ))}
     </div>
   );
@@ -100,18 +110,13 @@ const Markdown = dynamic(() => import('fpp/components/markdown'), {
   ssr: false,
 });
 
-const RoadmapCard = ({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) => {
+const RoadmapCard = ({ todo }: { todo: Todo }) => {
+  const { title, description, subtasks } = todo;
   const [opened, { toggle }] = useDisclosure(false);
 
   return (
     <Card p={0} withBorder radius="sm" className="mb-3">
-      {description === '' ? (
+      {!description && subtasks.length === 0 ? (
         <div className="p-2">
           <Text>{title}</Text>
         </div>
@@ -120,10 +125,10 @@ const RoadmapCard = ({
           <Card.Section
             inheritPadding
             withBorder={opened}
-            className="border-t-0 px-6 py-2"
+            className="border-t-0 p-2 m-0 cursor-pointer"
             onClick={toggle}
           >
-            <Group>
+            <Group className="flex-nowrap">
               <IconArrowBadgeDownFilled
                 size={26}
                 style={{
@@ -136,16 +141,54 @@ const RoadmapCard = ({
             </Group>
           </Card.Section>
           <Collapse in={opened} transitionDuration={300}>
-            <Card.Section className="px-6 py-0">
-              <Text
-                fz="sm"
-                className="overflow-auto rounded-lg border border-[#141517] p-2"
-              >
-                {/*{description}*/}
-                <Suspense fallback={<p>{description}</p>}>
-                  <Markdown description={description} />
-                </Suspense>
-              </Text>
+            <Card.Section className="p-6 py-4">
+              {subtasks.length > 0 && (
+                <div className="my-2">
+                  <Title order={3} size="sm">
+                    Subtasks
+                  </Title>
+                  <List className="pr-5">
+                    {subtasks.map((subtask, index) => (
+                      <List.Item
+                        key={index}
+                        icon={
+                          subtask.done ? <IconSquareCheck /> : <IconSquare />
+                        }
+                        className="my-3"
+                      >
+                        <Text className="mb-1">{subtask.title}</Text>
+                        {subtask.description && (
+                          <Text
+                            fz="sm"
+                            className="overflow-auto rounded-lg border border-[#141517] p-2"
+                          >
+                            <Suspense fallback={<p>{subtask.description}</p>}>
+                              <Markdown description={subtask.description} />
+                            </Suspense>
+                          </Text>
+                        )}
+                      </List.Item>
+                    ))}
+                  </List>
+                </div>
+              )}
+              {description && (
+                <div className="my-2">
+                  {subtasks.length > 0 && (
+                    <Title order={3} size="sm">
+                      Description
+                    </Title>
+                  )}
+                  <Text
+                    fz="sm"
+                    className="overflow-auto rounded-lg border border-[#141517] p-2"
+                  >
+                    <Suspense fallback={<p>{description}</p>}>
+                      <Markdown description={description} />
+                    </Suspense>
+                  </Text>
+                </div>
+              )}
             </Card.Section>
           </Collapse>
         </>
@@ -153,13 +196,5 @@ const RoadmapCard = ({
     </Card>
   );
 };
-
-// const Markdown = lazy(() => import("fpp/components/index/form"));
-//
-// const Markdown = ({ description }: { description: string }) => {
-//   return (
-//     <ReactMarkdown className="react-markdown">{description}</ReactMarkdown>
-//   );
-// };
 
 export default Roadmap;
