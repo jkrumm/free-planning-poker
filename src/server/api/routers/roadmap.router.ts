@@ -125,8 +125,6 @@ export const roadmapRouter = createTRPCRouter({
       }),
     );
 
-    console.log('completedTasks', completedTasks);
-
     return {
       todo: mapTasksToTodos(tasks, completedTasks, sectionId.todo),
       inProgress: mapTasksToTodos(tasks, completedTasks, sectionId.inProgress),

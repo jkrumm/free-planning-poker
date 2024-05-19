@@ -12,6 +12,10 @@ const links = [
     title: 'Analytics',
   },
   {
+    url: '/roadmap',
+    title: 'Roadmap',
+  },
+  {
     url: '/contact',
     title: 'Contact',
   },

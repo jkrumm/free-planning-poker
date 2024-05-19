@@ -1,11 +1,13 @@
 import React, { Suspense } from 'react';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
 import {
+  Button,
   Card,
   Collapse,
   Group,
@@ -63,8 +65,6 @@ const Roadmap = () => {
     retry: false,
   });
 
-  console.log(roadmap);
-
   if (!roadmap) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
@@ -75,7 +75,38 @@ const Roadmap = () => {
       <Meta title="Roadmap" />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container max-w-[1400px] gap-12 px-4 pb-28 pt-8">
+        <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
+          <Title order={1} className="mb-6">
+            Roadmap
+          </Title>
+          <Text className="mb-4">
+            As I am working on this project on my own for now, I have only
+            created a Wunderlist board to keep track of the tasks I want to
+            implement. Below you can see the current state.
+          </Text>
+          <Text className="mb-4">
+            Free Planning Poker is an open-source project, and I am always happy
+            to receive contributions from the community. If you want to help,
+            feel free reach out to me or to create a pull request on GitHub.
+          </Text>
+          <Text className="mb-6">
+            If you have any feature suggestions or want to report a bug, feel
+            free to use the contact form or create an issue on GitHub.
+          </Text>
+          <Group>
+            <Link href="/contact">
+              <Button>Contact</Button>
+            </Link>
+            <a
+              href="https://github.com/jkrumm/free-planning-poker/issues/new"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button>Create GitHub Issue</Button>
+            </a>
+          </Group>
+        </section>
+        <section className="container max-w-[1400px] gap-12 px-4 mb-28 mt-10">
           <SimpleGrid
             cols={{
               sm: 1,
@@ -87,7 +118,7 @@ const Roadmap = () => {
             <RoadmapSection title="In Progess" todos={roadmap.inProgress} />
             <RoadmapSection title="Done" todos={roadmap.done} />
           </SimpleGrid>
-        </div>
+        </section>
       </main>
     </>
   );
