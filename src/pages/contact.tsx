@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   Textarea,
+  Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -66,7 +67,28 @@ const Contact: NextPage = () => {
       <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container flex items-center justify-center gap-12 px-4 pb-28 pt-8">
+        <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
+          <Title order={1} className="mb-6">
+            Contact
+          </Title>
+          <Text className="mb-4">
+            Do you have any questions, suggestions, or feedback? I would love to
+            hear from you!
+          </Text>
+          <Text className="mb-4">
+            Free Planning Poker is an open-source project, and I am always happy
+            to receive contributions from the community. If you want to help,
+            feel free reach out to me or to create a pull request on GitHub.
+          </Text>
+          <a
+            href="https://github.com/jkrumm/free-planning-poker/issues/new"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button>Create GitHub Issue</Button>
+          </a>
+        </section>
+        <section className="container flex items-center justify-center w-[800px] gap-12 px-4 pb-28 pt-8">
           <form
             className="w-[800px]"
             onSubmit={form.onSubmit(() => {
@@ -168,7 +190,7 @@ const Contact: NextPage = () => {
               </Button>
             </Group>
           </form>
-        </div>
+        </section>
       </main>
     </>
   );
