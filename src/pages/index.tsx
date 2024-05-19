@@ -16,6 +16,7 @@ import Features from 'fpp/components/index/features';
 import IndexFormSkeleton from 'fpp/components/index/form-skeleton';
 import Privacy from 'fpp/components/index/privacy';
 import { Hero } from 'fpp/components/layout/hero';
+import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 const IndexForm = lazy(() => import('fpp/components/index/form'));
@@ -26,6 +27,7 @@ const Home: NextPage = () => {
   return (
     <div className="homepage">
       <Meta />
+      <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center p-6">
         <div className="gradients"></div>

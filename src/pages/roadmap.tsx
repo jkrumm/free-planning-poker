@@ -38,6 +38,7 @@ import { RouteType } from 'fpp/server/db/schema';
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { Hero } from 'fpp/components/layout/hero';
+import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
@@ -73,6 +74,7 @@ const Roadmap = () => {
   return (
     <>
       <Meta title="Roadmap" />
+      <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">

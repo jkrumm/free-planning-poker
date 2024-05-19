@@ -8,7 +8,7 @@ import { Button, Title } from '@mantine/core';
 export const Features = () => {
   return (
     <>
-      <section id="features" className="my-24">
+      <section id="features" className="pt-24">
         <Title order={2} className="text-center">
           Powerful Yet Simple
         </Title>

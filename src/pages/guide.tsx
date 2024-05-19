@@ -10,6 +10,7 @@ import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import PointsTable from 'fpp/components/index/points-table';
 import { Hero } from 'fpp/components/layout/hero';
+import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 const Guide: NextPage = () => {
@@ -18,6 +19,7 @@ const Guide: NextPage = () => {
   return (
     <>
       <Meta title="Imprint & Privacy Policy" />
+      <Navbar />
       <Hero />
       <main>
         <div className="container mx-auto max-w-[1200px] px-4 sm:px-6 md:px-4 pb-28 pt-8">

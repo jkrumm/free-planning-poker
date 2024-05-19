@@ -23,6 +23,11 @@
   );
 }
 
+nav {
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid #1a1b1e;
+}
+
 .homepage:after {
   content: '';
   background: radial-gradient(circle at top, #373a40, #1a1b1e 15%);
