@@ -1,5 +1,7 @@
 import React from 'react';
 
+import Link from 'next/link';
+
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
@@ -61,7 +63,43 @@ const Analytics = () => {
       <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
+        <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
+          <Title order={1} className="mb-6">
+            Analytics
+          </Title>
+          <Text className="mb-4">
+            Free Planning Poker has decided to share all collected analytical
+            data publicly. This aims to provide interested parties with
+            <b>statistical insights into the Fibonacci-based Planning Poker</b>
+            process. By examining the votes and averages of estimations (lowest,
+            average, highest), users can gain valuable psychological insights
+            into team dynamics and estimation behaviors, which can be
+            fascinating for those studying it or are interested in Agile
+            methodologies.
+          </Text>
+          <Text className="mb-4">
+            All collected analytical data is completely anonymized and GDPR
+            compliant. We collect and store the data ourselves, and being open
+            source, all relevant code is publicly accessible in our{' '}
+            <a
+              href="https://github.com/jkrumm/free-planning-poker/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub repository
+            </a>
+            . For more details, please visit our{' '}
+            <Link href="/imprint">Privacy Policy</Link>.
+          </Text>
+          <Text className="mb-4">
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
+            We're not shy about our current popularity and hope that fans of the
+            app will share our interest in seeing it grow bigger. Your support
+            and feedback are invaluable as we aim to build a more robust and
+            widely-used Planning Poker tool.
+          </Text>
+        </section>
+        <section className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
           <h1>Traffic</h1>
           <SimpleGrid
             cols={{
@@ -182,7 +220,7 @@ const Analytics = () => {
               data={location_and_user_agent.browser}
             />
           </SimpleGrid>
-        </div>
+        </section>
       </main>
     </>
   );
