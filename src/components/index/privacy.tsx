@@ -5,7 +5,10 @@ import { Button, Title } from '@mantine/core';
 const PrivacyFeature = (props: { name: string; key: number }) => {
   const { name, key } = props;
   return (
-    <div key={key} className="privacy-feature h-[100px] min-w-[80px]">
+    <div
+      key={key}
+      className={`${key !== 0 && 'mt-8'} sm:mt-0 privacy-feature h-[100px] min-w-[80px]`}
+    >
       <div className="mt-24">
         <p>{name}</p>
       </div>
@@ -31,7 +34,7 @@ export const Privacy = () => {
           Full Privacy Policy
         </Button>
       </Link>
-      <div className="flex justify-evenly mt-10 mb-4">
+      <div className="flex justify-evenly flex-col sm:flex-row items-center mt-10 mb-4">
         {[
           'No cookies',
           'GDPR Compliant',
