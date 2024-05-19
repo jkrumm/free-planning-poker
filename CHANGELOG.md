@@ -1,5 +1,24 @@
 
 
+## [5.0.0](https://github.com/jkrumm/free-planning-poker/compare/4.0.0...5.0.0) (2024-05-19)
+
+
+### Features
+
+* **analytics:** added a description to the analytics page ([dc87382](https://github.com/jkrumm/free-planning-poker/commit/dc8738252de62992448527ac448cbc524805e3f2))
+* **contact:** added description and invite to contribute ([bf04e4e](https://github.com/jkrumm/free-planning-poker/commit/bf04e4eda17b4b79a8a18e86066e1e570f5eb14a))
+* **guide:** updated guide and added to landingpage ([cacb1ff](https://github.com/jkrumm/free-planning-poker/commit/cacb1ff5a0b4128db78ac562de02165c55e87d89))
+* **navigation:** added main navigation ([0b64469](https://github.com/jkrumm/free-planning-poker/commit/0b64469b7386457c79a690e15fda5ec1c4eb29fb))
+* **roadmap:** added description section ([8f4d311](https://github.com/jkrumm/free-planning-poker/commit/8f4d311826b423baedc1c3072113d636992e64d3))
+* **roadmap:** added support for subtasks ([e9a04b5](https://github.com/jkrumm/free-planning-poker/commit/e9a04b52fd2a27231e04b08d186a4eee3acaf011))
+
+
+### Other Changes
+
+* disable dark reader ([9dba5fc](https://github.com/jkrumm/free-planning-poker/commit/9dba5fce22b5fc98d416b31fb698a34cfd5a3b23))
+* made index privacy section responsive ([256bd8d](https://github.com/jkrumm/free-planning-poker/commit/256bd8dfebca431706cb729847379bb1c0e328ec))
+* update dependencies ([331f702](https://github.com/jkrumm/free-planning-poker/commit/331f702a56842b6f786d63fa2ef218da2d43f195))
+
 ## [4.0.0](https://github.com/jkrumm/free-planning-poker/compare/3.2.0...4.0.0) (2024-05-16)
 
 
