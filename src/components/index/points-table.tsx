@@ -25,30 +25,22 @@ const PointsTable = () => {
   const data = [
     [
       '1',
-      'Straight forward task, requiring adjustments at few places',
+      'Straightforward task, requiring adjustments at few places',
       'Max. 1h',
     ],
     [
       '2',
-      'Straight forward task, requires more work in implementation, increased documentation or information requirement',
+      'Straightforward task, requires more work in implementation, increased documentation or information requirement',
       '2-4h',
     ],
     [
       '3',
-      'Either a straightforward task with high implementation effort or a complex task with clear problem-solution path',
+      'Simple task with high effort or a complex task with clear steps',
       '4-8h',
     ],
-    ['5', 'Complex tasks with unclear solutions and implementations', '8-16h'],
-    [
-      '8',
-      'Complex tasks with unclear solutions leading to high implementation efforts',
-      '16-32h',
-    ],
-    [
-      '13',
-      'Very complex tasks with unclear solutions leading to very high implementation efforts',
-      'At least one week',
-    ],
+    ['5', 'Complex task with unclear implementation', '8-16h'],
+    ['8', 'Very complex task with significant uncertainty', '16-32h'],
+    ['13', 'Extremely complex task with very high effort', 'At least one week'],
   ];
 
   return isSmallScreen ? (

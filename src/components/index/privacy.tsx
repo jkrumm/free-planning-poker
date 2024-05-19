@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-import { Button, Title } from '@mantine/core';
+import { Button, Group, Title } from '@mantine/core';
+
+import { IconBrandGithub } from '@tabler/icons-react';
 
 const PrivacyFeature = (props: { name: string; key: number }) => {
   const { name, key } = props;
@@ -20,7 +22,7 @@ export const Privacy = () => {
   return (
     <section
       id="privacy"
-      className="border-[6px] mt-44 mb-24 text-center border-solid border-[#2E2E2E] rounded-2xl w-full p-14"
+      className="border-[6px] mt-40 mb-32 text-center border-solid border-[#2E2E2E] rounded-2xl w-full p-14"
     >
       <Title className="mt-14" order={2}>
         Protecting Your Privacy
@@ -29,11 +31,27 @@ export const Privacy = () => {
         Our policies are clear: no personal data stored, no cookies used, fully
         GDPR compliant.
       </Title>
-      <Link href={'/imprint'}>
-        <Button className="mt-7" variant="outline" color="gray">
-          Full Privacy Policy
-        </Button>
-      </Link>
+      <Group justify="center" className="mt-7">
+        <Link href={'/imprint'}>
+          <Button variant="outline" color="gray">
+            Full Privacy Policy
+          </Button>
+        </Link>
+        <a
+          href="https://github.com/jkrumm/free-planning-poker"
+          target="_blank"
+          className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+          rel="noopener noreferrer"
+        >
+          <Button
+            variant="outline"
+            color="gray"
+            leftSection={<IconBrandGithub />}
+          >
+            GitHub
+          </Button>
+        </a>
+      </Group>
       <div className="flex justify-evenly flex-col sm:flex-row items-center mt-10 mb-4">
         {[
           'No cookies',
