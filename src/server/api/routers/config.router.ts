@@ -91,7 +91,7 @@ export const configRouter = createTRPCRouter({
       );
     }
 
-    // Fallback to 3.0.2 if latestTag is still null
-    return latestTag ?? '3.0.2';
+    // Fallback if latestTag is still null
+    return latestTag ?? '5.0.0';
   }),
 });
