@@ -66,6 +66,7 @@ export const Meta = ({
       <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1971c2" />
       <meta name="msapplication-TileColor" content="#1a1b1e" />
       <meta name="theme-color" content="#1a1b1e" />
+      <meta name="darkreader-lock" />
       <ColorSchemeScript defaultColorScheme="dark" />
     </Head>
   );
