@@ -27,6 +27,7 @@ import { EventType, FeatureFlagType, RouteType } from 'fpp/server/db/schema';
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { Hero } from 'fpp/components/layout/hero';
+import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 const Contact: NextPage = () => {
@@ -62,6 +63,7 @@ const Contact: NextPage = () => {
   return (
     <>
       <Meta title="Contact" />
+      <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <div className="container flex items-center justify-center gap-12 px-4 pb-28 pt-8">

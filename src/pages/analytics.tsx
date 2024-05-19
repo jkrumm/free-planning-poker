@@ -20,6 +20,7 @@ import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { HistoricalChart } from 'fpp/components/analytics/historical-chart';
 import { Hero } from 'fpp/components/layout/hero';
+import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
@@ -57,6 +58,7 @@ const Analytics = () => {
   return (
     <>
       <Meta title="Analytics" />
+      <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">

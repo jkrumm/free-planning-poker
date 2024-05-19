@@ -4,6 +4,10 @@ import { useConfigStore } from 'fpp/store/config.store';
 
 const links = [
   {
+    url: '/',
+    title: 'Home',
+  },
+  {
     url: '/guide',
     title: 'Guide',
   },

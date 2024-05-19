@@ -1,26 +1,56 @@
 import Link from 'next/link';
 
-import { Button, Group, Title } from '@mantine/core';
+import { Button, Group, Text } from '@mantine/core';
+
+const navItems = [
+  {
+    title: 'Home',
+    href: '/',
+  },
+  {
+    title: 'Guide',
+    href: '/guide',
+  },
+  {
+    title: 'Analytics',
+    href: '/analytics',
+  },
+  {
+    title: 'Roadmap',
+    href: '/roadmap',
+  },
+  {
+    title: 'Contact',
+    href: '/contact',
+  },
+];
 
 const Navbar = () => {
   return (
-    <nav className="sticky top-0 z-50 bg-[#1A1B1E] px-6">
-      <div className="mx-auto h-[80px] max-w-[1200px]">
+    <nav className="hidden md:block sticky top-0 z-50 bg-[#1A1B1E]/30 px-6">
+      <div className="mx-auto h-[70px] max-w-[1200px]">
         <Group justify="space-between" h="100%">
-          <Link
-            href="/"
-            className="flex text-[#C1C2C5] no-underline hover:text-[#C1C2C5] focus:text-[#C1C2C5]"
-          >
-            <div className="logo-navbar" />
-            <Title order={1} className="mb-0 ml-3 mr-0 mt-1">
-              Free Planning Poker
-            </Title>
-          </Link>
+          <div className="hidden lg:block w-[177px]">
+            <Link href="/">
+              <div className="logo-navbar" />
+            </Link>
+          </div>
+          <Group gap={20}>
+            {navItems.map((item, index) => (
+              <Link
+                key={index}
+                href={item.href}
+                className="no-underline hover:text-[#C1C2C5] focus:text-[#C1C2C5] text-[#C1C2C5]"
+              >
+                <Text className={`font-bold`}>{item.title}</Text>
+              </Link>
+            ))}
+          </Group>
           <Button
             size="lg"
             variant="gradient"
             gradient={{ from: 'blue', to: 'cyan' }}
-            className={`hidden md:block`}
+            className={`hidden md:block w-[177px]`}
           >
             Start Planning
           </Button>

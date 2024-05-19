@@ -10,6 +10,7 @@ import { RouteType } from 'fpp/server/db/schema';
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { Hero } from 'fpp/components/layout/hero';
+import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 const Imprint: NextPage = () => {
@@ -18,6 +19,7 @@ const Imprint: NextPage = () => {
   return (
     <>
       <Meta title="Imprint & Privacy Policy" />
+      <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
         <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8 md:flex">
