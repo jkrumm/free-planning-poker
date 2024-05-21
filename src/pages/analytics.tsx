@@ -69,8 +69,8 @@ const Analytics = () => {
           </Title>
           <Text className="mb-4">
             Free Planning Poker has decided to share all collected analytical
-            data publicly. This aims to provide interested parties with
-            <b>statistical insights into the Fibonacci-based Planning Poker</b>
+            data publicly. This aims to provide interested parties with{' '}
+            <b>statistical insights into the Fibonacci-based Planning Poker</b>{' '}
             process. By examining the votes and averages of estimations (lowest,
             average, highest), users can gain valuable psychological insights
             into team dynamics and estimation behaviors, which can be

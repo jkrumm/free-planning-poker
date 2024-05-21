@@ -33,38 +33,54 @@ def run_script():
 
 
     results = {}
+    failed_reason = None
 
     try:
         update_read_model()
     except Exception as e:
         logger.error("Script update_read_model failed", {"error": e})
+        failed_reason = "update_read_model"
+
+    if failed_reason:
+        logger.flush()
+        return {"error": failed_reason}
 
     try:
         results["traffic"] = calc_traffic()
     except Exception as e:
         logger.error("Script calc_traffic failed", {"error": e})
+        failed_reason = "calc_traffic"
 
     try:
         results["votes"] = calc_votes()
     except Exception as e:
         logger.error("Script calc_votes failed", {"error": e})
+        failed_reason = "calc_votes"
 
     try:
         results["behaviour"] = calc_behaviour()
     except Exception as e:
         logger.error("Script calc_behaviour failed", {"error": e})
+        failed_reason = "calc_behaviour"
 
     try:
         results["historical"] = calc_historical()
     except Exception as e:
         logger.error("Script calc_historical failed", {"error": e})
+        failed_reason = "calc_historical"
 
     try:
         results["location_and_user_agent"] = calc_location_and_user_agent()
     except Exception as e:
         logger.error("Script calc_location_and_user_agent failed", {"error": e})
+        failed_reason = "calc_location_and_user_agent"
 
     duration = r(time.time() - start_time)
+
+    if failed_reason:
+        logger.flush()
+        return {"error": failed_reason, "duration": duration}
+
     data_size_in_gb = r(sum(
         os.path.getsize(f"./data/{f}") for f in os.listdir("./data") if os.path.isfile(f"./data/{f}")) / 1024 / 1024)
     logs_size_in_gb = r(sum(
