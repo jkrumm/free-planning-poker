@@ -1,4 +1,4 @@
-import { startTransition, useEffect } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 import { env } from 'fpp/env';
 
@@ -16,6 +16,12 @@ export const useTrackPageView = (
   route: keyof typeof RouteType,
   roomId?: number,
 ) => {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const userId = useLocalstorageStore((state) => state.userId);
   const setUserIdLocalStorage = useLocalstorageStore(
     (state) => state.setUserId,
@@ -23,14 +29,16 @@ export const useTrackPageView = (
   const setUserIdRoomState = useLocalstorageStore((state) => state.setUserId);
 
   useEffect(() => {
-    sendTrackPageView({
-      userId,
-      route,
-      roomId,
-      setUserIdLocalStorage,
-      setUserIdRoomState,
-    });
-  }, [route, roomId]);
+    if (hasMounted) {
+      sendTrackPageView({
+        userId,
+        route,
+        roomId,
+        setUserIdLocalStorage,
+        setUserIdRoomState,
+      });
+    }
+  }, [hasMounted, route, roomId]);
 };
 
 export const sendTrackPageView = ({

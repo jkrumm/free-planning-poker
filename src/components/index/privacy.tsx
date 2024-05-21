@@ -4,12 +4,12 @@ import { Button, Group, Title } from '@mantine/core';
 
 import { IconBrandGithub } from '@tabler/icons-react';
 
-const PrivacyFeature = (props: { name: string; key: number }) => {
-  const { name, key } = props;
+const PrivacyFeature = (props: { name: string; itemKey: number }) => {
+  const { name, itemKey } = props;
   return (
     <div
-      key={key}
-      className={`${key !== 0 && 'mt-8'} sm:mt-0 privacy-feature h-[100px] min-w-[80px]`}
+      key={itemKey}
+      className={`${itemKey !== 0 && 'mt-8'} sm:mt-0 privacy-feature h-[100px] min-w-[80px]`}
     >
       <div className="mt-24">
         <p>{name}</p>
@@ -60,7 +60,7 @@ export const Privacy = () => {
           'Anonymized Analytics',
           'Open Source',
         ].map((feature, index) => (
-          <PrivacyFeature name={feature} key={index} />
+          <PrivacyFeature name={feature} key={index} itemKey={index} />
         ))}
       </div>
     </section>
