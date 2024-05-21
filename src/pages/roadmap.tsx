@@ -180,7 +180,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
                   <Title order={3} size="sm">
                     Subtasks
                   </Title>
-                  <List className="pr-5">
+                  <List className="pr-5 roadmap-list">
                     {subtasks.map((subtask, index) => (
                       <List.Item
                         key={index}
@@ -193,7 +193,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
                         {subtask.description && (
                           <Text
                             fz="sm"
-                            className="overflow-auto rounded-lg border border-[#141517] p-2"
+                            className="overflow-auto rounded-lg border border-[#141517]"
                           >
                             <Suspense fallback={<p>{subtask.description}</p>}>
                               <Markdown description={subtask.description} />

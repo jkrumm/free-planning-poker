@@ -112,6 +112,10 @@ nav {
   color: #c1c2c5;
 }
 
+.roadmap-list .mantine-List-itemWrapper {
+  align-items: start !important;
+}
+
 .gradients {
   display: none;
   pointer-events: none;
