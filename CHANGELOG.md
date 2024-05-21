@@ -1,5 +1,23 @@
 
 
+## [5.1.0](https://github.com/jkrumm/free-planning-poker/compare/5.0.0...5.1.0) (2024-05-21)
+
+
+### Features
+
+* **tracking:** extract source param from url in track page view ([d12fc46](https://github.com/jkrumm/free-planning-poker/commit/d12fc468d54c91ce4b1673c7789c707bee671c6d))
+
+
+### Bug Fixes
+
+* resolve hydration and suspense errors ([9c85ba6](https://github.com/jkrumm/free-planning-poker/commit/9c85ba6cfe105cdeb3112a08266fa2910bedb286))
+
+
+### Other Changes
+
+* adjusted roadmap subtasks icon to align to the top ([3a8e5e7](https://github.com/jkrumm/free-planning-poker/commit/3a8e5e74599beca6f0a303d1f3f071a855fe27d7))
+* do not return successful message if analytics failed ([6823796](https://github.com/jkrumm/free-planning-poker/commit/68237967df23b8f2e23906ca721010e498d3d90d))
+
 ## [5.0.0](https://github.com/jkrumm/free-planning-poker/compare/4.0.0...5.0.0) (2024-05-19)
 
 
