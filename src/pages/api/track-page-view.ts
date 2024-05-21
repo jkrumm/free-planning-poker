@@ -28,10 +28,11 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // eslint-disable-next-line prefer-const
-  let { userId, route, roomId } = JSON.parse(req.body as string) as {
+  let { userId, route, roomId, source } = JSON.parse(req.body as string) as {
     userId: string | null;
     route: keyof typeof RouteType;
     roomId?: number;
+    source: string | null;
   };
 
   userId = (!validateNanoId(userId) ? nanoid() : userId)!;
@@ -60,6 +61,7 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
     userId,
     route,
     roomId,
+    source,
   });
 
   return res.status(200).json({ userId });
@@ -67,14 +69,6 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
 
 export const getUserPayload = async (req: NextApiRequest) => {
   const ua = userAgentFromString(req.headers['user-agent']);
-
-  // if (!ua.browser || !ua.os) {
-  //   log.warn('userAgent undefined', {
-  //     browser: ua?.browser?.name ?? null,
-  //     device: ua?.device?.type ?? 'desktop',
-  //     os: ua?.os?.name ?? null,
-  //   });
-  // }
 
   const geo: {
     country: string | null;

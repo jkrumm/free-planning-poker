@@ -133,6 +133,7 @@ export const pageViews = mysqlTable('page_views', {
   userId: varchar('user_id', { length: 21 }).notNull(),
   route: mysqlEnum('route', Object.values(RouteType) as [string]).notNull(),
   roomId: int('room_id'),
+  source: varchar('source', { length: 255 }),
   viewedAt: timestamp('viewed_at').defaultNow().notNull(),
 });
 

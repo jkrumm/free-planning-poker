@@ -30,10 +30,23 @@ export const useTrackPageView = (
 
   useEffect(() => {
     if (hasMounted) {
+      // Extract source from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      let source = urlParams.get('source');
+      if (source === null) {
+        source = document.referrer === '' ? null : document.referrer;
+      }
+
+      // Remove source query param from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('source');
+      window.history.replaceState({}, '', url.toString());
+
       sendTrackPageView({
         userId,
         route,
         roomId,
+        source,
         setUserIdLocalStorage,
         setUserIdRoomState,
       });
@@ -45,12 +58,14 @@ export const sendTrackPageView = ({
   userId,
   route,
   roomId,
+  source,
   setUserIdLocalStorage,
   setUserIdRoomState,
 }: {
   userId: string | null;
   route: keyof typeof RouteType;
   roomId?: number;
+  source: string | null;
   setUserIdLocalStorage: (userId: string) => void;
   setUserIdRoomState: (userId: string) => void;
 }) => {
@@ -59,6 +74,7 @@ export const sendTrackPageView = ({
       userId,
       route,
       roomId,
+      source,
     });
     const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
 
