@@ -15,18 +15,18 @@ export const Meta = ({
     <Head>
       <meta
         name="description"
-        content="Estimate your story points faster than ever. Free agile scrum sprint planning poker app based on fibanocci. Open source and privacy focused."
+        content="The best free planning poker app for agile teams and story point estimation. Incredibly user-friendly planning tool. Open source and privacy focused."
       />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="robots" content={robots ?? 'all'} />
       <title>
         {title
           ? `Free Planning Poker - ${title}`
-          : 'Free Planning Poker | Estimate story points fast'}
+          : 'Free Planning Poker | Quick & Easy Estimates'}
       </title>
       <meta
         property="og:description"
-        content="Estimate your story points faster than ever. Free agile scrum sprint planning poker app based on fibanocci. Open source and privacy focused."
+        content="The best free planning poker app for agile teams and story point estimation. Incredibly user-friendly planning tool. Open source and privacy focused."
       />
       <meta property="og:site_name" content="Free-Planning-Poker.com" />
       <meta property="og:type" content="website" />
