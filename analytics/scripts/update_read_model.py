@@ -2,6 +2,7 @@ import os
 import MySQLdb
 import pandas as pd
 
+from config import DATA_DIR
 from util.log_util import logger
 
 
@@ -33,9 +34,9 @@ def upsert_table(cursor, table_name, dtypes_def):
         upsert_users(cursor)
         return
 
-    parquet_file = f"./data/{table_name}.parquet"
+    parquet_file = os.path.join(DATA_DIR, f"{table_name}.parquet")
 
-    # Load existing Parquet file (if exists)
+    # Load existing Parquet file (if it exists)
     if os.path.isfile(parquet_file):
         df_parquet = pd.read_parquet(parquet_file)
         if not df_parquet.empty:
@@ -65,14 +66,6 @@ def upsert_table(cursor, table_name, dtypes_def):
     if table_name == "fpp_votes":
         df_mysql['was_auto_flip'] = df_mysql['was_auto_flip'].map({0: False, 1: True})
 
-    # Debug info
-    # logger.debug(df_mysql.head())
-    # logger.debug(df_mysql.dtypes)
-    # logger.debug({
-    #     "df_parquet": len(df_parquet),
-    #     "df_mysql": len(df_mysql)
-    # })
-
     # Merge new data from MySQL with existing data in Parquet
     df = pd.concat([df_mysql, df_parquet])
     df.to_parquet(parquet_file)
@@ -84,7 +77,7 @@ def upsert_table(cursor, table_name, dtypes_def):
 
 
 def upsert_users(cursor):
-    parquet_file = f"./data/fpp_users.parquet"
+    parquet_file = os.path.join(DATA_DIR, "fpp_users.parquet")
 
     # Load existing Parquet file (if exists)
     if os.path.isfile(parquet_file):

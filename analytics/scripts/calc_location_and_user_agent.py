@@ -1,16 +1,18 @@
+import os
 import pandas as pd
 
+from config import DATA_DIR
 from util.log_util import logger
 
 
 def calc_location_and_user_agent():
     # load user data with columns 'user_id' and 'location'
-    df_users = pd.read_parquet("./data/fpp_users.parquet",
+    df_users = pd.read_parquet(os.path.join(DATA_DIR, "fpp_users.parquet"),
                                columns=["device", "os", "browser", "country", "region", "city"])
 
     device = df_users.groupby("device", observed=False).size().to_dict()
 
-    os = df_users.groupby("os", observed=False).size().to_dict()
+    operating_system = df_users.groupby("os", observed=False).size().to_dict()
 
     browser = df_users.groupby("browser", observed=False).size().to_dict()
 
@@ -26,7 +28,7 @@ def calc_location_and_user_agent():
 
     location_and_user_agent = {
         "device": device,
-        "os": os,
+        "os": operating_system,
         "browser": browser,
         "country": country,
         "country_region": country_region,

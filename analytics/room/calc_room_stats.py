@@ -1,5 +1,8 @@
+import os
+
 import pandas as pd
 
+from config import DATA_DIR
 from scripts.update_read_model import update_votes_read_model
 from util.log_util import logger
 from util.number_util import r
@@ -13,7 +16,7 @@ def calc_room_stats(room_id):
         logger.error("calc_room_stats -> update_votes_read_model failed", {"error": e})
 
     # find votes for room and filter by room_id
-    votes = pd.read_parquet(f"./data/fpp_votes.parquet",
+    votes = pd.read_parquet(os.path.join(DATA_DIR, "fpp_votes.parquet"),
                             columns=["room_id", "avg_estimation", "max_estimation", "min_estimation",
                                      "amount_of_estimations", "duration", "amount_of_spectators"],
                             filters=[("room_id", "==", int(room_id))])

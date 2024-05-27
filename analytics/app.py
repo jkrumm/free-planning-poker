@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, abort
 from flask_wtf.csrf import CSRFProtect
 
+from config import ANALYTICS_SECRET_TOKEN, DATA_DIR
 from room.calc_room_stats import calc_room_stats
 from scripts.calc_behaviour import calc_behaviour
 from scripts.calc_historical import calc_historical
@@ -19,7 +20,6 @@ app = Flask(__name__)
 csrf = CSRFProtect(app)
 
 load_dotenv()
-ANALYTICS_SECRET_TOKEN = os.getenv("ANALYTICS_SECRET_TOKEN")
 
 
 @app.route("/")
@@ -30,7 +30,6 @@ def run_script():
     if token != ANALYTICS_SECRET_TOKEN or ANALYTICS_SECRET_TOKEN is None:
         logger.error("Unauthorized request", {"token": token})
         abort(401)
-
 
     results = {}
     failed_reason = None
@@ -81,8 +80,11 @@ def run_script():
         logger.flush()
         return {"error": failed_reason, "duration": duration}
 
-    data_size_in_gb = r(sum(
-        os.path.getsize(f"./data/{f}") for f in os.listdir("./data") if os.path.isfile(f"./data/{f}")) / 1024 / 1024)
+    data_size_in_gb = round(sum(
+        os.path.getsize(os.path.join(DATA_DIR, f))
+        for f in os.listdir(DATA_DIR)
+        if os.path.isfile(os.path.join(DATA_DIR, f))
+    ) / 1024 / 1024 / 1024, 2)
     logs_size_in_gb = r(sum(
         os.path.getsize(f"./logs/{f}") for f in os.listdir("./logs") if os.path.isfile(f"./logs/{f}")) / 1024 / 1024)
     logger.info("Script executed successfully!",

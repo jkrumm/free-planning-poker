@@ -1,12 +1,16 @@
+import os
+
 import pandas as pd
 
+from config import DATA_DIR
 from util.log_util import logger
 from util.number_util import r
 
 
 def calc_traffic():
     # load page view data with columns 'user_id' and 'viewed_at'
-    df_page_views = pd.read_parquet("./data/fpp_page_views.parquet", columns=["user_id", "viewed_at"])
+    df_page_views = pd.read_parquet(os.path.join(DATA_DIR, "fpp_page_views.parquet"), columns=["user_id", "viewed_at"])
+
     # rename 'viewed_at' to 'activity_at'
     df_page_views.rename(columns={"viewed_at": "activity_at"}, inplace=True)
 
@@ -18,7 +22,7 @@ def calc_traffic():
 
     # BOUNCE RATE
     # load estimation data with columns 'user_id' and 'estimated_at'
-    df_estimations = pd.read_parquet("./data/fpp_estimations.parquet", columns=["user_id", "estimated_at"])
+    df_estimations = pd.read_parquet(os.path.join(DATA_DIR, "fpp_estimations.parquet"), columns=["user_id", "estimated_at"])
     # rename 'viewed_at' to 'activity_at'
     df_estimations.rename(columns={"estimated_at": "activity_at"}, inplace=True)
 

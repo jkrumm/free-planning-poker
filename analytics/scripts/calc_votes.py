@@ -1,12 +1,15 @@
+import os
+
 import pandas as pd
 
+from config import DATA_DIR
 from util.log_util import logger
 from util.number_util import r
 
 
 def calc_votes():
     # load votes data
-    df_votes = pd.read_parquet("./data/fpp_votes.parquet",
+    df_votes = pd.read_parquet(os.path.join(DATA_DIR, "fpp_votes.parquet"),
                                columns=["avg_estimation", "max_estimation", "min_estimation", "amount_of_estimations",
                                         "amount_of_spectators", "duration"])
 

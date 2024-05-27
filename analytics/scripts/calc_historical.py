@@ -1,20 +1,23 @@
+import os
+
 import pandas as pd
 
+from config import DATA_DIR
 from util.log_util import logger
 
 
 def calc_historical():
     # load user data with columns 'created_at'
-    df_users = pd.read_parquet("./data/fpp_users.parquet", columns=["created_at"])
+    df_users = pd.read_parquet(os.path.join(DATA_DIR, "fpp_users.parquet"), columns=["created_at"])
 
     # load page view data with columns 'viewed_at'
-    df_page_views = pd.read_parquet("./data/fpp_page_views.parquet", columns=["viewed_at"])
+    df_page_views = pd.read_parquet(os.path.join(DATA_DIR, "fpp_page_views.parquet"), columns=["viewed_at"])
 
     # load estimation data with columns 'estimated_at'
-    df_estimations = pd.read_parquet("./data/fpp_estimations.parquet", columns=["estimated_at"])
+    df_estimations = pd.read_parquet(os.path.join(DATA_DIR, "fpp_estimations.parquet"), columns=["estimated_at"])
 
     # load votes data with columns 'voted_at'
-    df_votes = pd.read_parquet("./data/fpp_votes.parquet", columns=["voted_at"])
+    df_votes = pd.read_parquet(os.path.join(DATA_DIR, "fpp_votes.parquet"), columns=["voted_at"])
 
     # create a list of dates from 19th of January 2024 until today
     start_date = pd.to_datetime("2024-01-19")
