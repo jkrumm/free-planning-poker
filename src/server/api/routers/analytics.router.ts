@@ -12,7 +12,7 @@ const countryRegions =
   require('country-region-data/data.json') as CountryRegionData[];
 
 export const analyticsRouter = createTRPCRouter({
-  getAnalytics: publicProcedure.query(async ({ ctx: { db } }) => {
+  getAnalytics: publicProcedure.query(async ({}) => {
     const analytics = (await fetch(env.ANALYTICS_URL, {
       headers: {
         Authorization: env.ANALYTICS_SECRET_TOKEN,
@@ -26,6 +26,7 @@ export const analyticsRouter = createTRPCRouter({
             endpoint: logEndpoint.GET_ANALYTICS,
           },
         });
+        throw e;
       })) as AnalyticsResponse;
 
     const countryCounts: Record<string, number> = {};
