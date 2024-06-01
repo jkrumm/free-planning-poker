@@ -1,5 +1,21 @@
 
 
+## [5.2.0](https://github.com/jkrumm/free-planning-poker/compare/5.1.0...5.2.0) (2024-06-01)
+
+
+### Features
+
+* **analytics:** add Dockerfile ([988cfae](https://github.com/jkrumm/free-planning-poker/commit/988cfae5e1946980fcc40da41391e31420d2d108))
+* **analytics:** daily analytics email with Cron ([c60d227](https://github.com/jkrumm/free-planning-poker/commit/c60d2274ed02b03b45f577856bfe064082894b14))
+* **analytics:** use env config for data dir ([16af339](https://github.com/jkrumm/free-planning-poker/commit/16af339ce6c49501a4e4c35d095ecffe86019a3a))
+
+
+### Other Changes
+
+* improve analytics cron error handling ([90bd371](https://github.com/jkrumm/free-planning-poker/commit/90bd371d50934b1d66e482ed9bf1f413c08605eb))
+* improved google meta title and description ([39808bb](https://github.com/jkrumm/free-planning-poker/commit/39808bb287c06ab20aaa257d041115536332e9c3))
+* update dependencies ([60617fd](https://github.com/jkrumm/free-planning-poker/commit/60617fd5a3f8f4b7c5d62c128859989b488899b3))
+
 ## [5.1.0](https://github.com/jkrumm/free-planning-poker/compare/5.0.0...5.1.0) (2024-05-21)
 
 
