@@ -81,7 +81,7 @@
     "knip": "^5.17.3",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.14",
+    "prettier-plugin-tailwindcss": "^0.6.1",
     "release-it": "^17.3.0",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss": "^3.4.3",
