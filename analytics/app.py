@@ -8,6 +8,7 @@ from flask_wtf.csrf import CSRFProtect
 from config import ANALYTICS_SECRET_TOKEN, DATA_DIR
 from room.calc_room_stats import calc_room_stats
 from scripts.calc_behaviour import calc_behaviour
+from scripts.calc_daily_analytics import calc_daily_analytics
 from scripts.calc_historical import calc_historical
 from scripts.calc_location_and_user_agent import calc_location_and_user_agent
 from scripts.calc_traffic import calc_traffic
@@ -15,6 +16,7 @@ from scripts.calc_votes import calc_votes
 from scripts.update_read_model import update_read_model
 from util.log_util import logger
 from util.number_util import r
+from util.send_email_util import send_email_util
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -113,6 +115,7 @@ def get_room_stats(room_id):
     except Exception as e:
         print(e)
         logger.error("calc_room_stats failed", {"error": e})
+        logger.flush()
         abort(500)
 
     duration = r(time.time() - start_time)
@@ -120,3 +123,39 @@ def get_room_stats(room_id):
     logger.flush()
 
     return room_stats
+
+
+@app.route("/daily-analytics")
+def run_daily_analytics():
+    start_time = time.time()
+    token = request.headers.get('Authorization')
+
+    if token != ANALYTICS_SECRET_TOKEN or ANALYTICS_SECRET_TOKEN is None:
+        logger.error("Unauthorized request", {"token": token})
+        abort(401)
+
+    try:
+        update_read_model()
+    except Exception as e:
+        logger.error("Script update_read_model failed", {"error": e})
+        logger.flush()
+        return {"msg": "Script update_read_model failed", "error": str(e), "duration": r(time.time() - start_time)}
+
+    try:
+        daily_analytics = calc_daily_analytics()
+    except Exception as e:
+        logger.error("Script calc_daily_analytics failed", {"error": e})
+        logger.flush()
+        return {"msg": "Script calc_daily_analytics failed", "error": str(e), "duration": r(time.time() - start_time)}
+
+    try:
+        send_email_util("fpp-daily-analytics", daily_analytics)
+    except Exception as e:
+        logger.error("Script send_email_util failed", {"error": e})
+        logger.flush()
+        return {"msg": "Script send_email_util failed", "error": str(e), "duration": r(time.time() - start_time)}
+
+    logger.info("daily-analytics successfully", {"duration": r(time.time() - start_time)})
+    logger.flush()
+
+    return daily_analytics
