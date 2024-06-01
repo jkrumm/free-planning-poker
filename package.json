@@ -42,7 +42,7 @@
     "@trpc/server": "next",
     "@upstash/ratelimit": "^1.1.2",
     "@upstash/redis": "^1.31.3",
-    "ably": "^1.2.50",
+    "ably": "^2.0.4",
     "ag-charts-react": "^9.3.1",
     "country-region-data": "^3.0.0",
     "drizzle-orm": "^0.30.10",
