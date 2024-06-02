@@ -43,6 +43,7 @@ export const HistoricalChart = ({
           <Group className="pb-4 md:pb-0">
             <Switch
               label="Estimations"
+              color="#40C057"
               className="w-[150px] md:w-auto"
               checked={
                 ChartOptions.showEstimations || ChartOptions.showAccEstimations
@@ -51,7 +52,6 @@ export const HistoricalChart = ({
             />
             <Switch
               label="Votes"
-              color="#40C057"
               checked={ChartOptions.showVotes || ChartOptions.showAccVotes}
               onChange={() => setOptions(ChartOptions.toggleVotes())}
             />
@@ -60,7 +60,7 @@ export const HistoricalChart = ({
             <Switch
               label="Page Views"
               className="w-[150px] md:w-auto"
-              color="#FAB005"
+              color="#FA5252"
               checked={
                 ChartOptions.showPageViews || ChartOptions.showAccPageViews
               }
@@ -68,7 +68,7 @@ export const HistoricalChart = ({
             />
             <Switch
               label="Unique Users"
-              color="#FA5252"
+              color="#FAB005"
               checked={
                 ChartOptions.showNewUsers || ChartOptions.showAccNewUsers
               }

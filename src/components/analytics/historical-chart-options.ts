@@ -4,14 +4,14 @@ class HistoricalChartOptions {
   showDaily = true;
   showAcc = true;
 
-  showEstimations = true;
-  showAccEstimations = true;
-  showVotes = false;
-  showAccVotes = false;
-  showPageViews = true;
-  showAccPageViews = true;
-  showNewUsers = false;
-  showAccNewUsers = false;
+  showEstimations = false;
+  showAccEstimations = false;
+  showVotes = true;
+  showAccVotes = true;
+  showPageViews = false;
+  showAccPageViews = false;
+  showNewUsers = true;
+  showAccNewUsers = true;
 
   toggleShowDaily() {
     this.showDaily = !this.showDaily;
@@ -66,7 +66,7 @@ class HistoricalChartOptions {
           yName: 'Estimations Daily',
           stacked: true,
           visible: this.showEstimations && this.showDaily,
-          fill: '#1971C2',
+          fill: '#40C057',
           fillOpacity: this.showAcc ? 0.2 : 1,
         },
         {
@@ -76,7 +76,7 @@ class HistoricalChartOptions {
           yName: 'Estimations Acc',
           visible: this.showAccEstimations && this.showAcc,
           strokeWidth: 2,
-          stroke: '#1971C2',
+          stroke: '#40C057',
           marker: {
             enabled: false,
           },
@@ -88,7 +88,7 @@ class HistoricalChartOptions {
           yName: 'Votes Daily',
           stacked: true,
           visible: this.showVotes && this.showDaily,
-          fill: '#40C057',
+          fill: '#1971C2',
           fillOpacity: this.showAcc ? 0.2 : 1,
         },
         {
@@ -98,7 +98,7 @@ class HistoricalChartOptions {
           yName: 'Votes Acc',
           visible: this.showAccVotes && this.showAcc,
           strokeWidth: 2,
-          stroke: '#40C057',
+          stroke: '#1971C2',
           marker: {
             enabled: false,
           },
@@ -110,7 +110,7 @@ class HistoricalChartOptions {
           yName: 'Pages Views Daily',
           stacked: true,
           visible: this.showPageViews && this.showDaily,
-          fill: '#FAB005',
+          fill: '#FA5252',
           fillOpacity: this.showAcc ? 0.2 : 1,
         },
         {
@@ -120,7 +120,7 @@ class HistoricalChartOptions {
           yName: 'Page Views Acc',
           visible: this.showAccPageViews && this.showAcc,
           strokeWidth: 2,
-          stroke: '#FAB005',
+          stroke: '#FA5252',
           marker: {
             enabled: false,
           },
@@ -132,7 +132,7 @@ class HistoricalChartOptions {
           yName: 'New Users Daily',
           stacked: true,
           visible: this.showNewUsers && this.showDaily,
-          fill: '#FA5252',
+          fill: '#FAB005',
           fillOpacity: this.showAcc ? 0.2 : 1,
         },
         {
@@ -142,7 +142,7 @@ class HistoricalChartOptions {
           yName: 'New Users Acc',
           visible: this.showAccNewUsers && this.showAcc,
           strokeWidth: 2,
-          stroke: '#FA5252',
+          stroke: '#FAB005',
           marker: {
             enabled: false,
           },
