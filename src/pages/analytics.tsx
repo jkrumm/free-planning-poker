@@ -20,6 +20,7 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
+import { EstimationChart } from 'fpp/components/analytics/estimations-chart';
 import { HistoricalChart } from 'fpp/components/analytics/historical-chart';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
@@ -160,7 +161,8 @@ const Analytics = () => {
               valueAppend="minutes"
             />
           </SimpleGrid>
-          <h1>Historical</h1>
+          <EstimationChart estimation_counts={votes.estimation_counts} />
+          <h1 className="pt-8">Historical</h1>
           {/*<HistoricalChart historical={historical} />*/}
           <HistoricalChart historical={historical} />
           <h1 className="pt-8">Behaviour</h1>
