@@ -75,6 +75,7 @@ export const analyticsRouter = createTRPCRouter({
 interface AnalyticsResponse {
   behaviour: {
     events: Record<keyof typeof EventType, number>;
+    sources: Record<string, number>;
     routes: Record<keyof typeof RouteType, number>;
     rooms: Record<string, number>;
   };
@@ -120,6 +121,7 @@ interface AnalyticsResponse {
     avg_spectators_per_vote: number;
     total_estimations: number;
     total_votes: number;
+    estimation_counts: Record<string, number>;
   };
 }
 

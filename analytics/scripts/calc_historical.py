@@ -20,7 +20,7 @@ def calc_historical():
     df_votes = pd.read_parquet(os.path.join(DATA_DIR, "fpp_votes.parquet"), columns=["voted_at"])
 
     # create a list of dates from 19th of January 2024 until today
-    start_date = pd.to_datetime("2024-01-19")
+    start_date = pd.to_datetime("2024-05-05")
     end_date = pd.to_datetime("today")
     date_range = pd.date_range(start_date, end_date)
 

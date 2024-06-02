@@ -130,7 +130,7 @@ def update_read_model():
 
     upsert_table(cursor, "fpp_estimations", {'user_id': 'str', 'room_id': 'int16', 'spectator': 'int16'})
     upsert_table(cursor, "fpp_events", {'user_id': 'str', 'event': 'category'})
-    upsert_table(cursor, "fpp_page_views", {'user_id': 'str', 'route': 'category', 'room_id': 'Int16'})
+    upsert_table(cursor, "fpp_page_views", {'user_id': 'str', 'source': 'category', 'route': 'category', 'room_id': 'Int16'})
     upsert_table(cursor, "fpp_rooms", {'number': 'int16', 'name': 'str'})
     upsert_table(cursor, "fpp_votes", {'room_id': 'int16', 'min_estimation': 'int16', 'max_estimation': 'int16',
                                        'amount_of_estimations': 'int16', 'amount_of_spectators': 'int16',

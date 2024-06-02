@@ -202,7 +202,7 @@ const Analytics = () => {
           <SimpleGrid
             cols={{
               sm: 1,
-              md: 3,
+              md: 4,
             }}
             spacing="md"
             className="pb-8"
@@ -219,6 +219,7 @@ const Analytics = () => {
               headline={'Browsers'}
               data={location_and_user_agent.browser}
             />
+            <AnalyticsCard headline={'Sources'} data={behaviour.sources} />
           </SimpleGrid>
         </section>
       </main>
