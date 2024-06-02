@@ -37,6 +37,11 @@ def calc_votes():
     # avg max estimation
     avg_max_estimation = r(df_votes["max_estimation"].mean())
 
+    # amount of each estimation value sorted increasingly
+    df_estimations = pd.read_parquet(os.path.join(DATA_DIR, "fpp_estimations.parquet"), columns=["estimation"])
+    estimation_counts = df_estimations["estimation"].value_counts().sort_index().to_dict()
+    estimation_counts = {int(k): v for k, v in estimation_counts.items()}
+
     votes = {
         "total_votes": total_votes,
         "total_estimations": total_estimations,
@@ -45,7 +50,8 @@ def calc_votes():
         "avg_duration_per_vote": avg_duration_per_vote,
         "avg_estimation": avg_estimation,
         "avg_min_estimation": avg_min_estimation,
-        "avg_max_estimation": avg_max_estimation
+        "avg_max_estimation": avg_max_estimation,
+        "estimation_counts": estimation_counts
     }
 
     logger.debug("Votes calculated", votes)

@@ -8,10 +8,26 @@ from util.log_util import logger
 
 def calc_behaviour():
     # load page view data with columns 'user_id' and 'route'
-    df_page_views = pd.read_parquet(os.path.join(DATA_DIR, "fpp_page_views.parquet"), columns=["route", "room_id"])
+    df_page_views = pd.read_parquet(os.path.join(DATA_DIR, "fpp_page_views.parquet"),
+                                    columns=["route", "source", "room_id"])
 
     # amount of page views for each route
     routes = df_page_views.groupby("route", observed=False).size().to_dict()
+
+    # amount of each source
+    sources = df_page_views.groupby("source", observed=False).size().to_dict()
+    if "cv" in sources:
+        sources["CV"] = sources.pop("cv")
+    if "google" in sources:
+        sources["Google Search"] = sources.pop("google")
+    if "https://www.google.com/" in sources:
+        sources["Google Search"] += sources.pop("https://www.google.com/")
+    if "google_ads" in sources:
+        sources["Google Ads"] = sources.pop("google_ads")
+
+    # sum all other sources into 'Other' and remove them from the dict
+    sources["Other"] = sum([v for k, v in sources.items() if k not in ["CV", "Google Search", "Google Ads"]])
+    sources = {k: v for k, v in sources.items() if k in ["CV", "Google Search", "Google Ads", "Other"]}
 
     # load event data with column 'event'
     df_events = pd.read_parquet(os.path.join(DATA_DIR, "fpp_events.parquet"), columns=["event"])
@@ -33,6 +49,7 @@ def calc_behaviour():
 
     behaviour = {
         "routes": routes,
+        "sources": sources,
         "events": events,
         "rooms": rooms
     }
