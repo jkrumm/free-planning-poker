@@ -1,5 +1,15 @@
 
 
+## [5.3.0](https://github.com/jkrumm/free-planning-poker/compare/5.2.0...5.3.0) (2024-06-02)
+
+
+### Features
+
+* **analytics:** add sources to analytics view ([db151c5](https://github.com/jkrumm/free-planning-poker/commit/db151c58848901ffdf0b3a02d99523a49bf908ad))
+* **analytics:** add tooltip to historical chart ([0c47ab4](https://github.com/jkrumm/free-planning-poker/commit/0c47ab45de76ecda7a75448d71dc51f7082d1827))
+* **analytics:** added estimation number popularity bar chart ([362d780](https://github.com/jkrumm/free-planning-poker/commit/362d780065eb49c08c757ef1ee858bd3369a1f9e))
+* **analytics:** adjust default values and color of historical chart ([4332266](https://github.com/jkrumm/free-planning-poker/commit/433226651dcd7df5734ba9a02e46d1c892a881d2))
+
 ## [5.2.0](https://github.com/jkrumm/free-planning-poker/compare/5.1.0...5.2.0) (2024-06-01)
 
 
