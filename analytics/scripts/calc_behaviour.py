@@ -18,16 +18,16 @@ def calc_behaviour():
     sources = df_page_views.groupby("source", observed=False).size().to_dict()
     if "cv" in sources:
         sources["CV"] = sources.pop("cv")
-    if "google" in sources:
-        sources["Google Search"] = sources.pop("google")
     if "https://www.google.com/" in sources:
-        sources["Google Search"] += sources.pop("https://www.google.com/")
+        sources["Google Search"] = sources.pop("https://www.google.com/")
     if "google_ads" in sources:
         sources["Google Ads"] = sources.pop("google_ads")
+    if "email" in sources:
+        sources["Email"] = sources.pop("email")
 
     # sum all other sources into 'Other' and remove them from the dict
-    sources["Other"] = sum([v for k, v in sources.items() if k not in ["CV", "Google Search", "Google Ads"]])
-    sources = {k: v for k, v in sources.items() if k in ["CV", "Google Search", "Google Ads", "Other"]}
+    sources["Other"] = sum([v for k, v in sources.items() if k not in ["CV", "Google Search", "Google Ads", "Email"]])
+    sources = {k: v for k, v in sources.items() if k in ["CV", "Google Search", "Google Ads", "Email", "Other"]}
 
     # load event data with column 'event'
     df_events = pd.read_parquet(os.path.join(DATA_DIR, "fpp_events.parquet"), columns=["event"])
