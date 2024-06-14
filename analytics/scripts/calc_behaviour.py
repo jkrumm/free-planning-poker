@@ -22,12 +22,22 @@ def calc_behaviour():
         sources["Google Search"] = sources.pop("https://www.google.com/")
     if "google_ads" in sources:
         sources["Google Ads"] = sources.pop("google_ads")
+    if "https://ads.google.com/" in sources:
+        sources["Google Ads"] = sources.pop("https://ads.google.com/")
     if "email" in sources:
         sources["Email"] = sources.pop("email")
+    if "https://statics.teams.cdn.office.net/" in sources:
+        sources["Teams"] = sources.pop("https://statics.teams.cdn.office.net/")
+    if "https://teams.microsoft.com/" in sources:
+        sources["Teams"] = sources.pop("https://teams.microsoft.com/")
+    if "https://www.bing.com/" in sources:
+        sources["Bing"] = sources.pop("https://www.bing.com/")
 
     # sum all other sources into 'Other' and remove them from the dict
-    sources["Other"] = sum([v for k, v in sources.items() if k not in ["CV", "Google Search", "Google Ads", "Email"]])
-    sources = {k: v for k, v in sources.items() if k in ["CV", "Google Search", "Google Ads", "Email", "Other"]}
+    sources["Other"] = sum(
+        [v for k, v in sources.items() if k not in ["CV", "Google Search", "Google Ads", "Email", "Teams", "Bing"]])
+    sources = {k: v for k, v in sources.items() if
+               k in ["CV", "Google Search", "Google Ads", "Email", "Teams", "Bing", "Other"]}
 
     # load event data with column 'event'
     df_events = pd.read_parquet(os.path.join(DATA_DIR, "fpp_events.parquet"), columns=["event"])
