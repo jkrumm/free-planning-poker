@@ -1,9 +1,27 @@
 import os
+import re
 
 import pandas as pd
 
 from config import DATA_DIR
 from util.log_util import logger
+
+
+def extract_sources(sources, sources_mapping):
+    updated_sources = {}
+
+    # Process each mapping
+    for target, pattern in sources_mapping:
+        for key in list(sources):
+            if re.search(pattern, key):
+                if target in updated_sources:
+                    updated_sources[target] += sources.pop(key)
+                else:
+                    updated_sources[target] = sources.pop(key)
+
+    # Assign remaining items to "Other" category
+    updated_sources["Other"] = sum(sources.values())
+    return updated_sources
 
 
 def calc_behaviour():
@@ -16,28 +34,16 @@ def calc_behaviour():
 
     # amount of each source
     sources = df_page_views.groupby("source", observed=False).size().to_dict()
-    if "cv" in sources:
-        sources["CV"] = sources.pop("cv")
-    if "https://www.google.com/" in sources:
-        sources["Google Search"] = sources.pop("https://www.google.com/")
-    if "google_ads" in sources:
-        sources["Google Ads"] = sources.pop("google_ads")
-    if "https://ads.google.com/" in sources:
-        sources["Google Ads"] = sources.pop("https://ads.google.com/")
-    if "email" in sources:
-        sources["Email"] = sources.pop("email")
-    if "https://statics.teams.cdn.office.net/" in sources:
-        sources["Teams"] = sources.pop("https://statics.teams.cdn.office.net/")
-    if "https://teams.microsoft.com/" in sources:
-        sources["Teams"] = sources.pop("https://teams.microsoft.com/")
-    if "https://www.bing.com/" in sources:
-        sources["Bing"] = sources.pop("https://www.bing.com/")
 
-    # sum all other sources into 'Other' and remove them from the dict
-    sources["Other"] = sum(
-        [v for k, v in sources.items() if k not in ["CV", "Google Search", "Google Ads", "Email", "Teams", "Bing"]])
-    sources = {k: v for k, v in sources.items() if
-               k in ["CV", "Google Search", "Google Ads", "Email", "Teams", "Bing", "Other"]}
+    sources = extract_sources(sources, [
+        ["Teams", "teams\."],
+        ["Google Ads", "ads\.|google_ads"],
+        ["Google Search", "www\.google\.com"],
+        ["Free Planning Poker", "free-planning-poker\.com"],
+        ["CV", "cv"],
+        ["Email", "email"],
+        ["Bing", "bing\.com"],
+    ])
 
     # load event data with column 'event'
     df_events = pd.read_parquet(os.path.join(DATA_DIR, "fpp_events.parquet"), columns=["event"])
