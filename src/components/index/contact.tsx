@@ -4,8 +4,8 @@ import { Button, Text, Title } from '@mantine/core';
 
 const Contact = () => {
   return (
-    <div className="flex gap-10 justify-evenly my-32 text-center">
-      <section id="#guide" className="flex-1">
+    <div className="md:flex gap-10 justify-evenly my-32 text-center">
+      <section id="#guide" className="flex-1 mb-20 md:mb:0">
         <Title order={2}>Planning Poker Guide</Title>
         <Text className="mt-5">
           Discover how Planning Poker helps Agile teams efficiently plan sprints
