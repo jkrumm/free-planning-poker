@@ -3,11 +3,17 @@ import React from 'react';
 import { AgChartsReact } from 'ag-charts-react';
 
 export const EstimationChart = ({
-  estimation_counts,
+  data,
+  title,
+  yXisName,
+  xAxisName,
 }: {
-  estimation_counts: Record<string, number>;
+  data: Record<string, number>;
+  title: string;
+  yXisName: string;
+  xAxisName: string;
 }) => {
-  const data = Object.entries(estimation_counts).map(([key, value]) => ({
+  const mappedData = Object.entries(data).map(([key, value]) => ({
     category: key,
     value,
   }));
@@ -16,13 +22,13 @@ export const EstimationChart = ({
     <div className="h-[450px] w-full">
       <AgChartsReact
         options={{
-          data,
+          data: mappedData,
           theme: 'ag-polychroma-dark',
           background: {
             fill: '#242424',
           },
           title: {
-            text: 'Popularity of each Estimation Fibonacci Number',
+            text: title,
           },
           series: [
             {
@@ -37,7 +43,7 @@ export const EstimationChart = ({
               type: 'category',
               position: 'bottom',
               title: {
-                text: 'Estimation Number',
+                text: xAxisName,
               },
               keys: ['category'],
             },
@@ -45,7 +51,7 @@ export const EstimationChart = ({
               type: 'number',
               position: 'left',
               title: {
-                text: 'Estimation Amount',
+                text: yXisName,
               },
               keys: ['value'],
             },

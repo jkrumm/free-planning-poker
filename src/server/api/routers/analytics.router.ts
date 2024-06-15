@@ -56,6 +56,27 @@ export const analyticsRouter = createTRPCRouter({
       cityCounts[cityName] = i.count;
     });
 
+    const weekdayOrder: (keyof Record<string, number>)[] = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    // Create a sorted version of the weekday_counts as Flask sorts the JSON keys alphabetically by default
+    const sortedWeekdayCounts: Record<string, number> = weekdayOrder.reduce(
+      (acc, day) => {
+        if (analytics.votes.weekday_counts[day] !== undefined) {
+          acc[day] = analytics.votes.weekday_counts[day]!;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
     const analyticsResult: AnalyticsResult = {
       ...analytics,
       location_and_user_agent: {
@@ -65,6 +86,10 @@ export const analyticsRouter = createTRPCRouter({
         region: regionCounts,
         device: analytics.location_and_user_agent.device,
         os: analytics.location_and_user_agent.os,
+      },
+      votes: {
+        ...analytics.votes,
+        weekday_counts: sortedWeekdayCounts,
       },
     };
 
@@ -121,6 +146,7 @@ interface AnalyticsResponse {
     avg_spectators_per_vote: number;
     total_estimations: number;
     total_votes: number;
+    weekday_counts: Record<string, number>;
     estimation_counts: Record<string, number>;
   };
 }

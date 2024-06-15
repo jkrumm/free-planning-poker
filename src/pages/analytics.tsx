@@ -161,7 +161,20 @@ const Analytics = () => {
               valueAppend="minutes"
             />
           </SimpleGrid>
-          <EstimationChart estimation_counts={votes.estimation_counts} />
+          <div className="pb-8">
+            <EstimationChart
+              data={votes.weekday_counts}
+              title="Popularity on each Weekday"
+              xAxisName="Weekday"
+              yXisName="Vote Amount"
+            />
+          </div>
+          <EstimationChart
+            data={votes.estimation_counts}
+            title="Popularity of each Estimation Fibonacci Number"
+            xAxisName="Estimation Number"
+            yXisName="Estimation Amount"
+          />
           <h1 className="pt-8">Historical</h1>
           {/*<HistoricalChart historical={historical} />*/}
           <HistoricalChart historical={historical} />
