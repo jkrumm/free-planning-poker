@@ -42,6 +42,7 @@ def calc_behaviour():
         ["Free Planning Poker", "free-planning-poker\.com"],
         ["CV", "cv"],
         ["Email", "email"],
+        ["GitHub", "github\.com"],
         ["Bing", "bing\.com"],
     ])
 
