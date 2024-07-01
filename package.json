@@ -80,7 +80,7 @@
     "husky": "^9.0.11",
     "knip": "^5.17.3",
     "postcss": "^8.4.38",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "release-it": "^17.3.0",
     "tailwind-scrollbar-hide": "^1.1.7",
