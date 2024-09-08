@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AgChartsReact } from 'ag-charts-react';
+import { AgCharts } from 'ag-charts-react';
 
 export const EstimationChart = ({
   data,
@@ -20,10 +20,11 @@ export const EstimationChart = ({
 
   return (
     <div className="h-[450px] w-full">
-      <AgChartsReact
+      <AgCharts
         options={{
           data: mappedData,
           theme: 'ag-polychroma-dark',
+          height: 450,
           background: {
             fill: '#242424',
           },

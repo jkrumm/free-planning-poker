@@ -39,6 +39,7 @@ interface LocalstorageStore {
   recentRoom: string | null;
   roomEvent: keyof typeof RoomEvent;
   userId: string | null;
+  historicalTableOpen: boolean;
   setUsername: (username: string) => void;
   setIsPlaySound: (isPlaySound: boolean) => void;
   setIsNotificationsEnabled: (isNotificationsEnabled: boolean) => void;
@@ -48,6 +49,7 @@ interface LocalstorageStore {
   setRecentRoom: (recentRoom: string | null) => void;
   setRoomEvent: (roomEvent: keyof typeof RoomEvent) => void;
   setUserId: (userId: string) => void;
+  setHistoricalTableOpen: (historicalTableOpen: boolean) => void;
 }
 
 export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
@@ -75,6 +77,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     }
     return userId;
   })(),
+  historicalTableOpen: getFromLocalstorage('historicalTableOpen') === 'true',
   setUsername: (username: string) => {
     username = username.replace(/[^A-Za-z]/g, '');
 
@@ -160,5 +163,9 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     Sentry.setUser({ id: userId });
     saveToLocalstorage('userId', userId);
     set({ userId });
+  },
+  setHistoricalTableOpen: (historicalTableOpen: boolean) => {
+    localStorage.setItem('historicalTableOpen', historicalTableOpen.toString());
+    set({ historicalTableOpen });
   },
 }));

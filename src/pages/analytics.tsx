@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
-import { Card, Group, SimpleGrid, Text, Title } from '@mantine/core';
+import { Card, Group, SimpleGrid, Switch, Text, Title } from '@mantine/core';
 
 import * as Sentry from '@sentry/nextjs';
 import superjson from 'superjson';
@@ -22,6 +22,7 @@ import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { EstimationChart } from 'fpp/components/analytics/estimations-chart';
 import { HistoricalChart } from 'fpp/components/analytics/historical-chart';
+import { HistoricalTable } from 'fpp/components/analytics/historical-table';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -45,6 +46,8 @@ const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
 
   const { data: analytics } = api.analytics.getAnalytics.useQuery();
+
+  const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
 
   if (!analytics) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
@@ -175,8 +178,19 @@ const Analytics = () => {
             xAxisName="Estimation Number"
             yXisName="Estimation Amount"
           />
-          <h1 className="pt-8">Historical</h1>
-          {/*<HistoricalChart historical={historical} />*/}
+          <div className="flex justify-between">
+            <h1 className="pt-8">Historical</h1>
+            <Switch
+              label="Show as Table"
+              className="mt-auto mb-[36px] cursor-pointer"
+              checked={historicalTableOpen}
+              onChange={() => setHistoricalTableOpen(!historicalTableOpen)}
+            />
+          </div>
+          <HistoricalTable
+            historical={historical.reverse()}
+            historicalTableOpen={historicalTableOpen}
+          />
           <HistoricalChart historical={historical} />
           <h1 className="pt-8">Behaviour</h1>
           <SimpleGrid
