@@ -97,6 +97,7 @@ class HistoricalChartOptions {
       background: {
         fill: '#242424',
       },
+      height: 600,
       legend: {
         enabled: false,
       },

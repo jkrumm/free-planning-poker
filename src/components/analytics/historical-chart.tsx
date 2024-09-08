@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Card, Group, Switch } from '@mantine/core';
 
-import { AgChartsReact } from 'ag-charts-react';
+import { AgCharts } from 'ag-charts-react';
 
 import { ChartOptions } from 'fpp/components/analytics/historical-chart-options';
 
@@ -78,7 +78,7 @@ export const HistoricalChart = ({
         </div>
       </Card>
       <div className="h-[600px] w-full">
-        <AgChartsReact options={{ data: historical, ...options }} />
+        <AgCharts options={{ data: historical, ...options }} />
       </div>
     </>
   );

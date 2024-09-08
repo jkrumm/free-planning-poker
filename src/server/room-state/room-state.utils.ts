@@ -48,7 +48,7 @@ export async function publishWebSocketEvent({
 function getEstimationsFromUsers(users: User[]): number[] {
   const estimations = users
     .map((user) => user.estimation)
-    .filter((estimation) => estimation !== null) as number[];
+    .filter((estimation) => estimation !== null);
   if (estimations.length === 0) {
     throw new Error('Cannot calculateCreateVote when no estimations');
   }
