@@ -118,7 +118,7 @@ export const getUserPayload = async (req: NextApiRequest) => {
 
   return {
     browser: ua?.browser?.name ?? null,
-    device: ua.isBot ? 'bot' : ua?.device?.type ?? 'desktop',
+    device: ua.isBot ? 'bot' : (ua?.device?.type ?? 'desktop'),
     os: ua?.os?.name ?? null,
     city: geo.city ?? null,
     country: geo.country ?? null,
