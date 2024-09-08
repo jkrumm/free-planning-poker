@@ -1,5 +1,28 @@
 
 
+## [5.4.0](https://github.com/jkrumm/free-planning-poker/compare/5.3.0...5.4.0) (2024-09-08)
+
+
+### Features
+
+* **analytics:** added popularity of each weekday ([43b013d](https://github.com/jkrumm/free-planning-poker/commit/43b013d9af1c68dc4baa8f89d804cb2deca4b68b))
+* **analytics:** added table view for historical data ([0c278f3](https://github.com/jkrumm/free-planning-poker/commit/0c278f319de921766afae73565c14bc75ff4b10f))
+
+
+### Bug Fixes
+
+* resolve key error in source group script ([f225f93](https://github.com/jkrumm/free-planning-poker/commit/f225f933b614f3ebd95f5a10c86021945e3796c9))
+
+
+### Other Changes
+
+* **analytics:** added github as source in analytics ([d7310f8](https://github.com/jkrumm/free-planning-poker/commit/d7310f8baecdba2eb8792012dc84b274e7b872da))
+* **analytics:** extend sources with Teams and Bing ([a7f2ba7](https://github.com/jkrumm/free-planning-poker/commit/a7f2ba79aeda3f59e3840269dcc56d8ffe65fa10))
+* **analytics:** filter page view duration and bounce rate to after 2024-05-23 ([151b93d](https://github.com/jkrumm/free-planning-poker/commit/151b93d238d8e17c9c78c45e5c2ee31fc64e5be1))
+* **analytics:** simplified sources mapping algorithm ([b4f2ade](https://github.com/jkrumm/free-planning-poker/commit/b4f2ade8dddf4f850eb3c010818f872ca9b49083))
+* responsive index Contact section ([7e6dd0a](https://github.com/jkrumm/free-planning-poker/commit/7e6dd0aa0fa045e2ba00901bf273ce447b9b6210))
+* upgrade packages ([2b29e26](https://github.com/jkrumm/free-planning-poker/commit/2b29e26392440e353be9f0ee88b1686df45c71d4))
+
 ## [5.3.0](https://github.com/jkrumm/free-planning-poker/compare/5.2.0...5.3.0) (2024-06-02)
 
 
