@@ -26,7 +26,8 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "fpp/*": ["./src/*"]
+      "fpp/*": ["./src/*"],
+      "fpp-server/*": ["./fpp-server/*"]
     }
   },
   "include": [
@@ -39,5 +40,5 @@
     "**/*.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "fpp-server"]
 }

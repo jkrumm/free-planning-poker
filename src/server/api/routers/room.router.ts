@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import * as Sentry from '@sentry/nextjs';
 import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
+import { type RoomDto, RoomServer } from 'fpp-server/src/room.entity';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 
@@ -12,6 +13,7 @@ import { logEndpoint } from 'fpp/constants/logging.constant';
 
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { generateRoomNumber } from 'fpp/utils/room-number.util';
+import { getICreateVoteFromRoomState } from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
@@ -19,9 +21,11 @@ import {
   EventType,
   type IRoom,
   RoomEvent,
+  estimations,
   events,
   rooms,
   users,
+  votes,
 } from 'fpp/server/db/schema';
 
 import { getUserPayload } from 'fpp/pages/api/track-page-view';
@@ -215,6 +219,88 @@ export const roomRouter = createTRPCRouter({
           roomNumber: room!.number,
           roomName: room!.name,
         };
+      },
+    ),
+  trackFlip: publicProcedure
+    .input(
+      z.object({
+        roomState: z.string(),
+        roomId: z.number(),
+        fppServerSecret: z.string(),
+      }),
+    )
+    .mutation(
+      async ({
+        ctx: { db },
+        input: { roomId, roomState, fppServerSecret },
+      }) => {
+        if (fppServerSecret !== env.FPP_SERVER_SECRET) {
+          throw new TRPCError({
+            message: `Invalid fpp-server secret`,
+            code: 'UNAUTHORIZED',
+          });
+        }
+
+        if (!db) {
+          throw new TRPCError({
+            message: `Cannot flip without a database connection`,
+            code: 'INTERNAL_SERVER_ERROR',
+          });
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const promises: Promise<any>[] = [];
+
+        const roomStateDto = JSON.parse(roomState) as RoomDto;
+
+        const roomStateServer = RoomServer.fromJson(roomStateDto);
+
+        promises.push(
+          db.insert(votes).values(getICreateVoteFromRoomState(roomStateServer)),
+        );
+        for (const user of roomStateServer.users) {
+          promises.push(
+            db.insert(estimations).values({
+              userId: user.id,
+              roomId,
+              estimation: user.estimation,
+              spectator: user.isSpectator,
+            }),
+          );
+        }
+        promises.push(
+          db
+            .update(rooms)
+            .set({
+              lastUsedAt: new Date(),
+            })
+            .where(eq(rooms.id, roomId)),
+        );
+
+        await Promise.allSettled(promises).then((results) => {
+          for (const result of results) {
+            if (
+              result.status === 'rejected' &&
+              result.reason instanceof TRPCError
+            ) {
+              console.error('Failed to fully set room state', {
+                roomId,
+                error: {
+                  message: result.reason.message,
+                  code: result.reason.code,
+                  stack: result.reason.stack,
+                },
+              });
+            }
+          }
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              throw result.reason;
+            }
+          }
+        });
+
+        console.log('Flipped room', { roomId });
       },
     ),
 });
