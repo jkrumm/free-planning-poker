@@ -3,6 +3,7 @@ import { type ReactNode } from 'react';
 import { Button } from '@mantine/core';
 
 import { IconGraph, IconSettings } from '@tabler/icons-react';
+import type { Action } from 'fpp-server/src/room.actions';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { SidebarTabs, useSidebarStore } from 'fpp/store/sidebar.store';
@@ -24,7 +25,11 @@ const buttons: {
   },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({
+  triggerAction,
+}: {
+  triggerAction: (action: Action) => void;
+}) => {
   const tab = useSidebarStore((state) => state.tab);
   const setTab = useSidebarStore((state) => state.setTab);
 
@@ -38,7 +43,9 @@ const Sidebar = () => {
       }}
     >
       <AnimatePresence>
-        {tab === SidebarTabs.settings && <SidebarSettings />}
+        {tab === SidebarTabs.settings && (
+          <SidebarSettings triggerAction={triggerAction} />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {tab === SidebarTabs.room_analytics && <SidebarRoomAnalytics />}

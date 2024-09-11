@@ -1,0 +1,148 @@
+import { TypeCompiler } from '@sinclair/typebox/compiler';
+import { Static, t } from 'elysia';
+
+export const BaseActionSchema = t.Object({
+  userId: t.String({
+    min: 21,
+    max: 21,
+  }),
+  roomId: t.Number({
+    minimum: 1,
+  }),
+});
+
+/**
+ * ActionSchemas
+ */
+
+/** Estimate action schema */
+export const EstimateActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('estimate'),
+    estimation: t.Nullable(t.Number()),
+  }),
+]);
+export type EstimateAction = Static<typeof EstimateActionSchema>;
+
+export function isEstimateAction(action: any): action is EstimateAction {
+  return action.action === 'estimate';
+}
+
+/** SetSpectator action schema */
+export const SetSpectatorActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('setSpectator'),
+    isSpectator: t.Boolean(),
+  }),
+]);
+export type SetSpectatorAction = Static<typeof SetSpectatorActionSchema>;
+
+export function isSetSpectatorAction(
+  action: any
+): action is SetSpectatorAction {
+  return action.action === 'setSpectator';
+}
+
+/** Reset action schema */
+export const ResetActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('reset'),
+  }),
+]);
+export type ResetAction = Static<typeof ResetActionSchema>;
+
+export function isResetAction(action: any): action is ResetAction {
+  return action.action === 'reset';
+}
+
+/** SetAutoFlip action schema */
+export const SetAutoFlipActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('setAutoFlip'),
+    isAutoFlip: t.Boolean(),
+  }),
+]);
+export type SetAutoFlipAction = Static<typeof SetAutoFlipActionSchema>;
+
+export function isSetAutoFlipAction(action: any): action is SetAutoFlipAction {
+  return action.action === 'setAutoFlip';
+}
+
+/** Leave action schema */
+export const LeaveActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('leave'),
+  }),
+]);
+export type LeaveAction = Static<typeof LeaveActionSchema>;
+
+export function isLeaveAction(action: any): action is LeaveAction {
+  return action.action === 'leave';
+}
+
+/** Flip action schema */
+export const FlipActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('flip'),
+  }),
+]);
+export type FlipAction = Static<typeof FlipActionSchema>;
+
+export function isFlipAction(action: any): action is FlipAction {
+  return action.action === 'flip';
+}
+
+/** Change Username action schema */
+export const ChangeUsernameActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('changeUsername'),
+    username: t.String(),
+  }),
+]);
+export type ChangeUsernameAction = Static<typeof ChangeUsernameActionSchema>;
+
+export function isChangeUsernameAction(
+  action: any
+): action is ChangeUsernameAction {
+  return action.action === 'changeUsername';
+}
+
+/** Heartbeat action schema */
+export const HeartbeatActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('heartbeat'),
+  }),
+]);
+export type HeartbeatAction = Static<typeof HeartbeatActionSchema>;
+
+export function isHeartbeatAction(action: any): action is HeartbeatAction {
+  return action.action === 'heartbeat';
+}
+
+/**
+ * Action schema union
+ */
+export const ActionSchema = t.Union([
+  HeartbeatActionSchema,
+  FlipActionSchema,
+  LeaveActionSchema,
+  ChangeUsernameActionSchema,
+  SetAutoFlipActionSchema,
+  ResetActionSchema,
+  EstimateActionSchema,
+  SetSpectatorActionSchema,
+]);
+
+// Static t for ActionSchema
+export type Action = Static<typeof ActionSchema>;
+
+// Compile the schema
+export const CActionSchema = TypeCompiler.Compile(ActionSchema);

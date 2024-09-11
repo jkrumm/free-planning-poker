@@ -11,27 +11,34 @@ import {
 import { useForm } from '@mantine/form';
 
 import { IconBell, IconVolume } from '@tabler/icons-react';
-
-import { api } from 'fpp/utils/api';
+import type { Action } from 'fpp-server/src/room.actions';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 import SidebarContent from 'fpp/components/sidebar/sidebar-content';
 
-const SidebarSettings = () => {
+const SidebarSettings = ({
+  triggerAction,
+}: {
+  triggerAction: (action: Action) => void;
+}) => {
   return (
     <SidebarContent
       childrens={[
         {
           title: 'User Settings',
-          content: <UserSettings />,
+          content: <UserSettings triggerAction={triggerAction} />,
         },
       ]}
     />
   );
 };
 
-const UserSettings = () => {
+const UserSettings = ({
+  triggerAction,
+}: {
+  triggerAction: (action: Action) => void;
+}) => {
   const theme = useMantineTheme();
 
   // User localstorage state
@@ -50,8 +57,6 @@ const UserSettings = () => {
   const userId = useLocalstorageStore((state) => state.userId);
   const roomId = useLocalstorageStore((state) => state.roomId);
 
-  const changeUsernameMutation = api.roomState.changeUsername.useMutation();
-
   const form = useForm({
     initialValues: { username: username ?? '' },
     validate: {
@@ -68,18 +73,14 @@ const UserSettings = () => {
       return;
     }
 
-    changeUsernameMutation.mutate(
-      {
-        roomId,
-        userId,
-        username: form.values.username,
-      },
-      {
-        onSuccess: () => {
-          setUsername(form.values.username);
-        },
-      },
-    );
+    triggerAction({
+      action: 'changeUsername',
+      userId,
+      roomId,
+      username: form.values.username,
+    });
+
+    setUsername(form.values.username);
   };
 
   return (

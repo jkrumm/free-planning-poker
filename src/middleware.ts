@@ -9,13 +9,10 @@ import { env } from 'fpp/env';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-// NOTE: with sliding window I had on the 17.08.23
-// 8130 commands with total of 2004 reqs and allowed 1867 and blocked 137
-// 8130 / 2004 = 4.06 commands per request
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.fixedWindow(40, '10 s'),
-  analytics: true,
+  limiter: Ratelimit.fixedWindow(20, '10 s'),
+  analytics: false,
 });
 
 const isAPI = (path: string) => {

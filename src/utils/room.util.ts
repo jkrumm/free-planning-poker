@@ -1,49 +1,11 @@
-import { env } from 'fpp/env';
-
-import { TRPCError } from '@trpc/server';
-
 import { notifications } from '@mantine/notifications';
+
+import { type RoomServer, type User } from 'fpp-server/src/room.entity';
 
 import { getFromLocalstorage } from 'fpp/store/local-storage.store';
 import { useSidebarStore } from 'fpp/store/sidebar.store';
 
 import { type ICreateVote } from 'fpp/server/db/schema';
-
-import {
-  type RoomStateServer,
-  type User,
-} from 'fpp/server/room-state/room-state.entity';
-
-export async function publishWebSocketEvent({
-  roomState,
-  userId,
-}: {
-  roomState: RoomStateServer;
-  userId: string;
-}) {
-  return fetch(`https://rest.ably.io/channels/room:${roomState.id}/messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${env.ABLY_API_KEY_BASE64}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: 'room-state',
-      clientId: userId,
-      data: roomState.toJson(),
-    }),
-  }).then((res) => {
-    if (!res.ok) {
-      throw new TRPCError({
-        message: `Failed to publish message to Ably`,
-        code: 'INTERNAL_SERVER_ERROR',
-        cause: res.text().then((text) => {
-          return new Error(text);
-        }),
-      });
-    }
-  });
-}
 
 function getEstimationsFromUsers(users: User[]): number[] {
   const estimations = users
@@ -56,7 +18,7 @@ function getEstimationsFromUsers(users: User[]): number[] {
 }
 
 export function getICreateVoteFromRoomState(
-  roomState: RoomStateServer,
+  roomState: RoomServer,
 ): ICreateVote {
   const estimations = getEstimationsFromUsers(roomState.users);
   return {
@@ -81,8 +43,11 @@ export function getICreateVoteFromRoomState(
 export function getAverageFromUsers(users: User[]): number {
   const estimations = getEstimationsFromUsers(users);
   return (
-    estimations.reduce((sum, estimation) => sum + estimation, 0) /
-    estimations.length
+    Math.round(
+      (estimations.reduce((sum, estimation) => sum + estimation, 0) /
+        estimations.length) *
+        100,
+    ) / 100
   );
 }
 
@@ -104,7 +69,15 @@ export function getStackedEstimationsFromUsers(
       voting[index]!.amount++;
     }
   });
-  return voting.slice(0, getAverageFromUsers(users) > 9 ? 3 : 4);
+  // Sort by amount and then number descending
+  return voting
+    .slice(0, getAverageFromUsers(users) > 9 ? 3 : 4)
+    .sort((a, b) => {
+      if (a.amount === b.amount) {
+        return b.number - a.number;
+      }
+      return b.amount - a.amount;
+    });
 }
 
 function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
@@ -136,18 +109,18 @@ function notify({
   });
 }
 
-export function notifyOnRoomStateChanges({
-  newRoomState,
-  oldRoomState,
+export function notifyOnRoomChanges({
+  newRoom,
+  oldRoom,
   userId,
   connectedAt,
 }: {
-  newRoomState: {
+  newRoom: {
     users: User[];
     isAutoFlip: boolean;
     isFlipped: boolean;
   };
-  oldRoomState: {
+  oldRoom: {
     users: User[];
     isAutoFlip: boolean;
     isFlipped: boolean;
@@ -156,8 +129,8 @@ export function notifyOnRoomStateChanges({
   connectedAt: number | null;
 }) {
   // Make tick sound if an estimation or isSpectator changed
-  for (const newUser of newRoomState.users) {
-    const oldUser = oldRoomState.users.find((user) => user.id === newUser.id);
+  for (const newUser of newRoom.users) {
+    const oldUser = oldRoom.users.find((user) => user.id === newUser.id);
     if (
       oldUser &&
       (oldUser.estimation !== newUser.estimation ||
@@ -168,13 +141,13 @@ export function notifyOnRoomStateChanges({
   }
 
   // Make success sound and close sidebar if flipped
-  if (!oldRoomState.isFlipped && newRoomState.isFlipped) {
+  if (!oldRoom.isFlipped && newRoom.isFlipped) {
     playSound('success');
     useSidebarStore.setState({ tab: null });
   }
 
   // Notify on auto flip enabled
-  if (newRoomState.isAutoFlip && !oldRoomState.isAutoFlip) {
+  if (newRoom.isAutoFlip && !oldRoom.isAutoFlip) {
     notify({
       color: 'orange',
       title: 'Auto flip enabled',
@@ -191,8 +164,8 @@ export function notifyOnRoomStateChanges({
   }
 
   // Notify and join sound once new user joins and who it is
-  const newUser = newRoomState.users.find(
-    (user) => !oldRoomState.users.some((oldUser) => oldUser.id === user.id),
+  const newUser = newRoom.users.find(
+    (user) => !oldRoom.users.some((oldUser) => oldUser.id === user.id),
   );
 
   if (newUser && newUser.id !== userId) {
@@ -206,8 +179,8 @@ export function notifyOnRoomStateChanges({
   }
 
   // Notify and leave sound once user leaves and who it is
-  const leftUser = oldRoomState.users.find(
-    (user) => !newRoomState.users.some((newUser) => newUser.id === user.id),
+  const leftUser = oldRoom.users.find(
+    (user) => !newRoom.users.some((newUser) => newUser.id === user.id),
   );
   if (leftUser) {
     playSound('leave');

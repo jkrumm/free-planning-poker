@@ -4,19 +4,13 @@ import React, { useEffect } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { env } from 'fpp/env';
-
 import { Loader } from '@mantine/core';
 
-import * as Ably from 'ably';
-import { AblyProvider } from 'ably/react';
-
-// import { useLogger } from 'next-axiom';
 import { api } from 'fpp/utils/api';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
-import { useRoomStateStore } from 'fpp/store/room-state.store';
+import { useRoomStore } from 'fpp/store/room.store';
 
 import { RouteType } from 'fpp/server/db/schema';
 
@@ -27,7 +21,6 @@ import { UsernameModel } from 'fpp/components/room/username-model';
 
 const RoomWrapper = () => {
   const router = useRouter();
-  // const logger = useLogger().with({ route: RouteType.ROOM });
 
   const username = useLocalstorageStore((store) => store.username);
   const userId = useLocalstorageStore((state) => state.userId);
@@ -35,17 +28,9 @@ const RoomWrapper = () => {
     (state) => state.setUserId,
   );
 
-  const setUserIdRoomState = useRoomStateStore((state) => state.setUserId);
+  const setUserIdRoomState = useRoomStore((state) => state.setUserId);
   if (validateNanoId(userId)) {
     setUserIdRoomState(userId!);
-  }
-
-  let ablyClient;
-  if (validateNanoId(userId)) {
-    ablyClient = new Ably.Realtime.Promise({
-      authUrl: `${env.NEXT_PUBLIC_API_ROOT}api/ably-token`,
-      clientId: userId!,
-    });
   }
 
   const joinRoomMutation = api.room.joinRoom.useMutation();
@@ -126,7 +111,6 @@ const RoomWrapper = () => {
               source: null,
               setUserIdLocalStorage,
               setUserIdRoomState,
-              // logger,
             });
           },
         },
@@ -134,7 +118,6 @@ const RoomWrapper = () => {
     }
 
     setFirstLoad(false);
-    // logger.with({ userId, roomId });
 
     if (!username) {
       setModelOpen(true);
@@ -153,17 +136,14 @@ const RoomWrapper = () => {
             />
           );
         }
-        if (roomId && userId && ablyClient && roomName) {
+        if (roomId && userId && roomName) {
           return (
-            <AblyProvider client={ablyClient}>
-              <Room
-                roomId={roomId}
-                roomName={roomName}
-                userId={userId}
-                username={username}
-                // logger={logger}
-              />
-            </AblyProvider>
+            <Room
+              roomId={roomId}
+              roomName={roomName}
+              userId={userId}
+              username={username}
+            />
           );
         }
         return <Loader variant="bars" />;

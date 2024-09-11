@@ -10,7 +10,7 @@ type SidebarStore = {
   setTab: (tab: null | keyof typeof SidebarTabs) => void;
 };
 
-export const useSidebarStore = create<SidebarStore>((set, get) => ({
+export const useSidebarStore = create<SidebarStore>((set) => ({
   tab: null,
   setTab: (tab) => set({ tab }),
 }));

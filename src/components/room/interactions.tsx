@@ -5,19 +5,18 @@ import { useRouter } from 'next/router';
 import { Button, Switch } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
-// import { type Logger } from 'next-axiom';
+import { type Action } from 'fpp-server/src/room.actions';
+import { RoomStateStatus } from 'fpp-server/src/room.entity';
+
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
-import { api } from 'fpp/utils/api';
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
-import { useRoomStateStore } from 'fpp/store/room-state.store';
+import { useRoomStore } from 'fpp/store/room.store';
 
 import { EventType } from 'fpp/server/db/schema';
-
-import { roomStateStatus } from 'fpp/server/room-state/room-state.entity';
 
 import Counter from 'fpp/components/room/counter';
 
@@ -25,12 +24,12 @@ export const Interactions = ({
   roomId,
   roomName,
   userId,
-  // logger,
+  triggerAction,
 }: {
   roomId: number;
   roomName: string;
   userId: string;
-  // logger: Logger;
+  triggerAction: (action: Action) => void;
 }) => {
   const router = useRouter();
 
@@ -39,19 +38,12 @@ export const Interactions = ({
   const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
 
   // User state
-  const estimation = useRoomStateStore((store) => store.estimation);
-  const estimateMutation = api.roomState.estimate.useMutation();
-  const isSpectator = useRoomStateStore((store) => store.isSpectator);
-  const setIsSpectator = useLocalstorageStore((store) => store.setIsSpectator);
-  const spectatorMutation = api.roomState.spectator.useMutation();
-  const leaveMutation = api.roomState.leave.useMutation();
+  const estimation = useRoomStore((store) => store.estimation);
+  const isSpectator = useRoomStore((store) => store.isSpectator);
 
-  // Room state
-  const status = useRoomStateStore((store) => store.status);
-  const resetMutation = api.roomState.reset.useMutation();
-  const isAutoFlip = useRoomStateStore((store) => store.isAutoFlip);
-  const autoFlipMutation = api.roomState.autoFlip.useMutation();
-  const resetRoomState = useRoomStateStore((store) => store.reset);
+  // Room
+  const status = useRoomStore((store) => store.status);
+  const isAutoFlip = useRoomStore((store) => store.isAutoFlip);
 
   const roomRef = useRef(null);
 
@@ -95,7 +87,6 @@ export const Interactions = ({
                 sendTrackEvent({
                   event: EventType.COPIED_ROOM_LINK,
                   userId,
-                  // logger,
                 });
               }}
             >
@@ -108,27 +99,28 @@ export const Interactions = ({
             <Button
               className="mr-3"
               variant={
-                status === roomStateStatus.flipped ? 'filled' : 'default'
+                status === RoomStateStatus.flipped ? 'filled' : 'default'
               }
               onClick={() => {
-                resetMutation.mutate({
+                triggerAction({
+                  action: 'reset',
                   roomId,
                   userId,
                 });
               }}
             >
-              {status === roomStateStatus.flipped ? 'New Round' : 'Reset'}
+              {status === RoomStateStatus.flipped ? 'New Round' : 'Reset'}
             </Button>
             <Button
               variant={'default'}
               onClick={() => {
                 setRoomId(null);
                 setRoomReadable(null);
-                leaveMutation.mutate({
+                triggerAction({
+                  action: 'leave',
                   roomId,
                   userId,
                 });
-                resetRoomState();
                 router
                   .push(`/`)
                   .then(() => ({}))
@@ -143,13 +135,14 @@ export const Interactions = ({
           <Button.Group className="w-full">
             {fibonacciSequence.map((number) => (
               <Button
-                disabled={isSpectator || status === roomStateStatus.flipped}
+                disabled={isSpectator || status === RoomStateStatus.flipped}
                 variant={estimation === number ? 'filled' : 'default'}
                 size={'lg'}
                 fullWidth
                 key={number}
                 onClick={() => {
-                  estimateMutation.mutate({
+                  triggerAction({
+                    action: 'estimate',
                     roomId,
                     userId,
                     estimation: estimation === number ? null : number,
@@ -166,12 +159,12 @@ export const Interactions = ({
         <Counter />
         <Switch
           className="mb-2 cursor-pointer"
-          disabled={status === roomStateStatus.flipped}
+          disabled={status === RoomStateStatus.flipped}
           label="Spectator"
           checked={isSpectator}
           onChange={(event) => {
-            setIsSpectator(event.currentTarget.checked);
-            spectatorMutation.mutate({
+            triggerAction({
+              action: 'setSpectator',
               roomId,
               userId,
               isSpectator: event.currentTarget.checked,
@@ -183,7 +176,8 @@ export const Interactions = ({
           className="cursor-pointer"
           checked={isAutoFlip}
           onChange={(event) => {
-            autoFlipMutation.mutate({
+            triggerAction({
+              action: 'setAutoFlip',
               roomId,
               userId,
               isAutoFlip: event.currentTarget.checked,

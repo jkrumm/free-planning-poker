@@ -4,41 +4,44 @@ import React from 'react';
 
 import { Button } from '@mantine/core';
 
-import { api } from 'fpp/utils/api';
+import { type Action } from 'fpp-server/src/room.actions';
+import { RoomStateStatus, type User } from 'fpp-server/src/room.entity';
 
-import { useRoomStateStore } from 'fpp/store/room-state.store';
-
-import {
-  type User,
-  roomStateStatus,
-} from 'fpp/server/room-state/room-state.entity';
 import {
   getAverageFromUsers,
   getStackedEstimationsFromUsers,
-} from 'fpp/server/room-state/room-state.utils';
+} from 'fpp/utils/room.util';
+
+import { useRoomStore } from 'fpp/store/room.store';
 
 export const Table = ({
   roomId,
   userId,
-  // logger,
+  triggerAction,
 }: {
   roomId: number;
   userId: string;
-  // logger: Logger;
+  triggerAction: (action: Action) => void;
 }) => {
-  const users = useRoomStateStore((store) => store.users);
-  const status = useRoomStateStore((store) => store.status);
+  const users = useRoomStore((store) => store.users);
+  const status = useRoomStore((store) => store.status);
 
   return (
     <div className="table">
       <div className="card-place">
         {(function () {
           switch (status) {
-            case roomStateStatus.flipped:
+            case RoomStateStatus.flipped:
               return <StackedEstimations users={users} />;
-            case roomStateStatus.flippable:
-              return <ShowVotesButton roomId={roomId} userId={userId} />;
-            case roomStateStatus.estimating:
+            case RoomStateStatus.flippable:
+              return (
+                <ShowVotesButton
+                  roomId={roomId}
+                  userId={userId}
+                  triggerAction={triggerAction}
+                />
+              );
+            case RoomStateStatus.estimating:
             default:
               return <div className="vote">VOTE</div>;
           }
@@ -53,7 +56,7 @@ export const Table = ({
               {user.name}
             </div>
             <div
-              className={`card players ${status === roomStateStatus.flipped && 'flipped'} ${
+              className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${
                 user.status
               }`}
             >
@@ -92,19 +95,20 @@ function StackedEstimations({ users }: { users: User[] }) {
 function ShowVotesButton({
   roomId,
   userId,
+  triggerAction,
 }: {
   roomId: number;
   userId: string;
+  triggerAction: (action: Action) => void;
 }) {
-  const flipMutation = api.roomState.flip.useMutation();
-
   return (
     <div className="relative flex h-full w-full items-center justify-center">
       <Button
         size="lg"
         className="center"
         onClick={() => {
-          flipMutation.mutate({
+          triggerAction({
+            action: 'flip',
             roomId,
             userId,
           });

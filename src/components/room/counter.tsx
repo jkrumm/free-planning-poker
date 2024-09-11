@@ -7,15 +7,15 @@ import {
   useTransform,
 } from 'framer-motion';
 
-import { useRoomStateStore } from 'fpp/store/room-state.store';
+import { useRoomStore } from 'fpp/store/room.store';
 
 const fontSize = 18;
 const padding = 18;
 const height = fontSize + padding;
 
 function Counter() {
-  const startedAt = useRoomStateStore((store) => store.startedAt);
-  const isFlipped = useRoomStateStore((store) => store.isFlipped);
+  const startedAt = useRoomStore((store) => store.startedAt);
+  const isFlipped = useRoomStore((store) => store.isFlipped);
 
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
