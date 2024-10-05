@@ -32,7 +32,9 @@ export const Room = ({
   const connectedAt = useRoomStore((store) => store.connectedAt);
 
   const { sendMessage, readyState } = useWebSocket(
-    `ws://${env.NEXT_PUBLIC_FPP_SERVER_URL}/ws?roomId=${roomId}&userId=${userId}&username=${username}`,
+    `${
+      env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'wss' : 'ws'
+    }://${env.NEXT_PUBLIC_FPP_SERVER_URL}/ws?roomId=${roomId}&userId=${userId}&username=${username}`,
     {
       shouldReconnect: () => true,
       reconnectAttempts: 20,
