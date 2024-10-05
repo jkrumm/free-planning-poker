@@ -1,5 +1,17 @@
 
 
+## [6.0.0](https://github.com/jkrumm/free-planning-poker/compare/5.4.0...6.0.0) (2024-10-05)
+
+
+### Features
+
+* **v6:** new Bun fpp-server as WebSocket server ([ea766b1](https://github.com/jkrumm/free-planning-poker/commit/ea766b15bece6117bc16569a6fd18c9af6e745db))
+
+
+### Other Changes
+
+* use wss not ws on prod to access WebSocket ([0881db9](https://github.com/jkrumm/free-planning-poker/commit/0881db9f89af97a68eda75b3cf4d49e6f75e301c))
+
 ## [5.4.0](https://github.com/jkrumm/free-planning-poker/compare/5.3.0...5.4.0) (2024-09-08)
 
 
