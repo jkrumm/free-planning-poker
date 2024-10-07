@@ -95,26 +95,21 @@ const Imprint: NextPage = () => {
             protection principles.
             <br />
             <br />
-            Our service heavily relies on Ably, a <strong>
-              WebSocket
-            </strong>{' '}
-            provider known for making data protection compliance its priority
-            and adhering to EU GDPR while employing 256-bit AES encryption. Ably
-            ensures that data in transit remains secure and confidential. You
-            may refer to{' '}
+            Our service employs a custom-built, open-source{' '}
+            <strong>WebSocket server</strong> implemented using Bun and ElysiaJS
+            to enable real-time communication. This server, part of the
+            free-planning-poker.com project, is completely stateless and does
+            not track or store any user information. Its sole purpose is to
+            share the current state of voting among connected users. You can
+            view the code and contribute to its development on our{' '}
             <a
-              href="https://ably.com/privacy"
+              href="https://github.com/jkrumm/free-planning-poker"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Ablys privacy policy
+              GitHub repository
             </a>
-            . Within our service, Ably Websockets enable the transparent sharing
-            of usernames and votes. However, this data does not persist after
-            exiting the room or once the room remains inactive for a period.
-            Therefore, data from previous sessions, including usernames and
-            votes, cannot be accessed by later visitors unless actively present
-            in the room.
+            . It is running on a Hetzner VPS located in Nuremberg, Germany.
             <br />
             <br />
             We utilize <strong>Sentry</strong> for error tracking to improve our
@@ -134,7 +129,7 @@ const Imprint: NextPage = () => {
               rel="noopener noreferrer"
             >
               {/* eslint-disable-next-line react/no-unescaped-entities */}
-              Sentry's Privacy Policy
+              Sentry Privacy Policy
             </a>
             . In our implementation, we ensure that no PII is sent to Sentry.
             Our configuration and implementation removes user details (request
@@ -147,10 +142,20 @@ const Imprint: NextPage = () => {
             </strong>{' '}
             (name and email), in agreement with GDPR definitions, are managed
             with utmost confidentiality and used solely for responding to your
-            inquiries. We will seek your consent prior to using this data for
-            any unrelated purpose. Moreover, we do not use any third-party
-            services for our contact form, which could access or store your
-            data.
+            inquiries. We use resend.com as a third-party service to forward
+            these emails securely to our inbox. Resend.com is fully GDPR
+            compliant and does not store any personal data or the information
+            you entered into the contact form fields. You can read more about
+            their privacy practices here:{' '}
+            <a
+              href="https://resend.com/legal/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Resend.com Privacy Policy
+            </a>
+            . We will seek your consent prior to using this data for any
+            unrelated purpose.
             <br />
             <br />
             Our website runs on a proprietary <strong>database</strong> system
@@ -171,9 +176,10 @@ const Imprint: NextPage = () => {
             <br />
             <br />
             <h2>Data Retention</h2>
-            We ensure that all Ably channels are automatically closed and
-            deleted after 5 minutes of inactivity or when the last user leaves.
-            Our analytics are fully GDPR compliant and are anonymized in such a
+            Our Bun WebSocket server is stateless, meaning it does not store any
+            session data. All communications are ephemeral, ensuring that no
+            user information persists beyond the immediate session. Our
+            analytics are fully GDPR compliant and are anonymized in such a
             {/* eslint-disable-next-line react/no-unescaped-entities */}
             way that they cannot be linked back to any individual's identity, IP
             address, email, or username. Therefore, we typically do not aim to
