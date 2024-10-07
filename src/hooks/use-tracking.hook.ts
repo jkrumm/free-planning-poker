@@ -30,25 +30,27 @@ export const useTrackPageView = (
 
   useEffect(() => {
     if (hasMounted) {
-      // Extract source from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      let source = urlParams.get('source');
-      if (source === null) {
-        source = document.referrer === '' ? null : document.referrer;
-      }
+      startTransition(() => {
+        // Extract source from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let source = urlParams.get('source');
+        if (source === null) {
+          source = document.referrer === '' ? null : document.referrer;
+        }
 
-      // Remove source query param from URL
-      const url = new URL(window.location.href);
-      url.searchParams.delete('source');
-      window.history.replaceState({}, '', url.toString());
+        // Remove source query param from URL
+        const url = new URL(window.location.href);
+        url.searchParams.delete('source');
+        window.history.replaceState({}, '', url.toString());
 
-      sendTrackPageView({
-        userId,
-        route,
-        roomId,
-        source,
-        setUserIdLocalStorage,
-        setUserIdRoomState,
+        sendTrackPageView({
+          userId,
+          route,
+          roomId,
+          source,
+          setUserIdLocalStorage,
+          setUserIdRoomState,
+        });
       });
     }
   }, [hasMounted, route, roomId]);
@@ -79,15 +81,25 @@ export const sendTrackPageView = ({
     const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
 
     if (navigator.sendBeacon && userId && validateNanoId(userId)) {
-      navigator.sendBeacon(url, body);
+      try {
+        navigator.sendBeacon(url, body);
+      } catch (e) {
+        fetch(url, { body, method: 'POST', keepalive: true })
+          .then((res) => res.json() as Promise<{ userId: string }>)
+          .then(({ userId }) => {
+            setUserIdLocalStorage(userId);
+            setUserIdRoomState(userId);
+          })
+          .catch((e) => {
+            throw e;
+          });
+      }
     } else {
       fetch(url, { body, method: 'POST', keepalive: true })
         .then((res) => res.json() as Promise<{ userId: string }>)
         .then(({ userId }) => {
-          startTransition(() => {
-            setUserIdLocalStorage(userId);
-            setUserIdRoomState(userId);
-          });
+          setUserIdLocalStorage(userId);
+          setUserIdRoomState(userId);
         })
         .catch((e) => {
           throw e;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -17,6 +17,12 @@ import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { RoomEvent } from 'fpp/server/db/schema';
 
 const IndexForm = () => {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const router = useRouter();
 
   const roomName = useLocalstorageStore((state) => state.roomName);
@@ -32,6 +38,9 @@ const IndexForm = () => {
   }
 
   useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
     if (!roomName || roomName === 'null' || roomName === 'undefined') {
       setRoomReadable(null);
     } else {
@@ -40,7 +49,7 @@ const IndexForm = () => {
         .then(() => ({}))
         .catch(() => ({}));
     }
-  }, [roomName]);
+  }, [hasMounted, roomName]);
 
   const form = useForm({
     initialValues: {

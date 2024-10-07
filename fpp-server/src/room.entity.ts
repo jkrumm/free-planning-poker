@@ -216,7 +216,7 @@ export class RoomServer extends RoomBase {
   }
 
   flip() {
-    if (!this.isFlippable) {
+    if (!this.isFlippable && !this.isFlipped) {
       throw new Error('Cannot flip when not flippable');
     }
     this.isFlipped = true;

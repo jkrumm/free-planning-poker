@@ -1,6 +1,5 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
 
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -10,26 +9,13 @@ import { IconAlertCircle } from '@tabler/icons-react';
 
 import { Meta } from 'fpp/components/meta';
 
-// import RoomWrapper from "fpp/components/room/room-wrapper";
-
 const CenteredLoader = () => (
   <div className="flex min-h-screen justify-center">
     <Loader variant="bars" className="my-auto" />
   </div>
 );
 
-const RoomWrapper = dynamic(
-  () => import('../../components/room/room-wrapper'),
-  { ssr: false },
-);
-
-// const RoomWrapperWithNoSSR = dynamic(
-//   () => import("../../components/room/room-wrapper"),
-//   {
-//     ssr: false,
-//     loading: () => <CenteredLoader />,
-//   },
-// );
+const RoomWrapper = lazy(() => import('../../components/room/room-wrapper'));
 
 const RoomPage = () => {
   const router = useRouter();
@@ -59,7 +45,6 @@ const RoomPage = () => {
           <Suspense fallback={<CenteredLoader />}>
             <RoomWrapper />
           </Suspense>
-          {/*<RoomWrapperWithNoSSR />*/}
         </div>
       </div>
     </>

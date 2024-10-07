@@ -53,6 +53,10 @@ export const Room = ({
         interval: 30000, // every 30 second, a ping message will be sent
       },
       onMessage: (message: MessageEvent<string>) => {
+        if (!message.data) {
+          return;
+        }
+
         if (message.data === 'pong') {
           return;
         }
@@ -68,7 +72,7 @@ export const Room = ({
             console.error('Error:', data.error);
             Sentry.captureException(new Error(logMsg.INCOMING_MESSAGE), {
               extra: {
-                message: data,
+                message: JSON.stringify(data),
                 roomId,
               },
               tags: {
@@ -86,7 +90,7 @@ export const Room = ({
           console.debug('onMessage', message);
           Sentry.captureException(e, {
             extra: {
-              message: message,
+              message: JSON.stringify(message),
               roomId,
             },
             tags: {
@@ -99,7 +103,7 @@ export const Room = ({
         console.error('onError', event);
         Sentry.captureException(new Error(logMsg.INCOMING_ERROR), {
           extra: {
-            message: event,
+            message: JSON.stringify(event),
             roomId,
           },
           tags: {
