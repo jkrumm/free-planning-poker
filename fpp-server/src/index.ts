@@ -15,6 +15,7 @@ import {
   isSetSpectatorAction,
 } from './room.actions';
 import { RoomState } from './room.state';
+import { Analytics } from './types';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -42,52 +43,10 @@ const app = new Elysia({
   })
 );
 
-app.get(
-  '/analytics',
-  (): {
-    connectedUsers: number;
-    openRooms: number;
-    rooms: {
-      userCount: number;
-      lastActive: string;
-      users: {
-        estimation: any;
-        isSpectator: boolean;
-        lastActive: string;
-      }[];
-    }[];
-  } => {
-    roomState.cleanupInactiveUsers();
-
-    let connectedUsers = 0;
-    const roomsList = Array.from(roomState['rooms'].values()).map((room) => {
-      let mostRecentActivity = 0;
-      const users = room.users.map((user) => {
-        connectedUsers++;
-        if (user.lastHeartbeat > mostRecentActivity) {
-          mostRecentActivity = user.lastHeartbeat;
-        }
-        return {
-          estimation: user.estimation,
-          isSpectator: user.isSpectator,
-          lastActive: new Date(user.lastHeartbeat).toLocaleString(), // Human-readable timestamp
-        };
-      });
-
-      return {
-        userCount: room.users.length,
-        lastActive: new Date(mostRecentActivity).toLocaleString(), // Most recent activity in the room
-        users,
-      };
-    });
-
-    return {
-      connectedUsers, // Total number of users across all rooms
-      openRooms: roomState['rooms'].size,
-      rooms: roomsList,
-    };
-  }
-);
+app.get('/analytics', (): Analytics => {
+  roomState.cleanupInactiveUsers();
+  return roomState.toAnalytics();
+});
 
 app.ws('/ws', {
   body: ActionSchema,

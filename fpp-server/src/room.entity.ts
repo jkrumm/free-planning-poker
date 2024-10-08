@@ -28,6 +28,7 @@ export class User {
   estimation: number | null = null;
   isSpectator: boolean;
   ws: ElysiaWS<ServerWebSocket<any>, any>;
+  firstHeartbeat = Date.now();
   lastHeartbeat = Date.now();
 
   get status(): keyof typeof userStatus {

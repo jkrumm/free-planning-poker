@@ -1,6 +1,7 @@
 import { ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, User } from './room.entity';
+import { Analytics, AnalyticsUser } from './types';
 
 export class RoomState {
   private rooms: Map<number, RoomServer> = new Map();
@@ -55,6 +56,7 @@ export class RoomState {
       for (const user of room.users) {
         user.ws.send(room.toStringifiedJson());
       }
+      room.lastUpdated = Date.now();
       room.hasChanged = false; // Reset change flag after update
     }
   }
@@ -96,5 +98,48 @@ export class RoomState {
     if (hasChanged) {
       this.cleanupInactiveRooms();
     }
+  }
+
+  toAnalytics(): Analytics {
+    let connectedUsers = 0;
+    const roomsList = Array.from(this['rooms'].values()).map((room) => {
+      let mostRecentActivity = room.startedAt;
+      const users: AnalyticsUser[] = room.users.map((user) => {
+        connectedUsers++;
+        if (user.lastHeartbeat > mostRecentActivity) {
+          mostRecentActivity = user.lastHeartbeat;
+        }
+        return {
+          estimation: user.estimation,
+          isSpectator: user.isSpectator,
+          firstActive: user.firstHeartbeat,
+          firstActiveReadable: new Date(user.firstHeartbeat).toLocaleString(),
+          lastActive: user.lastHeartbeat,
+          lastActiveReadable: new Date(user.lastHeartbeat).toLocaleString(),
+        };
+      });
+
+      const lastActive =
+        room.lastUpdated > mostRecentActivity
+          ? room.lastUpdated
+          : mostRecentActivity;
+
+      return {
+        userCount: room.users.length,
+        firstActive: room.startedAt,
+        firstActiveReadable: new Date(room.startedAt).toLocaleString(),
+        lastActive,
+        lastActiveReadable: new Date(lastActive).toLocaleString(),
+        lastUpdated: room.lastUpdated,
+        lastUpdatedReadable: new Date(room.lastUpdated).toLocaleString(),
+        users,
+      };
+    });
+
+    return {
+      connectedUsers,
+      openRooms: this['rooms'].size,
+      rooms: roomsList,
+    };
   }
 }
