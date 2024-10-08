@@ -1,5 +1,21 @@
 
 
+## [6.1.0](https://github.com/jkrumm/free-planning-poker/compare/6.0.0...6.1.0) (2024-10-08)
+
+
+### Features
+
+* added 404 page ([7518790](https://github.com/jkrumm/free-planning-poker/commit/7518790bee65f96d35bb6242079ce4281fdef42b))
+* updated Imprint to include own WebSocket server and Resend ([de0f6e8](https://github.com/jkrumm/free-planning-poker/commit/de0f6e867c9ce6d45d7a4f73e674159030048154))
+* **v6:** added rejoin logic to keep user state shared ([fa89e5f](https://github.com/jkrumm/free-planning-poker/commit/fa89e5fa38adfff46d5ec5b3f9ed4927fcdd0ab4))
+* **v6:** extended analytics with timestamps ([41ae314](https://github.com/jkrumm/free-planning-poker/commit/41ae31461f88879a068b3950148a8edd148b896d))
+* **v6:** unified RoomState to reduce inconsistencies ([674a5ac](https://github.com/jkrumm/free-planning-poker/commit/674a5ac94dace486c65e4640099406678cb35206))
+
+
+### Bug Fixes
+
+* various Sentry errors ([c91725c](https://github.com/jkrumm/free-planning-poker/commit/c91725cddc787d925b3ce7fdc48b3fe307609d91))
+
 ## [6.0.0](https://github.com/jkrumm/free-planning-poker/compare/5.4.0...6.0.0) (2024-10-05)
 
 
