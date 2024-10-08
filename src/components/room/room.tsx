@@ -74,6 +74,7 @@ export const Room = ({
               extra: {
                 message: JSON.stringify(data),
                 roomId,
+                userId,
               },
               tags: {
                 endpoint: logMsg.INCOMING_MESSAGE,
@@ -81,17 +82,30 @@ export const Room = ({
             });
             return;
           }
-
           updateRoomState(
             RoomClient.fromJson(JSON.parse(String(message.data)) as RoomDto),
           );
         } catch (e) {
+          if (
+            e instanceof Error &&
+            e.message === 'User not found - userId not found'
+          ) {
+            triggerAction({
+              action: 'rejoin',
+              roomId,
+              userId,
+              username,
+            });
+            return;
+          }
+
           console.error('Error onMessage:', e);
           console.debug('onMessage', message);
           Sentry.captureException(e, {
             extra: {
               message: JSON.stringify(message),
               roomId,
+              userId,
             },
             tags: {
               endpoint: logMsg.INCOMING_MESSAGE,
@@ -100,11 +114,15 @@ export const Room = ({
         }
       },
       onError: (event) => {
+        if (Object.keys(event).length === 1 && event.isTrusted) {
+          return;
+        }
         console.error('onError', event);
         Sentry.captureException(new Error(logMsg.INCOMING_ERROR), {
           extra: {
             message: JSON.stringify(event),
             roomId,
+            userId,
           },
           tags: {
             endpoint: logMsg.INCOMING_ERROR,

@@ -165,8 +165,9 @@ export class RoomServer extends RoomBase {
   addUser(user: CreateUserDto) {
     if (!this.users.some((u) => u.id === user.id)) {
       this.users.push(new User(user));
-      this.hasChanged = true;
     }
+    // NOTE: we always set hasChanged to repare out of sync for users
+    this.hasChanged = true;
   }
 
   removeUser(userId: string) {
