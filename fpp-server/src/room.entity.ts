@@ -1,4 +1,5 @@
 // @ts-ignore
+
 import { ServerWebSocket } from 'bun';
 // @ts-ignore
 import { ElysiaWS } from 'elysia/dist/ws';
@@ -27,6 +28,7 @@ export class User {
   estimation: number | null = null;
   isSpectator: boolean;
   ws: ElysiaWS<ServerWebSocket<any>, any>;
+  lastHeartbeat = Date.now();
 
   get status(): keyof typeof userStatus {
     if (this.isSpectator) {
@@ -166,7 +168,7 @@ export class RoomServer extends RoomBase {
     if (!this.users.some((u) => u.id === user.id)) {
       this.users.push(new User(user));
     }
-    // NOTE: we always set hasChanged to repare out of sync for users
+    // NOTE: we always set hasChanged to repair out of sync for users
     this.hasChanged = true;
   }
 
@@ -174,8 +176,8 @@ export class RoomServer extends RoomBase {
     if (this.users.some((user) => user.id === userId)) {
       this.users = this.users.filter((user) => user.id !== userId);
       this.hasChanged = true;
+      this.autoFlip();
     }
-    this.autoFlip();
   }
 
   changeUsername(userId: string, name: string) {
@@ -218,7 +220,8 @@ export class RoomServer extends RoomBase {
 
   flip() {
     if (!this.isFlippable && !this.isFlipped) {
-      throw new Error('Cannot flip when not flippable');
+      this.hasChanged = true; // NOTE: we always set hasChanged to repair out of sync for users
+      return;
     }
     this.isFlipped = true;
     this.hasChanged = true;

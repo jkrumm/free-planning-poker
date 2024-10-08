@@ -1,7 +1,6 @@
 import { createPinoLogger } from '@bogeychan/elysia-logger';
 import cron from '@elysiajs/cron';
 import { Elysia, t } from 'elysia';
-import { ElysiaWS } from 'elysia/dist/ws';
 import {
   ActionSchema,
   CActionSchema,
@@ -15,20 +14,7 @@ import {
   isSetAutoFlipAction,
   isSetSpectatorAction,
 } from './room.actions';
-import { RoomServer } from './room.entity';
-import {
-  addSocketToRoom,
-  cleanupHeartbeats,
-  cleanupRooms,
-  getOrCreateRoom,
-  heartbeats,
-  removeHeartbeat,
-  removeSocket,
-  rooms,
-  sendToEverySocketInRoom,
-  sockets,
-  updateHeartbeat,
-} from './room.state';
+import { RoomState } from './room.state';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -40,59 +26,64 @@ export const log = createPinoLogger({
   },
 });
 
+const roomState = new RoomState();
+
 const app = new Elysia({
   websocket: {
     idleTimeout: 3 * 60 + 30, // WebSocket idle timeout 3 minutes 30 seconds
   },
-})
-  .use(
-    cron({
-      name: 'cleanupHeartbeats',
-      pattern: '*/30 * * * * *', // Runs every 30 seconds
-      run() {
-        cleanupHeartbeats();
-      },
-    })
-  )
-  .use(
-    cron({
-      name: 'cleanupRooms',
-      pattern: '0 0 * * *', // Runs every hour
-      run() {
-        cleanupRooms();
-      },
-    })
-  );
+}).use(
+  cron({
+    name: 'cleanupInactiveUsers',
+    pattern: '*/30 * * * * *', // Runs every 30 seconds
+    run() {
+      roomState.cleanupInactiveUsers();
+    },
+  })
+);
 
 app.get(
   '/analytics',
   (): {
-    openSockets: number;
-    connectedSocketUsers: number;
-    openHeartbeats: number;
+    connectedUsers: number;
     openRooms: number;
-    rooms: RoomServer[];
+    rooms: {
+      userCount: number;
+      lastActive: string;
+      users: {
+        estimation: any;
+        isSpectator: boolean;
+        lastActive: string;
+      }[];
+    }[];
   } => {
-    let connectedSocketUsers = 0;
+    roomState.cleanupInactiveUsers();
 
-    sockets.forEach((room) => {
-      connectedSocketUsers += room.size;
-    });
-
-    const roomsList = Array.from(rooms.values());
-
-    roomsList.forEach((room) => {
-      room.users.forEach((user) => {
-        // @ts-ignore
-        delete user.ws;
+    let connectedUsers = 0;
+    const roomsList = Array.from(roomState['rooms'].values()).map((room) => {
+      let mostRecentActivity = 0;
+      const users = room.users.map((user) => {
+        connectedUsers++;
+        if (user.lastHeartbeat > mostRecentActivity) {
+          mostRecentActivity = user.lastHeartbeat;
+        }
+        return {
+          estimation: user.estimation,
+          isSpectator: user.isSpectator,
+          lastActive: new Date(user.lastHeartbeat).toLocaleString(), // Human-readable timestamp
+        };
       });
+
+      return {
+        userCount: room.users.length,
+        lastActive: new Date(mostRecentActivity).toLocaleString(), // Most recent activity in the room
+        users,
+      };
     });
 
     return {
-      openSockets: sockets.size,
-      connectedSocketUsers,
-      openHeartbeats: heartbeats.size,
-      openRooms: rooms.size,
+      connectedUsers, // Total number of users across all rooms
+      openRooms: roomState['rooms'].size,
       rooms: roomsList,
     };
   }
@@ -121,9 +112,7 @@ app.ws('/ws', {
       return;
     }
 
-    const room = getOrCreateRoom(roomId);
-
-    room.addUser({
+    roomState.addUserToRoom(roomId, {
       id: userId,
       name: username,
       estimation: null,
@@ -131,8 +120,7 @@ app.ws('/ws', {
       ws,
     });
 
-    addSocketToRoom(roomId, userId, ws as ElysiaWS<any>);
-    sendToEverySocketInRoom(room);
+    roomState.sendToEverySocketInRoom(roomId);
   },
   message(ws, data) {
     try {
@@ -147,13 +135,13 @@ app.ws('/ws', {
         return;
       }
 
-      const room = getOrCreateRoom(data.roomId);
+      const room = roomState.getOrCreateRoom(data.roomId);
 
       log.debug({ ...data, wsId: ws.id }, 'Received message');
 
       switch (true) {
         case isHeartbeatAction(data):
-          updateHeartbeat(ws.id);
+          roomState.updateHeartbeat(ws.id);
           ws.send('pong');
           return;
 
@@ -174,23 +162,17 @@ app.ws('/ws', {
           break;
 
         case isLeaveAction(data):
-          removeSocket(ws.id);
-          removeHeartbeat(ws.id);
-          if (!room.users.some((user) => user.id === data.userId)) {
-            return;
-          }
-          room.removeUser(data.userId);
+          roomState.removeUserFromRoom(data.roomId, data.userId);
           break;
 
         case isRejoinAction(data):
-          room.addUser({
+          roomState.addUserToRoom(data.roomId, {
             id: data.userId,
             name: data.username,
             estimation: null,
             isSpectator: false,
             ws,
           });
-          addSocketToRoom(data.roomId, data.userId, ws as ElysiaWS<any>);
           break;
 
         case isChangeUsernameAction(data):
@@ -198,25 +180,6 @@ app.ws('/ws', {
           break;
 
         case isFlipAction(data):
-          if (!room.isFlippable) {
-            log.error(
-              {
-                status: room.status,
-                wsId: ws.id,
-                ...data,
-              },
-              'Room is not in estimating state during flip action'
-            );
-            ws.send(
-              JSON.stringify({
-                error: 'Cannot flip when not flippable',
-                wsId: ws.id,
-                ...data,
-              })
-            );
-            break;
-          }
-
           room.flip();
           break;
 
@@ -239,7 +202,7 @@ app.ws('/ws', {
           break;
       }
 
-      sendToEverySocketInRoom(room);
+      roomState.sendToEverySocketInRoom(room.id);
     } catch (error) {
       if (error instanceof Error) {
         log.error({ error, wsId: ws.id, ...data }, 'Error processing message');
@@ -257,8 +220,7 @@ app.ws('/ws', {
   },
   close(ws) {
     log.debug({ wsId: ws.id }, `Connection closed`);
-    removeSocket(ws.id);
-    removeHeartbeat(ws.id);
+    roomState.removeUserFromRoomByWsId(ws.id);
   },
   // error(ws, error) {
   //     console.error(`WebSocket error: ${error.message}`);
