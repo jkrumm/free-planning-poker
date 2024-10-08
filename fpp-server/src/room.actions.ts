@@ -1,4 +1,6 @@
+// @ts-ignore
 import { TypeCompiler } from '@sinclair/typebox/compiler';
+// @ts-ignore
 import { Static, t } from 'elysia';
 
 export const BaseActionSchema = t.Object({
@@ -127,6 +129,20 @@ export function isHeartbeatAction(action: any): action is HeartbeatAction {
   return action.action === 'heartbeat';
 }
 
+/** Rejoin action schema */
+export const RejoinActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('rejoin'),
+    username: t.String(),
+  }),
+]);
+export type RejoinAction = Static<typeof RejoinActionSchema>;
+
+export function isRejoinAction(action: any): action is RejoinAction {
+  return action.action === 'rejoin';
+}
+
 /**
  * Action schema union
  */
@@ -134,6 +150,7 @@ export const ActionSchema = t.Union([
   HeartbeatActionSchema,
   FlipActionSchema,
   LeaveActionSchema,
+  RejoinActionSchema,
   ChangeUsernameActionSchema,
   SetAutoFlipActionSchema,
   ResetActionSchema,

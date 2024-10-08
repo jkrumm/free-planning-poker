@@ -10,6 +10,7 @@ import {
   isFlipAction,
   isHeartbeatAction,
   isLeaveAction,
+  isRejoinAction,
   isResetAction,
   isSetAutoFlipAction,
   isSetSpectatorAction,
@@ -107,6 +108,19 @@ app.ws('/ws', {
   open(ws) {
     const { roomId, userId, username } = ws.data.query;
 
+    if (!roomId || !userId || !username) {
+      log.error(
+        {
+          error: 'Missing query parameters',
+          wsId: ws.id,
+          query: ws.data.query,
+        },
+        'Missing query parameters'
+      );
+      ws.close();
+      return;
+    }
+
     const room = getOrCreateRoom(roomId);
 
     room.addUser({
@@ -166,6 +180,17 @@ app.ws('/ws', {
             return;
           }
           room.removeUser(data.userId);
+          break;
+
+        case isRejoinAction(data):
+          room.addUser({
+            id: data.userId,
+            name: data.username,
+            estimation: null,
+            isSpectator: false,
+            ws,
+          });
+          addSocketToRoom(data.roomId, data.userId, ws as ElysiaWS<any>);
           break;
 
         case isChangeUsernameAction(data):
