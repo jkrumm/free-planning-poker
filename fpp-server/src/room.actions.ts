@@ -1,4 +1,5 @@
 // @ts-ignore
+
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 // @ts-ignore
 import { Static, t } from 'elysia';

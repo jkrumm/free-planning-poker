@@ -2,157 +2,99 @@ import { ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, User } from './room.entity';
 
-export const sockets = new Map<number, Map<string, ElysiaWS<any>>>();
+export class RoomState {
+  private rooms: Map<number, RoomServer> = new Map();
 
-export const getOrCreateRoomSockets = (roomId: number) => {
-  if (!sockets.has(roomId)) {
-    sockets.set(roomId, new Map());
-  }
-
-  return sockets.get(roomId);
-};
-
-export const addSocketToRoom = (
-  roomId: number,
-  wsId: string,
-  ws: ElysiaWS<any>
-) => {
-  const roomSockets = getOrCreateRoomSockets(roomId);
-
-  if (!roomSockets) {
-    return;
-  }
-
-  roomSockets.set(wsId, ws);
-};
-
-export const sendToEverySocketInRoom = (room: RoomServer) => {
-  if (!room.hasChanged) {
-    return;
-  }
-
-  const roomSockets = getOrCreateRoomSockets(room.id);
-
-  if (!roomSockets) {
-    return;
-  }
-
-  updateRoom(room);
-
-  for (const ws of roomSockets.values()) {
-    ws.send(room.toStringifiedJson());
-  }
-};
-
-export const removeSocket = (wsId: string) => {
-  for (const roomSockets of sockets.values()) {
-    if (roomSockets.has(wsId)) {
-      roomSockets.delete(wsId);
+  getOrCreateRoom(roomId: number): RoomServer {
+    let room = this.rooms.get(roomId);
+    if (!room) {
+      room = new RoomServer(roomId);
+      this.rooms.set(roomId, room);
     }
-  }
-};
-
-export const rooms = new Map<number, RoomServer>();
-
-export const getOrCreateRoom = (roomId: number): RoomServer => {
-  const room = rooms.get(roomId);
-
-  if (room) {
     return room;
   }
 
-  const newRoom = new RoomServer(roomId);
-  rooms.set(roomId, newRoom);
-  return newRoom;
-};
+  addUserToRoom(roomId: number, user: User): void {
+    const room = this.getOrCreateRoom(roomId);
+    room.addUser(user);
+  }
 
-export const updateRoom = (room: RoomServer) => {
-  rooms.set(room.id, room);
-};
-
-export const cleanupRooms = () => {
-  log.debug(
-    {
-      roomsAmount: rooms.size,
-    },
-    'Running cleanupRooms'
-  );
-  for (const [roomId, room] of rooms) {
+  removeUserFromRoom(roomId: number, userId: string): void {
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      return;
+    }
+    if (!room.users.some((user) => user.id === userId)) {
+      return;
+    }
+    room.removeUser(userId);
     if (room.users.length === 0) {
-      rooms.delete(roomId);
-      log.debug(
-        {
-          roomsAmount: rooms.size,
-          roomId,
-        },
-        'Removed room due to inactivity'
-      );
+      this.rooms.delete(roomId);
+      log.debug({ roomId }, 'Removed room due to inactivity');
     }
   }
-  for (const [roomId, roomSockets] of sockets) {
-    if (roomSockets.size === 0) {
-      sockets.delete(roomId);
-      log.debug(
-        {
-          roomsAmount: rooms.size,
-          roomId,
-        },
-        'Removed room sockets due to inactivity'
-      );
-    }
-  }
-};
 
-export const heartbeats = new Map<string, number>();
-
-export const updateHeartbeat = (wsId: string) => {
-  heartbeats.set(wsId, Date.now());
-};
-
-export const removeHeartbeat = (wsId: string) => {
-  heartbeats.delete(wsId);
-};
-
-export const findRoomAndUserIdByWebsocketId = (
-  wsId: string
-): { room: RoomServer; userId: string } | null => {
-  for (const [roomId, room] of rooms) {
-    for (const user of room.users) {
-      if (user.ws.id === wsId) {
-        return { room, userId: user.id };
+  removeUserFromRoomByWsId(wsId: string): void {
+    for (const room of this.rooms.values()) {
+      for (const user of room.users) {
+        if (user.ws.id === wsId) {
+          room.removeUser(user.id);
+          log.debug(
+            { userId: user.id, roomId: room.id },
+            'Removed user by wsId'
+          );
+          return;
+        }
       }
     }
   }
 
-  return null;
-};
-
-export const cleanupHeartbeats = () => {
-  log.debug(
-    {
-      heartbeatsAmount: heartbeats.size,
-    },
-    'Running cleanupHeartbeats'
-  );
-  const now = Date.now();
-  for (const [wsId, lastHeartbeat] of heartbeats) {
-    if (now - lastHeartbeat > 3 * 60 * 1000) {
-      const roomAndUserId = findRoomAndUserIdByWebsocketId(wsId);
-      if (roomAndUserId) {
-        roomAndUserId.room.removeUser(roomAndUserId.userId);
-        sendToEverySocketInRoom(roomAndUserId.room);
+  sendToEverySocketInRoom(roomId: number): void {
+    const room = this.rooms.get(roomId);
+    if (room && room.hasChanged) {
+      for (const user of room.users) {
+        user.ws.send(room.toStringifiedJson());
       }
-      removeSocket(wsId);
-      removeHeartbeat(wsId);
-      log.info(
-        {
-          heartbeatsAmount: heartbeats.size,
-          wsId,
-          userId: roomAndUserId?.userId,
-          roomId: roomAndUserId?.room.id,
-        },
-        'Removed socket due to inactivity'
-      );
+      room.hasChanged = false; // Reset change flag after update
     }
   }
-};
+
+  cleanupInactiveRooms(): void {
+    for (const [roomId, room] of this.rooms) {
+      if (room.users.length === 0) {
+        this.rooms.delete(roomId);
+        log.debug({ roomId }, 'Removed room due to inactivity');
+      }
+    }
+  }
+
+  updateHeartbeat(wsId: string): void {
+    for (const room of this.rooms.values()) {
+      for (const user of room.users) {
+        if (user.ws.id === wsId) {
+          user.lastHeartbeat = Date.now();
+          return;
+        }
+      }
+    }
+  }
+
+  cleanupInactiveUsers(): void {
+    let hasChanged = false;
+    const now = Date.now();
+    for (const room of this.rooms.values()) {
+      for (const user of room.users) {
+        if (now - user.lastHeartbeat > 3 * 60 * 1000) {
+          room.removeUser(user.id);
+          log.debug(
+            { userId: user.id, roomId: room.id },
+            'Removed user due to inactivity'
+          );
+        }
+      }
+    }
+    if (hasChanged) {
+      this.cleanupInactiveRooms();
+    }
+  }
+}
