@@ -1,4 +1,4 @@
-import { startTransition, useEffect } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 import { api } from 'fpp/utils/api';
 
@@ -7,6 +7,14 @@ import { useConfigStore } from 'fpp/store/config.store';
 import { FeatureFlagType } from 'fpp/server/db/schema';
 
 export const useConfigLoader = () => {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    startTransition(() => {
+      setHasMounted(true);
+    });
+  }, []);
+
   const setFeatureFlags = useConfigStore((state) => state.setFeatureFlags);
 
   const { data: featureFlags, status: statusGetFeatureFlag } =
@@ -28,6 +36,9 @@ export const useConfigLoader = () => {
     });
 
   useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
     startTransition(() => {
       if (statusGetFeatureFlag === 'success') {
         setFeatureFlags(featureFlags);

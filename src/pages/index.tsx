@@ -7,6 +7,8 @@ import { Alert, Text, Title } from '@mantine/core';
 
 import { IconAlertCircle } from '@tabler/icons-react';
 
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+
 import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
@@ -23,6 +25,7 @@ const IndexForm = lazy(() => import('fpp/components/index/form'));
 
 const Home: NextPage = () => {
   useTrackPageView(RouteType.HOME);
+  const userId = useLocalstorageStore((state) => state.userId);
 
   return (
     <div className="homepage">
@@ -41,7 +44,7 @@ const Home: NextPage = () => {
           </Title>
         </div>
         <Suspense fallback={<IndexFormSkeleton />}>
-          <IndexForm />
+          {userId ? <IndexForm /> : <IndexFormSkeleton />}
         </Suspense>
         <div className="mx-8 mb-10 md:hidden">
           <Alert

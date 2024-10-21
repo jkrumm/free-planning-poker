@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -41,14 +41,16 @@ const IndexForm = () => {
     if (!hasMounted) {
       return;
     }
-    if (!roomName || roomName === 'null' || roomName === 'undefined') {
-      setRoomReadable(null);
-    } else {
-      router
-        .push(`/room/${roomName}`)
-        .then(() => ({}))
-        .catch(() => ({}));
-    }
+    startTransition(() => {
+      if (!roomName || roomName === 'null' || roomName === 'undefined') {
+        setRoomReadable(null);
+      } else {
+        router
+          .push(`/room/${roomName}`)
+          .then(() => ({}))
+          .catch(() => ({}));
+      }
+    });
   }, [hasMounted, roomName]);
 
   const form = useForm({
@@ -63,10 +65,12 @@ const IndexForm = () => {
   });
 
   useEffect(() => {
-    const roomValue = form.values.room
-      .replace(/[^A-Za-z0-9]/g, '')
-      .toUpperCase();
-    form.setFieldValue('room', roomValue);
+    startTransition(() => {
+      const roomValue = form.values.room
+        .replace(/[^A-Za-z0-9]/g, '')
+        .toUpperCase();
+      form.setFieldValue('room', roomValue);
+    });
   }, [form.values.room]);
 
   return (

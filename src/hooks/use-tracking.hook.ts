@@ -29,30 +29,32 @@ export const useTrackPageView = (
   const setUserIdRoomState = useLocalstorageStore((state) => state.setUserId);
 
   useEffect(() => {
-    if (hasMounted) {
-      startTransition(() => {
-        // Extract source from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        let source = urlParams.get('source');
-        if (source === null) {
-          source = document.referrer === '' ? null : document.referrer;
-        }
-
-        // Remove source query param from URL
-        const url = new URL(window.location.href);
-        url.searchParams.delete('source');
-        window.history.replaceState({}, '', url.toString());
-
-        sendTrackPageView({
-          userId,
-          route,
-          roomId,
-          source,
-          setUserIdLocalStorage,
-          setUserIdRoomState,
-        });
-      });
+    if (!hasMounted) {
+      return;
     }
+    // Extract source from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let source = urlParams.get('source');
+    if (source === null) {
+      source = document.referrer === '' ? null : document.referrer;
+    }
+
+    // Remove source query param from URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('source');
+
+    startTransition(() => {
+      window.history.replaceState({}, '', url.toString());
+    });
+
+    sendTrackPageView({
+      userId,
+      route,
+      roomId,
+      source,
+      setUserIdLocalStorage,
+      setUserIdRoomState,
+    });
   }, [hasMounted, route, roomId]);
 };
 
@@ -87,8 +89,10 @@ export const sendTrackPageView = ({
         fetch(url, { body, method: 'POST', keepalive: true })
           .then((res) => res.json() as Promise<{ userId: string }>)
           .then(({ userId }) => {
-            setUserIdLocalStorage(userId);
-            setUserIdRoomState(userId);
+            startTransition(() => {
+              setUserIdRoomState(userId);
+              setUserIdLocalStorage(userId);
+            });
           })
           .catch((e) => {
             throw e;
@@ -98,8 +102,10 @@ export const sendTrackPageView = ({
       fetch(url, { body, method: 'POST', keepalive: true })
         .then((res) => res.json() as Promise<{ userId: string }>)
         .then(({ userId }) => {
-          setUserIdLocalStorage(userId);
-          setUserIdRoomState(userId);
+          startTransition(() => {
+            setUserIdRoomState(userId);
+            setUserIdLocalStorage(userId);
+          });
         })
         .catch((e) => {
           throw e;
