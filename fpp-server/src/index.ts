@@ -35,16 +35,16 @@ const app = new Elysia({
   },
 }).use(
   cron({
-    name: 'cleanupInactiveUsers',
+    name: 'cleanupInactiveState',
     pattern: '*/30 * * * * *', // Runs every 30 seconds
     run() {
-      roomState.cleanupInactiveUsers();
+      roomState.cleanupInactiveState();
     },
   })
 );
 
 app.get('/analytics', (): Analytics => {
-  roomState.cleanupInactiveUsers();
+  roomState.cleanupInactiveState();
   return roomState.toAnalytics();
 });
 

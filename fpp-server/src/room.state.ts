@@ -42,7 +42,7 @@ export class RoomState {
           room.removeUser(user.id);
           log.debug(
             { userId: user.id, roomId: room.id },
-            'Removed user by wsId'
+            'Removed user by wsId',
           );
           return;
         }
@@ -61,15 +61,6 @@ export class RoomState {
     }
   }
 
-  cleanupInactiveRooms(): void {
-    for (const [roomId, room] of this.rooms) {
-      if (room.users.length === 0) {
-        this.rooms.delete(roomId);
-        log.debug({ roomId }, 'Removed room due to inactivity');
-      }
-    }
-  }
-
   updateHeartbeat(wsId: string): void {
     for (const room of this.rooms.values()) {
       for (const user of room.users) {
@@ -81,22 +72,23 @@ export class RoomState {
     }
   }
 
-  cleanupInactiveUsers(): void {
-    let hasChanged = false;
+  cleanupInactiveState(): void {
     const now = Date.now();
     for (const room of this.rooms.values()) {
       for (const user of room.users) {
-        if (now - user.lastHeartbeat > 3 * 60 * 1000) {
+        if (now - user.lastHeartbeat > 3 * 60 * 1000) { // 3 minutes
           room.removeUser(user.id);
           log.debug(
             { userId: user.id, roomId: room.id },
-            'Removed user due to inactivity'
+            'Removed user due to inactivity',
           );
         }
       }
-    }
-    if (hasChanged) {
-      this.cleanupInactiveRooms();
+      this.sendToEverySocketInRoom(room.id);
+      if (room.users.length === 0) {
+        this.rooms.delete(room.id);
+        log.debug({ roomId: room.id }, 'Removed room due to inactivity');
+      }
     }
   }
 
