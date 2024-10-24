@@ -32,7 +32,12 @@ export const Table = ({
         {(function () {
           switch (status) {
             case RoomStateStatus.flipped:
-              return <StackedEstimations users={users} />;
+              return (
+                <StackedEstimations
+                  users={users}
+                  triggerAction={triggerAction}
+                />
+              );
             case RoomStateStatus.flippable:
               return (
                 <ShowVotesButton
@@ -69,25 +74,33 @@ export const Table = ({
   );
 };
 
-function StackedEstimations({ users }: { users: User[] }) {
+function StackedEstimations({
+  users,
+  triggerAction,
+}: {
+  users: User[];
+  triggerAction: (action: Action) => void;
+}) {
   return (
     <>
-      {getStackedEstimationsFromUsers(users).map((item, index) => (
-        <div key={index} className={`card-wrapper amount-${item.amount}`}>
-          {(function () {
-            const cards = [];
-            for (let i = 0; i < item.amount; i++) {
-              cards.push(
-                <div className="card" key={i}>
-                  {item.number}
-                </div>,
-              );
-            }
-            return cards;
-          })()}
-        </div>
-      ))}
-      <div className="average">{getAverageFromUsers(users)}</div>
+      {getStackedEstimationsFromUsers(users, triggerAction).map(
+        (item, index) => (
+          <div key={index} className={`card-wrapper amount-${item.amount}`}>
+            {(function () {
+              const cards = [];
+              for (let i = 0; i < item.amount; i++) {
+                cards.push(
+                  <div className="card" key={i}>
+                    {item.number}
+                  </div>,
+                );
+              }
+              return cards;
+            })()}
+          </div>
+        ),
+      )}
+      <div className="average">{getAverageFromUsers(users, triggerAction)}</div>
     </>
   );
 }

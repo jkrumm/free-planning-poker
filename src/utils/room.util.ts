@@ -1,18 +1,42 @@
 import { notifications } from '@mantine/notifications';
 
+import * as Sentry from '@sentry/nextjs';
+import type { Action } from 'fpp-server/src/room.actions';
 import { type RoomServer, type User } from 'fpp-server/src/room.entity';
 
-import { getFromLocalstorage } from 'fpp/store/local-storage.store';
+import {
+  getFromLocalstorage,
+  useLocalstorageStore,
+} from 'fpp/store/local-storage.store';
 import { useSidebarStore } from 'fpp/store/sidebar.store';
 
 import { type ICreateVote } from 'fpp/server/db/schema';
 
-function getEstimationsFromUsers(users: User[]): number[] {
+function getEstimationsFromUsers(
+  users: User[],
+  triggerAction?: (action: Action) => void,
+): number[] {
   const estimations = users
     .map((user) => user.estimation)
     .filter((estimation) => estimation !== null);
-  if (estimations.length === 0) {
-    throw new Error('Cannot calculateCreateVote when no estimations');
+  if (
+    estimations.length === 0 &&
+    triggerAction &&
+    typeof window !== 'undefined'
+  ) {
+    Sentry.captureException(
+      new Error('Cannot calculateCreateVote when no estimations'),
+    );
+    const userId = useLocalstorageStore.getState().userId;
+    const roomId = useLocalstorageStore.getState().roomId;
+
+    if (!userId || !roomId) return estimations;
+
+    triggerAction({
+      action: 'reset',
+      roomId,
+      userId,
+    });
   }
   return estimations;
 }
@@ -40,8 +64,11 @@ export function getICreateVoteFromRoomState(
   };
 }
 
-export function getAverageFromUsers(users: User[]): number {
-  const estimations = getEstimationsFromUsers(users);
+export function getAverageFromUsers(
+  users: User[],
+  triggerAction: (action: Action) => void,
+): number {
+  const estimations = getEstimationsFromUsers(users, triggerAction);
   return (
     Math.round(
       (estimations.reduce((sum, estimation) => sum + estimation, 0) /
@@ -58,6 +85,7 @@ interface IStackedEstimation {
 
 export function getStackedEstimationsFromUsers(
   users: User[],
+  triggerAction: (action: Action) => void,
 ): IStackedEstimation[] {
   const voting: { number: number; amount: number }[] = [];
   users.forEach((item) => {
@@ -71,7 +99,7 @@ export function getStackedEstimationsFromUsers(
   });
   // Sort by amount and then number descending
   return voting
-    .slice(0, getAverageFromUsers(users) > 9 ? 3 : 4)
+    .slice(0, getAverageFromUsers(users, triggerAction) > 9 ? 3 : 4)
     .sort((a, b) => {
       if (a.amount === b.amount) {
         return b.number - a.number;
