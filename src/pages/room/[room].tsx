@@ -1,5 +1,6 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -15,7 +16,13 @@ const CenteredLoader = () => (
   </div>
 );
 
-const RoomWrapper = lazy(() => import('../../components/room/room-wrapper'));
+const RoomWrapper = dynamic(
+  () => import('../../components/room/room-wrapper'),
+  {
+    ssr: false,
+    loading: () => <CenteredLoader />,
+  },
+);
 
 const RoomPage = () => {
   const router = useRouter();
@@ -42,9 +49,7 @@ const RoomPage = () => {
       <div className="max-w-sreen hidden items-start md:flex">
         <Meta title={room} robots="noindex,nofollow" />
         <div className="room-wrapper flex-1">
-          <Suspense fallback={<CenteredLoader />}>
-            <RoomWrapper />
-          </Suspense>
+          <RoomWrapper />
         </div>
       </div>
     </>

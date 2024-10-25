@@ -1,13 +1,12 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 
 import { type NextPage } from 'next';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
 import { Alert, Text, Title } from '@mantine/core';
 
 import { IconAlertCircle } from '@tabler/icons-react';
-
-import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 import { RouteType } from 'fpp/server/db/schema';
 
@@ -21,11 +20,13 @@ import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
-const IndexForm = lazy(() => import('fpp/components/index/form'));
+const IndexForm = dynamic(() => import('fpp/components/index/form'), {
+  ssr: false,
+  loading: () => <IndexFormSkeleton />,
+});
 
 const Home: NextPage = () => {
   useTrackPageView(RouteType.HOME);
-  const userId = useLocalstorageStore((state) => state.userId);
 
   return (
     <div className="homepage">
@@ -43,9 +44,7 @@ const Home: NextPage = () => {
             No signups, open source and privacy focused.
           </Title>
         </div>
-        <Suspense fallback={<IndexFormSkeleton />}>
-          {userId ? <IndexForm /> : <IndexFormSkeleton />}
-        </Suspense>
+        <IndexForm />
         <div className="mx-8 mb-10 md:hidden">
           <Alert
             icon={<IconAlertCircle size="1rem" />}
