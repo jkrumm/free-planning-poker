@@ -16,6 +16,8 @@ export const HistoricalChart = ({
     votes: number;
     acc_votes: number;
     page_views: number;
+    rooms: number;
+    acc_rooms: number;
     acc_page_views: number;
     new_users: number;
     acc_new_users: number;
@@ -55,8 +57,13 @@ export const HistoricalChart = ({
               checked={ChartOptions.showVotes || ChartOptions.showAccVotes}
               onChange={() => setOptions(ChartOptions.toggleVotes())}
             />
-          </Group>
-          <Group>
+            <Switch
+              label="Rooms"
+              className="w-[150px] md:w-auto"
+              color="#8931B2"
+              checked={ChartOptions.showRooms || ChartOptions.showAccRooms}
+              onChange={() => setOptions(ChartOptions.toggleRooms())}
+            />
             <Switch
               label="Page Views"
               className="w-[150px] md:w-auto"

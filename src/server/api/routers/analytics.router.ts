@@ -114,6 +114,8 @@ interface AnalyticsResponse {
     acc_page_views: number;
     new_users: number;
     acc_new_users: number;
+    rooms: number;
+    acc_rooms: number;
   }[];
   location_and_user_agent: {
     browser: Record<string, number>;

@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from config import DATA_DIR
+from config import DATA_DIR, START_DATE
 from util.log_util import logger
 from util.number_util import r
 
@@ -27,10 +27,10 @@ def calc_traffic():
     df_estimations.rename(columns={"estimated_at": "activity_at"}, inplace=True)
 
     # filter df_estimations to include only entries after 23rd of May 2024
-    df_estimations = df_estimations[df_estimations["activity_at"] > pd.Timestamp("2024-05-23")]
+    df_estimations = df_estimations[df_estimations["activity_at"] > pd.Timestamp(START_DATE)]
 
     # filter df_page_views to include only entries after 23rd of May 2024
-    df_page_views = df_page_views[df_page_views["activity_at"] > pd.Timestamp("2024-05-23")]
+    df_page_views = df_page_views[df_page_views["activity_at"] > pd.Timestamp(START_DATE)]
 
     # calculate bounce rate by counting unique users who did not estimate and dividing by unique users
     bounce_rate = r(1 - (df_estimations["user_id"].nunique() / unique_users))
