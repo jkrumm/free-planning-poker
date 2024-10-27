@@ -56,10 +56,12 @@ class HistoricalChartOptions {
   showAccEstimations = false;
   showVotes = true;
   showAccVotes = true;
+  showRooms = false;
+  showAccRooms = false;
   showPageViews = false;
   showAccPageViews = false;
-  showNewUsers = true;
-  showAccNewUsers = true;
+  showNewUsers = false;
+  showAccNewUsers = false;
 
   toggleShowDaily() {
     this.showDaily = !this.showDaily;
@@ -78,6 +80,11 @@ class HistoricalChartOptions {
   toggleVotes() {
     this.showVotes = !this.showVotes;
     this.showAccVotes = !this.showAccVotes;
+    return this.toOptions();
+  }
+  toggleRooms() {
+    this.showRooms = !this.showRooms;
+    this.showAccRooms = !this.showAccRooms;
     return this.toOptions();
   }
   togglePageViews() {
@@ -169,6 +176,34 @@ class HistoricalChartOptions {
         {
           type: 'bar',
           xKey: 'date',
+          yKey: 'rooms',
+          yName: 'Rooms Daily',
+          stacked: true,
+          visible: this.showRooms && this.showDaily,
+          fill: '#8931B2',
+          fillOpacity: this.showAcc ? 0.2 : 1,
+          tooltip: {
+            renderer: (params) => renderer(params, 'Rooms Daily', '#8931B2'),
+          },
+        },
+        {
+          type: 'line',
+          xKey: 'date',
+          yKey: 'acc_rooms',
+          yName: 'Rooms Acc',
+          visible: this.showAccRooms && this.showAcc,
+          strokeWidth: 2,
+          stroke: '#8931B2',
+          marker: {
+            enabled: false,
+          },
+          tooltip: {
+            renderer: (params) => renderer(params, 'Rooms Acc', '#8931B2'),
+          },
+        },
+        {
+          type: 'bar',
+          xKey: 'date',
           yKey: 'page_views',
           yName: 'Pages Views Daily',
           stacked: true,
@@ -234,7 +269,7 @@ class HistoricalChartOptions {
         {
           type: 'number',
           position: 'left',
-          keys: ['estimations', 'votes', 'page_views', 'new_users'],
+          keys: ['estimations', 'votes', 'page_views', 'new_users', 'rooms'],
           title: {
             text: 'Daily amount',
           },
@@ -249,6 +284,7 @@ class HistoricalChartOptions {
           position: 'right',
           keys: [
             'acc_estimations',
+            'acc_rooms',
             'acc_votes',
             'acc_page_views',
             'acc_new_users',
