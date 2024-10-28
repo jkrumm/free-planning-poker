@@ -1,5 +1,6 @@
 import React from 'react';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 import { createServerSideHelpers } from '@trpc/react-query/server';
@@ -20,12 +21,39 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
-import { EstimationChart } from 'fpp/components/analytics/estimations-chart';
-import { HistoricalChart } from 'fpp/components/analytics/historical-chart';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
+
+const LoadingFrame = (props: { height: number }) => (
+  <div
+    style={{
+      height: `${props.height}px`,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    Loading...
+  </div>
+);
+
+const HistoricalChart = dynamic(
+  () => import('fpp/components/analytics/historical-chart'),
+  {
+    ssr: false,
+    loading: () => <LoadingFrame height={685} />,
+  },
+);
+
+const EstimationChart = dynamic(
+  () => import('fpp/components/analytics/estimations-chart'),
+  {
+    ssr: false,
+    loading: () => <LoadingFrame height={450} />,
+  },
+);
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
   const helpers = createServerSideHelpers({

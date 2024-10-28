@@ -1,8 +1,10 @@
+'use client';
+
 import React from 'react';
 
 import { AgCharts } from 'ag-charts-react';
 
-export const EstimationChart = ({
+const EstimationChart = ({
   data,
   title,
   yXisName,
@@ -62,3 +64,5 @@ export const EstimationChart = ({
     </div>
   );
 };
+
+export default EstimationChart;
