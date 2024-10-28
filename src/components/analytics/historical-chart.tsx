@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 import { Card, Group, Switch } from '@mantine/core';
@@ -6,7 +8,7 @@ import { AgCharts } from 'ag-charts-react';
 
 import { ChartOptions } from 'fpp/components/analytics/historical-chart-options';
 
-export const HistoricalChart = ({
+const HistoricalChart = ({
   historical,
 }: {
   historical: {
@@ -95,3 +97,5 @@ export const HistoricalChart = ({
     </>
   );
 };
+
+export default HistoricalChart;
