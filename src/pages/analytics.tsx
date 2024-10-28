@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -6,7 +6,17 @@ import Link from 'next/link';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
-import { Card, Group, SimpleGrid, Switch, Text, Title } from '@mantine/core';
+import {
+  Button,
+  Card,
+  Group,
+  RingProgress,
+  SimpleGrid,
+  Switch,
+  Text,
+  Title,
+  Tooltip,
+} from '@mantine/core';
 
 import * as Sentry from '@sentry/nextjs';
 import superjson from 'superjson';
@@ -72,8 +82,23 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
+  const [lastUpdatedSeconds, setLastUpdatedSeconds] = React.useState(0);
 
-  const { data: analytics } = api.analytics.getAnalytics.useQuery();
+  const {
+    data: analytics,
+    dataUpdatedAt,
+    refetch,
+  } = api.analytics.getAnalytics.useQuery(undefined, {
+    refetchInterval: 30 * 1000, // 30 seconds
+    retry: true,
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdatedSeconds(Math.floor((Date.now() - dataUpdatedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [dataUpdatedAt]);
 
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
 
@@ -132,7 +157,29 @@ const Analytics = () => {
           </Text>
         </section>
         <section className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
-          <h1>Traffic</h1>
+          <div className="flex justify-between">
+            <h1>Traffic</h1>
+            <Tooltip
+              label={`Last update received ${lastUpdatedSeconds} seconds ago`}
+            >
+              <div className="flex flex-wrap">
+                <RingProgress
+                  className="mr-3 mt-[20px]"
+                  size={40}
+                  thickness={6}
+                  sections={[
+                    {
+                      value: (lastUpdatedSeconds / 30) * 100,
+                      color: '#1971C2',
+                    },
+                  ]}
+                />
+                <Button onClick={() => refetch()} className="mt-[23px]">
+                  Refresh
+                </Button>
+              </div>
+            </Tooltip>
+          </div>
           <SimpleGrid
             cols={{
               xs: 2,
