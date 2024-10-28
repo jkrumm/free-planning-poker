@@ -108,14 +108,19 @@ interface AnalyticsResponse {
     date: string;
     estimations: number;
     acc_estimations: number;
+    ma_estimations: number;
     votes: number;
     acc_votes: number;
+    ma_votes: number;
     page_views: number;
     acc_page_views: number;
+    ma_page_views: number;
     new_users: number;
     acc_new_users: number;
+    ma_new_users: number;
     rooms: number;
     acc_rooms: number;
+    ma_rooms: number;
   }[];
   location_and_user_agent: {
     browser: Record<string, number>;

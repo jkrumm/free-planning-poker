@@ -13,14 +13,19 @@ export const HistoricalChart = ({
     date: Date;
     estimations: number;
     acc_estimations: number;
+    ma_estimations: number;
     votes: number;
     acc_votes: number;
-    page_views: number;
+    ma_votes: number;
     rooms: number;
     acc_rooms: number;
+    ma_rooms: number;
+    page_views: number;
     acc_page_views: number;
+    ma_page_views: number;
     new_users: number;
     acc_new_users: number;
+    ma_new_users: number;
   }[];
 }) => {
   const [options, setOptions] = React.useState(ChartOptions.toOptions());
@@ -31,13 +36,19 @@ export const HistoricalChart = ({
         <div className="md:flex justify-between">
           <Group className="pb-4 md:pb-0">
             <Switch
-              label="Daily amounts"
+              label="Daily"
               className="w-[150px] md:w-auto"
               checked={ChartOptions.showDaily}
               onChange={() => setOptions(ChartOptions.toggleShowDaily())}
             />
             <Switch
-              label="Accumulated amounts"
+              label="30-Day MA"
+              className="w-[150px] md:w-auto"
+              checked={ChartOptions.showMa}
+              onChange={() => setOptions(ChartOptions.toggleShowMa())}
+            />
+            <Switch
+              label="Accumulated"
               checked={ChartOptions.showAcc}
               onChange={() => setOptions(ChartOptions.toggleShowAcc())}
             />
@@ -47,38 +58,32 @@ export const HistoricalChart = ({
               label="Estimations"
               color="#40C057"
               className="w-[150px] md:w-auto"
-              checked={
-                ChartOptions.showEstimations || ChartOptions.showAccEstimations
-              }
+              checked={ChartOptions.showEstimations}
               onChange={() => setOptions(ChartOptions.toggleEstimations())}
             />
             <Switch
               label="Votes"
-              checked={ChartOptions.showVotes || ChartOptions.showAccVotes}
+              checked={ChartOptions.showVotes}
               onChange={() => setOptions(ChartOptions.toggleVotes())}
             />
             <Switch
               label="Rooms"
               className="w-[150px] md:w-auto"
               color="#8931B2"
-              checked={ChartOptions.showRooms || ChartOptions.showAccRooms}
+              checked={ChartOptions.showRooms}
               onChange={() => setOptions(ChartOptions.toggleRooms())}
             />
             <Switch
               label="Page Views"
               className="w-[150px] md:w-auto"
               color="#FA5252"
-              checked={
-                ChartOptions.showPageViews || ChartOptions.showAccPageViews
-              }
+              checked={ChartOptions.showPageViews}
               onChange={() => setOptions(ChartOptions.togglePageViews())}
             />
             <Switch
               label="Unique Users"
               color="#FAB005"
-              checked={
-                ChartOptions.showNewUsers || ChartOptions.showAccNewUsers
-              }
+              checked={ChartOptions.showNewUsers}
               onChange={() => setOptions(ChartOptions.toggleNewUsers())}
             />
           </Group>

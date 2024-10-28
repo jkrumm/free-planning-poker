@@ -51,17 +51,13 @@ function renderer(
 class HistoricalChartOptions {
   showDaily = true;
   showAcc = true;
+  showMa = true;
 
   showEstimations = false;
-  showAccEstimations = false;
   showVotes = true;
-  showAccVotes = true;
   showRooms = false;
-  showAccRooms = false;
   showPageViews = false;
-  showAccPageViews = false;
   showNewUsers = false;
-  showAccNewUsers = false;
 
   toggleShowDaily() {
     this.showDaily = !this.showDaily;
@@ -71,31 +67,41 @@ class HistoricalChartOptions {
     this.showAcc = !this.showAcc;
     return this.toOptions();
   }
+  toggleShowMa() {
+    this.showMa = !this.showMa;
+    return this.toOptions();
+  }
 
   toggleEstimations() {
     this.showEstimations = !this.showEstimations;
-    this.showAccEstimations = !this.showAccEstimations;
     return this.toOptions();
   }
   toggleVotes() {
     this.showVotes = !this.showVotes;
-    this.showAccVotes = !this.showAccVotes;
     return this.toOptions();
   }
   toggleRooms() {
     this.showRooms = !this.showRooms;
-    this.showAccRooms = !this.showAccRooms;
     return this.toOptions();
   }
   togglePageViews() {
     this.showPageViews = !this.showPageViews;
-    this.showAccPageViews = !this.showAccPageViews;
     return this.toOptions();
   }
   toggleNewUsers() {
     this.showNewUsers = !this.showNewUsers;
-    this.showAccNewUsers = !this.showAccNewUsers;
     return this.toOptions();
+  }
+
+  get leftLegendName() {
+    if (this.showDaily && this.showMa) {
+      return 'Daily & 30-Day MA';
+    } else if (this.showDaily) {
+      return 'Daily';
+    } else if (this.showMa) {
+      return '30-Day MA';
+    }
+    return '';
   }
 
   toOptions(): AgChartOptions {
@@ -123,7 +129,7 @@ class HistoricalChartOptions {
           stacked: true,
           visible: this.showEstimations && this.showDaily,
           fill: '#40C057',
-          fillOpacity: this.showAcc ? 0.2 : 1,
+          fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
             renderer: (params) =>
               renderer(params, 'Estimations Daily', '#40C057'),
@@ -134,15 +140,37 @@ class HistoricalChartOptions {
           xKey: 'date',
           yKey: 'acc_estimations',
           yName: 'Estimations Acc',
-          visible: this.showAccEstimations && this.showAcc,
+          visible: this.showEstimations && this.showAcc,
           strokeWidth: 2,
           stroke: '#40C057',
           marker: {
             enabled: false,
           },
+          interpolation: {
+            type: 'smooth',
+          },
           tooltip: {
             renderer: (params) =>
               renderer(params, 'Estimations Acc', '#40C057'),
+          },
+        },
+        {
+          type: 'line',
+          xKey: 'date',
+          yKey: 'ma_estimations',
+          yName: 'Estimations MA',
+          visible: this.showEstimations && this.showMa,
+          strokeWidth: 2,
+          strokeOpacity: 0.6,
+          stroke: '#40C057',
+          marker: {
+            enabled: false,
+          },
+          interpolation: {
+            type: 'smooth',
+          },
+          tooltip: {
+            renderer: (params) => renderer(params, 'Estimations MA', '#40C057'),
           },
         },
         {
@@ -153,7 +181,7 @@ class HistoricalChartOptions {
           stacked: true,
           visible: this.showVotes && this.showDaily,
           fill: '#1971C2',
-          fillOpacity: this.showAcc ? 0.2 : 1,
+          fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
             renderer: (params) => renderer(params, 'Votes Daily', '#1971C2'),
           },
@@ -163,14 +191,36 @@ class HistoricalChartOptions {
           xKey: 'date',
           yKey: 'acc_votes',
           yName: 'Votes Acc',
-          visible: this.showAccVotes && this.showAcc,
+          visible: this.showVotes && this.showAcc,
           strokeWidth: 2,
           stroke: '#1971C2',
           marker: {
             enabled: false,
           },
+          interpolation: {
+            type: 'smooth',
+          },
           tooltip: {
             renderer: (params) => renderer(params, 'Votes Acc', '#1971C2'),
+          },
+        },
+        {
+          type: 'line',
+          xKey: 'date',
+          yKey: 'ma_votes',
+          yName: 'Votes MA',
+          visible: this.showVotes && this.showMa,
+          strokeWidth: 2,
+          strokeOpacity: 0.6,
+          stroke: '#1971C2',
+          marker: {
+            enabled: false,
+          },
+          interpolation: {
+            type: 'smooth',
+          },
+          tooltip: {
+            renderer: (params) => renderer(params, 'Votes MA', '#1971C2'),
           },
         },
         {
@@ -181,7 +231,7 @@ class HistoricalChartOptions {
           stacked: true,
           visible: this.showRooms && this.showDaily,
           fill: '#8931B2',
-          fillOpacity: this.showAcc ? 0.2 : 1,
+          fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
             renderer: (params) => renderer(params, 'Rooms Daily', '#8931B2'),
           },
@@ -191,14 +241,36 @@ class HistoricalChartOptions {
           xKey: 'date',
           yKey: 'acc_rooms',
           yName: 'Rooms Acc',
-          visible: this.showAccRooms && this.showAcc,
+          visible: this.showRooms && this.showAcc,
           strokeWidth: 2,
           stroke: '#8931B2',
           marker: {
             enabled: false,
           },
+          interpolation: {
+            type: 'smooth',
+          },
           tooltip: {
             renderer: (params) => renderer(params, 'Rooms Acc', '#8931B2'),
+          },
+        },
+        {
+          type: 'line',
+          xKey: 'date',
+          yKey: 'ma_rooms',
+          yName: 'Rooms MA',
+          visible: this.showRooms && this.showMa,
+          strokeWidth: 2,
+          strokeOpacity: 0.6,
+          stroke: '#8931B2',
+          marker: {
+            enabled: false,
+          },
+          interpolation: {
+            type: 'smooth',
+          },
+          tooltip: {
+            renderer: (params) => renderer(params, 'Rooms MA', '#8931B2'),
           },
         },
         {
@@ -209,7 +281,7 @@ class HistoricalChartOptions {
           stacked: true,
           visible: this.showPageViews && this.showDaily,
           fill: '#FA5252',
-          fillOpacity: this.showAcc ? 0.2 : 1,
+          fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
             renderer: (params) =>
               renderer(params, 'Pages Views Daily', '#FA5252'),
@@ -220,14 +292,36 @@ class HistoricalChartOptions {
           xKey: 'date',
           yKey: 'acc_page_views',
           yName: 'Page Views Acc',
-          visible: this.showAccPageViews && this.showAcc,
+          visible: this.showPageViews && this.showAcc,
           strokeWidth: 2,
           stroke: '#FA5252',
           marker: {
             enabled: false,
           },
+          interpolation: {
+            type: 'smooth',
+          },
           tooltip: {
             renderer: (params) => renderer(params, 'Page Views Acc', '#FA5252'),
+          },
+        },
+        {
+          type: 'line',
+          xKey: 'date',
+          yKey: 'ma_page_views',
+          yName: 'Page Views MA',
+          visible: this.showPageViews && this.showMa,
+          strokeWidth: 2,
+          strokeOpacity: 0.6,
+          stroke: '#FA5252',
+          marker: {
+            enabled: false,
+          },
+          interpolation: {
+            type: 'smooth',
+          },
+          tooltip: {
+            renderer: (params) => renderer(params, 'Page Views MA', '#FA5252'),
           },
         },
         {
@@ -238,7 +332,7 @@ class HistoricalChartOptions {
           stacked: true,
           visible: this.showNewUsers && this.showDaily,
           fill: '#FAB005',
-          fillOpacity: this.showAcc ? 0.2 : 1,
+          fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
             renderer: (params) =>
               renderer(params, 'Unique Users Daily', '#FAB005'),
@@ -249,15 +343,38 @@ class HistoricalChartOptions {
           xKey: 'date',
           yKey: 'acc_new_users',
           yName: 'Unique Users Acc',
-          visible: this.showAccNewUsers && this.showAcc,
+          visible: this.showNewUsers && this.showAcc,
           strokeWidth: 2,
           stroke: '#FAB005',
           marker: {
             enabled: false,
           },
+          interpolation: {
+            type: 'smooth',
+          },
           tooltip: {
             renderer: (params) =>
               renderer(params, 'Unique Users Acc', '#FAB005'),
+          },
+        },
+        {
+          type: 'line',
+          xKey: 'date',
+          yKey: 'ma_new_users',
+          yName: 'Unique Users MA',
+          visible: this.showNewUsers && this.showMa,
+          strokeWidth: 2,
+          strokeOpacity: 0.6,
+          stroke: '#FAB005',
+          marker: {
+            enabled: false,
+          },
+          interpolation: {
+            type: 'smooth',
+          },
+          tooltip: {
+            renderer: (params) =>
+              renderer(params, 'Unique Users MA', '#FAB005'),
           },
         },
       ],
@@ -269,9 +386,20 @@ class HistoricalChartOptions {
         {
           type: 'number',
           position: 'left',
-          keys: ['estimations', 'votes', 'page_views', 'new_users', 'rooms'],
+          keys: [
+            'estimations',
+            'votes',
+            'page_views',
+            'new_users',
+            'rooms',
+            'ma_estimations',
+            'ma_rooms',
+            'ma_votes',
+            'ma_page_views',
+            'ma_new_users',
+          ],
           title: {
-            text: 'Daily amount',
+            text: this.leftLegendName,
           },
           // label: {
           //   formatter: (params) => {

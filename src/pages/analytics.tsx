@@ -306,6 +306,7 @@ export const StatsCard = ({
   value: number;
   valueAppend?: string;
 }) => {
+  value = Math.round(value * 100) / 100; // Round to two decimals
   return (
     <Card withBorder radius="md" padding="md">
       <Text fz="xs" tt="uppercase" fw={700} c="dimmed">
