@@ -238,8 +238,14 @@ const Analytics = () => {
             spacing="md"
             className="pb-8"
           >
-            <StatsCard name="Unique users" value={traffic.unique_users} />
-            <StatsCard name="Total page views" value={traffic.page_views} />
+            <StatsCard
+              name="Unique users"
+              value={historical[historical.length - 1]?.acc_new_users ?? 0}
+            />
+            <StatsCard
+              name="Total page views"
+              value={historical[historical.length - 1]?.acc_page_views ?? 0}
+            />
             <StatsCard
               name="Duration"
               value={traffic.average_duration}
@@ -260,10 +266,13 @@ const Analytics = () => {
             spacing="md"
             className="pb-8"
           >
-            <StatsCard name="Total votes" value={votes.total_votes} />
+            <StatsCard
+              name="Total votes"
+              value={historical[historical.length - 1]?.acc_votes ?? 0}
+            />
             <StatsCard
               name="Total estimations"
-              value={votes.total_estimations}
+              value={historical[historical.length - 1]?.acc_estimations ?? 0}
             />
             <StatsCard
               name="Avg Estimations"
