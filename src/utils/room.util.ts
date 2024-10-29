@@ -107,7 +107,7 @@ export function getStackedEstimationsFromUsers(
 function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
   if (getFromLocalstorage('isPlaySound') === 'false') return;
   const audio = new Audio(`/sounds/${sound}.wav`);
-  audio.volume = sound === 'success' || sound === 'tick' ? 0.4 : 0.3;
+  audio.volume = sound === 'success' || sound === 'tick' ? 0.3 : 0.2;
   audio
     .play()
     .then(() => ({}))
