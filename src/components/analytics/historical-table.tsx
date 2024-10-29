@@ -16,6 +16,8 @@ export const HistoricalTable = ({
     acc_page_views: number;
     new_users: number;
     acc_new_users: number;
+    rooms: number;
+    acc_rooms: number;
   }[];
   historicalTableOpen: boolean;
 }) => {
@@ -30,6 +32,8 @@ export const HistoricalTable = ({
       <Table.Td>{element.acc_page_views}</Table.Td>
       <Table.Td>{element.new_users}</Table.Td>
       <Table.Td>{element.acc_new_users}</Table.Td>
+      <Table.Td>{element.rooms}</Table.Td>
+      <Table.Td>{element.acc_rooms}</Table.Td>
     </Table.Tr>
   ));
 
@@ -50,6 +54,8 @@ export const HistoricalTable = ({
                   <Table.Th>Acc page views</Table.Th>
                   <Table.Th>New users</Table.Th>
                   <Table.Th>Acc new users</Table.Th>
+                  <Table.Th>Rooms</Table.Th>
+                  <Table.Th>Acc rooms</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{rows}</Table.Tbody>

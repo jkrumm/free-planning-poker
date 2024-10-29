@@ -1,6 +1,5 @@
 import { notifications } from '@mantine/notifications';
 
-import * as Sentry from '@sentry/nextjs';
 import type { Action } from 'fpp-server/src/room.actions';
 import { type RoomServer, type User } from 'fpp-server/src/room.entity';
 
@@ -24,9 +23,6 @@ function getEstimationsFromUsers(
     triggerAction &&
     typeof window !== 'undefined'
   ) {
-    Sentry.captureException(
-      new Error('Cannot calculateCreateVote when no estimations'),
-    );
     const userId = useLocalstorageStore.getState().userId;
     const roomId = useLocalstorageStore.getState().roomId;
 
