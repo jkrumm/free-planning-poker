@@ -12,7 +12,7 @@ const countryRegions =
   require('country-region-data/data.json') as CountryRegionData[];
 
 export const analyticsRouter = createTRPCRouter({
-  getAnalytics: publicProcedure.query(async ({}) => {
+  getAnalytics: publicProcedure.query(async () => {
     const analytics = (await fetch(env.ANALYTICS_URL, {
       headers: {
         Authorization: env.ANALYTICS_SECRET_TOKEN,
@@ -94,6 +94,18 @@ export const analyticsRouter = createTRPCRouter({
     };
 
     return analyticsResult;
+  }),
+  getServerAnalytics: publicProcedure.query(async () => {
+    return fetch('https://server.free-planning-poker.com/analytics')
+      .then((res) => res.json())
+      .catch((e) => {
+        console.error('Error fetching server analytics', e);
+        Sentry.captureException(e, {
+          tags: {
+            endpoint: logEndpoint.GET_SERVER_ANALYTICS,
+          },
+        });
+      }) as Promise<ServerAnalytics>;
   }),
 });
 
@@ -181,3 +193,25 @@ type CountryRegionData = {
   countryShortCode: string;
   regions: { name: string; shortCode: string }[];
 };
+
+export interface ServerAnalytics {
+  connectedUsers: number;
+  openRooms: number;
+  rooms: {
+    userCount: number;
+    firstActive: number;
+    firstActiveReadable: string;
+    lastActive: number;
+    lastActiveReadable: string;
+    lastUpdated: number;
+    lastUpdatedReadable: string;
+    users: {
+      estimation: number | null;
+      isSpectator: boolean;
+      firstActive: number;
+      firstActiveReadable: string;
+      lastActive: number;
+      lastActiveReadable: string;
+    }[];
+  }[];
+}

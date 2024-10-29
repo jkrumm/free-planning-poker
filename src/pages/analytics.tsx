@@ -8,8 +8,7 @@ import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
 import {
   Button,
-  Card,
-  Group,
+  Modal,
   RingProgress,
   SimpleGrid,
   Switch,
@@ -17,8 +16,10 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 
 import * as Sentry from '@sentry/nextjs';
+import { IconEye } from '@tabler/icons-react';
 import superjson from 'superjson';
 
 import { logMsg } from 'fpp/constants/logging.constant';
@@ -31,7 +32,10 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
+import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
+import { LiveDataModel } from 'fpp/components/analytics/live-data-model';
+import { StatsCard } from 'fpp/components/analytics/stats-card';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -73,6 +77,7 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
   });
 
   await helpers.analytics.getAnalytics.prefetch();
+  await helpers.analytics.getServerAnalytics.prefetch();
 
   return {
     props: { trpcState: helpers.dehydrate() },
@@ -83,15 +88,31 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
   const [lastUpdatedSeconds, setLastUpdatedSeconds] = React.useState(0);
+  const [opened, { open, close }] = useDisclosure(false);
 
   const {
     data: analytics,
     dataUpdatedAt,
-    refetch,
+    refetch: refetchAnalytics,
   } = api.analytics.getAnalytics.useQuery(undefined, {
-    refetchInterval: 30 * 1000, // 30 seconds
+    refetchInterval: 10 * 1000, // 10 seconds
     retry: true,
   });
+
+  const { data: serverAnalytics, refetch: refetchServerAnalytics } =
+    api.analytics.getServerAnalytics.useQuery(undefined, {
+      refetchInterval: 10 * 1000, // 10 seconds
+      retry: true,
+    });
+
+  const refetch = () => {
+    refetchAnalytics()
+      .then(() => ({}))
+      .catch(() => ({}));
+    refetchServerAnalytics()
+      .then(() => ({}))
+      .catch(() => ({}));
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -102,7 +123,7 @@ const Analytics = () => {
 
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
 
-  if (!analytics) {
+  if (!analytics || !serverAnalytics) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
     return <div>Loading...</div>;
   }
@@ -119,6 +140,15 @@ const Analytics = () => {
       <Meta title="Analytics" />
       <Navbar />
       <Hero />
+      <Modal
+        opened={opened}
+        onClose={close}
+        title="Live Data"
+        centered
+        size="auto"
+      >
+        <LiveDataModel serverAnalytics={serverAnalytics} />
+      </Modal>
       <main className="flex flex-col items-center justify-center">
         <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
           <Title order={1} className="mb-6">
@@ -158,7 +188,10 @@ const Analytics = () => {
         </section>
         <section className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
           <div className="flex justify-between">
-            <h1>Traffic</h1>
+            <div className="flex flex-wrap">
+              <h1>Live</h1>
+              <IconEye className="ml-4 mt-[30px]" onClick={open} size={33} />
+            </div>
             <Tooltip
               label={`Last update received ${lastUpdatedSeconds} seconds ago`}
             >
@@ -169,17 +202,33 @@ const Analytics = () => {
                   thickness={6}
                   sections={[
                     {
-                      value: (lastUpdatedSeconds / 30) * 100,
+                      value: (lastUpdatedSeconds / 10) * 100,
                       color: '#1971C2',
                     },
                   ]}
                 />
-                <Button onClick={() => refetch()} className="mt-[23px]">
+                <Button onClick={refetch} className="mt-[23px]">
                   Refresh
                 </Button>
               </div>
             </Tooltip>
           </div>
+          <SimpleGrid
+            cols={{
+              xs: 2,
+              sm: 2,
+              md: 2,
+            }}
+            spacing="md"
+            className="pb-8"
+          >
+            <StatsCard name="Open Rooms" value={serverAnalytics.openRooms} />
+            <StatsCard
+              name="Conected Users"
+              value={serverAnalytics.connectedUsers}
+            />
+          </SimpleGrid>
+          <h1>Traffic</h1>
           <SimpleGrid
             cols={{
               xs: 2,
@@ -328,69 +377,6 @@ const Analytics = () => {
         </section>
       </main>
     </>
-  );
-};
-
-export const AnalyticsCard = ({
-  data,
-  headline,
-}: {
-  data: Record<string, number>;
-  headline: string;
-}) => {
-  const sortedData = Object.entries(data)
-    .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
-    .slice(0, 30) // Get the first 30 entries
-    .map(([name, value]) => ({ name, value })); // Map to objects with name and value
-
-  const highestValue = sortedData[0]?.value ?? 0; // Get the highest value
-
-  return (
-    <Card withBorder shadow="sm" radius="md">
-      <Card.Section withBorder inheritPadding py="xs">
-        <Title order={2} size="md">
-          {headline}
-        </Title>
-      </Card.Section>
-      <Card.Section className="px-2 overflow-y-scroll max-h-[400px] scrollbar-hide">
-        {sortedData.map((item, index) => (
-          <Group key={index} className="relative py-2">
-            <div
-              className="absolute h-[40px] w-full rounded bg-[#242424]"
-              style={{ width: `${(item.value / highestValue) * 100}%` }}
-            />
-            <Text fz="md" className="z-10 m-2">
-              {item.name}
-            </Text>
-            <Text fz="md" className="z-10 m-2 ml-auto">
-              {item.value}
-            </Text>
-          </Group>
-        ))}
-      </Card.Section>
-    </Card>
-  );
-};
-
-export const StatsCard = ({
-  name,
-  value,
-  valueAppend,
-}: {
-  name: string;
-  value: number;
-  valueAppend?: string;
-}) => {
-  value = Math.round(value * 100) / 100; // Round to two decimals
-  return (
-    <Card withBorder radius="md" padding="md">
-      <Text fz="xs" tt="uppercase" fw={700} c="dimmed">
-        {name}
-      </Text>
-      <Text fz="lg" fw={500}>
-        {value} {valueAppend}
-      </Text>
-    </Card>
   );
 };
 
