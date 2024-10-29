@@ -1,5 +1,30 @@
 
 
+## [6.2.0](https://github.com/jkrumm/free-planning-poker/compare/6.1.0...6.2.0) (2024-10-29)
+
+
+### Features
+
+* **analytics:** added 30 day moving averages ([df00dbf](https://github.com/jkrumm/free-planning-poker/commit/df00dbfb9682711e9d33fcec732257bd6d629e3a))
+* **analytics:** added rooms stats to table ([567d007](https://github.com/jkrumm/free-planning-poker/commit/567d007752d02451b1b2f1c6e2459b3b39f26a2a))
+* **analytics:** added rooms to historical analytics ([6f4189d](https://github.com/jkrumm/free-planning-poker/commit/6f4189d06c848fa2edd9d5aa34b21a4d6801b154))
+* **analytics:** automatic refresh of data every 30 seconds ([e4c9a33](https://github.com/jkrumm/free-planning-poker/commit/e4c9a338804db6620d1bf0c05400662e35e9ef4d))
+* **analytics:** client side rendered charts ([c5ecb86](https://github.com/jkrumm/free-planning-poker/commit/c5ecb86059c971ee0aaa511ccccf167180b06dea))
+* **analytics:** display fpp-server live analytics ([77cce76](https://github.com/jkrumm/free-planning-poker/commit/77cce762699b6612b09acd4ff07b5e455595b661))
+* **analytics:** use latest historical values for stats ([1345bd6](https://github.com/jkrumm/free-planning-poker/commit/1345bd695f1bac1f2dfed3b59b2dcd1515e9d1a6))
+
+
+### Bug Fixes
+
+* reduce hydration errors ([0f6fae9](https://github.com/jkrumm/free-planning-poker/commit/0f6fae9c2754740c4e535a37028d6c0f24f56bfa))
+* resolved fpp-server cleaning up the state properly ([9b9ad98](https://github.com/jkrumm/free-planning-poker/commit/9b9ad98a5a74dc9c24ae4a14422fd34cecbcd273))
+* resolved fpp-server cleaning up the state properly ([f5c8b94](https://github.com/jkrumm/free-planning-poker/commit/f5c8b94eae22aa61fbd3fbc728ecf256fffb6e2d))
+
+
+### Other Changes
+
+* switch to next/dynamic for CSR instead of Suspense ([0c7d83e](https://github.com/jkrumm/free-planning-poker/commit/0c7d83edced702409e0a75446a651c95f676be63))
+
 ## [6.1.0](https://github.com/jkrumm/free-planning-poker/compare/6.0.0...6.1.0) (2024-10-08)
 
 
