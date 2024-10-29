@@ -16,6 +16,7 @@ import {
 } from './room.actions';
 import { RoomState } from './room.state';
 import { Analytics } from './types';
+import { preciseTimeout } from './utils';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',

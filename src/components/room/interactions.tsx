@@ -175,6 +175,7 @@ export const Interactions = ({
           label="Auto Show"
           className="cursor-pointer"
           checked={isAutoFlip}
+          disabled={true}
           onChange={(event) => {
             triggerAction({
               action: 'setAutoFlip',
