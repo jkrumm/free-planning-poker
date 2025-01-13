@@ -28,7 +28,7 @@ class ReoccurringChartOptions {
         {
           type: 'line',
           xKey: 'date',
-          yKey: 'reoccurring_users',
+          yKey: 'users',
           yName: 'Reoccurring Users',
           strokeWidth: 2,
           stroke: '#1971C2',
@@ -46,7 +46,7 @@ class ReoccurringChartOptions {
         {
           type: 'line',
           xKey: 'date',
-          yKey: 'reoccurring_rooms',
+          yKey: 'rooms',
           yName: 'Reoccurring Rooms',
           strokeWidth: 2,
           stroke: '#40C057',
@@ -70,7 +70,7 @@ class ReoccurringChartOptions {
         {
           type: 'number',
           position: 'left',
-          keys: ['reoccurring_users'],
+          keys: ['users'],
           title: {
             text: 'Reoccurring Users',
           },
@@ -78,7 +78,7 @@ class ReoccurringChartOptions {
         {
           type: 'number',
           position: 'right',
-          keys: ['reoccurring_rooms'],
+          keys: ['rooms'],
           title: {
             text: 'Reoccurring Rooms',
           },
@@ -92,16 +92,30 @@ const ChartOptions = new ReoccurringChartOptions();
 
 export const ReoccurringChart = ({
   reoccurring,
+  reduceReoccurring,
 }: {
   reoccurring: {
     date: Date;
     reoccurring_users: number;
     reoccurring_rooms: number;
+    adjusted_reoccurring_users: number;
+    adjusted_reoccurring_rooms: number;
   }[];
+  reduceReoccurring: boolean;
 }) => {
+  const data = reoccurring.map((item) => ({
+    date: item.date,
+    users: reduceReoccurring
+      ? item.adjusted_reoccurring_users
+      : item.reoccurring_users,
+    rooms: reduceReoccurring
+      ? item.adjusted_reoccurring_rooms
+      : item.reoccurring_rooms,
+  }));
+
   return (
     <div>
-      <AgCharts options={{ data: reoccurring, ...ChartOptions.toOptions() }} />
+      <AgCharts options={{ data, ...ChartOptions.toOptions() }} />
     </div>
   );
 };
