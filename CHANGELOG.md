@@ -1,5 +1,19 @@
 
 
+## [6.3.0](https://github.com/jkrumm/free-planning-poker/compare/6.2.0...6.3.0) (2025-01-13)
+
+
+### Features
+
+* **analytics:** chart that shows reoccurring users and rooms ([d054620](https://github.com/jkrumm/free-planning-poker/commit/d0546201b806a12634fa0e38eef69f5cdcc72d62))
+* **analytics:** reoccurring users and rooms decreasing after 30days inactivity ([9a8d8bb](https://github.com/jkrumm/free-planning-poker/commit/9a8d8bbf5e61559177265efb51afa28429ea34be))
+
+
+### Other Changes
+
+* disable auto show for now ([ad7ff6e](https://github.com/jkrumm/free-planning-poker/commit/ad7ff6eaedfda31b2d264e52d07f714f726f0609))
+* reduce sound volume a bit ([527004e](https://github.com/jkrumm/free-planning-poker/commit/527004e45b12a0ee4a06c03fc10ebc075a319d96))
+
 ## [6.2.0](https://github.com/jkrumm/free-planning-poker/compare/6.1.0...6.2.0) (2024-10-29)
 
 
