@@ -123,6 +123,7 @@ const Analytics = () => {
   }, [dataUpdatedAt]);
 
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
+  const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
 
   if (!analytics || !serverAnalytics) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
@@ -317,9 +318,15 @@ const Analytics = () => {
             xAxisName="Estimation Number"
             yXisName="Estimation Amount"
           />
-          <div className="flex justify-between">
+          <div className="md:flex justify-between">
             <h1 className="pt-8">Reoccurring</h1>
-            <div className="mt-auto mb-[30px] cursor-pointer flex justify-between">
+            <Switch
+              label="Reduce after 30days inactivity"
+              className="mt-auto mb-[30px] cursor-pointer"
+              checked={reduceReoccurring}
+              onChange={() => setReduceReoccurring(!reduceReoccurring)}
+            />
+            <div className="mt-auto mb-[30px] flex justify-between">
               <div className="flex items-center mr-5">
                 <div className="w-4 h-4 bg-[#1971C2] mr-2"></div>
                 <span>Reoccurring Users</span>
@@ -330,7 +337,10 @@ const Analytics = () => {
               </div>
             </div>
           </div>
-          <ReoccurringChart reoccurring={reoccurring} />
+          <ReoccurringChart
+            reoccurring={reoccurring}
+            reduceReoccurring={reduceReoccurring}
+          />
           <div className="flex justify-between">
             <h1 className="pt-8">Historical</h1>
             <Switch

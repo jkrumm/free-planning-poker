@@ -120,6 +120,8 @@ interface AnalyticsResponse {
     date: string;
     reoccurring_users: number;
     reoccurring_rooms: number;
+    adjusted_reoccurring_users: number;
+    adjusted_reoccurring_rooms: number;
   }[];
   historical: {
     date: string;
