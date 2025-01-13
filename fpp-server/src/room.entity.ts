@@ -3,7 +3,7 @@
 import { ServerWebSocket } from 'bun';
 // @ts-ignore
 import { ElysiaWS } from 'elysia/dist/ws';
-import { preciseInterval, preciseTimeout } from './utils';
+import { preciseTimeout } from './utils';
 
 /**
  * Users can estimate or spectate

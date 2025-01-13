@@ -27,3 +27,7 @@ All "personal" data is stored only in the visitors local storage.
 1. Activate venv with `source .venv/bin/activate`
 2. Install packages `python3 -m pip install -r requirements.txt`
 3. Run Flask app in dev mode `doppler run -- flask run --debug`
+
+### Run fpp-server locally
+1. [Install Bun](https://bun.sh/docs/installation) if not already installed
+2. Run `bun run dev` in the `fpp-server` directory
