@@ -40,8 +40,8 @@ export const HistoricalTable = ({
   return (
     <>
       <Collapse in={historicalTableOpen}>
-        <Card withBorder radius="md" padding="md" className="mb-12">
-          <div className="px-2 overflow-y-scroll max-h-[400px]">
+        <Card withBorder radius="md" padding="0" className="mb-12">
+          <div className="overflow-y-scroll max-h-[400px]">
             <Table highlightOnHover stickyHeader withRowBorders={true}>
               <Table.Thead>
                 <Table.Tr>

@@ -11,6 +11,7 @@ from scripts.calc_behaviour import calc_behaviour
 from scripts.calc_daily_analytics import calc_daily_analytics
 from scripts.calc_historical import calc_historical
 from scripts.calc_location_and_user_agent import calc_location_and_user_agent
+from scripts.calc_reoccurring import calc_reoccurring
 from scripts.calc_traffic import calc_traffic
 from scripts.calc_votes import calc_votes
 from scripts.update_read_model import update_read_model
@@ -63,6 +64,12 @@ def run_script():
     except Exception as e:
         logger.error("Script calc_behaviour failed", {"error": e})
         failed_reason = "calc_behaviour"
+
+    try:
+        results["reoccurring"] = calc_reoccurring()
+    except Exception as e:
+        logger.error("Script calc_reoccurring failed", {"error": e})
+        failed_reason = "calc_reoccurring"
 
     try:
         results["historical"] = calc_historical()

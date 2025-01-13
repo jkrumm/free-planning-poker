@@ -1,6 +1,6 @@
 import type { AgChartOptions } from 'ag-charts-community';
 
-function renderer(
+export function renderer(
   params: {
     datum: Record<string, number>;
     xKey: string;

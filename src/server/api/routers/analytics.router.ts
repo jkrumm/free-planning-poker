@@ -116,6 +116,11 @@ interface AnalyticsResponse {
     routes: Record<keyof typeof RouteType, number>;
     rooms: Record<string, number>;
   };
+  reoccurring: {
+    date: string;
+    reoccurring_users: number;
+    reoccurring_rooms: number;
+  }[];
   historical: {
     date: string;
     estimations: number;

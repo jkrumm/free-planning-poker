@@ -35,6 +35,7 @@ import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
 import { LiveDataModel } from 'fpp/components/analytics/live-data-model';
+import { ReoccurringChart } from 'fpp/components/analytics/reoccurring-chart';
 import { StatsCard } from 'fpp/components/analytics/stats-card';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
@@ -129,6 +130,11 @@ const Analytics = () => {
   }
 
   const { behaviour, location_and_user_agent, traffic, votes } = analytics;
+
+  const reoccurring = analytics.reoccurring.map((obj) => ({
+    ...obj,
+    date: new Date(obj.date),
+  }));
 
   const historical = analytics.historical.map((obj) => ({
     ...obj,
@@ -312,10 +318,24 @@ const Analytics = () => {
             yXisName="Estimation Amount"
           />
           <div className="flex justify-between">
+            <h1 className="pt-8">Reoccurring</h1>
+            <div className="mt-auto mb-[30px] cursor-pointer flex justify-between">
+              <div className="flex items-center mr-5">
+                <div className="w-4 h-4 bg-[#1971C2] mr-2"></div>
+                <span>Reoccurring Users</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-[#40C057] mr-2"></div>
+                <span>Reoccurring Rooms</span>
+              </div>
+            </div>
+          </div>
+          <ReoccurringChart reoccurring={reoccurring} />
+          <div className="flex justify-between">
             <h1 className="pt-8">Historical</h1>
             <Switch
               label="Show as Table"
-              className="mt-auto mb-[36px] cursor-pointer"
+              className="mt-auto mb-[30px] cursor-pointer"
               checked={historicalTableOpen}
               onChange={() => setHistoricalTableOpen(!historicalTableOpen)}
             />
