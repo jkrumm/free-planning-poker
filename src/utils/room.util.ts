@@ -1,5 +1,6 @@
 import { notifications } from '@mantine/notifications';
 
+import confetti from 'canvas-confetti';
 import type { Action } from 'fpp-server/src/room.actions';
 import { type RoomServer, type User } from 'fpp-server/src/room.entity';
 
@@ -164,10 +165,20 @@ export function notifyOnRoomChanges({
     }
   }
 
-  // Make success sound and close sidebar if flipped
+  // Make success sound and close sidebar if flipped and pop confetti if everyone estimated the same
   if (!oldRoom.isFlipped && newRoom.isFlipped) {
     playSound('success');
     useSidebarStore.setState({ tab: null });
+    const estimations = getEstimationsFromUsers(newRoom.users);
+    if (estimations.length > 1 && new Set(estimations).size === 1) {
+      confetti({
+        particleCount: 200,
+        spread: 80,
+        origin: { y: 0.4 },
+      })
+        ?.then(() => ({}))
+        .catch(() => ({}));
+    }
   }
 
   // Notify on auto flip enabled
