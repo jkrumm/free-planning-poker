@@ -74,7 +74,10 @@ const IndexForm = () => {
   }, [form.values.room]);
 
   return (
-    <Group className="mb-8 hidden md:flex">
+    <Group
+      className="mb-8 hidden md:flex opacity-0 animate-fadeInUp"
+      style={{ animationDelay: `400ms` }}
+    >
       <Button
         color="#1971C2"
         size="xl"

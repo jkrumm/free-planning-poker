@@ -31,11 +31,14 @@ const Home: NextPage = () => {
   return (
     <div className="homepage">
       <Meta />
-      <Navbar />
+      <Navbar animate />
       <Hero />
       <main className="flex flex-col items-center justify-center p-6">
         <div className="gradients"></div>
-        <div className="mb-10 text-center">
+        <div
+          className="mb-10 text-center opacity-0 animate-fadeInUp"
+          style={{ animationDelay: `200ms` }}
+        >
           <Title order={2}>Estimate your Story Points faster than ever</Title>
           <Title order={3} className="mt-5 font-normal opacity-70">
             Say goodbye to complicated planning poker tools and estimate in
@@ -60,7 +63,11 @@ const Home: NextPage = () => {
         </div>
         <div className="gradient-image"></div>
         <div className="z-10 w-[1200px] max-w-full p-6">
-          <section id="screenshot">
+          <section
+            id="screenshot"
+            className="opacity-0 animate-fadeIn"
+            style={{ animationDelay: `2000ms` }}
+          >
             <Image
               src="/images/fpp_screenshot.png"
               width={2852 / 2.5}
