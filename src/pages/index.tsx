@@ -34,19 +34,8 @@ const Home: NextPage = () => {
       <Navbar animate />
       <Hero />
       <main className="flex flex-col items-center justify-center p-6">
+        {/* TODO: Use Spotlight https://ui.aceternity.com/components/spotlight-new */}
         <div className="gradients"></div>
-        <div
-          className="mb-10 text-center opacity-0 animate-fadeInUp"
-          style={{ animationDelay: `200ms` }}
-        >
-          <Title order={2}>Estimate your Story Points faster than ever</Title>
-          <Title order={3} className="mt-5 font-normal opacity-70">
-            Say goodbye to complicated planning poker tools and estimate in
-            seconds with this user-friendly app.
-            <br />
-            No signups, open source and privacy focused.
-          </Title>
-        </div>
         <IndexForm />
         <div className="mx-8 mb-10 md:hidden">
           <Alert
