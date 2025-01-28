@@ -14,7 +14,7 @@ export const Features = () => {
       <Title order={3} className="mt-5 font-normal text-center opacity-70">
         Essential Features for Effective Sprint Planning
       </Title>
-      <div className="feature-grid md:grid grid-cols-10 mt-12 grid-rows-6 gap-10">
+      <div className="feature-grid md:grid grid-cols-10 mt-12 grid-rows-6 gap-7">
         <div className="col-span-6 row-span-3 mb-8 md:mb-0">
           <div className="bg-[#242424] w-full rounded-t-md p-2">
             <Image
