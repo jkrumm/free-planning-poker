@@ -4,10 +4,14 @@ import React, { startTransition, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { Button, Group, TextInput, Title, Tooltip } from '@mantine/core';
+import { env } from 'fpp/env';
+
+import { Button, Group, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
+import { useQuery } from '@tanstack/react-query';
+import { motion, useSpring, useTransform } from 'framer-motion';
 
 import { api } from 'fpp/utils/api';
 import { generateRoomNumber } from 'fpp/utils/room-number.util';
@@ -17,6 +21,21 @@ import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { RoomEvent } from 'fpp/server/db/schema';
 
 import { FlipWords } from './flip-words';
+
+interface LandingPageAnalytics {
+  estimation_count: number;
+  user_count: number;
+}
+
+const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
+  const response = await fetch(
+    `${env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
+  );
+  if (!response.ok) {
+    throw new Error('Failed to fetch analytics');
+  }
+  return (await response.json()) as LandingPageAnalytics;
+};
 
 const IndexForm = () => {
   const [hasMounted, setHasMounted] = useState(false);
@@ -76,6 +95,15 @@ const IndexForm = () => {
   }, [form.values.room]);
 
   const words = ['fast', 'easily', 'for free', 'privatly'];
+
+  const { data: analytics } = useQuery({
+    queryKey: ['landingPageAnalytics'],
+    queryFn: fetchAnalytics,
+    initialData: {
+      estimation_count: 17000,
+      user_count: 3400,
+    },
+  });
 
   return (
     <>
@@ -160,8 +188,57 @@ const IndexForm = () => {
           </div>
         </form>
       </Group>
+      <div
+        className="mb-6 text-center opacity-0 animate-fadeInUp"
+        style={{ animationDelay: `600ms` }}
+      >
+        <Title order={4} className="text-neutral-300">
+          Loved by Agile Teams Worldwide
+        </Title>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="p-4">
+            <Text fz="sm" tt="uppercase" fw={700} c="dimmed">
+              USERS
+            </Text>
+            <Text fz="lg" fw={500}>
+              <AnimatedNumber value={analytics.user_count} delay={800} />
+            </Text>
+          </div>
+          <div className="p-4">
+            <Text fz="sm" tt="uppercase" fw={700} c="dimmed">
+              ESTIMATIONS
+            </Text>
+            <Text fz="lg" fw={500}>
+              <AnimatedNumber value={analytics.estimation_count} delay={800} />
+            </Text>
+          </div>
+        </div>
+      </div>
     </>
   );
 };
+
+export function AnimatedNumber({
+  value,
+  delay = 0,
+}: {
+  value: number;
+  delay?: number;
+}) {
+  const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
+  const display = useTransform(spring, (current) =>
+    Math.round(current).toLocaleString(),
+  );
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      spring.set(value);
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [spring, value, delay]);
+
+  return <motion.span>{display}</motion.span>;
+}
 
 export default IndexForm;

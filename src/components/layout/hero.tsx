@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 import { Button, Container, Text } from '@mantine/core';
 
-export function Hero(props: { full?: true }) {
+export function Hero(props: { animate?: boolean; full?: true }) {
   const router = useRouter();
 
   // which page are we on
@@ -19,7 +19,7 @@ export function Hero(props: { full?: true }) {
     <header>
       <Container
         size={820}
-        className="mb-5 pt-5 md:mb-7 md:pt-7 animate-fadeInUp"
+        className={`mb-5 pt-5 md:mb-7 md:pt-7 ${props.animate ? 'animate-fadeInUp' : ''}`}
       >
         <Link href="/" className="no-underline">
           <div className="logo" />

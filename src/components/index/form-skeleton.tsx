@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Group, TextInput, Title } from '@mantine/core';
+import { Button, Group, Text, TextInput, Title } from '@mantine/core';
 
 import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 
@@ -51,6 +51,29 @@ const IndexFormSkeleton = () => {
           </div>
         </form>
       </Group>
+      <div className="mb-6 text-center opacity-0">
+        <Title order={4} className="text-neutral-300">
+          Loved by Agile Teams Worldwide
+        </Title>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="p-4">
+            <Text fz="sm" tt="uppercase" fw={700} c="dimmed">
+              USERS
+            </Text>
+            <Text fz="lg" fw={500}>
+              3500
+            </Text>
+          </div>
+          <div className="p-4">
+            <Text fz="sm" tt="uppercase" fw={700} c="dimmed">
+              ESTIMATIONS
+            </Text>
+            <Text fz="lg" fw={500}>
+              17000
+            </Text>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

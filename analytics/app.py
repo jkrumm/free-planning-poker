@@ -14,7 +14,7 @@ from scripts.calc_location_and_user_agent import calc_location_and_user_agent
 from scripts.calc_reoccurring import calc_reoccurring
 from scripts.calc_traffic import calc_traffic
 from scripts.calc_votes import calc_votes
-from scripts.update_read_model import update_read_model
+from scripts.update_read_model import update_read_model, load_landingpage_analytics
 from util.log_util import logger
 from util.number_util import r
 from util.send_email_util import send_email_util
@@ -130,6 +130,30 @@ def get_room_stats(room_id):
     logger.flush()
 
     return room_stats
+
+
+@app.route("/landingpage-analytics")
+def get_landingpage_analytics():
+    start_time = time.time()
+    token = request.headers.get('Authorization')
+
+    if token != ANALYTICS_SECRET_TOKEN or ANALYTICS_SECRET_TOKEN is None:
+        logger.error("Unauthorized request", {"token": token})
+        abort(401)
+
+    try:
+        landingpage_analytics = load_landingpage_analytics()
+    except Exception as e:
+        logger.error("Script load_landingpage_analytics failed", {"error": e})
+        logger.flush()
+        return {"msg": "Script load_landingpage_analytics failed", "error": str(e),
+                "duration": r(time.time() - start_time)}
+
+    logger.info("landingpage-analytics successfully",
+                {"duration": r(time.time() - start_time), "landingpage_analytics": landingpage_analytics})
+    logger.flush()
+    
+    return landingpage_analytics
 
 
 @app.route("/daily-analytics")
