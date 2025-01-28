@@ -17,7 +17,7 @@ export default {
       },
       animation: {
         fadeInUp: 'fadeInUp 800ms ease-out forwards',
-        fadeIn: 'fadeIn 1200ms ease-out forwards',
+        fadeIn: 'fadeIn 1400ms ease-out forwards',
       },
     },
   },

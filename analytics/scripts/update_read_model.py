@@ -130,7 +130,8 @@ def update_read_model():
 
     upsert_table(cursor, "fpp_estimations", {'user_id': 'str', 'room_id': 'int16', 'spectator': 'int16'})
     upsert_table(cursor, "fpp_events", {'user_id': 'str', 'event': 'category'})
-    upsert_table(cursor, "fpp_page_views", {'user_id': 'str', 'source': 'category', 'route': 'category', 'room_id': 'Int16'})
+    upsert_table(cursor, "fpp_page_views",
+                 {'user_id': 'str', 'source': 'category', 'route': 'category', 'room_id': 'Int16'})
     upsert_table(cursor, "fpp_rooms", {'number': 'int16', 'name': 'str'})
     upsert_table(cursor, "fpp_votes", {'room_id': 'int16', 'min_estimation': 'int16', 'max_estimation': 'int16',
                                        'amount_of_estimations': 'int16', 'amount_of_spectators': 'int16',
@@ -155,3 +156,21 @@ def update_votes_read_model():
     upsert_table(cursor, "fpp_votes", {'room_id': 'int16', 'min_estimation': 'int16', 'max_estimation': 'int16',
                                        'amount_of_estimations': 'int16', 'amount_of_spectators': 'int16',
                                        'duration': 'int16'})
+
+
+def load_landingpage_analytics():
+    logger.debug("get_landingpage_analytics called!")
+
+    db = DB()
+    cursor = db.query(
+        "SELECT (SELECT COUNT(*) FROM fpp_estimations) as estimation_count, (SELECT COUNT(*) FROM fpp_users) as user_count")
+    result = cursor.fetchone()
+
+    result = {
+        "estimation_count": result[0],
+        "user_count": result[1]
+    }
+
+    logger.debug("get_landingpage_analytics successfully", result)
+
+    return result

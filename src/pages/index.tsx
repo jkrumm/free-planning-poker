@@ -4,7 +4,7 @@ import { type NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
-import { Alert, Text, Title } from '@mantine/core';
+import { Alert, Text } from '@mantine/core';
 
 import { IconAlertCircle } from '@tabler/icons-react';
 
@@ -32,7 +32,7 @@ const Home: NextPage = () => {
     <div className="homepage">
       <Meta />
       <Navbar animate />
-      <Hero />
+      <Hero animate />
       <main className="flex flex-col items-center justify-center p-6">
         {/* TODO: Use Spotlight https://ui.aceternity.com/components/spotlight-new */}
         <div className="gradients"></div>

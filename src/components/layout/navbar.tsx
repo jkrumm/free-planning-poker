@@ -28,7 +28,7 @@ const navItems = [
 const Navbar = (props: { animate?: boolean }) => {
   return (
     <nav
-      className={`${props.animate ? 'animate-fadeIn' : ''} opacity-0 hidden md:block sticky top-0 z-50 bg-[#1A1B1E]/30 px-6`}
+      className={`${props.animate ? 'animate-fadeIn opacity-0' : ''} hidden md:block sticky top-0 z-50 bg-[#1A1B1E]/30 px-6`}
       style={{ animationDelay: `2000ms` }}
     >
       <div className="mx-auto h-[70px] max-w-[1200px]">
