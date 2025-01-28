@@ -74,7 +74,7 @@ const IndexForm = () => {
   }, [form.values.room]);
 
   return (
-    <Group className="mb-12 hidden md:flex">
+    <Group className="mb-8 hidden md:flex">
       <Button
         color="#1971C2"
         size="xl"

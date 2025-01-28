@@ -35,8 +35,8 @@ const Home: NextPage = () => {
       <Hero />
       <main className="flex flex-col items-center justify-center p-6">
         <div className="gradients"></div>
-        <div className="mb-14 text-center">
-          <Title order={2}>Estimate your Story Points Faster than ever</Title>
+        <div className="mb-10 text-center">
+          <Title order={2}>Estimate your Story Points faster than ever</Title>
           <Title order={3} className="mt-5 font-normal opacity-70">
             Say goodbye to complicated planning poker tools and estimate in
             seconds with this user-friendly app.
@@ -63,8 +63,8 @@ const Home: NextPage = () => {
           <section id="screenshot">
             <Image
               src="/images/fpp_screenshot.png"
-              width={2852 / 2}
-              height={1586 / 2}
+              width={2852 / 2.5}
+              height={1586 / 2.5}
               className="h-auto max-w-full rounded-lg border-4 border-solid border-[#2C2E33]"
               alt="Picture of the free planning poker app ui"
               placeholder="blur"

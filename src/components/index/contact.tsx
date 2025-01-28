@@ -4,7 +4,7 @@ import { Button, Text, Title } from '@mantine/core';
 
 const Contact = () => {
   return (
-    <div className="md:flex gap-10 justify-evenly my-32 text-center">
+    <div className="md:flex gap-10 justify-evenly mt-28 mb-14 text-center">
       <section id="#guide" className="flex-1 mb-20 md:mb:0">
         <Title order={2}>Planning Poker Guide</Title>
         <Text className="mt-5">
