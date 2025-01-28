@@ -6,7 +6,7 @@ import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 
 const IndexFormSkeleton = () => {
   return (
-    <Group className="mb-12 hidden md:flex">
+    <Group className="mb-8 hidden md:flex">
       <Button
         color="#1971C2"
         size="xl"

@@ -22,7 +22,7 @@ export const Privacy = () => {
   return (
     <section
       id="privacy"
-      className="border-[6px] mt-40 mb-32 text-center border-solid border-[#2E2E2E] rounded-2xl w-full p-14"
+      className="border-[6px] mt-40 mb-28 text-center border-solid border-[#2E2E2E] rounded-2xl w-full p-14"
     >
       <Title className="mt-14" order={2}>
         Protecting Your Privacy
