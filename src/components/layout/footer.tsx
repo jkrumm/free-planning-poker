@@ -37,22 +37,23 @@ function Footer() {
       <div className="pointer-events-none fixed bottom-0 z-40 block min-h-[50px] min-w-full bg-[#121314] sm:min-h-[30px]" />
       <div className="fixed bottom-0 z-50 h-[50px] w-full flex-row bg-[#121314] px-4 py-2 text-xs opacity-70 transition-opacity hover:opacity-100 sm:h-[30px] lg:flex">
         <div className="xs:flex w-full flex-row lg:w-1/2">
-          © {new Date().getFullYear()}{' '}
-          <Link
+          © {new Date().getFullYear()}
+          {' | '}
+          {/* <Link
             href="/"
             className="pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
           >
             free-planning-poker.com
-          </Link>{' '}
+          </Link>{' '} */}
           <a
             href="https://github.com/jkrumm/free-planning-poker/releases"
             target="_blank"
             className="pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2] cursor-pointer"
             rel="noopener noreferrer"
           >
-            {latestTag}
-          </a>{' '}
-          is licensed under{' '}
+            v{latestTag}
+          </a>
+          {' | '}
           <Link
             href="/imprint#license"
             className="pl-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
