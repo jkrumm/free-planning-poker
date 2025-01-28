@@ -71,20 +71,42 @@ const EstimationChart = dynamic(
 );
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: createTRPCContext(context),
-    transformer: superjson,
-  });
+  try {
+    const helpers = createServerSideHelpers({
+      router: appRouter,
+      ctx: createTRPCContext(context),
+      transformer: superjson,
+    });
 
-  await helpers.analytics.getAnalytics.prefetch();
-  await helpers.analytics.getServerAnalytics.prefetch();
+    // Fetch the data
+    await Promise.all([
+      helpers.analytics.getAnalytics.prefetch(),
+      helpers.analytics.getServerAnalytics.prefetch(),
+    ]);
 
-  return {
-    props: { trpcState: helpers.dehydrate() },
-    revalidate: 3600,
-  };
+    return {
+      props: {
+        trpcState: helpers.dehydrate(),
+      },
+      // Set revalidate to 1 hour (3600 seconds)
+      revalidate: 3600,
+      // If the data fetch fails, it will trigger a regeneration on the next request
+      notFound: false,
+    };
+  } catch (error) {
+    // Log the error but don't throw it
+    console.error('Error in getStaticProps:', error);
+    Sentry.captureException(error);
+
+    return {
+      // Return the last successful props but trigger a revalidation
+      props: {},
+      revalidate: 10, // Retry after 10 seconds if there's an error
+    };
+  }
 };
+
+// TODO: USE https://buildui.com/recipes/highlight when data fetching is done
 
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
