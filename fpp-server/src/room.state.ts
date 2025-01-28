@@ -1,16 +1,95 @@
-import { ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, User } from './room.entity';
 import { Analytics, AnalyticsUser } from './types';
 
+export const InteractionType = {
+  CreateRoomState: 'createRoomState',
+  UserJoined: 'UserJoined',
+  UserRejoined: 'UserRejoined',
+  UserLeft: 'UserLeft',
+  UserRemoved: 'UserRemoved',
+  UserClosedConnection: 'UserClosedConnection',
+  DeletedRoomDueToUserLeave: 'deletedRoomDueToUserLeave',
+  DeletedRoomDueToInactivity: 'deletedRoomDueToInactivity',
+
+  Heartbeat: 'heartbeat',
+  ChangedUsername: 'changedUsername',
+  Estimated: 'estimated',
+  SetSpectator: 'setSpectator',
+  Reset: 'reset',
+  SetAutoFlip: 'setAutoFlip',
+  Flipped: 'flipped',
+} as const;
+
+export interface Interaction {
+  timestamp: number;
+  type: (typeof InteractionType)[keyof typeof InteractionType];
+}
+
+export const ErrorType = {
+  MissingQueryParamsOpenConnection: 'MissingQueryParamsOpenConnection',
+  OpenFailed: 'OpenFailed',
+  InvalidMessageFormat: 'InvalidMessageFormat',
+  UnknownAction: 'UnknownAction',
+  MessageFailed: 'MessageFailed',
+  CloseFailed: 'CloseFailed',
+  GetAnalyticsFailed: 'GetAnalyticsFailed',
+};
+
+export interface CustomError {
+  timestamp: number;
+  message: typeof ErrorType[keyof typeof ErrorType];
+  originalError: string | null;
+  roomId: number | null;
+  userId: string | null;
+  extra: Record<string, string> | null;
+}
+
 export class RoomState {
   private rooms: Map<number, RoomServer> = new Map();
+  private interactions: Interaction[] = [];
+  private errors: CustomError[] = [];
+
+  trackInteraction(type: (typeof InteractionType)[keyof typeof InteractionType]): this {
+    log.debug('Interaction: ' + type);
+    this.interactions.push({
+      timestamp: Date.now(),
+      type,
+    });
+    return this;
+  }
+
+  trackError({
+               message,
+               originalError,
+               roomId,
+               userId,
+    extra
+             }: {
+    message: typeof ErrorType[keyof typeof ErrorType],
+    originalError: Error | unknown | null,
+    roomId: number | null,
+    userId: string | null
+    extra?: Record<string, string>
+  }) {
+    const error: CustomError = {
+      timestamp: Date.now(),
+      message,
+      originalError: originalError instanceof Error ? originalError.toString() : null,
+      roomId,
+      userId,
+      extra: extra || null,
+    };
+    log.error(error, message);
+    this.errors.push(error);
+  }
 
   getOrCreateRoom(roomId: number): RoomServer {
     let room = this.rooms.get(roomId);
     if (!room) {
       room = new RoomServer(roomId);
       this.rooms.set(roomId, room);
+      this.trackInteraction(InteractionType.CreateRoomState);
     }
     return room;
   }
@@ -29,9 +108,10 @@ export class RoomState {
       return;
     }
     room.removeUser(userId);
+    this.trackInteraction(InteractionType.UserLeft);
     if (room.users.length === 0) {
       this.rooms.delete(roomId);
-      log.debug({ roomId }, 'Removed room due to inactivity');
+      this.trackInteraction(InteractionType.DeletedRoomDueToUserLeave);
     }
   }
 
@@ -40,10 +120,7 @@ export class RoomState {
       for (const user of room.users) {
         if (user.ws.id === wsId) {
           room.removeUser(user.id);
-          log.debug(
-            { userId: user.id, roomId: room.id },
-            'Removed user by wsId',
-          );
+          this.trackInteraction(InteractionType.UserClosedConnection);
           return;
         }
       }
@@ -66,6 +143,7 @@ export class RoomState {
       for (const user of room.users) {
         if (user.ws.id === wsId) {
           user.lastHeartbeat = Date.now();
+          this.trackInteraction(InteractionType.Heartbeat);
           return;
         }
       }
@@ -78,18 +156,25 @@ export class RoomState {
       for (const user of room.users) {
         if (now - user.lastHeartbeat > 3 * 60 * 1000) { // 3 minutes
           room.removeUser(user.id);
-          log.debug(
-            { userId: user.id, roomId: room.id },
-            'Removed user due to inactivity',
-          );
+          this.trackInteraction(InteractionType.UserRemoved);
         }
       }
       this.sendToEverySocketInRoom(room.id);
       if (room.users.length === 0) {
         this.rooms.delete(room.id);
-        log.debug({ roomId: room.id }, 'Removed room due to inactivity');
+        this.trackInteraction(InteractionType.DeletedRoomDueToInactivity);
       }
     }
+  }
+
+  cleanupInteractionsAndErrors(): void {
+    // Keep only the last 10000 interactions and 100 errors or the last 7 days
+    const now = Date.now();
+    const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    this.interactions = this.interactions.filter((interaction) => interaction.timestamp > oneWeekAgo);
+    this.errors = this.errors.filter((error) => error.timestamp > oneWeekAgo);
+    this.interactions = this.interactions.slice(-10000);
+    this.errors = this.errors.slice(-100);
   }
 
   toAnalytics(): Analytics {
@@ -128,10 +213,60 @@ export class RoomState {
       };
     });
 
+    // Group by interaction type and count them grouped by timestamp by hour
+    const interactionsWeekly: {
+      timestamp: number;
+      interactionCounts: Record<(typeof InteractionType)[keyof typeof InteractionType], number>
+    }[] = [];
+    const interactionsByHour: Record<number, Record<string, number>> = {};
+    for (const interaction of this.interactions) {
+      const hour = Math.floor(interaction.timestamp / (60 * 60 * 1000));
+      if (!interactionsByHour[hour]) {
+        interactionsByHour[hour] = {};
+      }
+      if (!interactionsByHour[hour][interaction.type]) {
+        interactionsByHour[hour][interaction.type] = 0;
+      }
+      interactionsByHour[hour][interaction.type]++;
+    }
+    for (const hour in interactionsByHour) {
+      const timestamp = parseInt(hour) * 60 * 60 * 1000;
+      interactionsWeekly.push({
+        timestamp,
+        interactionCounts: interactionsByHour[hour],
+      });
+    }
+
+    const interactionsDaily: {
+      timestamp: number;
+      interactionCounts: Record<(typeof InteractionType)[keyof typeof InteractionType], number>
+    }[] = [];
+    const interactionsByDay: Record<number, Record<string, number>> = {};
+    for (const interaction of this.interactions) {
+      const day = Math.floor(interaction.timestamp / (24 * 60 * 60 * 1000));
+      if (!interactionsByDay[day]) {
+        interactionsByDay[day] = {};
+      }
+      if (!interactionsByDay[day][interaction.type]) {
+        interactionsByDay[day][interaction.type] = 0;
+      }
+      interactionsByDay[day][interaction.type]++;
+    }
+    for (const day in interactionsByDay) {
+      const timestamp = parseInt(day) * 24 * 60 * 60 * 1000;
+      interactionsDaily.push({
+        timestamp,
+        interactionCounts: interactionsByDay[day],
+      });
+    }
+
     return {
       connectedUsers,
       openRooms: this['rooms'].size,
       rooms: roomsList,
+      errors: this.errors,
+      interactionsWeekly,
+      interactionsDaily
     };
   }
 }

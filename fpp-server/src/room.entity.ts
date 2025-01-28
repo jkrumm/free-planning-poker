@@ -4,6 +4,8 @@ import { ServerWebSocket } from 'bun';
 // @ts-ignore
 import { ElysiaWS } from 'elysia/dist/ws';
 import { preciseTimeout } from './utils';
+import { roomState } from './index';
+import { InteractionType } from './room.state';
 
 /**
  * Users can estimate or spectate
@@ -169,6 +171,9 @@ export class RoomServer extends RoomBase {
   addUser(user: CreateUserDto) {
     if (!this.users.some((u) => u.id === user.id)) {
       this.users.push(new User(user));
+      roomState.trackInteraction(InteractionType.UserJoined);
+    } else {
+      roomState.trackInteraction(InteractionType.UserRejoined);
     }
     // NOTE: we always set hasChanged to repair out of sync for users
     this.hasChanged = true;
@@ -186,6 +191,7 @@ export class RoomServer extends RoomBase {
     this.users = this.users.map((user) => {
       if (user.id === userId) {
         user.name = name;
+        roomState.trackInteraction(InteractionType.ChangedUsername);
         this.hasChanged = true;
       }
       return user;
@@ -201,6 +207,7 @@ export class RoomServer extends RoomBase {
       if (user.id === userId) {
         user.estimation = estimation;
         user.isSpectator = false;
+        roomState.trackInteraction(InteractionType.Estimated);
         this.hasChanged = true;
       }
       return user;
@@ -213,6 +220,7 @@ export class RoomServer extends RoomBase {
       if (user.id === userId) {
         user.isSpectator = isSpectator;
         user.estimation = null;
+        roomState.trackInteraction(InteractionType.SetSpectator);
         this.hasChanged = true;
       }
       return user;
@@ -225,16 +233,16 @@ export class RoomServer extends RoomBase {
       this.hasChanged = true; // NOTE: we always set hasChanged to repair out of sync for users
       return;
     }
+
     this.isFlipped = true;
     this.hasChanged = true;
     this.isFlipAction = true;
+    this.hasChanged = true;
 
     const fppServerSecret = process.env.FPP_SERVER_SECRET;
-
     if (!fppServerSecret) {
       throw new Error('FPP_SERVER_SECRET not set');
     }
-
     fetch(
       `${
         process.env.NODE_ENV === 'production'
@@ -258,7 +266,16 @@ export class RoomServer extends RoomBase {
           }),
         ),
       },
-    ).then();
+    ).then(() => {
+      roomState.trackInteraction(InteractionType.Flipped);
+    }).catch((e) => {
+      roomState.trackError({
+        message: 'Failed to track flip',
+        originalError: e,
+        roomId: this.id,
+        userId: null,
+      });
+    });
   }
 
   private autoFlip() {
@@ -275,6 +292,7 @@ export class RoomServer extends RoomBase {
 
   setAutoFlip(isAutoFlip: boolean) {
     this.isAutoFlip = isAutoFlip;
+    roomState.trackInteraction(InteractionType.SetAutoFlip);
     this.hasChanged = true;
     this.autoFlip();
   }
@@ -287,6 +305,7 @@ export class RoomServer extends RoomBase {
       return user;
     });
     this.isFlipped = false;
+    roomState.trackInteraction(InteractionType.Reset);
     this.hasChanged = true;
   }
 }

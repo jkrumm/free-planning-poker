@@ -1,3 +1,5 @@
+import { CustomError, InteractionType } from './room.state';
+
 export interface AnalyticsUser {
   estimation: any;
   isSpectator: boolean;
@@ -20,4 +22,13 @@ export interface Analytics {
     lastUpdatedReadable: string;
     users: AnalyticsUser[];
   }[];
+  interactionsWeekly: {
+    timestamp: number;
+    interactionCounts: Record<(typeof InteractionType)[keyof typeof InteractionType], number>
+  }[];
+  interactionsDaily: {
+    timestamp: number;
+    interactionCounts: Record<(typeof InteractionType)[keyof typeof InteractionType], number>
+  }[];
+  errors: CustomError[];
 }

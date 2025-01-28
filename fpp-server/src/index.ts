@@ -14,9 +14,8 @@ import {
   isSetAutoFlipAction,
   isSetSpectatorAction,
 } from './room.actions';
-import { RoomState } from './room.state';
+import { ErrorType, RoomState } from './room.state';
 import { Analytics } from './types';
-import { preciseTimeout } from './utils';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -28,7 +27,7 @@ export const log = createPinoLogger({
   },
 });
 
-const roomState = new RoomState();
+export const roomState = new RoomState();
 
 const app = new Elysia({
   websocket: {
@@ -41,12 +40,30 @@ const app = new Elysia({
     run() {
       roomState.cleanupInactiveState();
     },
-  })
+  }),
+).use(
+  cron({
+    name: 'cleanupInteractionsAndErrors',
+    pattern: '0 0 * * * *', // Runs every hour
+    run() {
+      roomState.cleanupInteractionsAndErrors();
+    },
+  }),
 );
 
 app.get('/analytics', (): Analytics => {
-  roomState.cleanupInactiveState();
-  return roomState.toAnalytics();
+  try {
+    roomState.cleanupInactiveState();
+    return roomState.toAnalytics();
+  } catch (error) {
+    roomState.trackError({
+      message: ErrorType.GetAnalyticsFailed,
+      originalError: error,
+      roomId: null,
+      userId: null,
+    });
+    throw error;
+  }
 });
 
 app.ws('/ws', {
@@ -57,40 +74,56 @@ app.ws('/ws', {
     username: t.String(),
   }),
   open(ws) {
-    const { roomId, userId, username } = ws.data.query;
+    try {
+      const { roomId, userId, username } = ws.data.query;
 
-    if (!roomId || !userId || !username) {
-      log.error(
-        {
-          error: 'Missing query parameters',
-          wsId: ws.id,
-          query: ws.data.query,
-        },
-        'Missing query parameters'
-      );
-      ws.close();
-      return;
+      if (!roomId || !userId || !username) {
+        roomState.trackError({
+          message: ErrorType.MissingQueryParamsOpenConnection,
+          originalError: null,
+          roomId,
+          userId,
+        });
+        ws.close();
+        return;
+      }
+
+      roomState.addUserToRoom(roomId, {
+        id: userId,
+        name: username,
+        estimation: null,
+        isSpectator: false,
+        ws,
+      });
+
+      roomState.sendToEverySocketInRoom(roomId);
+    } catch (error) {
+      roomState.trackError({
+        message: ErrorType.OpenFailed,
+        originalError: error,
+        roomId: ws.data.query.roomId,
+        userId: ws.data.query.userId,
+      });
     }
-
-    roomState.addUserToRoom(roomId, {
-      id: userId,
-      name: username,
-      estimation: null,
-      isSpectator: false,
-      ws,
-    });
-
-    roomState.sendToEverySocketInRoom(roomId);
   },
   message(ws, data) {
+    const userId: string | null = (data as { userId?: string })?.userId ?? null;
+    const roomId: number | null = (data as { roomId?: number })?.roomId ?? null;
     try {
       if (!CActionSchema.Check(data)) {
+        roomState.trackError({
+          message: ErrorType.InvalidMessageFormat,
+          originalError: null,
+          roomId,
+          userId,
+          extra: { data: String(data) },
+        });
         ws.send(
           JSON.stringify({
-            error: 'Invalid message format',
+            error: ErrorType.InvalidMessageFormat,
             wsId: ws.id,
             data: String(data),
-          })
+          }),
         );
         return;
       }
@@ -144,43 +177,46 @@ app.ws('/ws', {
           break;
 
         default:
-          log.error(
-            {
-              error: 'Unknown action',
-              wsId: ws.id,
-              data: String(data),
-            },
-            'Unknown action'
-          );
+          roomState.trackError({
+            message: ErrorType.UnknownAction,
+            originalError: null,
+            roomId,
+            userId,
+            extra: { data: String(data) },
+          });
           ws.send(
             JSON.stringify({
-              error: 'Unknown action',
+              error: ErrorType.UnknownAction,
               wsId: ws.id,
               data: String(data),
-            })
+            }),
           );
           break;
       }
 
       roomState.sendToEverySocketInRoom(room.id);
     } catch (error) {
-      if (error instanceof Error) {
-        log.error({ error, wsId: ws.id, ...data }, 'Error processing message');
-        ws.send(
-          JSON.stringify({
-            error: error.message,
-            stack: error.stack,
-            name: error.name,
-            wsId: ws.id,
-            ...data,
-          })
-        );
-      }
+      roomState.trackError({
+        message: ErrorType.MessageFailed,
+        originalError: error,
+        roomId,
+        userId,
+        extra: { data: String(data) },
+      });
     }
   },
   close(ws) {
-    log.debug({ wsId: ws.id }, `Connection closed`);
-    roomState.removeUserFromRoomByWsId(ws.id);
+    try {
+      log.debug({ wsId: ws.id }, `Connection closed`);
+      roomState.removeUserFromRoomByWsId(ws.id);
+    } catch (error) {
+      roomState.trackError({
+        message: ErrorType.CloseFailed,
+        originalError: error,
+        roomId: null,
+        userId: null,
+      });
+    }
   },
   // error(ws, error) {
   //     console.error(`WebSocket error: ${error.message}`);
