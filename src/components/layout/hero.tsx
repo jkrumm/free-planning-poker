@@ -19,7 +19,7 @@ export function Hero(props: { animate?: boolean; full?: true }) {
     <header>
       <Container
         size={820}
-        className={`mb-5 pt-5 md:mb-7 md:pt-7 ${props.animate ? 'animate-fadeInUp' : ''}`}
+        className={`mb-5 mt-20 pt-5 md:mb-7 md:pt-7 ${props.animate ? 'animate-fadeInUp' : ''}`}
       >
         <Link href="/" className="no-underline">
           <div className="logo" />

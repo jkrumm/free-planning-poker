@@ -28,17 +28,18 @@ const navItems = [
 const Navbar = (props: { animate?: boolean }) => {
   return (
     <nav
-      className={`${props.animate ? 'animate-fadeIn opacity-0' : ''} hidden md:block sticky top-0 z-50 bg-[#1A1B1E]/30 px-6`}
+      className={`${props.animate ? 'animate-fadeIn opacity-0' : ''} hidden md:block fixed w-screen top-0 z-50 bg-[#1A1B1E]/30 px-6`}
       style={{ animationDelay: `2000ms` }}
     >
       <div className="mx-auto h-[70px] max-w-[1200px]">
         <Group justify="space-between" h="100%">
-          <div className="hidden lg:block w-[177px]">
+          {/* <div className="hidden lg:block w-[177px]">
             <Link href="/">
               <div className="logo-navbar" />
             </Link>
-          </div>
-          <Group gap={20}>
+          </div> */}
+          <div />
+          <Group gap={30}>
             {navItems.map((item, index) => (
               <Link
                 key={index}
@@ -49,14 +50,14 @@ const Navbar = (props: { animate?: boolean }) => {
               </Link>
             ))}
           </Group>
-          <Button
-            size="lg"
-            variant="gradient"
-            gradient={{ from: 'blue', to: 'cyan' }}
-            className={`hidden md:block w-[177px]`}
+          <div />
+          {/* <Button
+            size="md"
+            color="#1971C2"
+            className={`hidden md:block w-[177px] opacity-0`}
           >
             Start Planning
-          </Button>
+          </Button> */}
         </Group>
       </div>
     </nav>
