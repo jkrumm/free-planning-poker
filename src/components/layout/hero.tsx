@@ -24,17 +24,17 @@ export function Hero(props: { animate?: boolean; full?: true }) {
         <Link href="/" className="no-underline">
           <div className="logo" />
           <h1
-            className={`center m-0 block p-0 text-center text-[42px] md:text-[62px]`}
+            className={`center m-0 font-bold block p-0 text-center text-[42px] md:text-[62px] bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50`}
           >
-            <Text
+            {/* <Text
               component="span"
-              variant="gradient"
-              gradient={{ from: 'blue', to: 'cyan' }}
+              // variant="gradient"
+              // gradient={{ from: '#1971C2', to: '#1971C2' }}
               inherit
               className="mb-3 block"
-            >
-              Free-Planning-Poker.com
-            </Text>
+            > */}
+            Free-Planning-Poker.com
+            {/* </Text> */}
           </h1>
         </Link>
         {props.full && (
