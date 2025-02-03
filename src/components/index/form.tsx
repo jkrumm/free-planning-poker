@@ -27,11 +27,6 @@ interface LandingPageAnalytics {
   user_count: number;
 }
 
-// Button code
-// <button className="inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50">
-//   Shimmer
-// </button>
-
 const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
   const response = await fetch(
     `${env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
@@ -134,7 +129,7 @@ const IndexForm = () => {
         <Button
           color="#1971C2"
           size="xl"
-          className={`left-0 mx-auto my-8 block w-[300px] animate-shimmer bg-[#1971C2] bg-[linear-gradient(110deg,#1971C2,45%,#228be6,55%,#1971C2)] transition-colors bg-[length:200%_100%]`}
+          className={`left-0 mx-auto my-8 block w-[300px] animate-shimmer bg-[linear-gradient(110deg,#2e2e2e,45%,#272727,55%,#2e2e2e)] transition-colors bg-[length:200%_100%] border-[1px] border-solid border-[#424242]`}
           type="button"
           role="button"
           aria-label="Start Planning"
@@ -173,7 +168,7 @@ const IndexForm = () => {
                 <Group className="relative w-[300px] flex-nowrap" gap="0">
                   <TextInput
                     placeholder="Join room"
-                    className={`absolute my-4 w-[300px] rounded-md border-[2px] border-solid border-[#1971C2]`}
+                    className={`absolute my-4 w-[300px] rounded-md border-[0px] border-solid border-[#272727]`}
                     size="xl"
                     {...form.getInputProps('room')}
                   />
