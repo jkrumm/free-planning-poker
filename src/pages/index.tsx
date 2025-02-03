@@ -16,6 +16,7 @@ import Contact from 'fpp/components/index/contact';
 import Features from 'fpp/components/index/features';
 import IndexFormSkeleton from 'fpp/components/index/form-skeleton';
 import Privacy from 'fpp/components/index/privacy';
+import { Spotlight } from 'fpp/components/index/sportlight';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -29,13 +30,23 @@ const Home: NextPage = () => {
   useTrackPageView(RouteType.HOME);
 
   return (
-    <div className="homepage">
+    <div className="homepage relative h-full w-full antialiased bg-[#1a1b1e] overflow-hidden">
+      <div className="absolute inset-0 w-full h-screen bg-grid-white/[0.02] fade-out-to-bottom pointer-events-none" />
       <Meta />
       <Navbar animate />
       <Hero animate />
       <main className="flex flex-col items-center justify-center p-6">
-        {/* TODO: Use Spotlight https://ui.aceternity.com/components/spotlight-new */}
-        <div className="gradients"></div>
+        <Spotlight
+          gradientFirst="radial-gradient(68.54% 68.72% at 55.02% 31.46%, hsla(210, 100%, 85%, .04) 0, hsla(210, 100%, 55%, .01) 50%, hsla(210, 100%, 45%, 0) 80%)"
+          gradientSecond="radial-gradient(50% 50% at 50% 50%, hsla(210, 100%, 85%, .025) 0, hsla(210, 100%, 55%, .01) 80%, transparent 100%)"
+          gradientThird="radial-gradient(50% 50% at 50% 50%, hsla(210, 100%, 85%, .012) 0, hsla(210, 100%, 45%, .01) 80%, transparent 100%)"
+          xOffset={170}
+          width={560 * 1.3}
+          smallWidth={240 * 1.2}
+          height={1380 * 1.3}
+          duration={9}
+          translateY={-500}
+        />
         <IndexForm />
         <div className="mx-8 mb-10 md:hidden">
           <Alert

@@ -94,7 +94,7 @@ const IndexForm = () => {
     });
   }, [form.values.room]);
 
-  const words = ['fast', 'easily', 'for free', 'privatly'];
+  const words = ['fast', 'for free', 'privatly', 'easily'];
 
   const { data: analytics } = useQuery({
     queryKey: ['landingPageAnalytics'],

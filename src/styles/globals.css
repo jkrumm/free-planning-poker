@@ -3,9 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/*body {*/
-/*  background-color: #1A1B1E;*/
-/*}*/
+/* body {
+  background-color: #1a1b1e;
+} */
 
 * {
   margin: 0;
@@ -15,12 +15,32 @@
   -moz-box-sizing: border-box;
 }
 
-.homepage {
-  background: radial-gradient(
-    circle at top,
-    rgba(44, 46, 51, 0.8),
-    #1a1b1e 30%
+.bg-grid-white\/\[0\.02\] {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.012)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}
+
+.fade-out-to-bottom {
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0,
+    rgba(0, 0, 0, 1) 20%,
+    rgba(0, 0, 0, 0) 100%
   );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0,
+    rgba(0, 0, 0, 1) 20%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.homepage {
+  /* Remove the radial gradient background */
+  /* background: radial-gradient(
+    circle at top,
+    rgba(44, 46, 51, 0.3),
+    #1a1b1e 40%
+  ); */
 }
 
 nav {
@@ -29,8 +49,12 @@ nav {
 }
 
 .homepage:after {
-  content: '';
-  background: radial-gradient(circle at top, #373a40, #1a1b1e 15%);
+  /* content: '';
+  background: radial-gradient(
+    circle at top,
+    rgba(55, 58, 64, 0.3),
+    #1a1b1e 25%
+  ); */
 }
 
 #screenshot img {
@@ -114,26 +138,6 @@ nav {
 
 .roadmap-list .mantine-List-itemWrapper {
   align-items: start !important;
-}
-
-.gradients {
-  display: none;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.3;
-  content: '';
-  position: absolute;
-  top: 400px;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-image: url('https://cursor.sh/_next/image?url=%2Flanding%2Fgradients%2Fright-gradient%401x.png&w=2048&q=75'),
-    url('https://cursor.sh/_next/image?url=%2Flanding%2Fgradients%2Fleft-gradient%401x.png&w=2048&q=75');
-  background-position:
-    top right,
-    top left;
-  background-size: contain;
-  background-repeat: no-repeat;
 }
 
 html {
