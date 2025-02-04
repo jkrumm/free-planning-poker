@@ -67,10 +67,7 @@ const Contact: NextPage = () => {
       <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
-          <Title order={1} className="mb-6">
-            Contact
-          </Title>
+        <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
           <Text className="mb-4">
             Do you have any questions, suggestions, or feedback? I would love to
             hear from you!
@@ -85,7 +82,9 @@ const Contact: NextPage = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button>Create GitHub Issue</Button>
+            <Button variant="outline" color="gray">
+              Create GitHub Issue
+            </Button>
           </a>
         </section>
         <section className="container flex items-center justify-center w-[800px] gap-12 px-4 pb-28 pt-8">
@@ -185,6 +184,8 @@ const Contact: NextPage = () => {
                   sendMail.isSuccess ||
                   !activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM)
                 }
+                variant="outline"
+                color="gray"
               >
                 Send message
               </Button>
