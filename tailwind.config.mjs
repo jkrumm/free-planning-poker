@@ -39,15 +39,15 @@ module.exports = {
         shimmer: 'shimmer 2s linear infinite',
       },
       fontSize: {
-        'heading-1': ['3.5rem', { lineHeight: '1.2', fontWeight: '600' }],
-        'heading-2': ['2.25rem', { lineHeight: '1.3', fontWeight: '600' }],
-        'heading-3': ['1.875rem', { lineHeight: '1.4', fontWeight: '600' }],
-        'heading-4': ['1.5rem', { lineHeight: '1.5', fontWeight: '600' }],
-        'heading-5': ['1.25rem', { lineHeight: '1.5', fontWeight: '600' }],
-        'heading-6': ['1.125rem', { lineHeight: '1.5', fontWeight: '600' }],
-        'body-large': ['1.125rem', { lineHeight: '1.6' }],
-        'body-base': ['1rem', { lineHeight: '1.6' }],
-        'body-small': ['0.875rem', { lineHeight: '1.5' }],
+        'heading-1': ['4.0625rem', { lineHeight: '1.1', fontWeight: '600' }], // 65px
+        'heading-2': ['1.7rem', { lineHeight: '1.3', fontWeight: '600' }], // 28px
+        'heading-3': ['1.4rem', { lineHeight: '1.4', fontWeight: '600' }], // 22px
+        'heading-4': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }], // 20px
+        'heading-5': ['1.125rem', { lineHeight: '1.4', fontWeight: '600' }], // 18px
+        'heading-6': ['1.125rem', { lineHeight: '1.4', fontWeight: '600' }], // 18px
+        'body-large': ['1.125rem', { lineHeight: '1.6' }], // 18px
+        'body-base': ['1rem', { lineHeight: '1.6' }], // 16px
+        'body-small': ['0.875rem', { lineHeight: '1.5' }], // 14px
       },
       colors: {
         primary: {
@@ -98,11 +98,11 @@ module.exports = {
               fontFamily: 'var(--heading-font-family)',
               letterSpacing: 'var(--heading-tracking)',
             },
-            'h1, h2': { marginBottom: '1.5em' },
-            'h3, h4': { marginBottom: '1.2em' },
+            'h1, h2': { marginBottom: '0.5em' },
+            'h3, h4': { marginBottom: '0.3em' },
             'h5, h6': {
               fontFamily: 'var(--small-heading-font-family)',
-              marginBottom: '1em',
+              marginBottom: '0.2em',
             },
             h1: { fontSize: theme('fontSize.heading-1[0]') },
             h2: { fontSize: theme('fontSize.heading-2[0]') },
@@ -110,6 +110,7 @@ module.exports = {
             h4: { fontSize: theme('fontSize.heading-4[0]') },
             h5: { fontSize: theme('fontSize.heading-5[0]') },
             h6: { fontSize: theme('fontSize.heading-6[0]') },
+            p: { margin: '0' },
           },
         },
       }),
