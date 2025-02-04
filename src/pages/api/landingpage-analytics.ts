@@ -2,9 +2,11 @@ import { type NextRequest } from 'next/server';
 
 import { env } from 'fpp/env';
 
-export const config = {
-  runtime: 'edge',
-};
+// export const config = {
+//   runtime: 'edge',
+// };
+
+export const preferredRegion = 'fra1';
 
 interface LandingPageAnalytics {
   estimation_count: number;
@@ -22,16 +24,18 @@ export default async function handler(req: NextRequest) {
   };
 
   try {
-    const analytics = await fetch(
-      env.ANALYTICS_URL + '/landingpage-analytics',
-      {
-        headers: {
-          Authorization: env.ANALYTICS_SECRET_TOKEN,
-        },
-        next: { revalidate: 300 }, // 5 minute cache
+    const response = await fetch(env.ANALYTICS_URL + '/landingpage-analytics', {
+      headers: {
+        Authorization: env.ANALYTICS_SECRET_TOKEN,
       },
-    ).then((res) => res.json() as Promise<LandingPageAnalytics>);
+      next: { revalidate: 300 }, // 5 minute cache
+    });
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch analytics: ${response.statusText}`);
+    }
+
+    const analytics = (await response.json()) as LandingPageAnalytics;
     data = analytics;
 
     return new Response(JSON.stringify(analytics), {
@@ -43,7 +47,7 @@ export default async function handler(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching landing page analytics:', {
-      error,
+      error: error instanceof Error ? error.message : 'Unknown error',
       data: JSON.stringify(data),
     });
     return new Response(
