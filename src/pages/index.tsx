@@ -30,7 +30,7 @@ const Home: NextPage = () => {
   useTrackPageView(RouteType.HOME);
 
   return (
-    <div className="homepage relative h-full w-full antialiased bg-[#1a1b1e] overflow-hidden">
+    <div className="relative h-full w-full antialiased bg-[#1a1b1e] overflow-hidden">
       <div className="absolute inset-0 w-full h-screen bg-grid-white/[0.02] fade-out-to-bottom pointer-events-none" />
       <Meta />
       <Navbar animate />

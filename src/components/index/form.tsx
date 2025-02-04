@@ -94,7 +94,7 @@ const IndexForm = () => {
     });
   }, [form.values.room]);
 
-  const words = ['fast', 'for free', 'privatly', 'easily'];
+  const words = ['fast', 'for free', 'privatly', 'easily', 'realtime'];
 
   const { data: analytics } = useQuery({
     queryKey: ['landingPageAnalytics'],
@@ -168,7 +168,7 @@ const IndexForm = () => {
                 <Group className="relative w-[300px] flex-nowrap" gap="0">
                   <TextInput
                     placeholder="Join room"
-                    className={`absolute my-4 w-[300px] rounded-md border-[0px] border-solid border-[#272727]`}
+                    className={`join-room-input absolute my-4 w-[300px] rounded-md border-[0px] border-solid border-[#272727]`}
                     size="xl"
                     {...form.getInputProps('room')}
                   />

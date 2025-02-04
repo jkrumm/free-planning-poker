@@ -1,0 +1,117 @@
+/* Import fonts from Fontsource */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Layout
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+html {
+  overflow-y: scroll;
+  color-scheme: light;
+  scroll-behavior: smooth;
+  @apply overflow-y-scroll;
+}
+
+html,
+body {
+  @apply size-full;
+}
+
+/* Code blocks */
+code,
+pre,
+.mono {
+  @apply font-mono;
+}
+
+/* Large text */
+.text-large {
+  @apply text-body-large;
+}
+
+/* Small text */
+small,
+.text-small {
+  @apply text-body-small;
+}
+
+.bg-grid-white\/\[0\.02\] {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.012)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}
+
+.fade-out-to-bottom {
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0,
+    rgba(0, 0, 0, 1) 20%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0,
+    rgba(0, 0, 0, 1) 20%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* For Firefox */
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+}
+
+nav {
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid #1a1b1e;
+}
+
+@media (max-width: 767px) {
+  nav a {
+    margin: 10px auto;
+  }
+}
+
+article h3 {
+  text-align: center;
+  margin-top: 40px !important;
+  margin-bottom: 10px !important;
+}
+
+article h4 {
+  text-align: center;
+  margin-top: 20px !important;
+  margin-bottom: 5px !important;
+}
+
+table tr {
+  padding: 10px 0 !important;
+}
+
+.react-markdown pre {
+  text-wrap: balance;
+  border-radius: 4px;
+  border: 1px solid #141517;
+  background-color: #212529;
+  padding: 16px;
+}

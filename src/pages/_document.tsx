@@ -11,7 +11,7 @@ export default class _Document extends Document {
 
   render() {
     return (
-      <Html className="dark">
+      <Html className="dark prose prose-invert prose-dark">
         <Head />
         <body>
           <Main />
