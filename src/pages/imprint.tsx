@@ -24,14 +24,14 @@ const Imprint: NextPage = () => {
       <main className="flex flex-col items-center justify-center">
         <div className="container max-w-[1200px] gap-12 px-4 pb-12 pt-8 md:flex">
           <div className="mb-20 md:mb-0 md:min-w-[250px]">
-            <h1>Imprint</h1>
-            <h3>Service Provider</h3>
+            <h2>Imprint</h2>
+            <h4>Service Provider</h4>
             Johannes Krumm
             <br />
             Based in Munich, Germany
             <br />
             <br />
-            <h3>Contact Information</h3>
+            <h4>Contact Information</h4>
             For direct communication,
             <br />
             please visit our contact page <br />
@@ -39,12 +39,14 @@ const Imprint: NextPage = () => {
             <br />
             <br />
             <Link href="/contact">
-              <Button>Contact</Button>
+              <Button variant="outline" color="gray">
+                Contact
+              </Button>
             </Link>
           </div>
           <div>
-            <h1>Privacy Policy</h1>
-            <h2>Summary (TL;DR)</h2>
+            <h2>Privacy Policy</h2>
+            <h4>Summary (TL;DR)</h4>
             We are highly committed to protecting your privacy. We collect
             anonymized website usage analytics to improve our services and
             ensure compliance with the General Data Protection Regulation
@@ -58,7 +60,7 @@ const Imprint: NextPage = () => {
             to reach out. We are happy to provide further information.
             <br />
             <br />
-            <h2>Detailed Privacy Policy</h2>
+            <h4>Detailed Privacy Policy</h4>
             We collect <strong>anonymized website usage analytics</strong> to
             enhance our services and user experience, ensuring our full
             compliance with the GDPR, without employing cookies or other
@@ -196,7 +198,7 @@ const Imprint: NextPage = () => {
             requests.
             <br />
             <br />
-            <h1 id="license">Project License</h1>
+            <h2 id="license">Project License</h2>
             The project is licensed under the GNU Affero General Public License
             v3.0 (AGPLv3). This license ensures that derivative work will be
             released under the same license terms, promoting open source sharing
@@ -211,11 +213,13 @@ const Imprint: NextPage = () => {
               rel="noopener noreferrer"
               href="https://github.com/jkrumm/free-planning-poker/blob/master/LICENSE"
             >
-              <Button>AGPLv3 license</Button>
+              <Button variant="outline" color="gray">
+                AGPLv3 license
+              </Button>
             </a>
             <br />
             <br />
-            <h1>Donations</h1>
+            <h2>Donations</h2>
             The PayPal link offered for contributions is solely an option for
             those who voluntarily choose to financially support the continued
             upkeep and development of this tool. Any funds received are
@@ -237,7 +241,9 @@ const Imprint: NextPage = () => {
               rel="noopener noreferrer"
               href="https://paypal.me/johanneskrum"
             >
-              <Button>Donate</Button>
+              <Button variant="outline" color="gray">
+                Donate
+              </Button>
             </a>
           </div>
         </div>
