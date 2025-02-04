@@ -57,7 +57,11 @@ export const ConnectionStatus = ({
         label={
           <div>
             <p>Connection Status: {connectionStatus}</p>
-            {connectedAt && <p>Connected since: {connectedSince}</p>}
+            {connectedAt && (
+              <p>
+                Connected since: <span className="mono">{connectedSince}</span>
+              </p>
+            )}
           </div>
         }
       >

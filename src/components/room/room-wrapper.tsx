@@ -125,7 +125,7 @@ const RoomWrapper = () => {
   }, [queryRoom, username, firstLoad]);
 
   return (
-    <main className="relative hidden max-h-screen min-h-screen flex-col items-center justify-center overscroll-none md:flex">
+    <main className="relative hidden flex-col items-center justify-center w-full h-full md:flex">
       {(() => {
         if (!username || modelOpen) {
           return (

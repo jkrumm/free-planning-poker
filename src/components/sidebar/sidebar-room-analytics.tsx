@@ -10,7 +10,7 @@ import SidebarContent from 'fpp/components/sidebar/sidebar-content';
 const Stat = ({ title, value }: { title: string; value: number | string }) => {
   return (
     <div>
-      <Text fw={700} fz="xl" pb="2px">
+      <Text fw={700} fz="md" pb="2px" className="mono">
         {value}
       </Text>
       <Text c="dimmed" tt="uppercase" fw={700} fz="xs" mb="4px">
@@ -31,7 +31,7 @@ const VoteRing = ({ value, name }: { value: number; name: string }) => {
         thickness={9}
         sections={[{ value: (value / 21) * 100, color }]}
         label={
-          <Text color={color} size="md">
+          <Text color={color} size="md" className="mono">
             {value}
           </Text>
         }

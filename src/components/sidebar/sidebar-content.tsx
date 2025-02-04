@@ -36,7 +36,7 @@ const SidebarContent = ({
         >
           <Card withBorder shadow="sm" radius="md" className="mb-4">
             <Card.Section withBorder p="xs">
-              <Text size="md">{children.title}</Text>
+              <h3 className="p-0 m-0 text-base">{children.title}</h3>
             </Card.Section>
             <Card.Section className="p-2">
               <div className="flex justify-evenly text-center">
