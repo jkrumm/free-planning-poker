@@ -35,7 +35,7 @@
     "@mantine/hooks": "^7.15.3",
     "@mantine/next": "^6.0.22",
     "@mantine/notifications": "^7.15.3",
-    "@sentry/nextjs": "^8.48.0",
+    "@sentry/nextjs": "^8.49.0",
     "@t3-oss/env-nextjs": "^0.11.1",
     "@tabler/icons-react": "^3.28.1",
     "@tailwindcss/typography": "^0.5.16",
