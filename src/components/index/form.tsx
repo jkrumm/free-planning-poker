@@ -4,8 +4,6 @@ import React, { startTransition, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { env } from 'fpp/env';
-
 import { Button, Group, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
@@ -41,8 +39,8 @@ const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
       statusText: response.statusText,
     });
     return {
-      estimation_count: 17000,
-      user_count: 3400,
+      estimation_count: 18000,
+      user_count: 3600,
     };
   }
   return (await response.json()) as Promise<LandingPageAnalytics>;
