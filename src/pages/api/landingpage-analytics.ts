@@ -16,6 +16,11 @@ export default async function handler(req: NextRequest) {
     return new Response('Method not allowed', { status: 405 });
   }
 
+  let data: LandingPageAnalytics = {
+    estimation_count: 0,
+    user_count: 0,
+  };
+
   try {
     const analytics = await fetch(
       env.ANALYTICS_URL + '/landingpage-analytics',
@@ -27,6 +32,8 @@ export default async function handler(req: NextRequest) {
       },
     ).then((res) => res.json() as Promise<LandingPageAnalytics>);
 
+    data = analytics;
+
     return new Response(JSON.stringify(analytics), {
       status: 200,
       headers: {
@@ -35,7 +42,10 @@ export default async function handler(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching landing page analytics:', error);
+    console.error('Error fetching landing page analytics:', {
+      error,
+      data: JSON.stringify(data),
+    });
     return new Response(
       JSON.stringify({
         estimation_count: 17000,
