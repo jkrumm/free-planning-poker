@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { Button, Group, Text } from '@mantine/core';
+import { Text } from '@mantine/core';
 
 const navItems = [
   {
@@ -16,10 +16,6 @@ const navItems = [
     href: '/analytics',
   },
   {
-    title: 'Roadmap',
-    href: '/roadmap',
-  },
-  {
     title: 'Contact',
     href: '/contact',
   },
@@ -28,37 +24,21 @@ const navItems = [
 const Navbar = (props: { animate?: boolean }) => {
   return (
     <nav
-      className={`${props.animate ? 'animate-fadeIn opacity-0' : ''} hidden md:block fixed w-screen top-0 z-50 bg-[#1A1B1E]/30 px-6`}
+      className={`${props.animate ? 'animate-fadeIn opacity-0' : ''} fixed w-screen top-0 z-50 bg-[#1A1B1E]/30 px-6`}
       style={{ animationDelay: `2000ms` }}
     >
-      <div className="mx-auto h-[70px] max-w-[1200px]">
-        <Group justify="space-between" h="100%">
-          {/* <div className="hidden lg:block w-[177px]">
-            <Link href="/">
-              <div className="logo-navbar" />
+      <div className="mx-auto h-[70px] max-w-[1200px] flex justify-center">
+        <div className="flex mt-6 gap-7 md:gap-11">
+          {navItems.map((item, index) => (
+            <Link
+              key={index}
+              href={item.href}
+              className="no-underline hover:text-[#C1C2C5] focus:text-[#C1C2C5] text-[#C1C2C5]"
+            >
+              <Text className={`font-bold`}>{item.title}</Text>
             </Link>
-          </div> */}
-          <div />
-          <Group gap={30}>
-            {navItems.map((item, index) => (
-              <Link
-                key={index}
-                href={item.href}
-                className="no-underline hover:text-[#C1C2C5] focus:text-[#C1C2C5] text-[#C1C2C5]"
-              >
-                <Text className={`font-bold`}>{item.title}</Text>
-              </Link>
-            ))}
-          </Group>
-          <div />
-          {/* <Button
-            size="md"
-            color="#1971C2"
-            className={`hidden md:block w-[177px] opacity-0`}
-          >
-            Start Planning
-          </Button> */}
-        </Group>
+          ))}
+        </div>
       </div>
     </nav>
   );

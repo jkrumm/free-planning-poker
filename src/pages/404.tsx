@@ -15,7 +15,7 @@ export default function Custom404() {
       <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <div className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8 md:flex">
+        <div className="container max-w-[1200px] gap-12 px-4 pb-12 pt-8 md:flex">
           <div className="flex flex-col items-center justify-center w-full">
             <h1 className="text-4xl font-bold text-center">
               404 - Page Not Found

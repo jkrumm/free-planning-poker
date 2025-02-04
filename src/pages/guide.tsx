@@ -22,7 +22,7 @@ const Guide: NextPage = () => {
       <Navbar />
       <Hero />
       <main>
-        <div className="container mx-auto max-w-[1200px] px-4 sm:px-6 md:px-4 pb-28 pt-8">
+        <div className="container mx-auto max-w-[1200px] px-4 sm:px-6 md:px-4 pb-12 pt-8">
           <article id="master-the-art-of-planning-poker">
             <header>
               <Title order={2} className="text-center">

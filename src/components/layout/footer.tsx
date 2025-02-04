@@ -1,8 +1,12 @@
 import Link from 'next/link';
 
+import { Button } from '@mantine/core';
+
+import { IconArrowUp } from '@tabler/icons-react';
+
 import { useConfigStore } from 'fpp/store/config.store';
 
-const links = [
+const linksRight = [
   {
     url: '/',
     title: 'Home',
@@ -23,6 +27,13 @@ const links = [
     url: '/contact',
     title: 'Contact',
   },
+];
+
+const linksCenter = [
+  {
+    url: '/roadmap',
+    title: 'Roadmap',
+  },
   {
     url: '/imprint',
     title: 'Imprint & Privacy Policy',
@@ -32,61 +43,92 @@ const links = [
 function Footer() {
   const latestTag = useConfigStore((state) => state.latestTag);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <footer>
-      <div className="pointer-events-none fixed bottom-0 z-40 block min-h-[50px] min-w-full bg-[#121314] sm:min-h-[30px]" />
-      <div className="fixed bottom-0 z-50 h-[50px] w-full flex-row bg-[#121314] px-4 py-2 text-xs opacity-70 transition-opacity hover:opacity-100 sm:h-[30px] lg:flex">
-        <div className="xs:flex w-full flex-row lg:w-1/2">
-          © {new Date().getFullYear()}
-          {' | '}
-          {/* <Link
-            href="/"
-            className="pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
-          >
-            free-planning-poker.com
-          </Link>{' '} */}
-          <a
-            href="https://github.com/jkrumm/free-planning-poker/releases"
-            target="_blank"
-            className="pr-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2] cursor-pointer"
-            rel="noopener noreferrer"
-          >
-            v{latestTag}
-          </a>
-          {' | '}
-          <Link
-            href="/imprint#license"
-            className="pl-0.5 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
-          >
-            AGPLv3
-          </Link>
-        </div>
-        <div className="hidden w-1/2 flex-row items-end justify-end lg:flex ">
-          {links.map((link) => (
-            <Link
-              href={link.url}
-              key={link.url}
-              className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
+    <footer className="w-full bg-[#121314] py-4">
+      <div className="mx-auto max-w-[800px] px-4">
+        <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
+          {/* Left Column */}
+          <div className="col-span-4 md:col-span-2 flex flex-col justify-center items-center md:items-start space-y-1">
+            <div className="flex items-center space-x-3 text-sm text-[#C1C2C5]">
+              <span>© {new Date().getFullYear()}</span>
+              <span>•</span>
+              <a
+                href="https://github.com/jkrumm/free-planning-poker/releases"
+                target="_blank"
+                className="hover:text-[#1971c2]"
+                rel="noopener noreferrer"
+              >
+                v{latestTag}
+              </a>
+              <span>•</span>
+              <Link href="/imprint#license" className="hover:text-[#1971c2]">
+                AGPLv3
+              </Link>
+            </div>
+            <div className="text-sm text-[#C1C2C5]">
+              <p>Created by Johannes Krumm</p>
+            </div>
+            <Button
+              onClick={scrollToTop}
+              variant="outline"
+              size="xs"
+              color="grey"
+              className="!mt-4"
             >
-              {link.title}
-            </Link>
-          ))}
-          <a
-            href="https://paypal.me/johanneskrum"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
-          >
-            Donate
-          </a>
-          <a
-            href="https://github.com/jkrumm/free-planning-poker"
-            target="_blank"
-            className="pl-4 text-[#C1C2C5] no-underline visited:text-[#C1C2C5] hover:text-[#1971c2]"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
+              <IconArrowUp size={16} className="mr-2" />
+              Back to Top
+            </Button>
+          </div>
+
+          {/* Center Column */}
+          <div className="col-span-4 md:col-span-1 flex flex-col justify-center items-center md:items-center">
+            <nav className="flex flex-col items-center gap-0.5 text-sm">
+              {linksCenter.map((link) => (
+                <Link
+                  key={link.url}
+                  href={link.url}
+                  className="text-[#C1C2C5] hover:text-[#1971c2]"
+                >
+                  {link.title}
+                </Link>
+              ))}
+              <a
+                href="https://paypal.me/johanneskrum"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#C1C2C5] hover:text-[#1971c2]"
+              >
+                Donate
+              </a>
+              <a
+                href="https://github.com/jkrumm/free-planning-poker"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#C1C2C5] hover:text-[#1971c2]"
+              >
+                GitHub
+              </a>
+            </nav>
+          </div>
+
+          {/* Right Column */}
+          <div className="col-span-4 md:col-span-1 flex flex-col justify-center items-center md:items-end">
+            <nav className="flex flex-col items-center gap-0.5 text-sm">
+              {linksRight.map((link) => (
+                <Link
+                  key={link.url}
+                  href={link.url}
+                  className="text-[#C1C2C5] hover:text-[#1971c2]"
+                >
+                  {link.title}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
       </div>
     </footer>
