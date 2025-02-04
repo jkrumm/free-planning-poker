@@ -28,7 +28,19 @@ export default async function handler(req: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch analytics: ${response.statusText}`);
+      console.error('Failed to fetch analytics:', {
+        status: response.status,
+        url: env.ANALYTICS_URL + '/landingpage-analytics',
+        statusText: response.statusText,
+        body: await response.text(),
+        auth: env.ANALYTICS_SECRET_TOKEN.slice(0, 5) + '...',
+      });
+      return new Response(response.statusText, {
+        status: response.status,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
 
     const analytics = (await response.json()) as LandingPageAnalytics;
