@@ -13,7 +13,6 @@ import {
   SimpleGrid,
   Switch,
   Text,
-  Title,
   Tooltip,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -179,18 +178,14 @@ const Analytics = () => {
         <LiveDataModel serverAnalytics={serverAnalytics} />
       </Modal>
       <main className="flex flex-col items-center justify-center">
-        <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
-          <Title order={1} className="mb-6">
-            Analytics
-          </Title>
+        <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
           <Text className="mb-4">
-            Free Planning Poker has decided to share all collected analytical
-            data publicly. This aims to provide interested parties with{' '}
+            Free Planning Poker aims to provide interested parties with{' '}
             <b>statistical insights into the Fibonacci-based Planning Poker</b>{' '}
             process. By examining the votes and averages of estimations (lowest,
             average, highest), users can gain valuable psychological insights
             into team dynamics and estimation behaviors, which can be
-            fascinating for those studying it or are interested in Agile
+            interesting for those studying it or are interested in Agile
             methodologies.
           </Text>
           <Text className="mb-4">
@@ -207,26 +202,19 @@ const Analytics = () => {
             . For more details, please visit our{' '}
             <Link href="/imprint">Privacy Policy</Link>.
           </Text>
-          <Text className="mb-4">
-            {/* eslint-disable-next-line react/no-unescaped-entities */}
-            We're not shy about our current popularity and hope that fans of the
-            app will share our interest in seeing it grow bigger. Your support
-            and feedback are invaluable as we aim to build a more robust and
-            widely-used Planning Poker tool.
-          </Text>
         </section>
         <section className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
           <div className="flex justify-between">
             <div className="flex flex-wrap">
-              <h1>Live</h1>
-              <IconEye className="ml-4 mt-[30px]" onClick={open} size={33} />
+              <h2>Live</h2>
+              <IconEye className="ml-4 mt-[3px]" onClick={open} size={33} />
             </div>
             <Tooltip
               label={`Last update received ${lastUpdatedSeconds} seconds ago`}
             >
               <div className="flex flex-wrap">
                 <RingProgress
-                  className="mr-3 mt-[20px]"
+                  className="mr-3 mt-[-3px]"
                   size={40}
                   thickness={6}
                   sections={[
@@ -236,7 +224,7 @@ const Analytics = () => {
                     },
                   ]}
                 />
-                <Button onClick={refetch} className="mt-[23px]">
+                <Button onClick={refetch} className="mt-[-3px]">
                   Refresh
                 </Button>
               </div>
@@ -257,7 +245,7 @@ const Analytics = () => {
               value={serverAnalytics.connectedUsers}
             />
           </SimpleGrid>
-          <h1>Traffic</h1>
+          <h2>Traffic</h2>
           <SimpleGrid
             cols={{
               xs: 2,
@@ -286,7 +274,7 @@ const Analytics = () => {
               valueAppend="%"
             />
           </SimpleGrid>
-          <h1>Votes</h1>
+          <h2>Votes</h2>
           <SimpleGrid
             cols={{
               sm: 2,
@@ -341,14 +329,14 @@ const Analytics = () => {
             yXisName="Estimation Amount"
           />
           <div className="md:flex justify-between">
-            <h1 className="pt-8">Reoccurring</h1>
+            <h2 className="pt-8">Reoccurring</h2>
             <Switch
               label="Reduce after 30days inactivity"
-              className="mt-auto mb-[30px] cursor-pointer"
+              className="mt-auto mb-[20px] cursor-pointer"
               checked={reduceReoccurring}
               onChange={() => setReduceReoccurring(!reduceReoccurring)}
             />
-            <div className="mt-auto mb-[30px] flex justify-between">
+            <div className="mt-auto mb-[20px] flex justify-between">
               <div className="flex items-center mr-5">
                 <div className="w-4 h-4 bg-[#1971C2] mr-2"></div>
                 <span>Reoccurring Users</span>
@@ -364,10 +352,10 @@ const Analytics = () => {
             reduceReoccurring={reduceReoccurring}
           />
           <div className="flex justify-between">
-            <h1 className="pt-8">Historical</h1>
+            <h2 className="pt-8">Historical</h2>
             <Switch
               label="Show as Table"
-              className="mt-auto mb-[30px] cursor-pointer"
+              className="mt-auto mb-[20px] cursor-pointer"
               checked={historicalTableOpen}
               onChange={() => setHistoricalTableOpen(!historicalTableOpen)}
             />
@@ -377,7 +365,7 @@ const Analytics = () => {
             historicalTableOpen={historicalTableOpen}
           />
           <HistoricalChart historical={historical} />
-          <h1 className="pt-8">Behaviour</h1>
+          <h2 className="pt-8">Behaviour</h2>
           <SimpleGrid
             cols={{
               sm: 1,
@@ -390,7 +378,7 @@ const Analytics = () => {
             <AnalyticsCard headline={'Join'} data={behaviour.events} />
             <AnalyticsCard headline={'Rooms'} data={behaviour.rooms} />
           </SimpleGrid>
-          <h1>Location</h1>
+          <h2>Location</h2>
           <SimpleGrid
             cols={{
               sm: 1,
@@ -412,7 +400,7 @@ const Analytics = () => {
               data={location_and_user_agent.city}
             />
           </SimpleGrid>
-          <h1>User Agent</h1>
+          <h2>User Agent</h2>
           <SimpleGrid
             cols={{
               sm: 1,

@@ -24,16 +24,16 @@ export const HistoricalTable = ({
   const rows = historical.map((element, index) => (
     <Table.Tr key={index}>
       <Table.Td>{element.date.toDateString()}</Table.Td>
-      <Table.Td>{element.estimations}</Table.Td>
-      <Table.Td>{element.acc_estimations}</Table.Td>
-      <Table.Td>{element.votes}</Table.Td>
-      <Table.Td>{element.acc_votes}</Table.Td>
-      <Table.Td>{element.page_views}</Table.Td>
-      <Table.Td>{element.acc_page_views}</Table.Td>
-      <Table.Td>{element.new_users}</Table.Td>
-      <Table.Td>{element.acc_new_users}</Table.Td>
-      <Table.Td>{element.rooms}</Table.Td>
-      <Table.Td>{element.acc_rooms}</Table.Td>
+      <Table.Td className="mono">{element.estimations}</Table.Td>
+      <Table.Td className="mono">{element.acc_estimations}</Table.Td>
+      <Table.Td className="mono">{element.votes}</Table.Td>
+      <Table.Td className="mono">{element.acc_votes}</Table.Td>
+      <Table.Td className="mono">{element.page_views}</Table.Td>
+      <Table.Td className="mono">{element.acc_page_views}</Table.Td>
+      <Table.Td className="mono">{element.new_users}</Table.Td>
+      <Table.Td className="mono">{element.acc_new_users}</Table.Td>
+      <Table.Td className="mono">{element.rooms}</Table.Td>
+      <Table.Td className="mono">{element.acc_rooms}</Table.Td>
     </Table.Tr>
   ));
 
@@ -42,7 +42,12 @@ export const HistoricalTable = ({
       <Collapse in={historicalTableOpen}>
         <Card withBorder radius="md" padding="0" className="mb-12">
           <div className="overflow-y-scroll max-h-[400px]">
-            <Table highlightOnHover stickyHeader withRowBorders={true}>
+            <Table
+              highlightOnHover
+              stickyHeader
+              withRowBorders={true}
+              className="p-0 m-0"
+            >
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Date</Table.Th>

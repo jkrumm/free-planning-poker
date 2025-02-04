@@ -18,14 +18,15 @@ export const AnalyticsCard = ({
 
   return (
     <Card withBorder shadow="sm" radius="md">
-      <Card.Section withBorder inheritPadding py="xs">
-        <Title order={2} size="md">
-          {headline}
-        </Title>
+      <Card.Section withBorder inheritPadding py="xs" px="xs">
+        <h3 className="p-0 m-0 text-heading-5">{headline}</h3>
       </Card.Section>
-      <Card.Section className="px-2 overflow-y-scroll max-h-[400px] scrollbar-hide">
+      <Card.Section className="px-2 overflow-y-scroll max-h-[350px] scrollbar-hide">
         {sortedData.map((item, index) => (
-          <Group key={index} className="relative py-2">
+          <Group
+            key={index}
+            className="relative py-[3px] hover:bg-[#242424]/40"
+          >
             <div
               className="absolute h-[40px] w-full rounded bg-[#242424]"
               style={{ width: `${(item.value / highestValue) * 100}%` }}
@@ -33,7 +34,7 @@ export const AnalyticsCard = ({
             <Text fz="md" className="z-10 m-2">
               {item.name}
             </Text>
-            <Text fz="md" className="z-10 m-2 ml-auto">
+            <Text fz="md" className="z-10 m-2 mono ml-auto">
               {item.value}
             </Text>
           </Group>
