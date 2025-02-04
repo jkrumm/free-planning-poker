@@ -1,5 +1,46 @@
 
 
+## [7.0.0](https://github.com/jkrumm/free-planning-poker/compare/6.3.0...7.0.0) (2025-02-04)
+
+
+### Features
+
+* **analytics:** enhance error logging for landing page analytics request ([530d478](https://github.com/jkrumm/free-planning-poker/commit/530d478a42efd4ea7d51e0b82025f555fefd26ad))
+* **analytics:** improve error handling for landing page analytics ([dba1201](https://github.com/jkrumm/free-planning-poker/commit/dba1201e1c6612e875cea725a9ddd462724b44ae))
+* **analytics:** improve error handling for landing page analytics ([e600f81](https://github.com/jkrumm/free-planning-poker/commit/e600f81c8bc03b4ab42c07ab473697dbd2ad5f2e))
+* **analytics:** improve logging and request configuration ([3028c0b](https://github.com/jkrumm/free-planning-poker/commit/3028c0b57f7ed54cc28a8bc9af44cf558edfd999))
+* **analytics:** not run landing page analytics on edge anymore ([de8a8fc](https://github.com/jkrumm/free-planning-poker/commit/de8a8fcd0809e51d2712ef0734b4054a46d75b6c))
+* **analytics:** update fallback data and edge runtime ([828908b](https://github.com/jkrumm/free-planning-poker/commit/828908b46f78e79735823000d0abb0bfa4c97471))
+* **confetti:** fire up confetti if everybody voted the same ([2adbb5d](https://github.com/jkrumm/free-planning-poker/commit/2adbb5db03d092b1b1f303ecf5f32789aa6b0ad5))
+* **v7:** add shimmer animation and navbar refinements ([cdb48cb](https://github.com/jkrumm/free-planning-poker/commit/cdb48cbc18ce619867e6130a7c093724d03881e3))
+* **v7:** add Spotlight component and grid background ([b6320c2](https://github.com/jkrumm/free-planning-poker/commit/b6320c2e0e2045b17db2cdd1dc2a980351e2ab94))
+* **v7:** added animated user counter on landingpage ([d6e3ab3](https://github.com/jkrumm/free-planning-poker/commit/d6e3ab33c2c8e749e496d29b109826cfc0b7cc12))
+* **v7:** added flip words animation ([3b5e271](https://github.com/jkrumm/free-planning-poker/commit/3b5e2714979b1d1692a3d28f56e2acbc73d1784e))
+* **v7:** animate appearance ([f10acb6](https://github.com/jkrumm/free-planning-poker/commit/f10acb6aa8b22788993f30116690e9a8ea03de70))
+* **v7:** configured ISR for analytics data correctly ([9df93b7](https://github.com/jkrumm/free-planning-poker/commit/9df93b77f5b66274f1f56923b689327cc652fd46))
+* **v7:** enhance typography and styling with new fonts and SCSS ([c15bd59](https://github.com/jkrumm/free-planning-poker/commit/c15bd59d72f5a7f1dd1612a12de9d60bb7868554))
+* **v7:** improved screenshot styling ([b92a73b](https://github.com/jkrumm/free-planning-poker/commit/b92a73b3e12c062147d8dd4abca65d076ea5995a))
+* **v7:** redesign footer with responsive grid layout and improved navigation ([4fbe1ba](https://github.com/jkrumm/free-planning-poker/commit/4fbe1ba3c3d232985240007fea646f0634b05817))
+* **v7:** reduced spacing a bit ([e01686f](https://github.com/jkrumm/free-planning-poker/commit/e01686f919a92240365454362267dd98ae3afb1d))
+* **v7:** refactor Imprint page typography and button styling ([68b45d7](https://github.com/jkrumm/free-planning-poker/commit/68b45d764e3b968f3689da556e8474775d69863c))
+* **v7:** refine component styling and layout spacing in Room ([64c56a1](https://github.com/jkrumm/free-planning-poker/commit/64c56a1fa01184d236495ee395bdc16ae2f8f4c7))
+* **v7:** refine typography and layout spacing ([03f0a9a](https://github.com/jkrumm/free-planning-poker/commit/03f0a9ad363313e17024ff65a83aed1d2833c8d1))
+* **v7:** refine UI with new light logo ([65336a5](https://github.com/jkrumm/free-planning-poker/commit/65336a5b41fde0937ad9a182804e5c43ebf8b5b2))
+* **v7:** shorter footer copyright ([24db994](https://github.com/jkrumm/free-planning-poker/commit/24db99496b93f26a290bbf65cbd495ebb14c65b0))
+* **v7:** simplify page layouts and button styling ([a15d248](https://github.com/jkrumm/free-planning-poker/commit/a15d248d75c4ce95858d60311fa85437dc60b738))
+* **v7:** update favicon, logo, and web app manifest assets ([a74a31e](https://github.com/jkrumm/free-planning-poker/commit/a74a31ee9cd2c1f4ef96a98c3fa1363cf408b471))
+
+
+### Refactor
+
+* **analytics:** improve typography, spacing, and visual hierarchy ([5c12607](https://github.com/jkrumm/free-planning-poker/commit/5c1260780c73dd2ac478a46775580553d512ab0a))
+* **analytics:** update landing page analytics API and request handling ([6ec3b65](https://github.com/jkrumm/free-planning-poker/commit/6ec3b65b849e76b960d4bb21c6979177d5a85970))
+
+
+### Other Changes
+
+* **analytics:** update landing page analytics default values ([16b2e74](https://github.com/jkrumm/free-planning-poker/commit/16b2e74d841130719411588e3b46f58b43194aa8))
+
 ## [6.3.0](https://github.com/jkrumm/free-planning-poker/compare/6.2.0...6.3.0) (2025-01-13)
 
 
