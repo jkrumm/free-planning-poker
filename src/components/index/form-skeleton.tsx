@@ -7,20 +7,22 @@ import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 const IndexFormSkeleton = () => {
   return (
     <>
-      <div className="mb-10 text-center opacity-0">
-        <Title order={2}>Estimate your Story Points fast</Title>
-        <Title order={3} className="mt-5 font-normal opacity-70">
+      <div className="mb-14 text-center opacity-0">
+        <Title order={2} className="mb-4">
+          Estimate your Story Points fast
+        </Title>
+        <Title order={3} className="font-normal opacity-70">
           Say goodbye to complicated planning poker tools and estimate in
           seconds with this user-friendly app.
           <br />
           No signups, open source and privacy focused.
         </Title>
       </div>
-      <Group className="mb-8 hidden md:flex opacity-0">
+      <Group className="mb-16 hidden md:flex opacity-0">
         <Button
           color="#1971C2"
           size="xl"
-          className={`left-0 mx-auto my-8 block w-[300px]`}
+          className={`left-0 mx-auto block w-[300px] bg-[linear-gradient(110deg,#2e2e2e,45%,#272727,55%,#2e2e2e)] border-[1px] border-solid border-[#424242]`}
           type="button"
           role="button"
           aria-label="Start Planning"
@@ -33,7 +35,7 @@ const IndexFormSkeleton = () => {
               <Group className="relative w-[300px] flex-nowrap" gap="0">
                 <TextInput
                   placeholder="Join room"
-                  className={`absolute my-4 w-[300px] rounded-md border-[2px] border-solid border-[#1971C2]`}
+                  className={`join-room-input absolute my-4 w-[300px] rounded-md border-[0px] border-solid border-[#272727]`}
                   size="xl"
                 />
                 <Button
@@ -51,8 +53,8 @@ const IndexFormSkeleton = () => {
           </div>
         </form>
       </Group>
-      <div className="mb-6 text-center opacity-0">
-        <Title order={4} className="text-neutral-300">
+      <div className="mb-3 text-center opacity-0">
+        <Title order={4} className="mb-0">
           Loved by Agile Teams Worldwide
         </Title>
         <div className="grid grid-cols-2 gap-6">
@@ -60,15 +62,15 @@ const IndexFormSkeleton = () => {
             <Text fz="sm" tt="uppercase" fw={700} c="dimmed">
               USERS
             </Text>
-            <Text fz="lg" fw={500}>
-              3500
+            <Text fz="lg" fw={500} className="mono">
+              3400
             </Text>
           </div>
           <div className="p-4">
             <Text fz="sm" tt="uppercase" fw={700} c="dimmed">
               ESTIMATIONS
             </Text>
-            <Text fz="lg" fw={500}>
+            <Text fz="lg" fw={500} className="mono">
               17000
             </Text>
           </div>

@@ -108,7 +108,7 @@ const IndexForm = () => {
   return (
     <>
       <div
-        className="mb-10 text-center opacity-0 animate-fadeInUp"
+        className="mb-14 text-center opacity-0 animate-fadeInUp"
         style={{ animationDelay: `200ms` }}
       >
         <Title order={2} className="mb-4">
@@ -123,7 +123,7 @@ const IndexForm = () => {
         </Title>
       </div>
       <Group
-        className="mb-20 hidden md:flex opacity-0 animate-fadeInUp"
+        className="mb-16 hidden md:flex opacity-0 animate-fadeInUp"
         style={{ animationDelay: `400ms` }}
       >
         <Button
@@ -189,10 +189,10 @@ const IndexForm = () => {
         </form>
       </Group>
       <div
-        className="mb-5 text-center opacity-0 animate-fadeInUp"
+        className="mb-3 text-center opacity-0 animate-fadeInUp"
         style={{ animationDelay: `600ms` }}
       >
-        <Title order={4} className="mb-1">
+        <Title order={4} className="mb-0">
           Loved by Agile Teams Worldwide
         </Title>
         <div className="grid grid-cols-2 gap-6">

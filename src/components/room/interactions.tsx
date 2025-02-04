@@ -58,7 +58,7 @@ export const Interactions = ({
             className="room-name"
           >
             <h2
-              className="uppercase"
+              className="uppercase mb-0"
               ref={roomRef}
               onKeyDown={() => ({})}
               onClick={() => {

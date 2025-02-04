@@ -25,6 +25,10 @@
   }
 }
 
+.room-wrapper {
+  @apply h-screen w-screen overflow-hidden;
+}
+
 .room-name {
   background-position: 8px 14px;
   background-repeat: no-repeat;
