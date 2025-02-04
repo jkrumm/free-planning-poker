@@ -19,7 +19,7 @@ export const StatsCard = ({
       <Text fz="xs" tt="uppercase" fw={700} c="dimmed">
         {name}
       </Text>
-      <Text fz="lg" fw={500}>
+      <Text fz="lg" fw={500} className="mono">
         {value} {valueAppend}
       </Text>
     </Card>
