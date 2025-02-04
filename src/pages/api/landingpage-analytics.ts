@@ -17,11 +17,22 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const headers = new Headers({
+      Authorization: env.ANALYTICS_SECRET_TOKEN,
+      'Content-Type': 'application/json',
+    });
+
+    console.log('Attempting analytics fetch:', {
+      url: env.ANALYTICS_URL + '/landingpage-analytics',
+      headers: Object.fromEntries(headers.entries()),
+    });
+
     const response = await fetch(env.ANALYTICS_URL + '/landingpage-analytics', {
-      headers: {
-        Authorization: env.ANALYTICS_SECRET_TOKEN,
-      },
-      next: { revalidate: 300 }, // 5 minute cache
+      method: 'GET',
+      headers,
+      keepalive: true,
+      redirect: 'follow',
+      next: { revalidate: 300 },
     });
 
     if (!response.ok) {
@@ -29,6 +40,8 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
         status: response.status,
         url: env.ANALYTICS_URL + '/landingpage-analytics',
         statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: await response.text().catch(() => 'Could not read body'),
       });
 
       // Return fallback data if the analytics service fails
