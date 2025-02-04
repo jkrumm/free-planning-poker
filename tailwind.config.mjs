@@ -85,6 +85,9 @@ module.exports = {
             fontBold: '600',
             fontDisplay: 'swap',
             fontFamily: 'Inter, system-ui, sans-serif',
+            img: {
+              margin: '0',
+            },
             '--heading-font-family': theme('fontFamily.manrope').join(', '),
             '--heading-tracking': '-0.01em',
             '--small-heading-font-family': theme('fontFamily.inter').join(', '),

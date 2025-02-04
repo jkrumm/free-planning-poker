@@ -15,8 +15,6 @@ import { api } from 'fpp/utils/api';
 
 import { useConfigLoader } from 'fpp/hooks/config-loader.hook';
 
-import Footer from 'fpp/components/layout/footer';
-
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   useConfigLoader();
 
@@ -28,7 +26,6 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       <main>
         <Component {...pageProps} />
       </main>
-      <Footer />
     </MantineProvider>
   );
 };

@@ -17,6 +17,7 @@ import Features from 'fpp/components/index/features';
 import IndexFormSkeleton from 'fpp/components/index/form-skeleton';
 import Privacy from 'fpp/components/index/privacy';
 import { Spotlight } from 'fpp/components/index/sportlight';
+import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -48,7 +49,7 @@ const Home: NextPage = () => {
           translateY={-500}
         />
         <IndexForm />
-        <div className="mx-8 mb-10 md:hidden">
+        <div className="mx-8 mt-10 mb-10 md:hidden">
           <Alert
             icon={<IconAlertCircle size="1rem" />}
             title="Not supported on mobile devices"
@@ -86,6 +87,7 @@ const Home: NextPage = () => {
           <Contact />
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

@@ -87,7 +87,7 @@ const Contact: NextPage = () => {
             </Button>
           </a>
         </section>
-        <section className="container flex items-center justify-center w-[800px] gap-12 px-4 pb-28 pt-8">
+        <section className="container flex items-center justify-center w-[800px] gap-12 px-4 pb-12 pt-8">
           <form
             className="w-[800px]"
             onSubmit={form.onSubmit(() => {

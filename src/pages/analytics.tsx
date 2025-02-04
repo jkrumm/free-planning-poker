@@ -203,7 +203,7 @@ const Analytics = () => {
             <Link href="/imprint">Privacy Policy</Link>.
           </Text>
         </section>
-        <section className="container max-w-[1200px] gap-12 px-4 pb-28 pt-8">
+        <section className="container max-w-[1200px] gap-12 px-4 pb-12 pt-8">
           <div className="flex justify-between">
             <div className="flex flex-wrap">
               <h2>Live</h2>
