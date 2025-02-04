@@ -77,10 +77,7 @@ const Roadmap = () => {
       <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <section className="container max-w-[800px] gap-12 px-4 mt-8 mb-12">
-          <Title order={1} className="mb-6">
-            Roadmap
-          </Title>
+        <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
           <Text className="mb-4">
             As I am working on this project on my own for now, I have only
             created a Wunderlist board to keep track of the tasks I want to
@@ -88,23 +85,28 @@ const Roadmap = () => {
           </Text>
           <Text className="mb-4">
             Free Planning Poker is an open-source project, and I am always happy
-            to receive contributions from the community. If you want to help,
-            feel free reach out to me or to create a pull request on GitHub.
+            to receive contributions from the users of this app. If you want to
+            help, feel free reach out to me or to create a pull request on
+            GitHub.
           </Text>
           <Text className="mb-6">
             If you have any feature suggestions or want to report a bug, feel
             free to use the contact form or create an issue on GitHub.
           </Text>
-          <Group>
+          <Group className="w-full justify-center gap-4">
             <Link href="/contact">
-              <Button>Contact</Button>
+              <Button variant="outline" color="gray">
+                Contact
+              </Button>
             </Link>
             <a
               href="https://github.com/jkrumm/free-planning-poker/issues/new"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button>Create GitHub Issue</Button>
+              <Button variant="outline" color="gray">
+                Create GitHub Issue
+              </Button>
             </a>
           </Group>
         </section>
@@ -177,7 +179,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
             <Card.Section className="p-6 py-4">
               {subtasks.length > 0 && (
                 <div className="my-2">
-                  <Title order={3} size="sm">
+                  <Title order={4} size="sm">
                     Subtasks
                   </Title>
                   <List className="pr-5 roadmap-list">
@@ -189,12 +191,11 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
                         }
                         className="my-3"
                       >
-                        <Text className="mb-1">{subtask.title}</Text>
+                        <Text fz="md" className="mb-1">
+                          {subtask.title}
+                        </Text>
                         {subtask.description && (
-                          <Text
-                            fz="sm"
-                            className="overflow-auto rounded-lg border border-[#141517]"
-                          >
+                          <Text fz="sm" className="overflow-auto rounded-lg">
                             <Suspense fallback={<p>{subtask.description}</p>}>
                               <Markdown description={subtask.description} />
                             </Suspense>
@@ -212,10 +213,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
                       Description
                     </Title>
                   )}
-                  <Text
-                    fz="sm"
-                    className="overflow-auto rounded-lg border border-[#141517] p-2"
-                  >
+                  <Text fz="sm" className="overflow-auto rounded-lg p-2">
                     <Suspense fallback={<p>{description}</p>}>
                       <Markdown description={description} />
                     </Suspense>
