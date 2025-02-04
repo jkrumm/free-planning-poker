@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server';
+import { type NextApiRequest } from 'next';
 
 import { env } from 'fpp/env';
 
@@ -9,7 +9,7 @@ interface LandingPageAnalytics {
   user_count: number;
 }
 
-export default async function handler(req: NextRequest) {
+const LandingPageAnalytics = async (req: NextApiRequest) => {
   if (req.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -72,4 +72,6 @@ export default async function handler(req: NextRequest) {
       },
     );
   }
-}
+};
+
+export default LandingPageAnalytics;

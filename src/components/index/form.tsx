@@ -29,12 +29,23 @@ interface LandingPageAnalytics {
 
 const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
   const response = await fetch(
-    `${env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
+    `${process.env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
+    {
+      method: 'GET',
+      keepalive: true,
+    },
   );
   if (!response.ok) {
-    throw new Error('Failed to fetch analytics');
+    console.error('Failed to fetch analytics:', {
+      status: response.status,
+      statusText: response.statusText,
+    });
+    return {
+      estimation_count: 17000,
+      user_count: 3400,
+    };
   }
-  return (await response.json()) as LandingPageAnalytics;
+  return (await response.json()) as Promise<LandingPageAnalytics>;
 };
 
 const IndexForm = () => {
