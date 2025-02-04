@@ -39,8 +39,8 @@ const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
       statusText: response.statusText,
     });
     return {
-      estimation_count: 18000,
-      user_count: 3600,
+      estimation_count: 19000,
+      user_count: 4000,
     };
   }
   return (await response.json()) as Promise<LandingPageAnalytics>;
@@ -109,8 +109,8 @@ const IndexForm = () => {
     queryKey: ['landingPageAnalytics'],
     queryFn: fetchAnalytics,
     initialData: {
-      estimation_count: 17000,
-      user_count: 3400,
+      estimation_count: 19000,
+      user_count: 4000,
     },
   });
 

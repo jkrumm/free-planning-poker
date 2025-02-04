@@ -22,11 +22,6 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
       'Content-Type': 'application/json',
     });
 
-    console.log('Attempting analytics fetch:', {
-      url: env.ANALYTICS_URL + '/landingpage-analytics',
-      headers: Object.fromEntries(headers.entries()),
-    });
-
     const response = await fetch(env.ANALYTICS_URL + '/landingpage-analytics', {
       method: 'GET',
       headers,
@@ -40,15 +35,14 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
         status: response.status,
         url: env.ANALYTICS_URL + '/landingpage-analytics',
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
         body: await response.text().catch(() => 'Could not read body'),
       });
 
       // Return fallback data if the analytics service fails
       return new Response(
         JSON.stringify({
-          estimation_count: 18000,
-          user_count: 3600,
+          estimation_count: 19000,
+          user_count: 4000,
         }),
         {
           status: 200,
@@ -75,8 +69,8 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
     // Return fallback data in case of error
     return new Response(
       JSON.stringify({
-        estimation_count: 18000,
-        user_count: 3600,
+        estimation_count: 19000,
+        user_count: 4000,
       }),
       {
         status: 200,
