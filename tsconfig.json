@@ -38,7 +38,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "tailwind.config.mjs"
   ],
   "exclude": ["node_modules", "fpp-server"]
 }
