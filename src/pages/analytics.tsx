@@ -87,8 +87,8 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
       props: {
         trpcState: helpers.dehydrate(),
       },
-      // Set revalidate to 1 hour (3600 seconds)
-      revalidate: 3600,
+      // Set revalidate to 5 minutes (300 seconds)
+      revalidate: 300,
       // If the data fetch fails, it will trigger a regeneration on the next request
       notFound: false,
     };
@@ -100,7 +100,7 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
     return {
       // Return the last successful props but trigger a revalidation
       props: {},
-      revalidate: 10, // Retry after 10 seconds if there's an error
+      revalidate: 7, // Retry after 7 seconds if there's an error
     };
   }
 };
@@ -117,13 +117,13 @@ const Analytics = () => {
     dataUpdatedAt,
     refetch: refetchAnalytics,
   } = api.analytics.getAnalytics.useQuery(undefined, {
-    refetchInterval: 10 * 1000, // 10 seconds
+    refetchInterval: 7 * 1000, // 7 seconds
     retry: true,
   });
 
   const { data: serverAnalytics, refetch: refetchServerAnalytics } =
     api.analytics.getServerAnalytics.useQuery(undefined, {
-      refetchInterval: 10 * 1000, // 10 seconds
+      refetchInterval: 7 * 1000, // 7 seconds
       retry: true,
     });
 
@@ -219,7 +219,7 @@ const Analytics = () => {
                   thickness={6}
                   sections={[
                     {
-                      value: (lastUpdatedSeconds / 10) * 100,
+                      value: (lastUpdatedSeconds / 8) * 100,
                       color: '#1971C2',
                     },
                   ]}

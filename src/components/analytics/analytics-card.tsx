@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Card, Group, Text, Title } from '@mantine/core';
+import { Card, Group, Text } from '@mantine/core';
 
 export const AnalyticsCard = ({
   data,
@@ -21,11 +21,11 @@ export const AnalyticsCard = ({
       <Card.Section withBorder inheritPadding py="xs" px="xs">
         <h3 className="p-0 m-0 text-heading-5">{headline}</h3>
       </Card.Section>
-      <Card.Section className="px-2 overflow-y-scroll max-h-[350px] scrollbar-hide">
+      <Card.Section className="px-1 overflow-y-scroll max-h-[350px] scrollbar-hide">
         {sortedData.map((item, index) => (
           <Group
             key={index}
-            className="relative py-[3px] hover:bg-[#242424]/40"
+            className="relative py-[2px] hover:bg-[#242424]/40"
           >
             <div
               className="absolute h-[40px] w-full rounded bg-[#242424]"

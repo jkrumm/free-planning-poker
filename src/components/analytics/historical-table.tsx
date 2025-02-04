@@ -23,7 +23,7 @@ export const HistoricalTable = ({
 }) => {
   const rows = historical.map((element, index) => (
     <Table.Tr key={index}>
-      <Table.Td>{element.date.toDateString()}</Table.Td>
+      <Table.Td className="pl-2">{element.date.toDateString()}</Table.Td>
       <Table.Td className="mono">{element.estimations}</Table.Td>
       <Table.Td className="mono">{element.acc_estimations}</Table.Td>
       <Table.Td className="mono">{element.votes}</Table.Td>
@@ -50,7 +50,7 @@ export const HistoricalTable = ({
             >
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Date</Table.Th>
+                  <Table.Th className="pl-2">Date</Table.Th>
                   <Table.Th>Estimations</Table.Th>
                   <Table.Th>Acc estimations</Table.Th>
                   <Table.Th>Votes</Table.Th>
