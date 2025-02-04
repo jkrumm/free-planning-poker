@@ -2,10 +2,6 @@ import { type NextRequest } from 'next/server';
 
 import { env } from 'fpp/env';
 
-// export const config = {
-//   runtime: 'edge',
-// };
-
 export const preferredRegion = 'fra1';
 
 interface LandingPageAnalytics {
