@@ -3,13 +3,21 @@ import useWebSocket from 'react-use-websocket';
 
 import { env } from 'fpp/env';
 
+import { Badge } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+
 import * as Sentry from '@sentry/nextjs';
+import { IconBulb } from '@tabler/icons-react';
 import { type Action, type HeartbeatAction } from 'fpp-server/src/room.actions';
 import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 
 import { logMsg } from 'fpp/constants/logging.constant';
 
+import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
+
 import { useRoomStore } from 'fpp/store/room.store';
+
+import { EventType } from 'fpp/server/db/schema';
 
 import { ConnectionStatus } from 'fpp/components/room/connection-status';
 import { Interactions } from 'fpp/components/room/interactions';
@@ -155,6 +163,41 @@ export const Room = ({
     <>
       <div className="w-screen h-screen hidden items-start md:flex">
         <ConnectionStatus readyState={readyState} connectedAt={connectedAt} />
+        <Badge
+          leftSection={
+            <IconBulb size={20} className="-ml-1 mb-[3px] mr-[5px]" />
+          }
+          size="xl"
+          variant="outline"
+          color="gray"
+          className="mt-[9px] text-white/80 font-normal normal-case border-[#424242] hover:bg-[#2e2e2e] cursor-pointer"
+          onClick={() => {
+            if (!window.location) {
+              return;
+            }
+            if ('clipboard' in navigator) {
+              navigator.clipboard
+                .writeText(window.location.toString())
+                .then(() => ({}))
+                .catch(() => ({}));
+            } else {
+              document.execCommand('copy', true, window.location.toString());
+            }
+            notifications.show({
+              color: 'green',
+              autoClose: 3000,
+              withCloseButton: true,
+              title: 'Room URL copied to clipboard',
+              message: 'Share it with your team!',
+            });
+            sendTrackEvent({
+              event: EventType.COPIED_ROOM_LINK,
+              userId,
+            });
+          }}
+        >
+          Bookmark and share the URL
+        </Badge>
         <div className="flex-1">
           <Table
             roomId={roomId}

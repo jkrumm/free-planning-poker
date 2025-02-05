@@ -81,7 +81,7 @@ export const Interactions = ({
                   color: 'green',
                   autoClose: 3000,
                   withCloseButton: true,
-                  title: 'Room url copied to clipboard',
+                  title: 'Room URL copied to clipboard',
                   message: 'Share it with your team!',
                 });
                 sendTrackEvent({
