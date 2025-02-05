@@ -64,7 +64,7 @@ const Sidebar = ({
                 setTab(null);
                 setTimeout(() => {
                   setTab(buttonTab);
-                }, 500);
+                }, 170);
               } else {
                 setTab(buttonTab);
               }
