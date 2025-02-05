@@ -1,5 +1,23 @@
 
 
+## [7.1.0](https://github.com/jkrumm/free-planning-poker/compare/7.0.0...7.1.0) (2025-02-05)
+
+
+### Features
+
+* **analytics:** improve UI responsiveness and add value change animations ([1572e71](https://github.com/jkrumm/free-planning-poker/commit/1572e71a9cb4654d06391ad6bb94803058169940))
+* **room:** add shareable room URL badge with clipboard functionality ([43065e1](https://github.com/jkrumm/free-planning-poker/commit/43065e192490c0042d9106e5415739e0e8ca9dd7))
+
+
+### Bug Fixes
+
+* **analytics:** handle NaN values in room statistics calculation ([92ef855](https://github.com/jkrumm/free-planning-poker/commit/92ef855b6cfaa771de945199a09aa83909896871))
+
+
+### Refactor
+
+* **room:** extract bookmark functionality into separate component ([eb0f842](https://github.com/jkrumm/free-planning-poker/commit/eb0f842655379797bfa204c3db62d965befcd41d))
+
 ## [7.0.0](https://github.com/jkrumm/free-planning-poker/compare/6.3.0...7.0.0) (2025-02-04)
 
 
