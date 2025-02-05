@@ -75,7 +75,7 @@ function DigitComponent({
   return (
     <div
       style={{ height }}
-      className={`relative min-w-[25px] w-[25px] tabular-nums border border-[#424242] text-[#C1C2C5] bg-[#1F1F1F] ${additionalClasses}`}
+      className={`relative min-w-[25px] w-[25px] tabular-nums border border-[#424242] text-[#C1C2C5] bg-[#242424] ${additionalClasses}`}
     >
       {[...Array(10).keys()].map((i) => (
         <NumberComponent key={i} mv={animatedValue} number={i} />
