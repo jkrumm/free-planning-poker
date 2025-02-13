@@ -7,6 +7,7 @@ import { createServerSideHelpers } from '@trpc/react-query/server';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
 import {
+  Badge,
   Button,
   Modal,
   RingProgress,
@@ -19,6 +20,7 @@ import { useDisclosure } from '@mantine/hooks';
 
 import * as Sentry from '@sentry/nextjs';
 import { IconEye } from '@tabler/icons-react';
+import { useQuery } from '@tanstack/react-query';
 import superjson from 'superjson';
 
 import { logMsg } from 'fpp/constants/logging.constant';
@@ -30,6 +32,8 @@ import { createTRPCContext } from 'fpp/server/api/trpc';
 import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
+
+import type { Uptime } from 'fpp/pages/api/uptime';
 
 import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
@@ -107,6 +111,14 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
 
 // TODO: USE https://buildui.com/recipes/highlight when data fetching is done
 
+const fetchUptime = async (): Promise<Uptime[]> => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/uptime`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch uptime status');
+  }
+  return ((await response.json()) as { data: Uptime[] }).data;
+};
+
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
   const [lastUpdatedSeconds, setLastUpdatedSeconds] = React.useState(0);
@@ -145,6 +157,16 @@ const Analytics = () => {
 
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
   const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
+
+  const { data: uptimeData } = useQuery({
+    queryKey: ['uptime'],
+    queryFn: fetchUptime,
+    refetchInterval: 7000,
+    initialData: [
+      { name: 'FFP - Server', status: 'up' },
+      { name: 'FPP - Analytics', status: 'up' },
+    ],
+  });
 
   if (!analytics || !serverAnalytics) {
     Sentry.captureException(new Error(logMsg.SSG_FAILED));
@@ -204,15 +226,47 @@ const Analytics = () => {
           </Text>
         </section>
         <section className="container max-w-[1200px] gap-12 px-4 pb-12 pt-8">
-          <div className="flex justify-between">
-            <div className="flex flex-wrap">
+          <div className="flex w-full justify-evenely items-center">
+            <div className="flex-1 flex justify-start">
               <h2>Live</h2>
               <IconEye className="ml-4 mt-[3px]" onClick={open} size={33} />
+            </div>
+
+            <div className="flex-1 flex justify-center pl-7 pb-2">
+              {uptimeData?.map((service) => (
+                <Badge
+                  key={service.name}
+                  component="a"
+                  href="https://status.jkrumm.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="dot"
+                  size="lg"
+                  color={service.status === 'up' ? 'green' : 'red'}
+                  styles={{
+                    root: {
+                      backgroundColor: '#2C2E33',
+                      textTransform: 'none',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: '#373A40',
+                      },
+                      marginRight: '10px',
+                      textDecoration: 'none',
+                    },
+                    dot: {
+                      borderColor: 'transparent',
+                    },
+                  }}
+                >
+                  {service.name}
+                </Badge>
+              ))}
             </div>
             <Tooltip
               label={`Last update received ${lastUpdatedSeconds} seconds ago`}
             >
-              <div className="flex flex-wrap">
+              <div className="flex-1 flex justify-end">
                 <RingProgress
                   className="mr-3 mt-[-3px]"
                   size={40}

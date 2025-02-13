@@ -47,18 +47,6 @@ app.get('/health', () => {
   return { status: 'ok' };
 });
 
-app.get('/validate-url/:url', async ({ params }) => {
-  const { url } = params;
-  try {
-    const validUrl = new URL(`https://${url}`);
-    const response = await fetch(validUrl.toString());
-    return { status: response.status };
-  } catch (error) {
-    log.error({ error, url }, 'Error validating URL');
-    return { error: 'Invalid URL or unable to fetch the URL' };
-  }
-});
-
 app.get('/analytics', (): Analytics => {
   roomState.cleanupInactiveState();
   return roomState.toAnalytics();
