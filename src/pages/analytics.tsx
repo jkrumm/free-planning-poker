@@ -310,19 +310,19 @@ const Analytics = () => {
           >
             <StatsCard
               name="Today Estimations"
-              value={historical[historical.length - 1]?.daily_estimations ?? 0}
+              value={historical[historical.length - 1]?.estimations ?? 0}
             />
             <StatsCard
               name="Today Votes"
-              value={historical[historical.length - 1]?.daily_votes ?? 0}
+              value={historical[historical.length - 1]?.votes ?? 0}
             />
             <StatsCard
               name="Today Users"
-              value={historical[historical.length - 1]?.daily_users ?? 0}
+              value={historical[historical.length - 1]?.new_users ?? 0}
             />
             <StatsCard
               name="Today Rooms"
-              value={historical[historical.length - 1]?.daily_rooms ?? 0}
+              value={historical[historical.length - 1]?.rooms ?? 0}
             />
           </SimpleGrid>
           <h2>Traffic</h2>
