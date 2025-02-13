@@ -16,7 +16,6 @@ import {
 } from './room.actions';
 import { RoomState } from './room.state';
 import { Analytics } from './types';
-import { preciseTimeout } from './utils';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -43,6 +42,22 @@ const app = new Elysia({
     },
   })
 );
+
+app.get('/health', () => {
+  return { status: 'ok' };
+});
+
+app.get('/validate-url/:url', async ({ params }) => {
+  const { url } = params;
+  try {
+    const validUrl = new URL(`https://${url}`);
+    const response = await fetch(validUrl.toString());
+    return { status: response.status };
+  } catch (error) {
+    log.error({ error, url }, 'Error validating URL');
+    return { error: 'Invalid URL or unable to fetch the URL' };
+  }
+});
 
 app.get('/analytics', (): Analytics => {
   roomState.cleanupInactiveState();

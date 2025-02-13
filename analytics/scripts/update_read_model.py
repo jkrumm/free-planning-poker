@@ -28,6 +28,15 @@ class DB:
             cursor.execute(sql)
         return cursor
 
+    def check_connection(self):
+        try:
+            cursor = self.query("SELECT 1")
+            result = cursor.fetchone()
+            return result is not None and result[0] == 1
+        except Exception as e:
+            logger.error("Database connection check failed", {"error": str(e)})
+            return False
+
 
 def upsert_table(cursor, table_name, dtypes_def):
     if table_name == "fpp_users":
@@ -174,3 +183,22 @@ def load_landingpage_analytics():
     logger.debug("get_landingpage_analytics successfully", result)
 
     return result
+
+
+def check_db_health():
+    try:
+        db = DB()
+        is_healthy = db.check_connection()
+        return {
+            "database": {
+                "connected": is_healthy,
+                "error": None if is_healthy else "Failed to connect to database"
+            }
+        }
+    except Exception as e:
+        return {
+            "database": {
+                "connected": False,
+                "error": str(e)
+            }
+        }

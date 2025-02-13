@@ -14,7 +14,7 @@ from scripts.calc_location_and_user_agent import calc_location_and_user_agent
 from scripts.calc_reoccurring import calc_reoccurring
 from scripts.calc_traffic import calc_traffic
 from scripts.calc_votes import calc_votes
-from scripts.update_read_model import update_read_model, load_landingpage_analytics
+from scripts.update_read_model import update_read_model, load_landingpage_analytics, check_db_health
 from util.log_util import logger
 from util.number_util import r
 from util.send_email_util import send_email_util
@@ -24,6 +24,19 @@ csrf = CSRFProtect(app)
 
 load_dotenv()
 
+@app.route("/health")
+def health():
+    health_status = {
+        "status": "ok",
+        "components": check_db_health()
+    }
+    
+    # If any component is unhealthy, change status and return 503
+    if not health_status["components"]["database"]["connected"]:
+        health_status["status"] = "error"
+        return health_status, 503
+        
+    return health_status
 
 @app.route("/")
 def run_script():
