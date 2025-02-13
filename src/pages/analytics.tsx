@@ -291,12 +291,38 @@ const Analytics = () => {
               md: 2,
             }}
             spacing="md"
-            className="pb-8"
+            className="pb-4"
           >
             <StatsCard name="Open Rooms" value={serverAnalytics.openRooms} />
             <StatsCard
               name="Conected Users"
               value={serverAnalytics.connectedUsers}
+            />
+          </SimpleGrid>
+          <SimpleGrid
+            cols={{
+              xs: 2,
+              sm: 2,
+              md: 4,
+            }}
+            spacing="md"
+            className="pb-8"
+          >
+            <StatsCard
+              name="Today Estimations"
+              value={historical[historical.length - 1]?.daily_estimations ?? 0}
+            />
+            <StatsCard
+              name="Today Votes"
+              value={historical[historical.length - 1]?.daily_votes ?? 0}
+            />
+            <StatsCard
+              name="Today Users"
+              value={historical[historical.length - 1]?.daily_users ?? 0}
+            />
+            <StatsCard
+              name="Today Rooms"
+              value={historical[historical.length - 1]?.daily_rooms ?? 0}
             />
           </SimpleGrid>
           <h2>Traffic</h2>
