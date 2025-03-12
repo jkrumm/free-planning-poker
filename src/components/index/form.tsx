@@ -128,7 +128,7 @@ const IndexForm = () => {
           No signups, open source and privacy focused.
         </Title>
       </div>
-      <Group>
+      <Group className="mb-16 md:flex">
         <Button
           color="#1971C2"
           size="xl"

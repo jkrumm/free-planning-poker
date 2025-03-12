@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button, Group, Text, TextInput, Title } from '@mantine/core';
 
 import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
@@ -7,7 +5,7 @@ import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 const IndexFormSkeleton = () => {
   return (
     <>
-      <div className="mb-14 text-center opacity-0">
+      <div className="mb-14 text-center">
         <Title order={2} className="mb-4">
           Estimate your Story Points fast
         </Title>
@@ -18,7 +16,7 @@ const IndexFormSkeleton = () => {
           No signups, open source and privacy focused.
         </Title>
       </div>
-      <Group className="mb-16 hidden md:flex opacity-0">
+      <Group className="mb-16 md:flex">
         <Button
           color="#1971C2"
           size="xl"
@@ -53,7 +51,7 @@ const IndexFormSkeleton = () => {
           </div>
         </form>
       </Group>
-      <div className="mb-3 text-center opacity-0">
+      <div className="mb-3 text-center">
         <Title order={4} className="mb-0">
           Loved by Agile Teams Worldwide
         </Title>
@@ -63,7 +61,7 @@ const IndexFormSkeleton = () => {
               USERS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              3400
+              4000
             </Text>
           </div>
           <div className="p-4">
@@ -71,7 +69,7 @@ const IndexFormSkeleton = () => {
               ESTIMATIONS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              17000
+              19000
             </Text>
           </div>
         </div>
