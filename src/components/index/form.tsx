@@ -1,6 +1,6 @@
 'use client';
 
-import React, { startTransition, useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -116,10 +116,7 @@ const IndexForm = () => {
 
   return (
     <>
-      <div
-        className="mb-14 text-center opacity-0 animate-fadeInUp"
-        style={{ animationDelay: `200ms` }}
-      >
+      <div className="mb-14 text-center">
         <Title order={2} className="mb-4">
           Estimate your Story Points{' '}
           <FlipWords words={words} duration={5000} className="w-[105px]" />
@@ -131,10 +128,7 @@ const IndexForm = () => {
           No signups, open source and privacy focused.
         </Title>
       </div>
-      <Group
-        className="mb-16 hidden md:flex opacity-0 animate-fadeInUp"
-        style={{ animationDelay: `400ms` }}
-      >
+      <Group>
         <Button
           color="#1971C2"
           size="xl"
@@ -197,10 +191,7 @@ const IndexForm = () => {
           </div>
         </form>
       </Group>
-      <div
-        className="mb-3 text-center opacity-0 animate-fadeInUp"
-        style={{ animationDelay: `600ms` }}
-      >
+      <div className="mb-3 text-center">
         <Title order={4} className="mb-0">
           Loved by Agile Teams Worldwide
         </Title>

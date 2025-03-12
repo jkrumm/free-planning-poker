@@ -2,13 +2,10 @@ import Link from 'next/link';
 
 import { Container } from '@mantine/core';
 
-export function Hero(props: { animate?: boolean }) {
+export function Hero() {
   return (
     <header>
-      <Container
-        size={850}
-        className={`mb-5 mt-20 pt-5 md:mb-7 md:pt-7 ${props.animate ? 'animate-fadeInUp' : ''}`}
-      >
+      <Container>
         <Link href="/" className="no-underline">
           <div className="logo" />
           <h1

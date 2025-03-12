@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { type NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -34,8 +32,8 @@ const Home: NextPage = () => {
     <div className="relative h-full w-full antialiased bg-[#1a1b1e] overflow-hidden">
       <div className="absolute inset-0 w-full h-screen bg-grid-white/[0.02] fade-out-to-bottom pointer-events-none" />
       <Meta />
-      <Navbar animate />
-      <Hero animate />
+      <Navbar />
+      <Hero />
       <main className="flex flex-col items-center justify-center p-6">
         <Spotlight
           gradientFirst="radial-gradient(68.54% 68.72% at 55.02% 31.46%, hsla(210, 100%, 85%, .04) 0, hsla(210, 100%, 55%, .01) 50%, hsla(210, 100%, 45%, 0) 80%)"
@@ -64,11 +62,7 @@ const Home: NextPage = () => {
         </div>
         <div className="gradient-image"></div>
         <div className="z-10 w-[1200px] max-w-full p-6">
-          <section
-            id="screenshot"
-            className="opacity-0 animate-fadeIn"
-            style={{ animationDelay: `2000ms` }}
-          >
+          <section id="screenshot">
             <Image
               src="/images/fpp_screenshot.png"
               width={2852 / 2.5}

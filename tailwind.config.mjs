@@ -16,14 +16,6 @@ module.exports = {
         mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
       },
       keyframes: {
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(15px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
         shimmer: {
           from: {
             backgroundPosition: '0 0',
@@ -34,8 +26,6 @@ module.exports = {
         },
       },
       animation: {
-        fadeInUp: 'fadeInUp 800ms ease-out forwards',
-        fadeIn: 'fadeIn 1400ms ease-out forwards',
         shimmer: 'shimmer 2s linear infinite',
       },
       fontSize: {

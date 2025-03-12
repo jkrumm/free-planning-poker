@@ -21,12 +21,9 @@ const navItems = [
   },
 ];
 
-const Navbar = (props: { animate?: boolean }) => {
+const Navbar = () => {
   return (
-    <nav
-      className={`${props.animate ? 'animate-fadeIn opacity-0' : ''} fixed w-screen top-0 z-50 bg-[#1A1B1E]/30 px-6`}
-      style={{ animationDelay: `2000ms` }}
-    >
+    <nav className={`fixed w-screen top-0 z-50 bg-[#1A1B1E]/30 px-6`}>
       <div className="mx-auto h-[70px] max-w-[1200px] flex justify-center">
         <div className="flex mt-6 gap-7 md:gap-11">
           {navItems.map((item, index) => (
