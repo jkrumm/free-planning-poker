@@ -1,5 +1,29 @@
 
 
+## [7.2.0](https://github.com/jkrumm/free-planning-poker/compare/7.1.0...7.2.0) (2025-03-12)
+
+
+### Features
+
+* **analytics:** add daily usage statistics cards ([ef8bad6](https://github.com/jkrumm/free-planning-poker/commit/ef8bad67eb5034ed0f216fb330d33ac5b6b761f6))
+* **analytics:** add service status monitoring ([ce9e507](https://github.com/jkrumm/free-planning-poker/commit/ce9e507e70ee574063e8b12c89167ffebf6decd8))
+* **health:** add health check endpoints for database and URL validation ([ddd77a1](https://github.com/jkrumm/free-planning-poker/commit/ddd77a10a67c2e355601f38539b620dc74fadfb5))
+
+
+### Bug Fixes
+
+* **analytics:** update daily stats card property names ([cd5c377](https://github.com/jkrumm/free-planning-poker/commit/cd5c37702826194af9ed05299880472548884729))
+
+
+### Refactor
+
+* remove fade-in animations from components and simplify props ([9e56b31](https://github.com/jkrumm/free-planning-poker/commit/9e56b317d30747abff09ebe9f84980c80ce02955))
+
+
+### Other Changes
+
+* **analytics:** update read model on health check ([e61a08f](https://github.com/jkrumm/free-planning-poker/commit/e61a08ffeffc25e101b3d38feb8fb57355768782))
+
 ## [7.1.0](https://github.com/jkrumm/free-planning-poker/compare/7.0.0...7.1.0) (2025-02-05)
 
 
