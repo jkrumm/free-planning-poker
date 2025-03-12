@@ -14,7 +14,8 @@ from scripts.calc_location_and_user_agent import calc_location_and_user_agent
 from scripts.calc_reoccurring import calc_reoccurring
 from scripts.calc_traffic import calc_traffic
 from scripts.calc_votes import calc_votes
-from scripts.update_read_model import update_read_model, load_landingpage_analytics, check_db_health
+from scripts.update_read_model import update_read_model, load_landingpage_analytics, check_db_health, \
+    update_votes_read_model
 from util.log_util import logger
 from util.number_util import r
 from util.send_email_util import send_email_util
@@ -24,19 +25,29 @@ csrf = CSRFProtect(app)
 
 load_dotenv()
 
+
 @app.route("/health")
 def health():
     health_status = {
         "status": "ok",
         "components": check_db_health()
     }
-    
+
+    # update read model and add the result to the health status
+    try:
+        update_votes_read_model()
+        health_status["components"]["read_model"] = True
+    except Exception as e:
+        health_status["components"]["read_model"] = False
+        health_status["components"]["read_model_error"] = str(e)
+
     # If any component is unhealthy, change status and return 503
-    if not health_status["components"]["database"]["connected"]:
+    if not health_status["components"]["database"]["connected"] or not health_status["components"]["read_model"]:
         health_status["status"] = "error"
         return health_status, 503
-        
+
     return health_status
+
 
 @app.route("/")
 def run_script():
@@ -165,7 +176,7 @@ def get_landingpage_analytics():
     logger.info("landingpage-analytics successfully",
                 {"duration": r(time.time() - start_time), "landingpage_analytics": landingpage_analytics})
     logger.flush()
-    
+
     return landingpage_analytics
 
 
