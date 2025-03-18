@@ -35,7 +35,7 @@ def health():
 
     # update read model and add the result to the health status
     try:
-        update_votes_read_model()
+        update_read_model()
         health_status["components"]["read_model"] = True
     except Exception as e:
         health_status["components"]["read_model"] = False

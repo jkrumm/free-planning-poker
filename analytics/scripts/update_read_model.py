@@ -124,29 +124,42 @@ def upsert_users(cursor):
     })
 
 
+# Global variable to track if an update is already running
+is_update_running = False
+
 def update_read_model():
+    global is_update_running
+
+    if is_update_running:
+        logger.debug("update_read_model is already running, skipping this call.")
+        return
+
     logger.debug("update_read_model called!")
+    is_update_running = True
 
-    # Create cursor and use it to execute SQL command
-    db = DB()
-    cursor = db.query("select @@version")
-    version = cursor.fetchone()
+    try:
+        # Create cursor and use it to execute SQL command
+        db = DB()
+        cursor = db.query("select @@version")
+        version = cursor.fetchone()
 
-    if version:
-        logger.debug(f"Running version: ${version}")
-    else:
-        logger.debug('Not connected to db')
+        if version:
+            logger.debug(f"Running version: ${version}")
+        else:
+            logger.debug('Not connected to db')
 
-    upsert_table(cursor, "fpp_estimations", {'user_id': 'str', 'room_id': 'int16', 'spectator': 'int16'})
-    upsert_table(cursor, "fpp_events", {'user_id': 'str', 'event': 'category'})
-    upsert_table(cursor, "fpp_page_views",
-                 {'user_id': 'str', 'source': 'category', 'route': 'category', 'room_id': 'Int16'})
-    upsert_table(cursor, "fpp_rooms", {'number': 'int16', 'name': 'str'})
-    upsert_table(cursor, "fpp_votes", {'room_id': 'int16', 'min_estimation': 'int16', 'max_estimation': 'int16',
-                                       'amount_of_estimations': 'int16', 'amount_of_spectators': 'int16',
-                                       'duration': 'int16'})
+        upsert_table(cursor, "fpp_estimations", {'user_id': 'str', 'room_id': 'int16', 'spectator': 'int16'})
+        upsert_table(cursor, "fpp_events", {'user_id': 'str', 'event': 'category'})
+        upsert_table(cursor, "fpp_page_views",
+                     {'user_id': 'str', 'source': 'category', 'route': 'category', 'room_id': 'Int16'})
+        upsert_table(cursor, "fpp_rooms", {'number': 'int16', 'name': 'str'})
+        upsert_table(cursor, "fpp_votes", {'room_id': 'int16', 'min_estimation': 'int16', 'max_estimation': 'int16',
+                                           'amount_of_estimations': 'int16', 'amount_of_spectators': 'int16',
+                                           'duration': 'int16'})
 
-    upsert_users(cursor)
+        upsert_users(cursor)
+    finally:
+        is_update_running = False
 
 
 def update_votes_read_model():
