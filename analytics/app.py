@@ -2,6 +2,7 @@ import os
 import time
 from dotenv import load_dotenv
 import shutil
+import concurrent.futures
 
 from flask import Flask, request, abort
 from flask_wtf.csrf import CSRFProtect
@@ -52,6 +53,7 @@ def create_app(test_config=None):
 
     @app.route("/health")
     def health():
+        start_time = time.time()
         health_status = {
             "status": "ok",
             "components": check_db_health()
@@ -65,11 +67,31 @@ def create_app(test_config=None):
             health_status["components"]["read_model"] = False
             health_status["components"]["read_model_error"] = str(e)
 
+        # Calculate data and logs size
+        try:
+            data_size_in_gb = round(sum(
+                os.path.getsize(os.path.join(DATA_DIR, f))
+                for f in os.listdir(DATA_DIR)
+                if os.path.isfile(os.path.join(DATA_DIR, f))
+            ) / 1024 / 1024 / 1024, 2)
+            logs_size_in_gb = r(sum(
+                os.path.getsize(f"./logs/{f}") for f in os.listdir("./logs") if os.path.isfile(f"./logs/{f}")) / 1024 / 1024)
+            health_status["components"]["storage"] = {
+                "data_size_in_gb": data_size_in_gb,
+                "logs_size_in_gb": logs_size_in_gb
+            }
+        except Exception as e:
+            health_status["components"]["storage"] = {
+                "error": str(e)
+            }
+
         # If any component is unhealthy, change status and return 503
         if not health_status["components"]["database"]["connected"] or not health_status["components"]["read_model"]:
             health_status["status"] = "error"
             return health_status, 503
 
+        duration = r(time.time() - start_time)
+        health_status["duration"] = duration
         return health_status
 
     @app.route("/")
@@ -94,41 +116,27 @@ def create_app(test_config=None):
             logger.flush()
             return {"error": failed_reason}
 
-        try:
-            results["traffic"] = calc_traffic()
-        except Exception as e:
-            logger.error("Script calc_traffic failed", {"error": e})
-            failed_reason = "calc_traffic"
+        # Define calculation tasks
+        calculation_tasks = {
+            "traffic": calc_traffic,
+            "votes": calc_votes,
+            "behaviour": calc_behaviour,
+            "reoccurring": calc_reoccurring,
+            "historical": calc_historical,
+            "location_and_user_agent": calc_location_and_user_agent
+        }
 
-        try:
-            results["votes"] = calc_votes()
-        except Exception as e:
-            logger.error("Script calc_votes failed", {"error": e})
-            failed_reason = "calc_votes"
-
-        try:
-            results["behaviour"] = calc_behaviour()
-        except Exception as e:
-            logger.error("Script calc_behaviour failed", {"error": e})
-            failed_reason = "calc_behaviour"
-
-        try:
-            results["reoccurring"] = calc_reoccurring()
-        except Exception as e:
-            logger.error("Script calc_reoccurring failed", {"error": e})
-            failed_reason = "calc_reoccurring"
-
-        try:
-            results["historical"] = calc_historical()
-        except Exception as e:
-            logger.error("Script calc_historical failed", {"error": e})
-            failed_reason = "calc_historical"
-
-        try:
-            results["location_and_user_agent"] = calc_location_and_user_agent()
-        except Exception as e:
-            logger.error("Script calc_location_and_user_agent failed", {"error": e})
-            failed_reason = "calc_location_and_user_agent"
+        # Run calculations in parallel
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            future_to_task = {executor.submit(func): (name, func) for name, func in calculation_tasks.items()}
+            
+            for future in concurrent.futures.as_completed(future_to_task):
+                task_name, func = future_to_task[future]
+                try:
+                    results[task_name] = future.result()
+                except Exception as e:
+                    logger.error(f"Script {task_name} failed", {"error": e})
+                    failed_reason = task_name
 
         duration = r(time.time() - start_time)
 
@@ -136,16 +144,7 @@ def create_app(test_config=None):
             logger.flush()
             return {"error": failed_reason, "duration": duration}
 
-        data_size_in_gb = round(sum(
-            os.path.getsize(os.path.join(DATA_DIR, f))
-            for f in os.listdir(DATA_DIR)
-            if os.path.isfile(os.path.join(DATA_DIR, f))
-        ) / 1024 / 1024 / 1024, 2)
-        logs_size_in_gb = r(sum(
-            os.path.getsize(f"./logs/{f}") for f in os.listdir("./logs") if os.path.isfile(f"./logs/{f}")) / 1024 / 1024)
-        logger.info("Script executed successfully!",
-                    {"duration": duration, "data_size_in_gb": data_size_in_gb, "logs_size": logs_size_in_gb})
-
+        logger.info("Script executed successfully!", {"duration": duration})
         logger.flush()
 
         return results
