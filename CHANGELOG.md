@@ -1,5 +1,19 @@
 
 
+## [7.3.0](https://github.com/jkrumm/free-planning-poker/compare/7.2.0...7.3.0) (2025-03-18)
+
+
+### Features
+
+* **analytics:** parallelize analytics calculation ([6e4ca04](https://github.com/jkrumm/free-planning-poker/commit/6e4ca04cd898dc70ddaa870b88a0f5a1e08c44f9))
+* **analytics:** prevent parallel usage of update_read_model ([f4f3922](https://github.com/jkrumm/free-planning-poker/commit/f4f392297b2d80ab9cf4e0615ed530cae2028ad0))
+* **analytics:** restructure app init to reload the read model ([fb59774](https://github.com/jkrumm/free-planning-poker/commit/fb597745fb70ff6e0123798f46d8934210d9a546))
+
+
+### Bug Fixes
+
+* removed differences in form components ([1809131](https://github.com/jkrumm/free-planning-poker/commit/18091311cc62137cbe97cd72fa42d68dc85f66c8))
+
 ## [7.2.0](https://github.com/jkrumm/free-planning-poker/compare/7.1.0...7.2.0) (2025-03-12)
 
 
