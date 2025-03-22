@@ -1,5 +1,13 @@
 
 
+## [7.4.0](https://github.com/jkrumm/free-planning-poker/compare/7.3.0...7.4.0) (2025-03-22)
+
+
+### Features
+
+* **analytics:** enhance analytics with cache details and improve polling ([32dcadb](https://github.com/jkrumm/free-planning-poker/commit/32dcadbdbde6dd371ae2502e64d139a5ad9c72a8))
+* **analytics:** implement scheduled cache updates and enhance health checks ([bab3ff4](https://github.com/jkrumm/free-planning-poker/commit/bab3ff4118eb856eff2eeb4e12a1f24bebec96a6))
+
 ## [7.3.0](https://github.com/jkrumm/free-planning-poker/compare/7.2.0...7.3.0) (2025-03-18)
 
 
