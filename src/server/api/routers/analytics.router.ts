@@ -30,7 +30,7 @@ export const analyticsRouter = createTRPCRouter({
       const analytics = (await response.json()) as AnalyticsResponse;
 
       const countryCounts: Record<string, number> = {};
-      Object.entries(analytics.location_and_user_agent.country).forEach(
+      Object.entries(analytics.data.location_and_user_agent.country).forEach(
         ([country, count]) => {
           const countryName = `${country} - ${
             countryRegions.find((c) => c.countryShortCode === country)
@@ -41,7 +41,7 @@ export const analyticsRouter = createTRPCRouter({
       );
 
       const regionCounts: Record<string, number> = {};
-      analytics.location_and_user_agent.country_region.forEach((i) => {
+      analytics.data.location_and_user_agent.country_region.forEach((i) => {
         const regionName = `${i.country} - ${
           countryRegions
             .find((c) => c.countryShortCode === i.country)
@@ -51,7 +51,7 @@ export const analyticsRouter = createTRPCRouter({
       });
 
       const cityCounts: Record<string, number> = {};
-      analytics.location_and_user_agent.country_city.forEach((i) => {
+      analytics.data.location_and_user_agent.country_city.forEach((i) => {
         const cityName = `${i.country} - ${i.city}`;
         cityCounts[cityName] = i.count;
       });
@@ -66,11 +66,11 @@ export const analyticsRouter = createTRPCRouter({
         'Sunday',
       ];
 
-      // Create a sorted version of the weekday_counts as Flask sorts the JSON keys alphabetically by default
+      // Create a sorted version of the weekday_counts
       const sortedWeekdayCounts: Record<string, number> = weekdayOrder.reduce(
         (acc, day) => {
-          if (analytics.votes.weekday_counts[day] !== undefined) {
-            acc[day] = analytics.votes.weekday_counts[day]!;
+          if (analytics.data.votes.weekday_counts[day] !== undefined) {
+            acc[day] = analytics.data.votes.weekday_counts[day]!;
           }
           return acc;
         },
@@ -78,19 +78,26 @@ export const analyticsRouter = createTRPCRouter({
       );
 
       const analyticsResult: AnalyticsResult = {
-        ...analytics,
+        ...analytics.data,
         location_and_user_agent: {
-          browser: analytics.location_and_user_agent.browser,
+          browser: analytics.data.location_and_user_agent.browser,
           country: countryCounts,
           city: cityCounts,
           region: regionCounts,
-          device: analytics.location_and_user_agent.device,
-          os: analytics.location_and_user_agent.os,
+          device: analytics.data.location_and_user_agent.device,
+          os: analytics.data.location_and_user_agent.os,
         },
         votes: {
-          ...analytics.votes,
+          ...analytics.data.votes,
           weekday_counts: sortedWeekdayCounts,
         },
+        cache: {
+          last_updated: analytics.cache.last_updated,
+          age_seconds: analytics.cache.age_seconds,
+          status: analytics.cache.status,
+          next_update_in: analytics.cache.next_update_in,
+        },
+        duration: analytics.duration,
       };
 
       return analyticsResult;
@@ -133,75 +140,84 @@ export const analyticsRouter = createTRPCRouter({
 });
 
 interface AnalyticsResponse {
-  behaviour: {
-    events: Record<keyof typeof EventType, number>;
-    sources: Record<string, number>;
-    routes: Record<keyof typeof RouteType, number>;
-    rooms: Record<string, number>;
-  };
-  reoccurring: {
-    date: string;
-    reoccurring_users: number;
-    reoccurring_rooms: number;
-    adjusted_reoccurring_users: number;
-    adjusted_reoccurring_rooms: number;
-  }[];
-  historical: {
-    date: string;
-    estimations: number;
-    acc_estimations: number;
-    ma_estimations: number;
-    votes: number;
-    acc_votes: number;
-    ma_votes: number;
-    page_views: number;
-    acc_page_views: number;
-    ma_page_views: number;
-    new_users: number;
-    acc_new_users: number;
-    ma_new_users: number;
-    rooms: number;
-    acc_rooms: number;
-    ma_rooms: number;
-  }[];
-  location_and_user_agent: {
-    browser: Record<string, number>;
-    country: Record<string, number>;
-    country_city: {
-      country: string;
-      city: string;
-      count: number;
+  data: {
+    behaviour: {
+      events: Record<keyof typeof EventType, number>;
+      sources: Record<string, number>;
+      routes: Record<keyof typeof RouteType, number>;
+      rooms: Record<string, number>;
+    };
+    reoccurring: {
+      date: string;
+      reoccurring_users: number;
+      reoccurring_rooms: number;
+      adjusted_reoccurring_users: number;
+      adjusted_reoccurring_rooms: number;
     }[];
-    country_region: {
-      country: string;
-      region: string;
-      count: number;
+    historical: {
+      date: string;
+      estimations: number;
+      acc_estimations: number;
+      ma_estimations: number;
+      votes: number;
+      acc_votes: number;
+      ma_votes: number;
+      page_views: number;
+      acc_page_views: number;
+      ma_page_views: number;
+      new_users: number;
+      acc_new_users: number;
+      ma_new_users: number;
+      rooms: number;
+      acc_rooms: number;
+      ma_rooms: number;
     }[];
-    device: Record<string, number>;
-    os: Record<string, number>;
+    location_and_user_agent: {
+      browser: Record<string, number>;
+      country: Record<string, number>;
+      country_city: {
+        country: string;
+        city: string;
+        count: number;
+      }[];
+      country_region: {
+        country: string;
+        region: string;
+        count: number;
+      }[];
+      device: Record<string, number>;
+      os: Record<string, number>;
+    };
+    traffic: {
+      average_duration: number;
+      bounce_rate: number;
+      page_views: number;
+      unique_users: number;
+    };
+    votes: {
+      avg_duration_per_vote: number;
+      avg_estimation: number;
+      avg_estimations_per_vote: number;
+      avg_max_estimation: number;
+      avg_min_estimation: number;
+      avg_spectators_per_vote: number;
+      total_estimations: number;
+      total_votes: number;
+      weekday_counts: Record<string, number>;
+      estimation_counts: Record<string, number>;
+    };
   };
-  traffic: {
-    average_duration: number;
-    bounce_rate: number;
-    page_views: number;
-    unique_users: number;
+  cache: {
+    last_updated: string;
+    age_seconds: number;
+    status: 'fresh' | 'ok' | 'stale';
+    next_update_in: number;
   };
-  votes: {
-    avg_duration_per_vote: number;
-    avg_estimation: number;
-    avg_estimations_per_vote: number;
-    avg_max_estimation: number;
-    avg_min_estimation: number;
-    avg_spectators_per_vote: number;
-    total_estimations: number;
-    total_votes: number;
-    weekday_counts: Record<string, number>;
-    estimation_counts: Record<string, number>;
-  };
+  duration: number;
 }
 
 type ModifiedAnalyticsResponse = Omit<
-  AnalyticsResponse,
+  AnalyticsResponse['data'],
   'location_and_user_agent'
 >;
 
@@ -214,8 +230,15 @@ interface LocationAndUserAgent {
   os: Record<string, number>;
 }
 
-interface AnalyticsResult extends ModifiedAnalyticsResponse {
+export interface AnalyticsResult extends ModifiedAnalyticsResponse {
   location_and_user_agent: LocationAndUserAgent;
+  cache: {
+    last_updated: string;
+    age_seconds: number;
+    status: 'fresh' | 'ok' | 'stale';
+    next_update_in: number;
+  };
+  duration: number;
 }
 
 type CountryRegionData = {

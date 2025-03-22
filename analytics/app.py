@@ -217,9 +217,22 @@ def create_app(test_config=None):
         if not analytics_cache["data"]:
             return {"error": "Cache not initialized"}, 503
 
-        duration = r(time.time() - start_time)
-        # Return in the old format for backward compatibility
-        return analytics_cache["data"]
+        # Calculate cache age and status
+        cache_age = (datetime.now() - analytics_cache["last_updated"]).total_seconds()
+        cache_status = "fresh" if cache_age <= 60 else "stale" if cache_age > 180 else "ok"
+        
+        response = {
+            "data": analytics_cache["data"],  # The actual analytics data
+            "cache": {
+                "last_updated": analytics_cache["last_updated"].isoformat(),
+                "age_seconds": int(cache_age),
+                "status": cache_status,
+                "next_update_in": max(0, 30 - (cache_age % 30))  # Time until next update
+            },
+            "duration": r(time.time() - start_time)
+        }
+        
+        return response
 
     @app.route("/room/<room_id>/stats")
     def get_room_stats(room_id):

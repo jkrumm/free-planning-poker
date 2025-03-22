@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -121,7 +121,6 @@ const fetchUptime = async (): Promise<Uptime[]> => {
 
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
-  const [lastUpdatedSeconds, setLastUpdatedSeconds] = React.useState(0);
   const [opened, { open, close }] = useDisclosure(false);
 
   const {
@@ -129,31 +128,115 @@ const Analytics = () => {
     dataUpdatedAt,
     refetch: refetchAnalytics,
   } = api.analytics.getAnalytics.useQuery(undefined, {
-    refetchInterval: 7 * 1000, // 7 seconds
-    retry: true,
+    refetchInterval: 30000, // Default to 30s
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const { data: serverAnalytics, refetch: refetchServerAnalytics } =
     api.analytics.getServerAnalytics.useQuery(undefined, {
-      refetchInterval: 7 * 1000, // 7 seconds
+      refetchInterval: 30000,
       retry: true,
     });
 
   const refetch = () => {
-    refetchAnalytics()
-      .then(() => ({}))
-      .catch(() => ({}));
-    refetchServerAnalytics()
-      .then(() => ({}))
-      .catch(() => ({}));
+    void refetchAnalytics();
+    void refetchServerAnalytics();
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLastUpdatedSeconds(Math.floor((Date.now() - dataUpdatedAt) / 1000));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [dataUpdatedAt]);
+  // Smart refetch manager
+  const lastDataTimestampRef = React.useRef<string | null>(null);
+  const pollIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const preEmptiveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Set up smart refetch interval based on server's update cycle
+  React.useEffect(() => {
+    if (!analytics?.cache) return;
+
+    // Clear any existing intervals/timeouts
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    if (preEmptiveTimeoutRef.current)
+      clearTimeout(preEmptiveTimeoutRef.current);
+
+    const currentTimestamp = analytics.cache.last_updated;
+    const now = Date.now();
+    const lastUpdateTime = new Date(currentTimestamp).getTime();
+    const serverUpdateInterval = 30000; // 30 seconds
+    const nextServerUpdate = lastUpdateTime + serverUpdateInterval;
+    const timeUntilNextUpdate = nextServerUpdate - now;
+
+    // Function to start polling
+    const startPolling = () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = setInterval(() => {
+        void refetchAnalytics();
+      }, 1000);
+    };
+
+    // If we're within 5 seconds of the next update or past it, start polling
+    if (timeUntilNextUpdate <= 5000) {
+      startPolling();
+    } else {
+      // Schedule polling to start 5 seconds before next update
+      preEmptiveTimeoutRef.current = setTimeout(
+        startPolling,
+        timeUntilNextUpdate - 5000,
+      );
+    }
+
+    // Cleanup function
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (preEmptiveTimeoutRef.current)
+        clearTimeout(preEmptiveTimeoutRef.current);
+    };
+  }, [analytics?.cache, refetchAnalytics]);
+
+  // Handle countdown display
+  const [secondsLeft, setSecondsLeft] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!analytics?.cache) return;
+
+    const updateSeconds = () => {
+      const now = Date.now();
+      const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
+      const nextUpdate = lastUpdateTime + 30000; // 30 seconds after last update
+      const remaining = Math.max(0, Math.round((nextUpdate - now) / 1000));
+      setSecondsLeft(remaining);
+    };
+
+    // Initial update
+    updateSeconds();
+
+    // Update every second
+    const intervalId = setInterval(updateSeconds, 1000);
+    return () => clearInterval(intervalId);
+  }, [analytics?.cache]);
+
+  // Calculate progress for the ring (0-100)
+  const updateProgress = React.useMemo(() => {
+    if (!analytics?.cache) return 0;
+    const now = Date.now();
+    const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
+    const elapsed = (now - lastUpdateTime) / 1000;
+    const progress = (elapsed / 30) * 100;
+    return Math.min(Math.max(progress, 0), 100);
+  }, [analytics?.cache, secondsLeft]); // Add secondsLeft dependency to update progress
+
+  const cacheStatusColor = React.useMemo(() => {
+    if (!analytics?.cache) return 'gray';
+    switch (analytics.cache.status) {
+      case 'fresh':
+        return 'green';
+      case 'ok':
+        return 'yellow';
+      case 'stale':
+        return 'red';
+      default:
+        return 'gray';
+    }
+  }, [analytics?.cache]);
 
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
   const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
@@ -254,9 +337,6 @@ const Analytics = () => {
                       marginRight: '10px',
                       textDecoration: 'none',
                     },
-                    dot: {
-                      borderColor: 'transparent',
-                    },
                   }}
                 >
                   {service.name}
@@ -264,21 +344,36 @@ const Analytics = () => {
               ))}
             </div>
             <Tooltip
-              label={`Last update received ${lastUpdatedSeconds} seconds ago`}
+              label={
+                analytics?.cache
+                  ? `Cache ${analytics.cache.status}: ${secondsLeft}s until next update`
+                  : 'Loading...'
+              }
             >
-              <div className="flex-1 flex justify-end">
+              <div className="flex-1 flex justify-end items-center">
                 <RingProgress
-                  className="mr-3 mt-[-3px]"
+                  className="mr-3"
                   size={40}
-                  thickness={6}
+                  thickness={4}
                   sections={[
                     {
-                      value: (lastUpdatedSeconds / 8) * 100,
-                      color: '#1971C2',
+                      value: updateProgress,
+                      color: cacheStatusColor,
                     },
                   ]}
+                  label={
+                    <Text ta="center" size="xs">
+                      {secondsLeft}s
+                    </Text>
+                  }
                 />
-                <Button onClick={refetch} className="mt-[-3px]">
+                <Button
+                  onClick={refetch}
+                  color={cacheStatusColor}
+                  variant={
+                    analytics?.cache?.status === 'stale' ? 'filled' : 'light'
+                  }
+                >
                   Refresh
                 </Button>
               </div>
