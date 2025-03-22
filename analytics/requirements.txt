@@ -1,6 +1,7 @@
 blinker==1.7.0
 click==8.1.7
-Flask==3.0.1
+Flask==3.0.2
+Flask-APScheduler==1.13.1
 Flask-WTF==1.2.1
 itsdangerous==2.1.2
 Jinja2==3.1.4
@@ -10,11 +11,13 @@ numpy==1.26.3
 pandas==2.2.0
 pyarrow==14.0.2
 python-dateutil==2.8.2
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 pytz==2023.3.post1
 six==1.16.0
-tzdata==2023.4
+tzdata==2024.1
 Werkzeug==3.0.3
 WTForms==3.1.2
 gunicorn==20.0.0
 requests~=2.32.3
+polars==0.20.6
+psycopg2-binary==2.9.9
