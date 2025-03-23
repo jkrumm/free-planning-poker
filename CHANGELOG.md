@@ -1,5 +1,33 @@
 
 
+## [7.5.0](https://github.com/jkrumm/free-planning-poker/compare/7.4.0...7.5.0) (2025-03-23)
+
+
+### Features
+
+* **footer:** add Footer component to multiple pages for consistent layout ([a54eb02](https://github.com/jkrumm/free-planning-poker/commit/a54eb0246b22e59db209af332bf466729ef01043))
+* **hero:** no navigation on landingpage ([80dd0c0](https://github.com/jkrumm/free-planning-poker/commit/80dd0c0ae49aba3ca6bc1384f624ac4cbca04168))
+
+
+### Bug Fixes
+
+* **analytics:** add unique key and timestamp for improved data updates ([290af39](https://github.com/jkrumm/free-planning-poker/commit/290af39d2a5220e07d28e6847e545c157106e3e4))
+* **analytics:** include votes and estimations in analytics data structure ([9d2a95d](https://github.com/jkrumm/free-planning-poker/commit/9d2a95d2e4759bac87d9c9ed20e8c66ed0947710))
+* **analytics:** no cache on data fetching and UI update mechanisms ([c5c9813](https://github.com/jkrumm/free-planning-poker/commit/c5c9813cb9e1ca845b88a6f2146b246c375e7c88))
+* **analytics:** update cache handling to use UTC timestamps for consistency ([03197f8](https://github.com/jkrumm/free-planning-poker/commit/03197f8f6ad43bdd2c2478648b4cacb85b76db2f))
+
+
+### Refactor
+
+* **analytics:** remove unused server-side props ([f87dd34](https://github.com/jkrumm/free-planning-poker/commit/f87dd34628432ad62176dca29698990328e7a812))
+* **analytics:** switch from static to server-side props ([e7eb39a](https://github.com/jkrumm/free-planning-poker/commit/e7eb39a97ee91b7ae18da97947f402b3bb73114e))
+
+
+### Other Changes
+
+* **analytics:** add debug logging for timezone diagnosis ([0e8023b](https://github.com/jkrumm/free-planning-poker/commit/0e8023bdbde831f53ba4dd49f6d97ff1dc3d3012))
+* **analytics:** add logging for data updates and polling mechanisms ([973b344](https://github.com/jkrumm/free-planning-poker/commit/973b3440fbf97b410300c7a9ef4e38b01ed93203))
+
 ## [7.4.0](https://github.com/jkrumm/free-planning-poker/compare/7.3.0...7.4.0) (2025-03-22)
 
 
