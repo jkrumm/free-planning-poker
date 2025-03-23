@@ -2,10 +2,13 @@ import Link from 'next/link';
 
 import { Container } from '@mantine/core';
 
-export function Hero() {
+export function Hero({ noMt }: { noMt?: boolean }) {
   return (
     <header>
-      <Container size={850} className="mb-5 mt-20 pt-5 md:mb-7 md:pt-7">
+      <Container
+        size={850}
+        className={`mb-5  pt-5 md:mb-7 md:pt-7 ${noMt ? 'mt-2' : 'mt-20'}`}
+      >
         <Link href="/" className="no-underline">
           <div className="logo" />
           <h1

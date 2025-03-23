@@ -17,7 +17,6 @@ import Privacy from 'fpp/components/index/privacy';
 import { Spotlight } from 'fpp/components/index/sportlight';
 import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
-import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 const IndexForm = dynamic(() => import('fpp/components/index/form'), {
@@ -32,8 +31,8 @@ const Home: NextPage = () => {
     <div className="relative h-full w-full antialiased bg-[#1a1b1e] overflow-hidden">
       <div className="absolute inset-0 w-full h-screen bg-grid-white/[0.02] fade-out-to-bottom pointer-events-none" />
       <Meta />
-      <Navbar />
-      <Hero />
+      {/* <Navbar /> */}
+      <Hero noMt={true} />
       <main className="flex flex-col items-center justify-center p-6">
         <Spotlight
           gradientFirst="radial-gradient(68.54% 68.72% at 55.02% 31.46%, hsla(210, 100%, 85%, .04) 0, hsla(210, 100%, 55%, .01) 50%, hsla(210, 100%, 45%, 0) 80%)"
