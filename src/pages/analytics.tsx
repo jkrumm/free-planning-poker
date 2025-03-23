@@ -32,6 +32,7 @@ import { HistoricalTable } from 'fpp/components/analytics/historical-table';
 import { LiveDataModel } from 'fpp/components/analytics/live-data-model';
 import { ReoccurringChart } from 'fpp/components/analytics/reoccurring-chart';
 import { StatsCard } from 'fpp/components/analytics/stats-card';
+import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -515,6 +516,7 @@ const Analytics = () => {
           </SimpleGrid>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

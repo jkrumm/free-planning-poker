@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { type NextPage } from 'next';
 
 import { Text, Title } from '@mantine/core';
@@ -9,6 +7,7 @@ import { RouteType } from 'fpp/server/db/schema';
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import PointsTable from 'fpp/components/index/points-table';
+import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -118,6 +117,7 @@ const Guide: NextPage = () => {
           </article>
         </div>
       </main>
+      <Footer />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -37,6 +37,7 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
+import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -124,6 +125,7 @@ const Roadmap = () => {
           </SimpleGrid>
         </section>
       </main>
+      <Footer />
     </>
   );
 };

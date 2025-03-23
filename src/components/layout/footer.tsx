@@ -86,7 +86,7 @@ function Footer() {
 
           {/* Center Column */}
           <div className="col-span-4 md:col-span-1 flex flex-col justify-center items-center md:items-center">
-            <nav className="flex flex-col items-center gap-0.5 text-sm">
+            <nav className="flex flex-col items-center gap-0.5 text-sm border-0">
               {linksCenter.map((link) => (
                 <Link
                   key={link.url}
@@ -117,7 +117,7 @@ function Footer() {
 
           {/* Right Column */}
           <div className="col-span-4 md:col-span-1 flex flex-col justify-center items-center md:items-end">
-            <nav className="flex flex-col items-center gap-0.5 text-sm">
+            <nav className="flex flex-col items-center gap-0.5 text-sm border-0">
               {linksRight.map((link) => (
                 <Link
                   key={link.url}

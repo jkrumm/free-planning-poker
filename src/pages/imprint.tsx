@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { type NextPage } from 'next';
 import Link from 'next/link';
 
@@ -9,6 +7,7 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
+import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -248,6 +247,7 @@ const Imprint: NextPage = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 };

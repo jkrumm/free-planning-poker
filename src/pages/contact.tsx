@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { type NextPage } from 'next';
 
 import {
@@ -10,7 +8,6 @@ import {
   Text,
   TextInput,
   Textarea,
-  Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -27,6 +24,7 @@ import { EventType, FeatureFlagType, RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
+import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
 import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
@@ -89,7 +87,7 @@ const Contact: NextPage = () => {
         </section>
         <section className="container flex items-center justify-center w-[800px] gap-12 px-4 pb-12 pt-8">
           <form
-            className="w-[800px]"
+            className="w-[800px] mt-3 mb-8"
             onSubmit={form.onSubmit(() => {
               sendMail.mutate(form.values, {
                 onSuccess: () => {
@@ -193,6 +191,7 @@ const Contact: NextPage = () => {
           </form>
         </section>
       </main>
+      <Footer />
     </>
   );
 };
