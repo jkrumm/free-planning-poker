@@ -61,6 +61,6 @@ export const configRouter = createTRPCRouter({
     }
 
     // Fallback if latestTag is still null
-    return latestTag ?? '7.0.0';
+    return latestTag ?? '7.4.0';
   }),
 });
