@@ -62,9 +62,9 @@ def update_analytics_cache():
         }
         logger.flush()  # Flush after calculations
         
-        # Update cache
+        # Update cache with UTC timestamp
         analytics_cache["data"] = results
-        analytics_cache["last_updated"] = datetime.now()
+        analytics_cache["last_updated"] = datetime.now(utc)
         logger.debug("Analytics cache updated successfully")
         logger.flush()  # Flush after cache update
     except Exception as e:
@@ -141,7 +141,7 @@ def create_app(test_config=None):
                 "error": "Cache not initialized"
             }
         else:
-            cache_age = (datetime.now() - analytics_cache["last_updated"]).total_seconds()
+            cache_age = (datetime.now(utc) - analytics_cache["last_updated"]).total_seconds()
             if cache_age > 180:  # 3 minutes
                 health_status["components"]["cache"] = {
                     "status": "error",
@@ -217,8 +217,8 @@ def create_app(test_config=None):
         if not analytics_cache["data"]:
             return {"error": "Cache not initialized"}, 503
 
-        # Calculate cache age and status
-        cache_age = (datetime.now() - analytics_cache["last_updated"]).total_seconds()
+        # Calculate cache age and status using UTC timestamps
+        cache_age = (datetime.now(utc) - analytics_cache["last_updated"]).total_seconds()
         cache_status = "fresh" if cache_age <= 60 else "stale" if cache_age > 180 else "ok"
         
         response = {

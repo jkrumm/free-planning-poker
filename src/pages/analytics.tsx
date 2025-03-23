@@ -136,21 +136,6 @@ const Analytics = () => {
     return Math.min(Math.max(progress, 0), 100);
   }, [analytics?.cache, secondsLeft]);
 
-  // Debug logging to help diagnose timezone issues
-  React.useEffect(() => {
-    if (!analytics?.cache) return;
-    console.log(
-      'Last update:',
-      new Date(analytics.cache.last_updated).toISOString(),
-    );
-    console.log('Current time:', new Date().toISOString());
-    console.log(
-      'Time difference:',
-      (Date.now() - new Date(analytics.cache.last_updated).getTime()) / 1000,
-      'seconds',
-    );
-  }, [analytics?.cache]);
-
   const cacheStatusColor = React.useMemo(() => {
     if (!analytics?.cache) return 'gray';
     switch (analytics.cache.status) {
