@@ -35,6 +35,8 @@ export const analyticsRouter = createTRPCRouter({
       console.log('[Analytics Router] Received data:', {
         timestamp: analytics.cache.last_updated,
         status: analytics.cache.status,
+        votes: analytics.data.votes.total_votes,
+        estimations: analytics.data.votes.total_estimations,
       });
 
       // Add a unique key to force updates
@@ -113,11 +115,14 @@ export const analyticsRouter = createTRPCRouter({
         },
         duration: analytics.duration,
         _timestamp: Date.now(),
+        _version: 1,
       };
 
       console.log('[Analytics Router] Returning processed data:', {
         timestamp: analyticsResult._timestamp,
         uniqueKey: analyticsResult.cache.uniqueKey,
+        votes: analyticsResult.votes.total_votes,
+        estimations: analyticsResult.votes.total_estimations,
       });
 
       return analyticsResult;
@@ -262,6 +267,7 @@ export interface AnalyticsResult extends ModifiedAnalyticsResponse {
   };
   duration: number;
   _timestamp: number;
+  _version: number;
 }
 
 type CountryRegionData = {

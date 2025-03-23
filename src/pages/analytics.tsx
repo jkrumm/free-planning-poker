@@ -139,10 +139,12 @@ const Analytics = () => {
         timestamp: data._timestamp,
         uniqueKey: data.cache.uniqueKey,
         dataUpdatedAt,
+        votes: data.votes.total_votes,
+        estimations: data.votes.total_estimations,
       });
       return {
         ...data,
-        key: `${data._timestamp}-${data.cache.uniqueKey}`,
+        key: `${data._timestamp}-${data.cache.uniqueKey}-${data._version}`,
       };
     },
   });
@@ -163,6 +165,8 @@ const Analytics = () => {
         timestamp: analytics._timestamp,
         uniqueKey: analytics.cache.uniqueKey,
         dataUpdatedAt,
+        votes: analytics.votes.total_votes,
+        estimations: analytics.votes.total_estimations,
       });
     }
   }, [analytics, dataUpdatedAt]);
@@ -185,6 +189,8 @@ const Analytics = () => {
     console.log('[Analytics Frontend] Setting up refetch interval:', {
       lastUpdated: analytics.cache.last_updated,
       status: analytics.cache.status,
+      votes: analytics.votes.total_votes,
+      estimations: analytics.votes.total_estimations,
     });
 
     // Clear any existing intervals/timeouts
