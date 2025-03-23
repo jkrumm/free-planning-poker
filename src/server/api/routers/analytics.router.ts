@@ -39,10 +39,6 @@ export const analyticsRouter = createTRPCRouter({
         estimations: analytics.data.votes.total_estimations,
       });
 
-      // Add a unique key to force updates
-      const uniqueKey = `${Date.now()}-${Math.random()}`;
-      console.log('[Analytics Router] Generated unique key:', uniqueKey);
-
       const countryCounts: Record<string, number> = {};
       Object.entries(analytics.data.location_and_user_agent.country).forEach(
         ([country, count]) => {
@@ -110,17 +106,12 @@ export const analyticsRouter = createTRPCRouter({
           age_seconds: analytics.cache.age_seconds,
           status: analytics.cache.status,
           next_update_in: analytics.cache.next_update_in,
-          timestamp: new Date().toISOString(),
-          uniqueKey,
         },
         duration: analytics.duration,
-        _timestamp: Date.now(),
-        _version: 1,
       };
 
       console.log('[Analytics Router] Returning processed data:', {
-        timestamp: analyticsResult._timestamp,
-        uniqueKey: analyticsResult.cache.uniqueKey,
+        timestamp: analytics.cache.last_updated,
         votes: analyticsResult.votes.total_votes,
         estimations: analyticsResult.votes.total_estimations,
       });
@@ -262,12 +253,8 @@ export interface AnalyticsResult extends ModifiedAnalyticsResponse {
     age_seconds: number;
     status: 'fresh' | 'ok' | 'stale';
     next_update_in: number;
-    timestamp: string;
-    uniqueKey: string;
   };
   duration: number;
-  _timestamp: number;
-  _version: number;
 }
 
 type CountryRegionData = {

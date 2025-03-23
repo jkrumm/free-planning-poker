@@ -73,7 +73,7 @@ const EstimationChart = dynamic(
   },
 );
 
-export const getStaticProps = async (context: CreateNextContextOptions) => {
+export const getServerSideProps = async (context: CreateNextContextOptions) => {
   try {
     const helpers = createServerSideHelpers({
       router: appRouter,
@@ -91,20 +91,12 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
       props: {
         trpcState: helpers.dehydrate(),
       },
-      // Set revalidate to 5 minutes (300 seconds)
-      revalidate: 300,
-      // If the data fetch fails, it will trigger a regeneration on the next request
-      notFound: false,
     };
   } catch (error) {
-    // Log the error but don't throw it
-    console.error('Error in getStaticProps:', error);
+    console.error('Error in getServerSideProps:', error);
     Sentry.captureException(error);
-
     return {
-      // Return the last successful props but trigger a revalidation
       props: {},
-      revalidate: 7, // Retry after 7 seconds if there's an error
     };
   }
 };
@@ -122,6 +114,7 @@ const fetchUptime = async (): Promise<Uptime[]> => {
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
   const [opened, { open, close }] = useDisclosure(false);
+  const [key, setKey] = React.useState(0);
 
   const {
     data: analytics,
@@ -136,16 +129,13 @@ const Analytics = () => {
     refetchIntervalInBackground: true,
     select: (data) => {
       console.log('[Analytics Frontend] Received data update:', {
-        timestamp: data._timestamp,
-        uniqueKey: data.cache.uniqueKey,
         dataUpdatedAt,
         votes: data.votes.total_votes,
         estimations: data.votes.total_estimations,
       });
-      return {
-        ...data,
-        key: `${data._timestamp}-${data.cache.uniqueKey}-${data._version}`,
-      };
+      // Force a re-render when data changes
+      setKey((prev) => prev + 1);
+      return data;
     },
   });
 
@@ -162,8 +152,6 @@ const Analytics = () => {
   React.useEffect(() => {
     if (analytics) {
       console.log('[Analytics Frontend] Data changed:', {
-        timestamp: analytics._timestamp,
-        uniqueKey: analytics.cache.uniqueKey,
         dataUpdatedAt,
         votes: analytics.votes.total_votes,
         estimations: analytics.votes.total_estimations,
@@ -314,7 +302,7 @@ const Analytics = () => {
   }));
 
   return (
-    <>
+    <div key={key}>
       <Meta title="Analytics" />
       <Navbar />
       <Hero />
@@ -645,7 +633,7 @@ const Analytics = () => {
           </SimpleGrid>
         </section>
       </main>
-    </>
+    </div>
   );
 };
 
