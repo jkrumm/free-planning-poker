@@ -134,12 +134,19 @@ const Analytics = () => {
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchIntervalInBackground: true,
+    select: (data) => ({
+      ...data,
+      key: `${data._timestamp}-${data.cache.uniqueKey}`, // Add a unique key to force updates
+    }),
   });
 
   const { data: serverAnalytics, refetch: refetchServerAnalytics } =
     api.analytics.getServerAnalytics.useQuery(undefined, {
       refetchInterval: 30000,
       retry: true,
+      staleTime: 0,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
     });
 
   const refetch = () => {
