@@ -14,13 +14,9 @@ const countryRegions =
 export const analyticsRouter = createTRPCRouter({
   getAnalytics: publicProcedure.query(async ({ ctx }) => {
     try {
-      console.log('[Analytics Router] Fetching new data...');
       const response = await fetch(env.ANALYTICS_URL, {
         headers: {
           Authorization: env.ANALYTICS_SECRET_TOKEN,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
         },
         cache: 'no-store',
       });
@@ -32,12 +28,6 @@ export const analyticsRouter = createTRPCRouter({
       }
 
       const analytics = (await response.json()) as AnalyticsResponse;
-      console.log('[Analytics Router] Received data:', {
-        timestamp: analytics.cache.last_updated,
-        status: analytics.cache.status,
-        votes: analytics.data.votes.total_votes,
-        estimations: analytics.data.votes.total_estimations,
-      });
 
       const countryCounts: Record<string, number> = {};
       Object.entries(analytics.data.location_and_user_agent.country).forEach(
@@ -76,7 +66,6 @@ export const analyticsRouter = createTRPCRouter({
         'Sunday',
       ];
 
-      // Create a sorted version of the weekday_counts
       const sortedWeekdayCounts: Record<string, number> = weekdayOrder.reduce(
         (acc, day) => {
           if (analytics.data.votes.weekday_counts[day] !== undefined) {
@@ -87,7 +76,7 @@ export const analyticsRouter = createTRPCRouter({
         {} as Record<string, number>,
       );
 
-      const analyticsResult: AnalyticsResult = {
+      return {
         ...analytics.data,
         location_and_user_agent: {
           browser: analytics.data.location_and_user_agent.browser,
@@ -101,22 +90,9 @@ export const analyticsRouter = createTRPCRouter({
           ...analytics.data.votes,
           weekday_counts: sortedWeekdayCounts,
         },
-        cache: {
-          last_updated: analytics.cache.last_updated,
-          age_seconds: analytics.cache.age_seconds,
-          status: analytics.cache.status,
-          next_update_in: analytics.cache.next_update_in,
-        },
+        cache: analytics.cache,
         duration: analytics.duration,
       };
-
-      console.log('[Analytics Router] Returning processed data:', {
-        timestamp: analytics.cache.last_updated,
-        votes: analyticsResult.votes.total_votes,
-        estimations: analyticsResult.votes.total_estimations,
-      });
-
-      return analyticsResult;
     } catch (e) {
       console.error('Error fetching analytics', e);
       Sentry.captureException(e, {
@@ -132,7 +108,7 @@ export const analyticsRouter = createTRPCRouter({
       const response = await fetch(
         'https://server.free-planning-poker.com/analytics',
         {
-          cache: 'no-cache',
+          cache: 'no-store',
         },
       );
 

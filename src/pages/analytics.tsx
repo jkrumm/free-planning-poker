@@ -3,12 +3,10 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
-import { createServerSideHelpers } from '@trpc/react-query/server';
-import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
-
 import {
   Badge,
   Button,
+  Loader,
   Modal,
   RingProgress,
   SimpleGrid,
@@ -18,17 +16,11 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
-import * as Sentry from '@sentry/nextjs';
 import { IconEye } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import superjson from 'superjson';
-
-import { logMsg } from 'fpp/constants/logging.constant';
 
 import { api } from 'fpp/utils/api';
 
-import { appRouter } from 'fpp/server/api/root';
-import { createTRPCContext } from 'fpp/server/api/trpc';
 import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
@@ -53,7 +45,7 @@ const LoadingFrame = (props: { height: number }) => (
       alignItems: 'center',
     }}
   >
-    Loading...
+    <Loader size="xl" />
   </div>
 );
 
@@ -73,36 +65,6 @@ const EstimationChart = dynamic(
   },
 );
 
-export const getServerSideProps = async (context: CreateNextContextOptions) => {
-  try {
-    const helpers = createServerSideHelpers({
-      router: appRouter,
-      ctx: createTRPCContext(context),
-      transformer: superjson,
-    });
-
-    // Fetch the data
-    await Promise.all([
-      helpers.analytics.getAnalytics.prefetch(),
-      helpers.analytics.getServerAnalytics.prefetch(),
-    ]);
-
-    return {
-      props: {
-        trpcState: helpers.dehydrate(),
-      },
-    };
-  } catch (error) {
-    console.error('Error in getServerSideProps:', error);
-    Sentry.captureException(error);
-    return {
-      props: {},
-    };
-  }
-};
-
-// TODO: USE https://buildui.com/recipes/highlight when data fetching is done
-
 const fetchUptime = async (): Promise<Uptime[]> => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/uptime`);
   if (!response.ok) {
@@ -114,116 +76,33 @@ const fetchUptime = async (): Promise<Uptime[]> => {
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
   const [opened, { open, close }] = useDisclosure(false);
-  const [key, setKey] = React.useState(0);
 
   const {
     data: analytics,
     dataUpdatedAt,
     refetch: refetchAnalytics,
   } = api.analytics.getAnalytics.useQuery(undefined, {
-    refetchInterval: 30000, // Default to 30s
-    staleTime: 0, // Consider data stale immediately
+    refetchInterval: 5000, // Poll every 5 seconds to check for updates
+    staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchIntervalInBackground: true,
-    select: (data) => {
-      console.log('[Analytics Frontend] Received data update:', {
-        dataUpdatedAt,
-        votes: data.votes.total_votes,
-        estimations: data.votes.total_estimations,
-      });
-      // Force a re-render when data changes
-      setKey((prev) => prev + 1);
-      return data;
-    },
   });
 
   const { data: serverAnalytics, refetch: refetchServerAnalytics } =
     api.analytics.getServerAnalytics.useQuery(undefined, {
-      refetchInterval: 30000,
+      refetchInterval: 5000, // Match analytics polling
       retry: true,
       staleTime: 0,
       refetchOnMount: true,
       refetchOnReconnect: true,
     });
 
-  // Add effect to track data changes
-  React.useEffect(() => {
-    if (analytics) {
-      console.log('[Analytics Frontend] Data changed:', {
-        dataUpdatedAt,
-        votes: analytics.votes.total_votes,
-        estimations: analytics.votes.total_estimations,
-      });
-    }
-  }, [analytics, dataUpdatedAt]);
-
   const refetch = () => {
-    console.log('[Analytics Frontend] Manual refetch triggered');
     void refetchAnalytics();
     void refetchServerAnalytics();
   };
-
-  // Smart refetch manager
-  const lastDataTimestampRef = React.useRef<string | null>(null);
-  const pollIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
-  const preEmptiveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  // Set up smart refetch interval based on server's update cycle
-  React.useEffect(() => {
-    if (!analytics?.cache) return;
-
-    console.log('[Analytics Frontend] Setting up refetch interval:', {
-      lastUpdated: analytics.cache.last_updated,
-      status: analytics.cache.status,
-      votes: analytics.votes.total_votes,
-      estimations: analytics.votes.total_estimations,
-    });
-
-    // Clear any existing intervals/timeouts
-    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    if (preEmptiveTimeoutRef.current)
-      clearTimeout(preEmptiveTimeoutRef.current);
-
-    const currentTimestamp = analytics.cache.last_updated;
-    const now = Date.now();
-    const lastUpdateTime = new Date(currentTimestamp).getTime();
-    const serverUpdateInterval = 30000; // 30 seconds
-    const nextServerUpdate = lastUpdateTime + serverUpdateInterval;
-    const timeUntilNextUpdate = nextServerUpdate - now;
-
-    // Function to start polling
-    const startPolling = () => {
-      console.log('[Analytics Frontend] Starting polling interval');
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = setInterval(() => {
-        console.log('[Analytics Frontend] Polling interval triggered');
-        void refetchAnalytics();
-      }, 1000);
-    };
-
-    // If we're within 5 seconds of the next update or past it, start polling
-    if (timeUntilNextUpdate <= 5000) {
-      startPolling();
-    } else {
-      // Schedule polling to start 5 seconds before next update
-      console.log('[Analytics Frontend] Scheduling polling:', {
-        timeUntilNextUpdate,
-      });
-      preEmptiveTimeoutRef.current = setTimeout(
-        startPolling,
-        timeUntilNextUpdate - 5000,
-      );
-    }
-
-    // Cleanup function
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      if (preEmptiveTimeoutRef.current)
-        clearTimeout(preEmptiveTimeoutRef.current);
-    };
-  }, [analytics?.cache, refetchAnalytics]);
 
   // Handle countdown display
   const [secondsLeft, setSecondsLeft] = React.useState(0);
@@ -234,7 +113,7 @@ const Analytics = () => {
     const updateSeconds = () => {
       const now = Date.now();
       const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
-      const nextUpdate = lastUpdateTime + 30000; // 30 seconds after last update
+      const nextUpdate = lastUpdateTime + 35000; // 35 seconds from last update
       const remaining = Math.max(0, Math.round((nextUpdate - now) / 1000));
       setSecondsLeft(remaining);
     };
@@ -253,9 +132,9 @@ const Analytics = () => {
     const now = Date.now();
     const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
     const elapsed = (now - lastUpdateTime) / 1000;
-    const progress = (elapsed / 30) * 100;
+    const progress = (elapsed / 35) * 100; // 35 seconds total duration
     return Math.min(Math.max(progress, 0), 100);
-  }, [analytics?.cache, secondsLeft]); // Add secondsLeft dependency to update progress
+  }, [analytics?.cache, secondsLeft]);
 
   const cacheStatusColor = React.useMemo(() => {
     if (!analytics?.cache) return 'gray';
@@ -285,8 +164,11 @@ const Analytics = () => {
   });
 
   if (!analytics || !serverAnalytics) {
-    Sentry.captureException(new Error(logMsg.SSG_FAILED));
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader size="xl" />
+      </div>
+    );
   }
 
   const { behaviour, location_and_user_agent, traffic, votes } = analytics;
@@ -302,7 +184,7 @@ const Analytics = () => {
   }));
 
   return (
-    <div key={key}>
+    <div>
       <Meta title="Analytics" />
       <Navbar />
       <Hero />

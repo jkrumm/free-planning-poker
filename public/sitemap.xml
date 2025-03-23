@@ -11,11 +11,6 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://free-planning-poker.com/analytics</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
         <loc>https://free-planning-poker.com/roadmap</loc>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
