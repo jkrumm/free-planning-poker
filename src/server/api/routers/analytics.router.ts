@@ -14,6 +14,7 @@ const countryRegions =
 export const analyticsRouter = createTRPCRouter({
   getAnalytics: publicProcedure.query(async ({ ctx }) => {
     try {
+      console.log('[Analytics Router] Fetching new data...');
       const response = await fetch(env.ANALYTICS_URL, {
         headers: {
           Authorization: env.ANALYTICS_SECRET_TOKEN,
@@ -31,9 +32,14 @@ export const analyticsRouter = createTRPCRouter({
       }
 
       const analytics = (await response.json()) as AnalyticsResponse;
+      console.log('[Analytics Router] Received data:', {
+        timestamp: analytics.cache.last_updated,
+        status: analytics.cache.status,
+      });
 
       // Add a unique key to force updates
       const uniqueKey = `${Date.now()}-${Math.random()}`;
+      console.log('[Analytics Router] Generated unique key:', uniqueKey);
 
       const countryCounts: Record<string, number> = {};
       Object.entries(analytics.data.location_and_user_agent.country).forEach(
@@ -103,11 +109,16 @@ export const analyticsRouter = createTRPCRouter({
           status: analytics.cache.status,
           next_update_in: analytics.cache.next_update_in,
           timestamp: new Date().toISOString(),
-          uniqueKey, // Add unique key to force updates
+          uniqueKey,
         },
         duration: analytics.duration,
-        _timestamp: Date.now(), // Add timestamp at root level
+        _timestamp: Date.now(),
       };
+
+      console.log('[Analytics Router] Returning processed data:', {
+        timestamp: analyticsResult._timestamp,
+        uniqueKey: analyticsResult.cache.uniqueKey,
+      });
 
       return analyticsResult;
     } catch (e) {

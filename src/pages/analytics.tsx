@@ -134,10 +134,17 @@ const Analytics = () => {
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchIntervalInBackground: true,
-    select: (data) => ({
-      ...data,
-      key: `${data._timestamp}-${data.cache.uniqueKey}`, // Add a unique key to force updates
-    }),
+    select: (data) => {
+      console.log('[Analytics Frontend] Received data update:', {
+        timestamp: data._timestamp,
+        uniqueKey: data.cache.uniqueKey,
+        dataUpdatedAt,
+      });
+      return {
+        ...data,
+        key: `${data._timestamp}-${data.cache.uniqueKey}`,
+      };
+    },
   });
 
   const { data: serverAnalytics, refetch: refetchServerAnalytics } =
@@ -149,7 +156,19 @@ const Analytics = () => {
       refetchOnReconnect: true,
     });
 
+  // Add effect to track data changes
+  React.useEffect(() => {
+    if (analytics) {
+      console.log('[Analytics Frontend] Data changed:', {
+        timestamp: analytics._timestamp,
+        uniqueKey: analytics.cache.uniqueKey,
+        dataUpdatedAt,
+      });
+    }
+  }, [analytics, dataUpdatedAt]);
+
   const refetch = () => {
+    console.log('[Analytics Frontend] Manual refetch triggered');
     void refetchAnalytics();
     void refetchServerAnalytics();
   };
@@ -162,6 +181,11 @@ const Analytics = () => {
   // Set up smart refetch interval based on server's update cycle
   React.useEffect(() => {
     if (!analytics?.cache) return;
+
+    console.log('[Analytics Frontend] Setting up refetch interval:', {
+      lastUpdated: analytics.cache.last_updated,
+      status: analytics.cache.status,
+    });
 
     // Clear any existing intervals/timeouts
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -177,8 +201,10 @@ const Analytics = () => {
 
     // Function to start polling
     const startPolling = () => {
+      console.log('[Analytics Frontend] Starting polling interval');
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = setInterval(() => {
+        console.log('[Analytics Frontend] Polling interval triggered');
         void refetchAnalytics();
       }, 1000);
     };
@@ -188,6 +214,9 @@ const Analytics = () => {
       startPolling();
     } else {
       // Schedule polling to start 5 seconds before next update
+      console.log('[Analytics Frontend] Scheduling polling:', {
+        timeUntilNextUpdate,
+      });
       preEmptiveTimeoutRef.current = setTimeout(
         startPolling,
         timeUntilNextUpdate - 5000,
