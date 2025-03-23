@@ -17,8 +17,11 @@ export const analyticsRouter = createTRPCRouter({
       const response = await fetch(env.ANALYTICS_URL, {
         headers: {
           Authorization: env.ANALYTICS_SECRET_TOKEN,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
         },
-        cache: 'no-cache',
+        cache: 'no-store',
       });
 
       if (!response.ok) {
@@ -77,6 +80,9 @@ export const analyticsRouter = createTRPCRouter({
         {} as Record<string, number>,
       );
 
+      // Add a timestamp to force UI updates
+      const timestamp = new Date().toISOString();
+
       const analyticsResult: AnalyticsResult = {
         ...analytics.data,
         location_and_user_agent: {
@@ -96,6 +102,7 @@ export const analyticsRouter = createTRPCRouter({
           age_seconds: analytics.cache.age_seconds,
           status: analytics.cache.status,
           next_update_in: analytics.cache.next_update_in,
+          timestamp, // Add timestamp to force UI updates
         },
         duration: analytics.duration,
       };
@@ -237,6 +244,7 @@ export interface AnalyticsResult extends ModifiedAnalyticsResponse {
     age_seconds: number;
     status: 'fresh' | 'ok' | 'stale';
     next_update_in: number;
+    timestamp: string;
   };
   duration: number;
 }

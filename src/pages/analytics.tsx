@@ -129,8 +129,11 @@ const Analytics = () => {
     refetch: refetchAnalytics,
   } = api.analytics.getAnalytics.useQuery(undefined, {
     refetchInterval: 30000, // Default to 30s
-    staleTime: 0,
+    staleTime: 0, // Consider data stale immediately
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchIntervalInBackground: true,
   });
 
   const { data: serverAnalytics, refetch: refetchServerAnalytics } =
