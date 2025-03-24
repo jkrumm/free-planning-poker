@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 import {
-  Badge,
   Button,
   Loader,
   Modal,
@@ -17,15 +16,12 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 
 import { IconEye } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
 
 import { api } from 'fpp/utils/api';
 
 import { RouteType } from 'fpp/server/db/schema';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
-
-import type { Uptime } from 'fpp/pages/api/uptime';
 
 import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
@@ -65,14 +61,6 @@ const EstimationChart = dynamic(
     loading: () => <LoadingFrame height={450} />,
   },
 );
-
-const fetchUptime = async (): Promise<Uptime[]> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/uptime`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch uptime status');
-  }
-  return ((await response.json()) as { data: Uptime[] }).data;
-};
 
 const Analytics = () => {
   useTrackPageView(RouteType.ANALYTICS);
@@ -154,16 +142,6 @@ const Analytics = () => {
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
   const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
 
-  const { data: uptimeData } = useQuery({
-    queryKey: ['uptime'],
-    queryFn: fetchUptime,
-    // refetchInterval: 30000, // 30 seconds
-    initialData: [
-      { name: 'FFP - Server', status: 'up' },
-      { name: 'FPP - Analytics', status: 'up' },
-    ],
-  });
-
   if (!analytics || !serverAnalytics) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -231,34 +209,7 @@ const Analytics = () => {
               <IconEye className="ml-4 mt-[3px]" onClick={open} size={33} />
             </div>
 
-            <div className="flex-1 flex justify-center pl-7 pb-2">
-              {uptimeData?.map((service) => (
-                <Badge
-                  key={service.name}
-                  component="a"
-                  href="https://status.jkrumm.dev/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="dot"
-                  size="lg"
-                  color={service.status === 'up' ? 'green' : 'red'}
-                  styles={{
-                    root: {
-                      backgroundColor: '#2C2E33',
-                      textTransform: 'none',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        backgroundColor: '#373A40',
-                      },
-                      marginRight: '10px',
-                      textDecoration: 'none',
-                    },
-                  }}
-                >
-                  {service.name}
-                </Badge>
-              ))}
-            </div>
+            <div className="flex-1 flex justify-center pl-7 pb-2"></div>
             <Tooltip
               label={
                 analytics?.cache

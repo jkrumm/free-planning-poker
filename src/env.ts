@@ -22,7 +22,6 @@ export const env = createEnv({
     // @ts-ignore
     NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
     ANALYTICS_SECRET_TOKEN: z.string(),
-    UPTIME_SECRET_TOKEN: z.string(),
     BEA_SECRET_KEY: z.string(),
     BEA_BASE_URL: z.string(),
     ANALYTICS_URL: z.string().url(),
@@ -58,7 +57,6 @@ export const env = createEnv({
     VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
     ANALYTICS_SECRET_TOKEN: process.env.ANALYTICS_SECRET_TOKEN,
-    UPTIME_SECRET_TOKEN: process.env.UPTIME_SECRET_TOKEN,
     ANALYTICS_URL: process.env.ANALYTICS_URL,
     BEA_SECRET_KEY: process.env.BEA_SECRET_KEY,
     BEA_BASE_URL: process.env.BEA_BASE_URL,
