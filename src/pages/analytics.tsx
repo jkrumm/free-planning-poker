@@ -157,7 +157,7 @@ const Analytics = () => {
   const { data: uptimeData } = useQuery({
     queryKey: ['uptime'],
     queryFn: fetchUptime,
-    refetchInterval: 30000, // 30 seconds
+    // refetchInterval: 30000, // 30 seconds
     initialData: [
       { name: 'FFP - Server', status: 'up' },
       { name: 'FPP - Analytics', status: 'up' },
