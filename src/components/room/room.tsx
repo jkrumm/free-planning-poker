@@ -165,6 +165,7 @@ export const Room = ({
   // Handle user leaving the room when they actually close/navigate away
   useEffect(() => {
     const handleBeforeUnload = () => {
+      console.debug('Page unloading - user leaving room');
       // Use navigator.sendBeacon for more reliable delivery
       if (navigator.sendBeacon) {
         navigator.sendBeacon(
@@ -181,23 +182,12 @@ export const Room = ({
       }
     };
 
-    const handlePageHide = () => {
-      // Handle cases where beforeunload doesn't fire (mobile Safari, etc.)
-      triggerAction({
-        action: 'leave',
-        roomId,
-        userId,
-      });
-    };
-
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handlePageHide);
 
     // Cleanup function to remove event listeners
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handlePageHide);
     };
   }, [roomId, userId, triggerAction]);
 
@@ -252,8 +242,25 @@ export const Room = ({
 
   // Page Visibility API - most critical for preventing ghost connections
   useEffect(() => {
+    const updatePresence = (isPresent: boolean) => {
+      console.log('Updating presence:', { isPresent, userId, roomId }); // Add this debug log
+      triggerAction({
+        action: 'setPresence',
+        roomId,
+        userId,
+        isPresent,
+      });
+    };
+
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      const isVisible = !document.hidden;
+      console.debug('Visibility changed:', {
+        isVisible,
+        hidden: document.hidden,
+      });
+      updatePresence(isVisible);
+
+      if (isVisible) {
         console.debug('Tab became visible - sending immediate heartbeat');
 
         // Clear any existing timeout and send immediate heartbeat
@@ -272,6 +279,7 @@ export const Room = ({
 
     const handleFocus = () => {
       console.debug('Window focused - sending heartbeat');
+      updatePresence(true);
       sendHeartbeat();
     };
 
@@ -280,6 +288,8 @@ export const Room = ({
       console.debug('Network came online - sending heartbeat');
       sendHeartbeat();
     };
+
+    updatePresence(!document.hidden);
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
@@ -293,7 +303,7 @@ export const Room = ({
         clearTimeout(visibilityHeartbeatRef.current);
       }
     };
-  }, [sendHeartbeat]);
+  }, [sendHeartbeat, triggerAction, roomId, userId]);
 
   // Connection health monitoring - detect stale connections
   useEffect(() => {
@@ -309,10 +319,7 @@ export const Room = ({
         }
       };
 
-      connectionHealthRef.current = setInterval(
-        checkConnectionHealth,
-        10000,
-      ); // Check every 10 seconds
+      connectionHealthRef.current = setInterval(checkConnectionHealth, 10000); // Check every 10 seconds
     }
 
     return () => {

@@ -13,6 +13,7 @@ import {
   isResetAction,
   isSetAutoFlipAction,
   isSetSpectatorAction,
+  isSetPresenceAction,
 } from './room.actions';
 import { RoomState } from './room.state';
 import { Analytics } from './types';
@@ -34,7 +35,7 @@ const roomState = new RoomState();
 
 const app = new Elysia({
   websocket: {
-    idleTimeout: 90,
+    idleTimeout: 70,
   },
 }).use(
   cron({
@@ -115,7 +116,7 @@ app.ws('/ws', {
   message(ws, data) {
     try {
       if (!CActionSchema.Check(data)) {
-        log.warn(
+        log.error(
           {
             error: 'Invalid message format',
             wsId: ws.id,
@@ -194,6 +195,11 @@ app.ws('/ws', {
           }, 10);
           return;
 
+        case isSetPresenceAction(data):
+          roomState.updateUserPresence(data.roomId, data.userId, data.isPresent);
+          roomState.sendToEverySocketInRoom(data.roomId);
+          return;
+
         case isChangeUsernameAction(data):
           room.changeUsername(data.userId, data.username);
           break;
@@ -240,11 +246,17 @@ app.ws('/ws', {
       { wsId: ws.id, code, reason: reason?.toString() },
       'WebSocket connection closed'
     );
-    const removedUser = roomState.removeUserFromRoomByWsId(ws.id);
-    if (removedUser) {
+
+    // DON'T remove user immediately - let heartbeat timeout handle it
+    // This way users can reconnect without losing their spot
+
+    // Just clean up the connection tracking
+    const connection = roomState.getUserConnection(ws.id);
+    if (connection) {
+      roomState.removeConnection(ws.id);
       log.debug(
-        { userId: removedUser.userId, roomId: removedUser.roomId, wsId: ws.id },
-        'User removed due to connection close'
+        { userId: connection.userId, roomId: connection.roomId, wsId: ws.id },
+        'WebSocket closed - user will be removed by heartbeat timeout if not reconnected'
       );
     }
   },
