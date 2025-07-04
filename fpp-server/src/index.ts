@@ -19,36 +19,29 @@ import { Analytics } from './types';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  transport: process.env.NODE_ENV === 'production' ? undefined : {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-    },
-  },
+  transport:
+    process.env.NODE_ENV === 'production'
+      ? undefined
+      : {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+          },
+        },
 });
 
 const roomState = new RoomState();
 
 const app = new Elysia({
   websocket: {
-    idleTimeout: 90, // Reduce WebSocket idle timeout to 90 seconds (matches client timeout + buffer)
+    idleTimeout: 90,
   },
-})
-.use(
+}).use(
   cron({
     name: 'cleanupInactiveState',
-    pattern: '*/15 * * * * *', // Every 15 seconds - cleanup
+    pattern: '0 */2 * * * *', // Every 2 minutes
     run() {
       roomState.cleanupInactiveState();
-    },
-  })
-)
-.use(
-  cron({
-    name: 'periodicSync',
-    pattern: '*/5 * * * * *', // Every 5 seconds - force sync // TODO: increase in case we get famous
-    run() {
-      roomState.forceSync();
     },
   })
 );
@@ -61,6 +54,21 @@ app.get('/analytics', (): Analytics => {
   roomState.cleanupInactiveState();
   return roomState.toAnalytics();
 });
+
+app.post(
+  '/leave',
+  ({ body: { roomId, userId } }) => {
+    log.debug({ roomId, userId }, 'Leave request via beacon');
+    roomState.removeUserFromRoom(roomId, userId);
+    return { success: true };
+  },
+  {
+    body: t.Object({
+      roomId: t.Number(),
+      userId: t.String(),
+    }),
+  }
+);
 
 app.ws('/ws', {
   body: ActionSchema,
@@ -86,10 +94,11 @@ app.ws('/ws', {
     }
 
     log.debug(
-      { roomId, userId, username, wsId: ws.id }, 
+      { roomId, userId, username, wsId: ws.id },
       'User connecting to room'
     );
 
+    // Add user but don't send immediately - wait for WebSocket to be fully ready
     roomState.addUserToRoom(roomId, {
       id: userId,
       name: username,
@@ -98,7 +107,10 @@ app.ws('/ws', {
       ws,
     });
 
-    roomState.sendToEverySocketInRoom(roomId);
+    // Send initial state after a short delay to ensure WebSocket is ready
+    setTimeout(() => {
+      roomState.sendToEverySocketInRoom(roomId);
+    }, 10);
   },
   message(ws, data) {
     try {
@@ -122,7 +134,6 @@ app.ws('/ws', {
       }
 
       const room = roomState.getOrCreateRoom(data.roomId);
-
       log.debug({ ...data, wsId: ws.id }, 'Received message');
 
       switch (true) {
@@ -131,17 +142,12 @@ app.ws('/ws', {
           if (!heartbeatUpdated) {
             log.warn(
               { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-              'Heartbeat received for unknown user - triggering rejoin'
+              'Heartbeat received for unknown user - user needs to reconnect'
             );
-            // User is not found in room state, they need to rejoin
-            roomState.addUserToRoom(data.roomId, {
-              id: data.userId,
-              name: 'Unknown', // Will be updated when they rejoin properly
-              estimation: null,
-              isSpectator: false,
-              ws,
-            });
-            roomState.sendToEverySocketInRoom(data.roomId);
+            ws.send(
+              JSON.stringify({ error: 'User not found - userId not found' })
+            );
+            return;
           }
           ws.send('pong');
           return;
@@ -168,7 +174,7 @@ app.ws('/ws', {
             'User leaving room'
           );
           roomState.removeUserFromRoom(data.roomId, data.userId);
-          break;
+          return;
 
         case isRejoinAction(data):
           log.debug(
@@ -182,7 +188,11 @@ app.ws('/ws', {
             isSpectator: false,
             ws,
           });
-          break;
+          // Send update after a short delay for rejoin as well
+          setTimeout(() => {
+            roomState.sendToEverySocketInRoom(data.roomId);
+          }, 10);
+          return;
 
         case isChangeUsernameAction(data):
           room.changeUsername(data.userId, data.username);
@@ -208,7 +218,7 @@ app.ws('/ws', {
               data: String(data),
             })
           );
-          break;
+          return;
       }
 
       roomState.sendToEverySocketInRoom(room.id);
@@ -218,8 +228,6 @@ app.ws('/ws', {
         ws.send(
           JSON.stringify({
             error: error.message,
-            stack: error.stack,
-            name: error.name,
             wsId: ws.id,
             ...data,
           })
@@ -229,7 +237,7 @@ app.ws('/ws', {
   },
   close(ws, code, reason) {
     log.debug(
-      { wsId: ws.id, code, reason: reason?.toString() }, 
+      { wsId: ws.id, code, reason: reason?.toString() },
       'WebSocket connection closed'
     );
     const removedUser = roomState.removeUserFromRoomByWsId(ws.id);
@@ -240,12 +248,6 @@ app.ws('/ws', {
       );
     }
   },
-  /*error(ws, error) {
-    log.error(
-      { wsId: ws.id, error: error.message, stack: error.stack },
-      'WebSocket error occurred'
-    );
-  }*/
 });
 
 app.listen(3003);
