@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import useWebSocket from 'react-use-websocket';
 
 import { env } from 'fpp/env';
@@ -51,8 +51,8 @@ export const Room = ({
           action: 'heartbeat',
         } satisfies HeartbeatAction),
         returnMessage: 'pong',
-        timeout: 3 * 60000, // 3 minutes, if no response is received, the connection will be closed
-        interval: 30000, // every 30 second, a ping message will be sent
+        timeout: 60000, // 1 minute, if no response is received, the connection will be closed
+        interval: 15000, // every 15 seconds, a ping message will be sent
       },
       onMessage: (message: MessageEvent<string>) => {
         if (!message.data) {
@@ -141,17 +141,43 @@ export const Room = ({
     },
   );
 
-  const triggerAction = (action: Action) => {
-    sendMessage(JSON.stringify(action));
-  };
+  const triggerAction = useCallback(
+    (action: Action) => {
+      sendMessage(JSON.stringify(action));
+    },
+    [sendMessage],
+  );
 
-  window.addEventListener('beforeunload', () => {
-    triggerAction({
-      action: 'leave',
-      roomId,
-      userId,
-    });
-  });
+  // Handle user leaving the room when they actually close/navigate away
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // Only trigger leave action - don't prevent the unload
+      triggerAction({
+        action: 'leave',
+        roomId,
+        userId,
+      });
+    };
+
+    const handlePageHide = () => {
+      // Handle cases where beforeunload doesn't fire (mobile Safari, etc.)
+      triggerAction({
+        action: 'leave',
+        roomId,
+        userId,
+      });
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    // Cleanup function to remove event listeners
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [roomId, userId, triggerAction]);
 
   return (
     <>
