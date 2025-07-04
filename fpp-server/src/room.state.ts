@@ -202,7 +202,8 @@ export class RoomState {
 
   cleanupInactiveState(): void {
     const now = Date.now();
-    const HEARTBEAT_TIMEOUT = 80 * 1000; // 80 seconds
+    // Reduce timeout to 45 seconds - more aggressive cleanup
+    const HEARTBEAT_TIMEOUT = 45 * 1000; 
 
     for (const room of this.rooms.values()) {
       const usersToRemove: string[] = [];
@@ -219,28 +220,46 @@ export class RoomState {
             },
             'Removing user due to heartbeat timeout'
           );
-          usersToRemove.push(user.id);
-        }
-      }
-
-      // Remove inactive users
-      for (const userId of usersToRemove) {
-        room.removeUser(userId);
-        this.cleanupUserConnection(userId, room.id);
-      }
-
-      // Send updates if users were removed
-      if (usersToRemove.length > 0) {
-        this.sendToEverySocketInRoom(room.id);
-      }
-
-      // Clean up empty rooms
-      if (room.users.length === 0) {
-        this.rooms.delete(room.id);
-        log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
+        
+          // Try to notify client before removing
+          try {
+            user.ws.send(JSON.stringify({ 
+              error: 'Connection timeout - please refresh' 
+            }));
+            // Give a brief moment for the message to be sent
+            setTimeout(() => {
+              try {
+                user.ws.close();
+              } catch (e) {
+                // Connection already closed
+              }
+            }, 100);
+          } catch (error) {
+            log.warn({ error }, 'Failed to notify client of timeout');
+          }
+        
+        usersToRemove.push(user.id);
       }
     }
+
+    // Remove inactive users
+    for (const userId of usersToRemove) {
+      room.removeUser(userId);
+      this.cleanupUserConnection(userId, room.id);
+    }
+
+    // Send updates if users were removed
+    if (usersToRemove.length > 0) {
+      this.sendToEverySocketInRoom(room.id);
+    }
+
+    // Clean up empty rooms
+    if (room.users.length === 0) {
+      this.rooms.delete(room.id);
+      log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
+    }
   }
+}
 
   toAnalytics(): Analytics {
     let connectedUsers = 0;

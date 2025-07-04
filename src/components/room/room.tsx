@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 import { env } from 'fpp/env';
@@ -33,6 +33,11 @@ export const Room = ({
   const setConnectedAt = useRoomStore((store) => store.setConnectedAt);
   const connectedAt = useRoomStore((store) => store.connectedAt);
 
+  const [lastPongReceived, setLastPongReceived] = useState<number>(Date.now());
+  const heartbeatTimeoutRef = useRef<NodeJS.Timeout>();
+  const visibilityHeartbeatRef = useRef<NodeJS.Timeout>();
+  const connectionHealthRef = useRef<NodeJS.Timeout>();
+
   const { sendMessage, readyState } = useWebSocket(
     `${
       env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'wss' : 'ws'
@@ -44,22 +49,15 @@ export const Room = ({
       // 1 second, 2 seconds, 4 seconds, 8 seconds, and then caps at 10 seconds until the maximum number of attempts is reached
       reconnectInterval: (attemptNumber) =>
         Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
-      heartbeat: {
-        message: JSON.stringify({
-          userId,
-          roomId,
-          action: 'heartbeat',
-        } satisfies HeartbeatAction),
-        returnMessage: 'pong',
-        timeout: 60000, // 1 minute, if no response is received, the connection will be closed
-        interval: 15000, // every 15 seconds, a ping message will be sent
-      },
+
       onMessage: (message: MessageEvent<string>) => {
         if (!message.data) {
           return;
         }
 
         if (message.data === 'pong') {
+          setLastPongReceived(Date.now());
+          console.debug('Heartbeat pong received');
           return;
         }
 
@@ -140,6 +138,7 @@ export const Room = ({
       onOpen: (event) => {
         console.debug('WebSocket connected:', event);
         setConnectedAt();
+        setLastPongReceived(Date.now()); // Reset pong timer on connection
       },
       onReconnectStop: (numAttempts) => {
         console.error(
@@ -201,6 +200,127 @@ export const Room = ({
       window.removeEventListener('pagehide', handlePageHide);
     };
   }, [roomId, userId, triggerAction]);
+
+  // Manual heartbeat function
+  const sendHeartbeat = useCallback(() => {
+    if (readyState === ReadyState.OPEN) {
+      console.debug('Sending manual heartbeat');
+      sendMessage(
+        JSON.stringify({
+          userId,
+          roomId,
+          action: 'heartbeat',
+        } satisfies HeartbeatAction),
+      );
+    }
+  }, [readyState, sendMessage, userId, roomId]);
+
+  // Primary heartbeat system - uses setTimeout for better reliability
+  const scheduleNextHeartbeat = useCallback(() => {
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+    }
+
+    if (readyState === ReadyState.OPEN) {
+      heartbeatTimeoutRef.current = setTimeout(() => {
+        sendHeartbeat();
+        scheduleNextHeartbeat(); // Schedule the next one
+      }, 15000); // 15 seconds
+    }
+  }, [readyState, sendHeartbeat]);
+
+  // Start/stop heartbeat based on connection state
+  useEffect(() => {
+    if (readyState === ReadyState.OPEN) {
+      // Send immediate heartbeat on connection
+      sendHeartbeat();
+      // Start the heartbeat schedule
+      scheduleNextHeartbeat();
+    } else {
+      // Clear heartbeat when not connected
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
+      }
+    }
+
+    return () => {
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
+      }
+    };
+  }, [readyState, scheduleNextHeartbeat, sendHeartbeat]);
+
+  // Page Visibility API - most critical for preventing ghost connections
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.debug('Tab became visible - sending immediate heartbeat');
+
+        // Clear any existing timeout and send immediate heartbeat
+        if (visibilityHeartbeatRef.current) {
+          clearTimeout(visibilityHeartbeatRef.current);
+        }
+
+        // Send heartbeat after a small delay to ensure tab is fully active
+        visibilityHeartbeatRef.current = setTimeout(() => {
+          sendHeartbeat();
+          // Reset the pong timer since we're active again
+          setLastPongReceived(Date.now());
+        }, 100);
+      }
+    };
+
+    const handleFocus = () => {
+      console.debug('Window focused - sending heartbeat');
+      sendHeartbeat();
+    };
+
+    // Network change detection
+    const handleOnline = () => {
+      console.debug('Network came online - sending heartbeat');
+      sendHeartbeat();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
+      if (visibilityHeartbeatRef.current) {
+        clearTimeout(visibilityHeartbeatRef.current);
+      }
+    };
+  }, [sendHeartbeat]);
+
+  // Connection health monitoring - detect stale connections
+  useEffect(() => {
+    if (readyState === ReadyState.OPEN) {
+      const checkConnectionHealth = () => {
+        const timeSinceLastPong = Date.now() - lastPongReceived;
+
+        if (timeSinceLastPong > 45000) {
+          // 45 seconds without pong response
+          console.warn('Connection appears stale - forcing reconnection');
+          // Force a reconnection by reloading (simple but effective)
+          window.location.reload();
+        }
+      };
+
+      connectionHealthRef.current = setInterval(
+        checkConnectionHealth,
+        10000,
+      ); // Check every 10 seconds
+    }
+
+    return () => {
+      if (connectionHealthRef.current) {
+        clearInterval(connectionHealthRef.current);
+      }
+    };
+  }, [readyState, lastPongReceived]);
 
   return (
     <>
