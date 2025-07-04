@@ -144,19 +144,33 @@ export function isRejoinAction(action: any): action is RejoinAction {
   return action.action === 'rejoin';
 }
 
+export const SetPresenceActionSchema = t.Object({
+  action: t.Literal('setPresence'),
+  roomId: t.Number(),
+  userId: t.String(),
+  isPresent: t.Boolean(),
+});
+
+export type SetPresenceAction = Static<typeof SetPresenceActionSchema>;
+
+export function isSetPresenceAction(data: any): data is SetPresenceAction {
+  return data.action === 'setPresence';
+}
+
 /**
  * Action schema union
  */
 export const ActionSchema = t.Union([
   HeartbeatActionSchema,
-  FlipActionSchema,
+  EstimateActionSchema,
+  SetSpectatorActionSchema,
+  ResetActionSchema,
+  SetAutoFlipActionSchema,
   LeaveActionSchema,
   RejoinActionSchema,
   ChangeUsernameActionSchema,
-  SetAutoFlipActionSchema,
-  ResetActionSchema,
-  EstimateActionSchema,
-  SetSpectatorActionSchema,
+  FlipActionSchema,
+  SetPresenceActionSchema,
 ]);
 
 // Static t for ActionSchema

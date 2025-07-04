@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button } from '@mantine/core';
+import { Button, HoverCard, Text } from '@mantine/core';
 
 import { type Action } from 'fpp-server/src/room.actions';
 import { RoomStateStatus, type User } from 'fpp-server/src/room.entity';
@@ -13,6 +13,7 @@ import {
 } from 'fpp/utils/room.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
+import { UserHoverCard } from './user-hover-card';
 
 export const Table = ({
   roomId,
@@ -58,7 +59,7 @@ export const Table = ({
           <div key={index} className={`player player-${index + 1}`}>
             <div className={`avatar bg-gray-800 ${user.status}`} />
             <div className={`name ${user.id === userId && 'font-bold'}`}>
-              {user.name}
+              <UserHoverCard user={user} userId={userId} />
             </div>
             <div
               className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${

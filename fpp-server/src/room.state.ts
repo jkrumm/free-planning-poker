@@ -2,6 +2,7 @@ import { ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, User } from './room.entity';
 import { Analytics, AnalyticsUser } from './types';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class RoomState {
   private rooms: Map<number, RoomServer> = new Map();
@@ -83,7 +84,7 @@ export class RoomState {
     // Clean up connection tracking
     this.cleanupUserConnection(userId, roomId);
 
-    log.info(
+    log.debug(
       { userId, roomId, userCount: room.users.length },
       'User removed from room'
     );
@@ -98,38 +99,26 @@ export class RoomState {
     }
   }
 
-  removeUserFromRoomByWsId(
-    wsId: string
-  ): { userId: string; roomId: number } | null {
+  getUserConnection(wsId: string): { userId: string; roomId: number } | null {
+    const connection = this.userConnections.get(wsId);
+    return connection ? { userId: connection.userId, roomId: connection.roomId } : null;
+  }
+
+  removeConnection(wsId: string): { userId: string; roomId: number } | null {
     const connection = this.userConnections.get(wsId);
     if (!connection) {
       return null;
     }
 
     const { userId, roomId } = connection;
-
-    // Remove from connection tracking
+    
+    // Only remove the connection, not the user
     this.userConnections.delete(wsId);
-
-    // Remove from room
-    const room = this.rooms.get(roomId);
-    if (room) {
-      room.removeUser(userId);
-
-      log.info(
-        { userId, roomId, userCount: room.users.length },
-        'User disconnected via WebSocket close'
-      );
-
-      // Send update to remaining users
-      this.sendToEverySocketInRoom(roomId);
-
-      // Clean up empty room
-      if (room.users.length === 0) {
-        this.rooms.delete(roomId);
-        log.debug({ roomId }, 'Removed empty room after user disconnect');
-      }
-    }
+    
+    log.debug(
+      { userId, roomId, wsId },
+      'WebSocket connection removed - user stays in room until heartbeat timeout'
+    );
 
     return { userId, roomId };
   }
@@ -141,38 +130,30 @@ export class RoomState {
     }
 
     const roomData = room.toStringifiedJson();
-    const deadConnections: string[] = [];
 
     for (const user of room.users) {
       try {
-        user.ws.send(roomData);
-        log.debug(
-          { userId: user.id, roomId: room.id, wsId: user.ws.id },
-          'Successfully sent room data to user'
-        );
+        // Check if this user still has an active WebSocket connection
+        const hasActiveConnection = Array.from(this.userConnections.values())
+          .some(conn => conn.userId === user.id && conn.roomId === roomId);
+      
+        if (hasActiveConnection) {
+          user.ws.send(roomData);
+          log.debug(
+            { userId: user.id, roomId: room.id, wsId: user.ws.id },
+            'Successfully sent room data to user'
+          );
+        } else {
+          log.debug(
+            { userId: user.id, roomId: room.id },
+            'User has no active connection - skipping message send'
+          );
+        }
       } catch (error) {
-        log.warn(
-          { userId: user.id, roomId: room.id, wsId: user.ws.id, error },
-          'Failed to send message to user - marking for removal'
+        log.debug(
+          { userId: user.id, roomId: room.id, error },
+          'Failed to send message to user - connection likely closed'
         );
-        deadConnections.push(user.id);
-      }
-    }
-
-    // Remove users with dead connections
-    if (deadConnections.length > 0) {
-      for (const userId of deadConnections) {
-        room.removeUser(userId);
-        this.cleanupUserConnection(userId, roomId);
-      }
-      log.info(
-        { roomId: room.id, removedUsers: deadConnections.length },
-        'Removed users with dead connections'
-      );
-
-      // Send update to remaining users about the removals
-      if (room.users.length > 0) {
-        this.sendToEverySocketInRoom(roomId);
       }
     }
 
@@ -202,7 +183,8 @@ export class RoomState {
 
   cleanupInactiveState(): void {
     const now = Date.now();
-    const HEARTBEAT_TIMEOUT = 80 * 1000; // 80 seconds
+    // Use the constant from websocket.constants.ts
+    const HEARTBEAT_TIMEOUT = WEBSOCKET_CONSTANTS.HEARTBEAT_TIMEOUT;
 
     for (const room of this.rooms.values()) {
       const usersToRemove: string[] = [];
@@ -217,29 +199,45 @@ export class RoomState {
               timeSinceLastHeartbeat,
               wsId: user.ws.id,
             },
-            'Removing user due to heartbeat timeout'
+            'Removing user due to 30-minute heartbeat timeout'
           );
           usersToRemove.push(user.id);
         }
       }
 
-      // Remove inactive users
-      for (const userId of usersToRemove) {
-        room.removeUser(userId);
-        this.cleanupUserConnection(userId, room.id);
-      }
-
-      // Send updates if users were removed
-      if (usersToRemove.length > 0) {
-        this.sendToEverySocketInRoom(room.id);
-      }
-
-      // Clean up empty rooms
-      if (room.users.length === 0) {
-        this.rooms.delete(room.id);
-        log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
-      }
+    // Remove inactive users
+    for (const userId of usersToRemove) {
+      room.removeUser(userId);
+      this.cleanupUserConnection(userId, room.id);
     }
+
+    // Send updates if users were removed
+    if (usersToRemove.length > 0) {
+      this.sendToEverySocketInRoom(room.id);
+    }
+
+    // Clean up empty rooms
+    if (room.users.length === 0) {
+      this.rooms.delete(room.id);
+      log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
+    }
+  }}
+
+  // Add method to update presence
+  updateUserPresence(roomId: number, userId: string, isPresent: boolean): boolean {
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      return false;
+    }
+
+    const user = room.users.find((u) => u.id === userId);
+    if (!user) {
+      return false;
+    }
+
+    user.isPresent = isPresent;
+    room.hasChanged = true;
+    return true;
   }
 
   toAnalytics(): Analytics {

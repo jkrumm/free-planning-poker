@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 import { env } from 'fpp/env';
@@ -17,6 +17,7 @@ import { Table } from 'fpp/components/room/table';
 import Sidebar from 'fpp/components/sidebar/sidebar';
 
 import { Bookmark } from './bookmark';
+import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
 export const Room = ({
   roomId,
@@ -33,6 +34,11 @@ export const Room = ({
   const setConnectedAt = useRoomStore((store) => store.setConnectedAt);
   const connectedAt = useRoomStore((store) => store.connectedAt);
 
+  const [lastPongReceived, setLastPongReceived] = useState<number>(Date.now());
+  const heartbeatTimeoutRef = useRef<NodeJS.Timeout>();
+  const visibilityHeartbeatRef = useRef<NodeJS.Timeout>();
+  const connectionHealthRef = useRef<NodeJS.Timeout>();
+
   const { sendMessage, readyState } = useWebSocket(
     `${
       env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'wss' : 'ws'
@@ -44,22 +50,15 @@ export const Room = ({
       // 1 second, 2 seconds, 4 seconds, 8 seconds, and then caps at 10 seconds until the maximum number of attempts is reached
       reconnectInterval: (attemptNumber) =>
         Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
-      heartbeat: {
-        message: JSON.stringify({
-          userId,
-          roomId,
-          action: 'heartbeat',
-        } satisfies HeartbeatAction),
-        returnMessage: 'pong',
-        timeout: 60000, // 1 minute, if no response is received, the connection will be closed
-        interval: 15000, // every 15 seconds, a ping message will be sent
-      },
+
       onMessage: (message: MessageEvent<string>) => {
         if (!message.data) {
           return;
         }
 
         if (message.data === 'pong') {
+          setLastPongReceived(Date.now());
+          console.debug('Heartbeat pong received');
           return;
         }
 
@@ -140,6 +139,7 @@ export const Room = ({
       onOpen: (event) => {
         console.debug('WebSocket connected:', event);
         setConnectedAt();
+        setLastPongReceived(Date.now()); // Reset pong timer on connection
       },
       onReconnectStop: (numAttempts) => {
         console.error(
@@ -166,6 +166,7 @@ export const Room = ({
   // Handle user leaving the room when they actually close/navigate away
   useEffect(() => {
     const handleBeforeUnload = () => {
+      console.debug('Page unloading - user leaving room');
       // Use navigator.sendBeacon for more reliable delivery
       if (navigator.sendBeacon) {
         navigator.sendBeacon(
@@ -182,25 +183,152 @@ export const Room = ({
       }
     };
 
-    const handlePageHide = () => {
-      // Handle cases where beforeunload doesn't fire (mobile Safari, etc.)
-      triggerAction({
-        action: 'leave',
-        roomId,
-        userId,
-      });
-    };
-
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handlePageHide);
 
     // Cleanup function to remove event listeners
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handlePageHide);
     };
   }, [roomId, userId, triggerAction]);
+
+  // Manual heartbeat function
+  const sendHeartbeat = useCallback(() => {
+    if (readyState === ReadyState.OPEN) {
+      console.debug('Sending manual heartbeat');
+      sendMessage(
+        JSON.stringify({
+          userId,
+          roomId,
+          action: 'heartbeat',
+        } satisfies HeartbeatAction),
+      );
+    }
+  }, [readyState, sendMessage, userId, roomId]);
+
+  // Primary heartbeat system - uses setTimeout for better reliability
+  const scheduleNextHeartbeat = useCallback(() => {
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+    }
+
+    if (readyState === ReadyState.OPEN) {
+      heartbeatTimeoutRef.current = setTimeout(() => {
+        sendHeartbeat();
+        scheduleNextHeartbeat(); // Schedule the next one
+      }, WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL);
+    }
+  }, [readyState, sendHeartbeat]);
+
+  // Start/stop heartbeat based on connection state
+  useEffect(() => {
+    if (readyState === ReadyState.OPEN) {
+      // Send immediate heartbeat on connection
+      sendHeartbeat();
+      // Start the heartbeat schedule
+      scheduleNextHeartbeat();
+    } else {
+      // Clear heartbeat when not connected
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
+      }
+    }
+
+    return () => {
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
+      }
+    };
+  }, [readyState, scheduleNextHeartbeat, sendHeartbeat]);
+
+  // Page Visibility API - most critical for preventing ghost connections
+  useEffect(() => {
+    const updatePresence = (isPresent: boolean) => {
+      console.log('Updating presence:', { isPresent, userId, roomId }); // Add this debug log
+      triggerAction({
+        action: 'setPresence',
+        roomId,
+        userId,
+        isPresent,
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      const isVisible = !document.hidden;
+      console.debug('Visibility changed:', {
+        isVisible,
+        hidden: document.hidden,
+      });
+      updatePresence(isVisible);
+
+      if (isVisible) {
+        console.debug('Tab became visible - sending immediate heartbeat');
+
+        // Clear any existing timeout and send immediate heartbeat
+        if (visibilityHeartbeatRef.current) {
+          clearTimeout(visibilityHeartbeatRef.current);
+        }
+
+        // Send heartbeat after a small delay to ensure tab is fully active
+        visibilityHeartbeatRef.current = setTimeout(() => {
+          sendHeartbeat();
+          // Reset the pong timer since we're active again
+          setLastPongReceived(Date.now());
+        }, 100);
+      }
+    };
+
+    const handleFocus = () => {
+      console.debug('Window focused - sending heartbeat');
+      updatePresence(true);
+      sendHeartbeat();
+    };
+
+    // Network change detection
+    const handleOnline = () => {
+      console.debug('Network came online - sending heartbeat');
+      sendHeartbeat();
+    };
+
+    updatePresence(!document.hidden);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
+      if (visibilityHeartbeatRef.current) {
+        clearTimeout(visibilityHeartbeatRef.current);
+      }
+    };
+  }, [sendHeartbeat, triggerAction, roomId, userId]);
+
+  // Connection health monitoring - detect stale connections
+  useEffect(() => {
+    if (readyState === ReadyState.OPEN) {
+      const checkConnectionHealth = () => {
+        const timeSinceLastPong = Date.now() - lastPongReceived;
+
+                  if (timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT) {
+          // Connection appears stale
+          console.warn('Connection appears stale - forcing reconnection');
+          // Force a reconnection by reloading (simple but effective)
+          window.location.reload();
+        }
+      };
+
+      connectionHealthRef.current = setInterval(checkConnectionHealth, WEBSOCKET_CONSTANTS.CONNECTION_HEALTH_CHECK);
+    }
+
+    return () => {
+      if (connectionHealthRef.current) {
+        clearInterval(connectionHealthRef.current);
+      }
+    };
+  }, [readyState, lastPongReceived]);
 
   return (
     <>
@@ -221,6 +349,7 @@ export const Room = ({
         roomName={roomName}
         userId={userId}
         triggerAction={triggerAction}
+        readyState={readyState}
       />
     </>
   );

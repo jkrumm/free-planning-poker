@@ -13,9 +13,11 @@ import {
   isResetAction,
   isSetAutoFlipAction,
   isSetSpectatorAction,
+  isSetPresenceAction,
 } from './room.actions';
 import { RoomState } from './room.state';
 import { Analytics } from './types';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -34,12 +36,12 @@ const roomState = new RoomState();
 
 const app = new Elysia({
   websocket: {
-    idleTimeout: 90,
+    idleTimeout: 70,
   },
 }).use(
   cron({
     name: 'cleanupInactiveState',
-    pattern: '0 */2 * * * *', // Every 2 minutes
+    pattern: '0 */30 * * * *', // Every 30 seconds
     run() {
       roomState.cleanupInactiveState();
     },
@@ -110,12 +112,12 @@ app.ws('/ws', {
     // Send initial state after a short delay to ensure WebSocket is ready
     setTimeout(() => {
       roomState.sendToEverySocketInRoom(roomId);
-    }, 10);
+    }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
   },
   message(ws, data) {
     try {
       if (!CActionSchema.Check(data)) {
-        log.warn(
+        log.error(
           {
             error: 'Invalid message format',
             wsId: ws.id,
@@ -194,6 +196,11 @@ app.ws('/ws', {
           }, 10);
           return;
 
+        case isSetPresenceAction(data):
+          roomState.updateUserPresence(data.roomId, data.userId, data.isPresent);
+          roomState.sendToEverySocketInRoom(data.roomId);
+          return;
+
         case isChangeUsernameAction(data):
           room.changeUsername(data.userId, data.username);
           break;
@@ -240,11 +247,17 @@ app.ws('/ws', {
       { wsId: ws.id, code, reason: reason?.toString() },
       'WebSocket connection closed'
     );
-    const removedUser = roomState.removeUserFromRoomByWsId(ws.id);
-    if (removedUser) {
+
+    // DON'T remove user immediately - let heartbeat timeout handle it
+    // This way users can reconnect without losing their spot
+
+    // Just clean up the connection tracking
+    const connection = roomState.getUserConnection(ws.id);
+    if (connection) {
+      roomState.removeConnection(ws.id);
       log.debug(
-        { userId: removedUser.userId, roomId: removedUser.roomId, wsId: ws.id },
-        'User removed due to connection close'
+        { userId: connection.userId, roomId: connection.roomId, wsId: ws.id },
+        'WebSocket closed - user will be removed by heartbeat timeout if not reconnected'
       );
     }
   },
