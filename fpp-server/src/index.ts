@@ -17,6 +17,7 @@ import {
 } from './room.actions';
 import { RoomState } from './room.state';
 import { Analytics } from './types';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -111,7 +112,7 @@ app.ws('/ws', {
     // Send initial state after a short delay to ensure WebSocket is ready
     setTimeout(() => {
       roomState.sendToEverySocketInRoom(roomId);
-    }, 10);
+    }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
   },
   message(ws, data) {
     try {
