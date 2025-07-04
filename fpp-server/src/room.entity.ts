@@ -90,7 +90,7 @@ class RoomBase {
   get isFlippable() {
     return (
       this.users.every(
-        (user) => user.estimation !== null || user.isSpectator,
+        (user) => user.estimation !== null || user.isSpectator
       ) &&
       this.users.some((user) => !user.isSpectator) &&
       !this.isFlipped
@@ -116,7 +116,7 @@ class RoomBase {
   // Possible to create instances of RoomClient and RoomServer
   static fromJson<T extends RoomBase>(
     this: new (id: number) => T,
-    roomStateDto: RoomDto,
+    roomStateDto: RoomDto
   ) {
     const roomState = new this(roomStateDto.id);
     roomState.startedAt = roomStateDto.startedAt;
@@ -255,9 +255,9 @@ export class RoomServer extends RoomBase {
                 roomState: this.toStringifiedJson(),
               },
             },
-          }),
+          })
         ),
-      },
+      }
     ).then();
   }
 

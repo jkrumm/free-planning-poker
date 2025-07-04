@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import useWebSocket from 'react-use-websocket';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 import { env } from 'fpp/env';
 
@@ -36,7 +36,7 @@ export const Room = ({
   const { sendMessage, readyState } = useWebSocket(
     `${
       env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'wss' : 'ws'
-    }://${env.NEXT_PUBLIC_FPP_SERVER_URL}/ws?roomId=${roomId}&userId=${userId}&username=${username}`,
+    }://${env.NEXT_PUBLIC_FPP_SERVER_URL}/ws?roomId=${roomId}&userId=${userId}&username=${encodeURIComponent(username)}`,
     {
       shouldReconnect: () => true,
       reconnectAttempts: 20,
@@ -71,7 +71,19 @@ export const Room = ({
           console.debug('onMessage', data);
 
           if ('error' in data) {
-            console.error('Error:', data.error);
+            // Handle specific error cases
+            if (data.error === 'User not found - userId not found') {
+              console.warn('User not found on server, triggering rejoin');
+              triggerAction({
+                action: 'rejoin',
+                roomId,
+                userId,
+                username,
+              });
+              return;
+            }
+
+            console.error('Server error:', data.error);
             Sentry.captureException(new Error(logMsg.INCOMING_MESSAGE), {
               extra: {
                 message: JSON.stringify(data),
@@ -84,28 +96,14 @@ export const Room = ({
             });
             return;
           }
-          updateRoomState(
-            RoomClient.fromJson(JSON.parse(String(message.data)) as RoomDto),
-          );
-        } catch (e) {
-          if (
-            e instanceof Error &&
-            e.message === 'User not found - userId not found'
-          ) {
-            triggerAction({
-              action: 'rejoin',
-              roomId,
-              userId,
-              username,
-            });
-            return;
-          }
 
-          console.error('Error onMessage:', e);
-          console.debug('onMessage', message);
+          updateRoomState(RoomClient.fromJson(data));
+        } catch (e) {
+          console.error('Error parsing message:', e);
+          console.debug('Raw message:', message.data);
           Sentry.captureException(e, {
             extra: {
-              message: JSON.stringify(message),
+              message: message.data,
               roomId,
               userId,
             },
@@ -116,10 +114,11 @@ export const Room = ({
         }
       },
       onError: (event) => {
+        // Filter out trusted events that don't contain meaningful error info
         if (Object.keys(event).length === 1 && event.isTrusted) {
           return;
         }
-        console.error('onError', event);
+        console.error('WebSocket error:', event);
         Sentry.captureException(new Error(logMsg.INCOMING_ERROR), {
           extra: {
             message: JSON.stringify(event),
@@ -132,31 +131,55 @@ export const Room = ({
         });
       },
       onClose: (event) => {
-        console.warn('onClose', event);
+        console.warn('WebSocket closed:', {
+          code: event.code,
+          reason: event.reason,
+        });
+        // Don't trigger leave action on close - the server will handle cleanup
       },
       onOpen: (event) => {
-        console.debug('onOpen', event);
+        console.debug('WebSocket connected:', event);
         setConnectedAt();
+      },
+      onReconnectStop: (numAttempts) => {
+        console.error(
+          'WebSocket reconnection failed after',
+          numAttempts,
+          'attempts',
+        );
       },
     },
   );
 
   const triggerAction = useCallback(
     (action: Action) => {
-      sendMessage(JSON.stringify(action));
+      // Only send if connection is open
+      if (readyState === ReadyState.OPEN) {
+        sendMessage(JSON.stringify(action));
+      } else {
+        console.warn('Cannot send action - WebSocket not connected:', action);
+      }
     },
-    [sendMessage],
+    [sendMessage, readyState],
   );
 
   // Handle user leaving the room when they actually close/navigate away
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // Only trigger leave action - don't prevent the unload
-      triggerAction({
-        action: 'leave',
-        roomId,
-        userId,
-      });
+    const handleBeforeUnload = () => {
+      // Use navigator.sendBeacon for more reliable delivery
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          `${env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'https' : 'http'}://${env.NEXT_PUBLIC_FPP_SERVER_URL}/leave`,
+          JSON.stringify({ roomId, userId }),
+        );
+      } else {
+        // Fallback to WebSocket if beacon not supported
+        triggerAction({
+          action: 'leave',
+          roomId,
+          userId,
+        });
+      }
     };
 
     const handlePageHide = () => {
