@@ -11,13 +11,31 @@ export class RoomState {
     if (!room) {
       room = new RoomServer(roomId);
       this.rooms.set(roomId, room);
+      log.debug({ roomId }, 'Created new room');
     }
     return room;
   }
 
   addUserToRoom(roomId: number, user: User): void {
     const room = this.getOrCreateRoom(roomId);
-    room.addUser(user);
+    const existingUser = room.users.find(u => u.id === user.id);
+    
+    if (existingUser) {
+      // Update existing user's WebSocket connection and heartbeat
+      existingUser.ws = user.ws;
+      existingUser.name = user.name;
+      existingUser.lastHeartbeat = Date.now();
+      log.debug(
+        { userId: user.id, roomId }, 
+        'Updated existing user WebSocket connection'
+      );
+    } else {
+      room.addUser(user);
+      log.debug(
+        { userId: user.id, roomId, userCount: room.users.length }, 
+        'Added new user to room'
+      );
+    }
   }
 
   removeUserFromRoom(roomId: number, userId: string): void {
@@ -28,66 +46,163 @@ export class RoomState {
     if (!room.users.some((user) => user.id === userId)) {
       return;
     }
+    
     room.removeUser(userId);
+    log.info(
+      { userId, roomId, userCount: room.users.length },
+      'User removed from room'
+    );
+    
+    // ALWAYS send update when user is removed
+    this.forceSendToEverySocketInRoom(roomId);
+    
     if (room.users.length === 0) {
       this.rooms.delete(roomId);
-      log.debug({ roomId }, 'Removed room due to inactivity');
+      log.debug({ roomId }, 'Removed empty room');
     }
   }
 
-  removeUserFromRoomByWsId(wsId: string): void {
+  removeUserFromRoomByWsId(wsId: string): { userId: string; roomId: number } | null {
     for (const room of this.rooms.values()) {
       for (const user of room.users) {
         if (user.ws.id === wsId) {
+          const userId = user.id;
+          const roomId = room.id;
           room.removeUser(user.id);
-          log.debug(
-            { userId: user.id, roomId: room.id },
-            'Removed user by wsId',
+          
+          log.info(
+            { userId, roomId, userCount: room.users.length },
+            'User disconnected via WebSocket close'
           );
-          return;
+          
+          // FORCE send updated state to remaining users
+          this.forceSendToEverySocketInRoom(roomId);
+          
+          // Clean up empty room
+          if (room.users.length === 0) {
+            this.rooms.delete(roomId);
+            log.debug({ roomId }, 'Removed empty room after user disconnect');
+          }
+          
+          return { userId, roomId };
         }
       }
     }
+    return null;
   }
 
+  // Original method - only sends if hasChanged
   sendToEverySocketInRoom(roomId: number): void {
     const room = this.rooms.get(roomId);
     if (room && room.hasChanged) {
-      for (const user of room.users) {
-        user.ws.send(room.toStringifiedJson());
-      }
-      room.lastUpdated = Date.now();
-      room.hasChanged = false; // Reset change flag after update
+      this.doSendToEverySocketInRoom(room);
     }
   }
 
-  updateHeartbeat(wsId: string): void {
+  // New method - ALWAYS sends (for critical updates like disconnections)
+  forceSendToEverySocketInRoom(roomId: number): void {
+    const room = this.rooms.get(roomId);
+    if (room) {
+      this.doSendToEverySocketInRoom(room);
+    }
+  }
+
+  // New method - Force sync all rooms (called by cron)
+  forceSync(): void {
+    for (const room of this.rooms.values()) {
+      // Only sync rooms that have users
+      if (room.users.length > 0) {
+        this.doSendToEverySocketInRoom(room);
+      }
+    }
+  }
+
+  // Consolidated send logic
+  private doSendToEverySocketInRoom(room: RoomServer): void {
+    const deadConnections: string[] = [];
+    const roomData = room.toStringifiedJson();
+    
+    for (const user of room.users) {
+      try {
+        user.ws.send(roomData);
+      } catch (error) {
+        log.warn(
+          { userId: user.id, roomId: room.id, wsId: user.ws.id, error },
+          'Failed to send message to user - marking for removal'
+        );
+        deadConnections.push(user.id);
+      }
+    }
+    
+    // Remove users with dead connections and force another update if needed
+    if (deadConnections.length > 0) {
+      for (const userId of deadConnections) {
+        room.removeUser(userId);
+      }
+      log.info(
+        { roomId: room.id, removedUsers: deadConnections.length },
+        'Removed users with dead connections'
+      );
+      
+      // Recursive call to update remaining users about the removals
+      if (room.users.length > 0) {
+        this.doSendToEverySocketInRoom(room);
+      }
+    }
+    
+    room.lastUpdated = Date.now();
+    room.hasChanged = false; // Reset change flag after update
+  }
+
+  updateHeartbeat(wsId: string): boolean {
     for (const room of this.rooms.values()) {
       for (const user of room.users) {
         if (user.ws.id === wsId) {
           user.lastHeartbeat = Date.now();
-          return;
+          return true;
         }
       }
     }
+    return false; // User not found
   }
 
   cleanupInactiveState(): void {
     const now = Date.now();
+    const HEARTBEAT_TIMEOUT = 80 * 1000; // 80 seconds (client timeout is 60s + buffer)
+    
     for (const room of this.rooms.values()) {
+      const usersToRemove: string[] = [];
+      
       for (const user of room.users) {
-        if (now - user.lastHeartbeat > 3 * 60 * 1000) { // 3 minutes
-          room.removeUser(user.id);
-          log.debug(
-            { userId: user.id, roomId: room.id },
-            'Removed user due to inactivity',
+        const timeSinceLastHeartbeat = now - user.lastHeartbeat;
+        if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT) {
+          log.info(
+            { 
+              userId: user.id, 
+              roomId: room.id, 
+              timeSinceLastHeartbeat,
+              wsId: user.ws.id 
+            },
+            'Removing user due to heartbeat timeout'
           );
+          usersToRemove.push(user.id);
         }
       }
-      this.sendToEverySocketInRoom(room.id);
+      
+      // Remove inactive users
+      for (const userId of usersToRemove) {
+        room.removeUser(userId);
+      }
+      
+      // FORCE send updates if users were removed (critical for sync)
+      if (usersToRemove.length > 0) {
+        this.forceSendToEverySocketInRoom(room.id);
+      }
+      
+      // Clean up empty rooms
       if (room.users.length === 0) {
         this.rooms.delete(room.id);
-        log.debug({ roomId: room.id }, 'Removed room due to inactivity');
+        log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
       }
     }
   }

@@ -19,7 +19,7 @@ import { Analytics } from './types';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  transport: {
+  transport: process.env.NODE_ENV === 'production' ? undefined : {
     target: 'pino-pretty',
     options: {
       colorize: true,
@@ -31,14 +31,24 @@ const roomState = new RoomState();
 
 const app = new Elysia({
   websocket: {
-    idleTimeout: 3 * 60 + 30, // WebSocket idle timeout 3 minutes 30 seconds
+    idleTimeout: 90, // Reduce WebSocket idle timeout to 90 seconds (matches client timeout + buffer)
   },
-}).use(
+})
+.use(
   cron({
     name: 'cleanupInactiveState',
-    pattern: '*/30 * * * * *', // Runs every 30 seconds
+    pattern: '*/15 * * * * *', // Every 15 seconds - cleanup
     run() {
       roomState.cleanupInactiveState();
+    },
+  })
+)
+.use(
+  cron({
+    name: 'periodicSync',
+    pattern: '*/5 * * * * *', // Every 5 seconds - force sync // TODO: increase in case we get famous
+    run() {
+      roomState.forceSync();
     },
   })
 );
@@ -75,6 +85,11 @@ app.ws('/ws', {
       return;
     }
 
+    log.debug(
+      { roomId, userId, username, wsId: ws.id }, 
+      'User connecting to room'
+    );
+
     roomState.addUserToRoom(roomId, {
       id: userId,
       name: username,
@@ -88,6 +103,14 @@ app.ws('/ws', {
   message(ws, data) {
     try {
       if (!CActionSchema.Check(data)) {
+        log.warn(
+          {
+            error: 'Invalid message format',
+            wsId: ws.id,
+            data: String(data),
+          },
+          'Invalid message format'
+        );
         ws.send(
           JSON.stringify({
             error: 'Invalid message format',
@@ -104,7 +127,22 @@ app.ws('/ws', {
 
       switch (true) {
         case isHeartbeatAction(data):
-          roomState.updateHeartbeat(ws.id);
+          const heartbeatUpdated = roomState.updateHeartbeat(ws.id);
+          if (!heartbeatUpdated) {
+            log.warn(
+              { userId: data.userId, roomId: data.roomId, wsId: ws.id },
+              'Heartbeat received for unknown user - triggering rejoin'
+            );
+            // User is not found in room state, they need to rejoin
+            roomState.addUserToRoom(data.roomId, {
+              id: data.userId,
+              name: 'Unknown', // Will be updated when they rejoin properly
+              estimation: null,
+              isSpectator: false,
+              ws,
+            });
+            roomState.sendToEverySocketInRoom(data.roomId);
+          }
           ws.send('pong');
           return;
 
@@ -125,10 +163,18 @@ app.ws('/ws', {
           break;
 
         case isLeaveAction(data):
+          log.debug(
+            { userId: data.userId, roomId: data.roomId, wsId: ws.id },
+            'User leaving room'
+          );
           roomState.removeUserFromRoom(data.roomId, data.userId);
           break;
 
         case isRejoinAction(data):
+          log.debug(
+            { userId: data.userId, roomId: data.roomId, wsId: ws.id },
+            'User rejoining room'
+          );
           roomState.addUserToRoom(data.roomId, {
             id: data.userId,
             name: data.username,
@@ -181,13 +227,25 @@ app.ws('/ws', {
       }
     }
   },
-  close(ws) {
-    log.debug({ wsId: ws.id }, `Connection closed`);
-    roomState.removeUserFromRoomByWsId(ws.id);
+  close(ws, code, reason) {
+    log.debug(
+      { wsId: ws.id, code, reason: reason?.toString() }, 
+      'WebSocket connection closed'
+    );
+    const removedUser = roomState.removeUserFromRoomByWsId(ws.id);
+    if (removedUser) {
+      log.debug(
+        { userId: removedUser.userId, roomId: removedUser.roomId, wsId: ws.id },
+        'User removed due to connection close'
+      );
+    }
   },
-  // error(ws, error) {
-  //     console.error(`WebSocket error: ${error.message}`);
-  // }
+  /*error(ws, error) {
+    log.error(
+      { wsId: ws.id, error: error.message, stack: error.stack },
+      'WebSocket error occurred'
+    );
+  }*/
 });
 
 app.listen(3003);

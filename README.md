@@ -20,7 +20,7 @@ All "personal" data is stored only in the visitors local storage.
 3. Request access to the Doppler Dev projects `sideproject-docker-stack` and `free-planning-poker`
 4. Run `sideproject-docker-stack` by following the instructions in the README
 5. Set up the `free-planning-poker` Doppler project by running `doppler setup`
-6. Install dependencies with `npm ci` and `npm run postinstall`
+6. Install dependencies with `npm ci`
 7. Run `doppler run -- npm run dev`
 
 ### Run analytics locally
@@ -30,4 +30,5 @@ All "personal" data is stored only in the visitors local storage.
 
 ### Run fpp-server locally
 1. [Install Bun](https://bun.sh/docs/installation) if not already installed
-2. Run `bun run dev` in the `fpp-server` directory
+2. Create a .env file in 'fpp-server' and paste the FPP_SERVER_SECRET into it from running `doppler secrets get FPP_SERVER_SECRET --plain` 
+3. Run `bun run dev` in the `fpp-server` directory
