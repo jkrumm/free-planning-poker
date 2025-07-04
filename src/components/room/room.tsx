@@ -17,6 +17,7 @@ import { Table } from 'fpp/components/room/table';
 import Sidebar from 'fpp/components/sidebar/sidebar';
 
 import { Bookmark } from './bookmark';
+import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
 export const Room = ({
   roomId,
@@ -215,7 +216,7 @@ export const Room = ({
       heartbeatTimeoutRef.current = setTimeout(() => {
         sendHeartbeat();
         scheduleNextHeartbeat(); // Schedule the next one
-      }, 15000); // 15 seconds
+      }, WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL);
     }
   }, [readyState, sendHeartbeat]);
 
@@ -311,15 +312,15 @@ export const Room = ({
       const checkConnectionHealth = () => {
         const timeSinceLastPong = Date.now() - lastPongReceived;
 
-        if (timeSinceLastPong > 45000) {
-          // 45 seconds without pong response
+                  if (timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT) {
+          // Connection appears stale
           console.warn('Connection appears stale - forcing reconnection');
           // Force a reconnection by reloading (simple but effective)
           window.location.reload();
         }
       };
 
-      connectionHealthRef.current = setInterval(checkConnectionHealth, 10000); // Check every 10 seconds
+      connectionHealthRef.current = setInterval(checkConnectionHealth, WEBSOCKET_CONSTANTS.CONNECTION_HEALTH_CHECK);
     }
 
     return () => {

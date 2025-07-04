@@ -2,6 +2,7 @@ import { ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, User } from './room.entity';
 import { Analytics, AnalyticsUser } from './types';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class RoomState {
   private rooms: Map<number, RoomServer> = new Map();
@@ -182,7 +183,8 @@ export class RoomState {
 
   cleanupInactiveState(): void {
     const now = Date.now();
-    const HEARTBEAT_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+    // Use the constant from websocket.constants.ts
+    const HEARTBEAT_TIMEOUT = WEBSOCKET_CONSTANTS.HEARTBEAT_TIMEOUT;
 
     for (const room of this.rooms.values()) {
       const usersToRemove: string[] = [];
