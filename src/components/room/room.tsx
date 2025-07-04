@@ -221,6 +221,7 @@ export const Room = ({
         roomName={roomName}
         userId={userId}
         triggerAction={triggerAction}
+        readyState={readyState}
       />
     </>
   );

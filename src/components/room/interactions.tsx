@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { ReadyState } from 'react-use-websocket';
 
 import { useRouter } from 'next/router';
 
@@ -25,11 +26,13 @@ export const Interactions = ({
   roomName,
   userId,
   triggerAction,
+  readyState,
 }: {
   roomId: number;
   roomName: string;
   userId: string;
   triggerAction: (action: Action) => void;
+  readyState: ReadyState;
 }) => {
   const router = useRouter();
 
@@ -44,6 +47,8 @@ export const Interactions = ({
   // Room
   const status = useRoomStore((store) => store.status);
   const isAutoFlip = useRoomStore((store) => store.isAutoFlip);
+
+  const isConnected = readyState === ReadyState.OPEN;
 
   const roomRef = useRef(null);
 
@@ -98,6 +103,7 @@ export const Interactions = ({
           <div>
             <Button
               className="mr-3"
+              disabled={!isConnected}
               variant={
                 status === RoomStateStatus.flipped ? 'filled' : 'default'
               }
@@ -135,7 +141,11 @@ export const Interactions = ({
           <Button.Group className="w-full">
             {fibonacciSequence.map((number) => (
               <Button
-                disabled={isSpectator || status === RoomStateStatus.flipped}
+                disabled={
+                  !isConnected ||
+                  isSpectator ||
+                  status === RoomStateStatus.flipped
+                }
                 variant={estimation === number ? 'filled' : 'default'}
                 size={'lg'}
                 fullWidth
@@ -159,7 +169,7 @@ export const Interactions = ({
         <Counter />
         <Switch
           className="mb-2 cursor-pointer"
-          disabled={status === RoomStateStatus.flipped}
+          disabled={!isConnected || status === RoomStateStatus.flipped}
           label="Spectator"
           checked={isSpectator}
           onChange={(event) => {
