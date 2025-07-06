@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { HoverCard, Text } from '@mantine/core';
+import { Button, HoverCard, Text } from '@mantine/core';
+import { IconUserMinus } from '@tabler/icons-react';
+
+import { type Action } from 'fpp-server/src/room.actions';
 
 import { type User } from 'fpp-server/src/room.entity';
 
@@ -21,9 +24,13 @@ const formatTimeSince = (lastHeartbeat: number | undefined): string => {
 export const UserHoverCard = ({
   user,
   userId,
+  roomId,
+  triggerAction,
 }: {
   user: User;
   userId: string;
+  roomId: number;
+  triggerAction: (action: Action) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [lastSeenTime, setLastSeenTime] = useState<string>(
@@ -67,6 +74,27 @@ export const UserHoverCard = ({
           <Text size="xs" c="dimmed">
             Last signal: {lastSeenTime}
           </Text>
+        )}
+        {user.id !== userId && (
+          <Button
+            variant="light"
+            color="red"
+            size="xs"
+            leftSection={<IconUserMinus size={14} />}
+            mt="md"
+            fullWidth
+            onClick={() => {
+              triggerAction({
+                action: 'kick',
+                roomId,
+                userId,
+                targetUserId: user.id,
+              });
+              setIsOpen(false);
+            }}
+          >
+            Kick from room
+          </Button>
         )}
       </HoverCard.Dropdown>
     </HoverCard>

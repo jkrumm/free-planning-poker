@@ -1,5 +1,31 @@
 
 
+## [7.6.0](https://github.com/jkrumm/free-planning-poker/compare/7.5.0...7.6.0) (2025-07-06)
+
+
+### Features
+
+* added custom heartbeat implementation ([7f06064](https://github.com/jkrumm/free-planning-poker/commit/7f06064b0411bc1ccb0e31eacfde4c77b9dba0e0))
+* added isPresent flag ([7465e5e](https://github.com/jkrumm/free-planning-poker/commit/7465e5e8dd30c175da78215e327b6d7b27507d07))
+* disable interactions when not connected ([d26c22c](https://github.com/jkrumm/free-planning-poker/commit/d26c22c2ca76b63ac7a256c4b7f4f96579127d84))
+* improved isPresent and added leaving window as well ([2553261](https://github.com/jkrumm/free-planning-poker/commit/2553261d467a6965ba7b38c5c8a213aae653e5ec))
+* simplify user connection issues ([8e2a013](https://github.com/jkrumm/free-planning-poker/commit/8e2a0137b270f10938f8e0d3403152f0829cd47b))
+
+
+### Bug Fixes
+
+* **analytics:** comment out uptime refetch interval for debugging ([76d2d12](https://github.com/jkrumm/free-planning-poker/commit/76d2d1291ce6e8eb5c67a4a2ff50ec91e2d85a52))
+* **analytics:** increase uptime refetch to 30s and improve caching headers ([5eedb45](https://github.com/jkrumm/free-planning-poker/commit/5eedb454c1374013ea9357160fc7a67665a430f2))
+* users out of sync ([972136c](https://github.com/jkrumm/free-planning-poker/commit/972136c87499aeb6acc4db1598bda2519d88870b))
+
+
+### Refactor
+
+* **analytics:** remove uptime monitoring functionality and related code ([7288e0f](https://github.com/jkrumm/free-planning-poker/commit/7288e0f9fea40a4974c944a5f9fbe3c29463a09a))
+* move server message handling to message.handler.ts ([d817c28](https://github.com/jkrumm/free-planning-poker/commit/d817c285bfe2b20d84dff19e0feb8e10613c8b18))
+* move UserHoverCard to own component & Websocket constants ([b7e482c](https://github.com/jkrumm/free-planning-poker/commit/b7e482c59a86dbb57f3b7f059bfb7a2108abeeb2))
+* move WS client side implementation to individual hooks ([196dabd](https://github.com/jkrumm/free-planning-poker/commit/196dabd6f4d26a1639a02233d503ce1bec1d4603))
+
 ## [7.5.0](https://github.com/jkrumm/free-planning-poker/compare/7.4.0...7.5.0) (2025-03-23)
 
 
