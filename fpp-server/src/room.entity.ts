@@ -14,7 +14,6 @@ export interface CreateUserDto {
   name: string;
   estimation: number | null;
   isSpectator: boolean;
-  isPresent: boolean;
   ws: ElysiaWS<ServerWebSocket<any>, any>;
 }
 
@@ -44,12 +43,12 @@ export class User {
     return userStatus.pending;
   }
 
-  constructor({ id, name, estimation, isSpectator, isPresent, ws }: CreateUserDto) {
+  constructor({ id, name, estimation, isSpectator, ws }: CreateUserDto) {
     this.id = id;
     this.name = name;
     this.estimation = estimation;
     this.isSpectator = isSpectator;
-    this.isPresent = isPresent;
+    this.isPresent = true;
     this.ws = ws;
   }
 }

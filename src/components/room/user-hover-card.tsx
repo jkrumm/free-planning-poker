@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+
 import { HoverCard, Text } from '@mantine/core';
+
 import { type User } from 'fpp-server/src/room.entity';
 
 // Custom hook for live time updates
@@ -49,7 +51,13 @@ const useLastSeenTime = (
 };
 
 // User HoverCard component
-export const UserHoverCard = ({ user, userId }: { user: User; userId: string }) => {
+export const UserHoverCard = ({
+  user,
+  userId,
+}: {
+  user: User;
+  userId: string;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const lastHeartbeat = useLastSeenTime(
     user.lastHeartbeat,
