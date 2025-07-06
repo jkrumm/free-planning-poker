@@ -241,10 +241,10 @@ export const Room = ({
     };
   }, [readyState, scheduleNextHeartbeat, sendHeartbeat]);
 
-  // Page Visibility API - most critical for preventing ghost connections
+  // Page Visibility API and Window Focus - detect both tab changes and window focus
   useEffect(() => {
     const updatePresence = (isPresent: boolean) => {
-      console.log('Updating presence:', { isPresent, userId, roomId }); // Add this debug log
+      console.debug('Updating presence:', { isPresent, userId, roomId });
       triggerAction({
         action: 'setPresence',
         roomId,
@@ -279,9 +279,14 @@ export const Room = ({
     };
 
     const handleFocus = () => {
-      console.debug('Window focused - sending heartbeat');
+      console.debug('Window focused - user is active');
       updatePresence(true);
       sendHeartbeat();
+    };
+
+    const handleBlur = () => {
+      console.debug('Window blurred - user is away');
+      updatePresence(false);
     };
 
     // Network change detection
@@ -290,15 +295,20 @@ export const Room = ({
       sendHeartbeat();
     };
 
-    updatePresence(!document.hidden);
+    // Set initial presence based on current visibility and focus state
+    const isCurrentlyActive = !document.hidden && document.hasFocus();
+    updatePresence(isCurrentlyActive);
 
+    // Add all event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
     window.addEventListener('online', handleOnline);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
       window.removeEventListener('online', handleOnline);
       if (visibilityHeartbeatRef.current) {
         clearTimeout(visibilityHeartbeatRef.current);

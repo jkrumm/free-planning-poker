@@ -145,6 +145,7 @@ export class MessageHandler {
       name: data.username,
       estimation: null,
       isSpectator: false,
+      isPresent: true,
       ws
     }));
 
