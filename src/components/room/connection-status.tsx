@@ -5,13 +5,15 @@ import { ActionIcon, Tooltip } from '@mantine/core';
 
 import { IconActivity } from '@tabler/icons-react';
 
+import { useRoomStore } from 'fpp/store/room.store';
+
 export const ConnectionStatus = ({
-  readyState,
   connectedAt,
 }: {
-  readyState: ReadyState;
   connectedAt: number | null;
 }) => {
+  const readyState = useRoomStore((store) => store.readyState);
+
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
     [ReadyState.OPEN]: 'Connected',

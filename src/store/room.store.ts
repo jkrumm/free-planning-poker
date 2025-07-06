@@ -1,3 +1,5 @@
+import { ReadyState } from 'react-use-websocket';
+
 import {
   type RoomClient,
   type RoomStateStatus,
@@ -21,9 +23,14 @@ type RoomStore = {
   isFlippable: boolean;
   isAutoFlip: boolean;
   status: keyof typeof RoomStateStatus;
-  // Interactions
+  // Connection State
   connectedAt: number | null;
   setConnectedAt: () => void;
+  lastPongReceived: number;
+  setLastPongReceived: (time: number) => void;
+  readyState: ReadyState;
+  setReadyState: (state: ReadyState) => void;
+  // Interactions
   update: (room: RoomClient) => void;
 };
 
@@ -45,6 +52,10 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   // Initial Connection
   connectedAt: null,
   setConnectedAt: () => set({ connectedAt: Date.now() }),
+  lastPongReceived: Date.now(),
+  setLastPongReceived: (time: number) => set({ lastPongReceived: time }),
+  readyState: ReadyState.UNINSTANTIATED,
+  setReadyState: (state: ReadyState) => set({ readyState: state }),
   // Interactions
   update: (room: RoomClient) => {
     const oldRoom = {
