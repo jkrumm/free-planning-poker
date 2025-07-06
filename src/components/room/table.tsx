@@ -58,14 +58,16 @@ export const Table = ({
       <div className="players">
         {users.map((user, index) => (
           <div key={index} className={`player player-${index + 1}`}>
-            <div className={`avatar bg-gray-800 ${user.status}`} />
+            <div
+              className={`avatar bg-gray-800 ${user.status} ${!user.isPresent ? 'inactive' : 'active'}`}
+            />
             <div className={`name ${user.id === userId && 'font-bold'}`}>
               <UserHoverCard user={user} userId={userId} />
             </div>
             <div
               className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${
                 user.status
-              }`}
+              } ${!user.isPresent ? 'inactive' : 'active'}`}
             >
               {user.estimation}
             </div>

@@ -99,6 +99,7 @@ app.ws('/ws', {
       name: username,
       estimation: null,
       isSpectator: false,
+      isPresent: true,
       ws,
     }));
 

@@ -37,13 +37,15 @@ export class RoomState {
     const existingUser = room.users.find((u) => u.id === user.id);
 
     if (existingUser) {
-      // Update existing user's connection
+      // Update existing user's connection but preserve their current presence state
+      const currentPresenceState = existingUser.isPresent;
       existingUser.ws = user.ws;
       existingUser.name = user.name;
       existingUser.lastHeartbeat = Date.now();
+      existingUser.isPresent = currentPresenceState; // Preserve the current presence state
       log.debug(
-        { userId: user.id, roomId, name: user.name },
-        'Updated existing user connection'
+        { userId: user.id, roomId, name: user.name, isPresent: currentPresenceState },
+        'Updated existing user connection - preserved presence state'
       );
     } else {
       // Add new user
@@ -236,6 +238,7 @@ export class RoomState {
     }
 
     user.isPresent = isPresent;
+    console.log('isPresent', user.isPresent);
     room.hasChanged = true;
     return true;
   }

@@ -489,3 +489,7 @@ h2 > span {
 .card.players.flipped:after {
   background: none;
 }
+
+.players .player .avatar.inactive {
+  opacity: 0.7;
+}
