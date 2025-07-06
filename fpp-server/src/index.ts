@@ -4,20 +4,12 @@ import { Elysia, t } from 'elysia';
 import {
   ActionSchema,
   CActionSchema,
-  isChangeUsernameAction,
-  isEstimateAction,
-  isFlipAction,
-  isHeartbeatAction,
-  isLeaveAction,
-  isRejoinAction,
-  isResetAction,
-  isSetAutoFlipAction,
-  isSetSpectatorAction,
-  isSetPresenceAction,
 } from './room.actions';
+import { MessageHandler } from './message.handler';
 import { RoomState } from './room.state';
 import { Analytics } from './types';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
+import { User } from './room.entity';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -33,6 +25,7 @@ export const log = createPinoLogger({
 });
 
 const roomState = new RoomState();
+const messageHandler = new MessageHandler(roomState);
 
 const app = new Elysia({
   websocket: {
@@ -101,13 +94,13 @@ app.ws('/ws', {
     );
 
     // Add user but don't send immediately - wait for WebSocket to be fully ready
-    roomState.addUserToRoom(roomId, {
+    roomState.addUserToRoom(roomId, new User({
       id: userId,
       name: username,
       estimation: null,
       isSpectator: false,
       ws,
-    });
+    }));
 
     // Send initial state after a short delay to ensure WebSocket is ready
     setTimeout(() => {
@@ -135,100 +128,7 @@ app.ws('/ws', {
         return;
       }
 
-      const room = roomState.getOrCreateRoom(data.roomId);
-      log.debug({ ...data, wsId: ws.id }, 'Received message');
-
-      switch (true) {
-        case isHeartbeatAction(data):
-          const heartbeatUpdated = roomState.updateHeartbeat(ws.id);
-          if (!heartbeatUpdated) {
-            log.warn(
-              { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-              'Heartbeat received for unknown user - user needs to reconnect'
-            );
-            ws.send(
-              JSON.stringify({ error: 'User not found - userId not found' })
-            );
-            return;
-          }
-          ws.send('pong');
-          return;
-
-        case isEstimateAction(data):
-          room.setEstimation(data.userId, data.estimation);
-          break;
-
-        case isSetSpectatorAction(data):
-          room.setSpectator(data.userId, data.isSpectator);
-          break;
-
-        case isResetAction(data):
-          room.reset();
-          break;
-
-        case isSetAutoFlipAction(data):
-          room.setAutoFlip(data.isAutoFlip);
-          break;
-
-        case isLeaveAction(data):
-          log.debug(
-            { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-            'User leaving room'
-          );
-          roomState.removeUserFromRoom(data.roomId, data.userId);
-          return;
-
-        case isRejoinAction(data):
-          log.debug(
-            { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-            'User rejoining room'
-          );
-          roomState.addUserToRoom(data.roomId, {
-            id: data.userId,
-            name: data.username,
-            estimation: null,
-            isSpectator: false,
-            ws,
-          });
-          // Send update after a short delay for rejoin as well
-          setTimeout(() => {
-            roomState.sendToEverySocketInRoom(data.roomId);
-          }, 10);
-          return;
-
-        case isSetPresenceAction(data):
-          roomState.updateUserPresence(data.roomId, data.userId, data.isPresent);
-          roomState.sendToEverySocketInRoom(data.roomId);
-          return;
-
-        case isChangeUsernameAction(data):
-          room.changeUsername(data.userId, data.username);
-          break;
-
-        case isFlipAction(data):
-          room.flip();
-          break;
-
-        default:
-          log.error(
-            {
-              error: 'Unknown action',
-              wsId: ws.id,
-              data: String(data),
-            },
-            'Unknown action'
-          );
-          ws.send(
-            JSON.stringify({
-              error: 'Unknown action',
-              wsId: ws.id,
-              data: String(data),
-            })
-          );
-          return;
-      }
-
-      roomState.sendToEverySocketInRoom(room.id);
+      messageHandler.handleMessage(ws, data);
     } catch (error) {
       if (error instanceof Error) {
         log.error({ error, wsId: ws.id, ...data }, 'Error processing message');

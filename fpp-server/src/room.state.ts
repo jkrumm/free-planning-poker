@@ -1,15 +1,15 @@
-import { ElysiaWS } from 'elysia/dist/ws';
+import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
-import { RoomServer, User } from './room.entity';
-import { Analytics, AnalyticsUser } from './types';
+import { RoomServer, type User } from './room.entity';
+import { type Analytics, type AnalyticsUser } from './types';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class RoomState {
-  private rooms: Map<number, RoomServer> = new Map();
-  private userConnections: Map<
+  private rooms = new Map<number, RoomServer>();
+  private userConnections = new Map<
     string,
     { roomId: number; userId: string; ws: ElysiaWS<any> }
-  > = new Map();
+  >();
 
   getOrCreateRoom(roomId: number): RoomServer {
     let room = this.rooms.get(roomId);

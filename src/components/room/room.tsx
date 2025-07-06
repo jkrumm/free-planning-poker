@@ -8,6 +8,7 @@ import { type Action, type HeartbeatAction } from 'fpp-server/src/room.actions';
 import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 
 import { logMsg } from 'fpp/constants/logging.constant';
+import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -17,7 +18,6 @@ import { Table } from 'fpp/components/room/table';
 import Sidebar from 'fpp/components/sidebar/sidebar';
 
 import { Bookmark } from './bookmark';
-import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
 export const Room = ({
   roomId,
@@ -312,7 +312,7 @@ export const Room = ({
       const checkConnectionHealth = () => {
         const timeSinceLastPong = Date.now() - lastPongReceived;
 
-                  if (timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT) {
+        if (timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT) {
           // Connection appears stale
           console.warn('Connection appears stale - forcing reconnection');
           // Force a reconnection by reloading (simple but effective)
@@ -320,7 +320,10 @@ export const Room = ({
         }
       };
 
-      connectionHealthRef.current = setInterval(checkConnectionHealth, WEBSOCKET_CONSTANTS.CONNECTION_HEALTH_CHECK);
+      connectionHealthRef.current = setInterval(
+        checkConnectionHealth,
+        WEBSOCKET_CONSTANTS.CONNECTION_HEALTH_CHECK,
+      );
     }
 
     return () => {
