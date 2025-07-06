@@ -62,7 +62,12 @@ export const Table = ({
               className={`avatar bg-gray-800 ${user.status} ${!user.isPresent ? 'inactive' : 'active'}`}
             />
             <div className={`name ${user.id === userId && 'font-bold'}`}>
-              <UserHoverCard user={user} userId={userId} />
+              <UserHoverCard 
+                user={user} 
+                userId={userId} 
+                roomId={roomId} 
+                triggerAction={triggerAction} 
+              />
             </div>
             <div
               className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${

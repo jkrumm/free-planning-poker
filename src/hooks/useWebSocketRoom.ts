@@ -10,6 +10,8 @@ import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 import { logMsg } from 'fpp/constants/logging.constant';
 
 import { useRoomStore } from 'fpp/store/room.store';
+import { useRouter } from 'next/router';
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 export interface WebSocketRoomConfig {
   roomId: number;
@@ -38,6 +40,9 @@ export const useWebSocketRoom = ({
   userId,
   username,
 }: WebSocketRoomConfig): WebSocketRoomResult => {
+  const router = useRouter();
+  const setRoomId = useLocalstorageStore((store) => store.setRoomId);
+  const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
   const updateRoomState = useRoomStore((store) => store.update);
   const setConnectedAt = useRoomStore((store) => store.setConnectedAt);
   const connectedAt = useRoomStore((store) => store.connectedAt);
@@ -71,9 +76,22 @@ export const useWebSocketRoom = ({
         try {
           const data = JSON.parse(String(message.data)) as
             | RoomDto
-            | { error: string };
+            | { error: string }
+            | { type: 'kicked'; message: string };
 
           console.debug('onMessage', data);
+
+          // Handle kick notification
+          if ('type' in data && data.type === 'kicked') {
+            console.warn('User was kicked from room:', data.message);
+            setRoomId(null);
+            setRoomReadable(null);
+            router
+              .push(`/`)
+              .then(() => ({}))
+              .catch(() => ({}));
+            return;
+          }
 
           if ('error' in data) {
             // Handle specific error cases
@@ -106,7 +124,7 @@ export const useWebSocketRoom = ({
             return;
           }
 
-          updateRoomState(RoomClient.fromJson(data));
+          updateRoomState(RoomClient.fromJson(data as RoomDto));
         } catch (e) {
           console.error('Error parsing message:', e);
           console.debug('Raw message:', message.data);

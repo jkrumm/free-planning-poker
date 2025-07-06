@@ -63,26 +63,51 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       isAutoFlip: get().isAutoFlip,
       isFlipped: get().isFlipped,
     };
-    const user = room.getUser(get().userId);
-    set({
-      // User
-      estimation: user.estimation,
-      isSpectator: user.isSpectator,
-      // Room State
-      users: room.users,
-      startedAt: room.startedAt,
-      isAutoFlip: room.isAutoFlip,
-      status: room.status,
-    });
-    notifyOnRoomChanges({
-      newRoom: {
+
+    // Check if user is still in the room
+    try {
+      const userId = get().userId;
+      const user = userId ? room.getUser(userId) : null;
+
+      // If user was previously connected but is no longer in the room, they were kicked
+      if (!user && get().connectedAt && oldRoom.users.length > 0 && userId) {
+        console.warn('User was kicked from room, redirecting to homepage');
+        window.location.href = '/';
+        return;
+      }
+
+      if (!user) {
+        console.warn('User not found in room');
+        return;
+      }
+
+      set({
+        // User
+        estimation: user.estimation,
+        isSpectator: user.isSpectator,
+        // Room State
         users: room.users,
+        startedAt: room.startedAt,
         isAutoFlip: room.isAutoFlip,
-        isFlipped: room.isFlipped,
-      },
-      oldRoom,
-      userId: user.id,
-      connectedAt: get().connectedAt,
-    });
+        status: room.status,
+      });
+
+      notifyOnRoomChanges({
+        newRoom: {
+          users: room.users,
+          isAutoFlip: room.isAutoFlip,
+          isFlipped: room.isFlipped,
+        },
+        oldRoom,
+        userId: user.id,
+        connectedAt: get().connectedAt,
+      });
+    } catch (error) {
+      // If an error occurs when getting the user, they were likely kicked
+      if (get().connectedAt && oldRoom.users.length > 0) {
+        console.warn('Error getting user, likely kicked from room:', error);
+        window.location.href = '/';
+      }
+    }
   },
 }));

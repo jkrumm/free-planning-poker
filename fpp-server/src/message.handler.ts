@@ -6,6 +6,7 @@ import {
   isEstimateAction,
   isFlipAction,
   isHeartbeatAction,
+  isKickAction,
   isLeaveAction,
   isRejoinAction,
   isResetAction,
@@ -84,6 +85,11 @@ export class MessageHandler {
         return;
       }
 
+      if (isKickAction(data)) {
+        this.handleKick(ws, data);
+        return;
+      }
+
       // If we get here, it's an unknown action
       log.error(
         {
@@ -153,5 +159,43 @@ export class MessageHandler {
     setTimeout(() => {
       this.roomState.sendToEverySocketInRoom(data.roomId);
     }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+  }
+
+  /**
+   * Handle kick action
+   */
+  private handleKick(ws: ElysiaWS<any>, data: Action): void {
+    if (!isKickAction(data)) return;
+
+    log.debug(
+      { userId: data.userId, roomId: data.roomId, targetUserId: data.targetUserId, wsId: ws.id },
+      'User kicking another user from room'
+    );
+
+    // Find the kicked user's WebSocket connection
+    const room = this.roomState.getOrCreateRoom(data.roomId);
+    const kickedUser = room.users.find(u => u.id === data.targetUserId);
+    
+    if (kickedUser) {
+      // Send kick notification to the kicked user BEFORE removing them
+      try {
+        kickedUser.ws.send(JSON.stringify({ 
+          type: 'kicked',
+          message: 'You have been removed from the room'
+        }));
+      } catch (error) {
+        log.debug('Failed to send kick notification - connection may be closed');
+      }
+      
+      // Close their WebSocket connection
+      try {
+        kickedUser.ws.close();
+      } catch (error) {
+        log.debug('Failed to close WebSocket - may already be closed');
+      }
+    }
+
+    // Remove user from room
+    this.roomState.removeUserFromRoom(data.roomId, data.targetUserId);
   }
 }

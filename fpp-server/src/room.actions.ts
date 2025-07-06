@@ -157,6 +157,23 @@ export function isSetPresenceAction(data: any): data is SetPresenceAction {
   return data.action === 'setPresence';
 }
 
+/** Kick action schema */
+export const KickActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('kick'),
+    targetUserId: t.String({
+      min: 21,
+      max: 21,
+    }),
+  }),
+]);
+export type KickAction = Static<typeof KickActionSchema>;
+
+export function isKickAction(action: any): action is KickAction {
+  return action.action === 'kick';
+}
+
 /**
  * Action schema union
  */
@@ -171,6 +188,7 @@ export const ActionSchema = t.Union([
   ChangeUsernameActionSchema,
   FlipActionSchema,
   SetPresenceActionSchema,
+  KickActionSchema,
 ]);
 
 // Static t for ActionSchema
