@@ -26,16 +26,13 @@ export const Interactions = ({
   roomName,
   userId,
   triggerAction,
-  readyState,
 }: {
   roomId: number;
   roomName: string;
   userId: string;
   triggerAction: (action: Action) => void;
-  readyState: ReadyState;
 }) => {
   const router = useRouter();
-
   // User localstorage state
   const setRoomId = useLocalstorageStore((store) => store.setRoomId);
   const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
@@ -48,6 +45,8 @@ export const Interactions = ({
   const status = useRoomStore((store) => store.status);
   const isAutoFlip = useRoomStore((store) => store.isAutoFlip);
 
+  // Connection
+  const readyState = useRoomStore((store) => store.readyState);
   const isConnected = readyState === ReadyState.OPEN;
 
   const roomRef = useRef(null);

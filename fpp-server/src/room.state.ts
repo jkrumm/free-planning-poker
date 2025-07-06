@@ -238,7 +238,6 @@ export class RoomState {
     }
 
     user.isPresent = isPresent;
-    console.log('isPresent', user.isPresent);
     room.hasChanged = true;
     return true;
   }

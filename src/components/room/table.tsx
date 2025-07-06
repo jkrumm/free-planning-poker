@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 
-import { Button, HoverCard, Text } from '@mantine/core';
+import { Button } from '@mantine/core';
 
 import { type Action } from 'fpp-server/src/room.actions';
 import { RoomStateStatus, type User } from 'fpp-server/src/room.entity';
