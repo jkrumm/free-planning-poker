@@ -6,7 +6,7 @@
     "url": "https://github.com/jkrumm/free-planning-poker"
   },
   "engines": {
-    "node": "20.11.1"
+    "node": "22.x"
   },
   "author": "Johannes Krumm",
   "description": "Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.",
@@ -82,7 +82,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "autoprefixer": "^10.4.21",
     "dotenv": "^16.6.1",
-    "drizzle-kit": "^0.20.18",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.30",
     "eslint-plugin-drizzle": "^0.2.3",

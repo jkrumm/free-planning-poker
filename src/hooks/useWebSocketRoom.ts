@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
+import { useRouter } from 'next/router';
+
 import { env } from 'fpp/env';
 
 import * as Sentry from '@sentry/nextjs';
@@ -9,9 +11,8 @@ import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 
 import { logMsg } from 'fpp/constants/logging.constant';
 
-import { useRoomStore } from 'fpp/store/room.store';
-import { useRouter } from 'next/router';
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+import { useRoomStore } from 'fpp/store/room.store';
 
 export interface WebSocketRoomConfig {
   roomId: number;

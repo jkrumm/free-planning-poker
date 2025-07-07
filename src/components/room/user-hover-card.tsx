@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button, HoverCard, Text } from '@mantine/core';
+
 import { IconUserMinus } from '@tabler/icons-react';
-
 import { type Action } from 'fpp-server/src/room.actions';
-
 import { type User } from 'fpp-server/src/room.entity';
 
 // Simplified function to format time since last heartbeat
