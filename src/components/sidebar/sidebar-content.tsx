@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 
-import { Card, Text } from '@mantine/core';
+import { Card } from '@mantine/core';
 
 import { motion } from 'framer-motion';
 
