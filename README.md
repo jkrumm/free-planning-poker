@@ -32,3 +32,10 @@ All "personal" data is stored only in the visitors local storage.
 1. [Install Bun](https://bun.sh/docs/installation) if not already installed
 2. Create a .env file in 'fpp-server' and paste the FPP_SERVER_SECRET into it from running `doppler secrets get FPP_SERVER_SECRET --plain` 
 3. Run `bun run dev` in the `fpp-server` directory
+
+### Run fpp-analytics locally
+1. Install mysql `brew install mysql`
+2. Activate venv `source .venv/bin/activate`
+3. Install requirements `python3 -m pip install -r requirements.txt`
+5. Copy the .env.example to .env and add the FPP_DB_PW secret
+6. Run the app: `flask run --debug -p 5100`
