@@ -1,4 +1,14 @@
+# Changelog
 
+## 7.7.0 (2025-07-08)
+
+* chore: update default version & default stats ([4f96eba](https://github.com/jkrumm/free-planning-poker/commit/4f96eba))
+* chore: update packages ([000a9c0](https://github.com/jkrumm/free-planning-poker/commit/000a9c0))
+* chore: upgrade to Node 22 and Drizzle-Kit 31 ([0bfe29a](https://github.com/jkrumm/free-planning-poker/commit/0bfe29a))
+* feat: add Drizzle migration support ([bc43044](https://github.com/jkrumm/free-planning-poker/commit/bc43044))
+* feat: add possibility to kick users ([44897e4](https://github.com/jkrumm/free-planning-poker/commit/44897e4))
+* feat: switch to PyMySQL and update dependencies ([8a05c7d](https://github.com/jkrumm/free-planning-poker/commit/8a05c7d))
+* feat: upgrade to Mantine UI v8 ([62ea311](https://github.com/jkrumm/free-planning-poker/commit/62ea311))
 
 ## [7.6.0](https://github.com/jkrumm/free-planning-poker/compare/7.5.0...7.6.0) (2025-07-06)
 
