@@ -17,7 +17,7 @@ export default {
     port: url.port ? parseInt(url.port) : 3306,
     user: url.username,
     password: url.password,
-    database: url.pathname.slice(1), // Remove leading slash
+    database: 'free-planning-poker'
   },
   strict: true,
   verbose: true,

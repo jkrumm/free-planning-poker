@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1751970655969,
+      "tag": "0000_romantic_black_bird",
+      "breakpoints": true
+    }
+  ]
+}

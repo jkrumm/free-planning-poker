@@ -23,6 +23,27 @@ All "personal" data is stored only in the visitors local storage.
 6. Install dependencies with `npm ci`
 7. Run `doppler run -- npm run dev`
 
+### Database Migrations
+
+The project uses Drizzle Kit for database migrations. Available commands:
+
+- `npm run db:generate` - Generate migration files from schema changes
+- `npm run db:migrate` - Apply pending migrations to database
+- `npm run db:studio` - Open Drizzle Studio database GUI
+- `npm run db:check` - Check if schema and database are in sync
+
+⚠️ **Important**: Before running any migration commands, verify that your `.env` file contains the correct `DATABASE_URL` - ensure it points to your local development database, not production!
+
+**Migration workflow:**
+1. Make changes to `src/server/db/schema.ts`
+2. Run `npm run db:generate` to create migration files
+3. Review the generated SQL in `drizzle/` folder
+4. Switch the `.env` URL to use local database
+5. Run `npm run db:migrate` to apply changes to local database
+6. Validate locally if nothing breaks (functionality and data)
+7. Switch the `.env` URL to use prod database
+8. Run `npm run db:migrate` to apply changes to prod database
+
 ### Run analytics locally
 1. Activate venv with `source .venv/bin/activate`
 2. Install packages `python3 -m pip install -r requirements.txt`
