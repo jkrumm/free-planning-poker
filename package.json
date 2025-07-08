@@ -17,14 +17,17 @@
     "build": "next build",
     "dev": "next dev -p 3001",
     "start": "next start",
-    "db:push": "drizzle-kit push:mysql",
     "lint": "next lint",
     "format": "prettier --write \"{src,test}/**\"",
     "format:check": "prettier --check \"{src,test}/**\"",
     "type-check": "tsc --noEmit",
     "prepare": "husky",
     "pre": "npm run lint && npm run type-check && npm run format:check && knip && npm run build",
-    "release": "release-it"
+    "release": "release-it",
+    "db:generate": "npx drizzle-kit generate",
+    "db:migrate": "npx drizzle-kit migrate",
+    "db:studio": "npx drizzle-kit studio",
+    "db:check": "npx drizzle-kit check"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.6",

@@ -25,7 +25,6 @@ export const mysqlTable = mysqlTableCreator((name) => `fpp_${name}`);
 /**
  * ROOMS
  */
-
 export const rooms = mysqlTable('rooms', {
   id: int('id').autoincrement().primaryKey().notNull(),
   number: mediumint('number').unique('rooms_number_unique_idx').notNull(),
@@ -33,7 +32,7 @@ export const rooms = mysqlTable('rooms', {
     .unique('rooms_name_unique_idx')
     .notNull(),
   firstUsedAt: timestamp('first_used_at').defaultNow().notNull(),
-  lastUsedAt: timestamp('last_used_at').defaultNow().onUpdateNow().notNull(),
+  lastUsedAt: timestamp('last_used_at').defaultNow().notNull(),
 });
 
 export type IRoom = InferSelectModel<typeof rooms>;
@@ -42,7 +41,6 @@ export type ICreateRoom = InferInsertModel<typeof rooms>;
 /**
  * VOTES
  */
-
 export const votes = mysqlTable('votes', {
   id: int('id').autoincrement().primaryKey().notNull(),
   roomId: int('room_id').notNull(),
@@ -62,17 +60,9 @@ export const votes = mysqlTable('votes', {
 export type IVote = InferSelectModel<typeof votes>;
 export type ICreateVote = InferInsertModel<typeof votes>;
 
-export const votesRelations = relations(votes, ({ one }) => ({
-  room: one(rooms, {
-    fields: [votes.roomId],
-    references: [rooms.id],
-  }),
-}));
-
 /**
  * USERS
  */
-
 export const users = mysqlTable('users', {
   id: varchar('id', { length: 21 }).primaryKey().$defaultFn(nanoid).notNull(),
   device: varchar('device', { length: 50 }),
@@ -90,7 +80,6 @@ export type ICreateUser = InferInsertModel<typeof users>;
 /**
  * ESTIMATIONS
  */
-
 export const estimations = mysqlTable('estimations', {
   id: int('id').primaryKey().autoincrement().notNull(),
   userId: varchar('user_id', { length: 21 }).notNull(),
@@ -103,21 +92,9 @@ export const estimations = mysqlTable('estimations', {
 export type IEstimation = InferSelectModel<typeof estimations>;
 export type ICreateEstimation = InferInsertModel<typeof estimations>;
 
-export const estimationsRelations = relations(estimations, ({ one }) => ({
-  users: one(users, {
-    fields: [estimations.userId],
-    references: [users.id],
-  }),
-  rooms: one(rooms, {
-    fields: [estimations.roomId],
-    references: [rooms.id],
-  }),
-}));
-
 /**
  * PAGE_VIEWS
  */
-
 export const RouteType = {
   HOME: 'HOME',
   CONTACT: 'CONTACT',
@@ -131,7 +108,15 @@ export const RouteType = {
 export const pageViews = mysqlTable('page_views', {
   id: int('id').primaryKey().autoincrement().notNull(),
   userId: varchar('user_id', { length: 21 }).notNull(),
-  route: mysqlEnum('route', Object.values(RouteType) as [string]).notNull(),
+  route: mysqlEnum('route', [
+    'HOME',
+    'CONTACT',
+    'IMPRINT',
+    'GUIDE',
+    'ROOM',
+    'ANALYTICS',
+    'ROADMAP',
+  ]).notNull(),
   roomId: int('room_id'),
   source: varchar('source', { length: 255 }),
   viewedAt: timestamp('viewed_at').defaultNow().notNull(),
@@ -140,17 +125,9 @@ export const pageViews = mysqlTable('page_views', {
 export type IPageView = InferSelectModel<typeof pageViews>;
 export type ICreatePageView = InferInsertModel<typeof pageViews>;
 
-export const pageViewsRelations = relations(pageViews, ({ one }) => ({
-  users: one(users, {
-    fields: [pageViews.roomId],
-    references: [users.id],
-  }),
-}));
-
 /**
  * EVENTS
  */
-
 export const EventType = {
   // CONTACT FORM EVENTS
   CONTACT_FORM_SUBMISSION: 'CONTACT_FORM_SUBMISSION',
@@ -173,12 +150,59 @@ export const RoomEvent = {
 export const events = mysqlTable('events', {
   id: int('id').primaryKey().autoincrement().notNull(),
   userId: varchar('user_id', { length: 21 }).notNull(),
-  event: mysqlEnum('event', Object.keys(EventType) as [string]).notNull(),
+  event: mysqlEnum('event', [
+    'CONTACT_FORM_SUBMISSION',
+    'ENTERED_RANDOM_ROOM',
+    'ENTERED_NEW_ROOM',
+    'ENTERED_EXISTING_ROOM',
+    'ENTERED_RECENT_ROOM',
+    'LEFT_ROOM',
+    'COPIED_ROOM_LINK',
+  ]).notNull(),
   eventAt: timestamp('event_at').defaultNow().notNull(),
 });
 
 export type IEvent = InferSelectModel<typeof events>;
 export type ICreateEvent = InferInsertModel<typeof events>;
+
+/**
+ * FEATURE_FLAGS
+ */
+export const FeatureFlagType = {
+  CONTACT_FORM: 'CONTACT_FORM',
+} as const;
+
+export const featureFlags = mysqlTable('feature_flags', {
+  name: mysqlEnum('name', ['CONTACT_FORM'])
+    .unique('feature_flags_name_unique_idx')
+    .notNull(),
+  enabled: boolean('enabled').default(false).notNull(),
+});
+
+export const votesRelations = relations(votes, ({ one }) => ({
+  room: one(rooms, {
+    fields: [votes.roomId],
+    references: [rooms.id],
+  }),
+}));
+
+export const estimationsRelations = relations(estimations, ({ one }) => ({
+  users: one(users, {
+    fields: [estimations.userId],
+    references: [users.id],
+  }),
+  rooms: one(rooms, {
+    fields: [estimations.roomId],
+    references: [rooms.id],
+  }),
+}));
+
+export const pageViewsRelations = relations(pageViews, ({ one }) => ({
+  users: one(users, {
+    fields: [pageViews.userId],
+    references: [users.id],
+  }),
+}));
 
 export const eventsRelations = relations(events, ({ one }) => ({
   users: one(users, {
@@ -187,39 +211,14 @@ export const eventsRelations = relations(events, ({ one }) => ({
   }),
 }));
 
-/**
- * USERS_RELATIONS
- */
-
 export const usersRelations = relations(users, ({ many }) => ({
   pageViews: many(pageViews),
   estimations: many(estimations),
   events: many(events),
 }));
 
-/**
- * ROOMS_RELATIONS
- */
-
 export const roomsRelations = relations(rooms, ({ many }) => ({
   votes: many(votes),
   pageViews: many(pageViews),
   estimations: many(estimations),
 }));
-
-/** ------------------------------------------------------------------ */
-
-/**
- * FEATURE_FLAGS
- */
-
-export const FeatureFlagType = {
-  CONTACT_FORM: 'CONTACT_FORM',
-} as const;
-
-export const featureFlags = mysqlTable('feature_flags', {
-  name: mysqlEnum('name', Object.keys(FeatureFlagType) as [string])
-    .unique('feature_flags_name_unique_idx')
-    .notNull(),
-  enabled: boolean('enabled').default(false).notNull(),
-});

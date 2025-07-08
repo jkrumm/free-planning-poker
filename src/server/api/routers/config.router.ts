@@ -21,7 +21,9 @@ export const configRouter = createTRPCRouter({
 
     return Object.keys(FeatureFlagType).map((name) => ({
       name: name as keyof typeof FeatureFlagType,
-      enabled: activeFeatureFlags.includes(name),
+      enabled: activeFeatureFlags.includes(
+        name as keyof typeof FeatureFlagType,
+      ),
     }));
   }),
   getLatestTag: publicProcedure.query(async () => {
