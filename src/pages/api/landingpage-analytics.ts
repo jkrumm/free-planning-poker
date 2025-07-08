@@ -41,8 +41,8 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
       // Return fallback data if the analytics service fails
       return new Response(
         JSON.stringify({
-          estimation_count: 19000,
-          user_count: 4000,
+          estimation_count: 30000,
+          user_count: 6000,
         }),
         {
           status: 200,
@@ -69,8 +69,8 @@ const LandingPageAnalytics = async (req: Request): Promise<Response> => {
     // Return fallback data in case of error
     return new Response(
       JSON.stringify({
-        estimation_count: 19000,
-        user_count: 4000,
+        estimation_count: 30000,
+        user_count: 6000,
       }),
       {
         status: 200,

@@ -61,7 +61,7 @@ const IndexFormSkeleton = () => {
               USERS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              4000
+              6000
             </Text>
           </div>
           <div className="p-4">
@@ -69,7 +69,7 @@ const IndexFormSkeleton = () => {
               ESTIMATIONS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              19000
+              30000
             </Text>
           </div>
         </div>
