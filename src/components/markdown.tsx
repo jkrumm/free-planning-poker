@@ -4,7 +4,9 @@ import ReactMarkdown from 'react-markdown';
 
 const Markdown = ({ description }: { description: string }) => {
   return (
-    <ReactMarkdown className="react-markdown">{description}</ReactMarkdown>
+    <div className="react-markdown">
+      <ReactMarkdown>{description}</ReactMarkdown>
+    </div>
   );
 };
 

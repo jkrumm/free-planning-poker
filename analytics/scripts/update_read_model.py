@@ -1,5 +1,5 @@
 import os
-import MySQLdb
+import pymysql
 import pandas as pd
 
 from config import DATA_DIR
@@ -10,11 +10,25 @@ class DB:
     conn = None
 
     def connect(self):
-        self.conn = MySQLdb.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USERNAME"),
-            passwd=os.getenv("DB_PASSWORD"),
-            db="free-planning-poker",
+        host = os.getenv("DB_HOST")
+        port = os.getenv("DB_PORT")
+        user = os.getenv("DB_USERNAME")
+        password = os.getenv("DB_PASSWORD")
+        
+        # Debug logging
+        logger.debug("Database connection parameters", {
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": "***" if password else None
+        })
+            
+        self.conn = pymysql.connect(
+            host=host,
+            user=user,
+            port=int(port),
+            password=password,
+            database="free-planning-poker",
             autocommit=True,
         )
 
@@ -22,7 +36,7 @@ class DB:
         try:
             cursor = self.conn.cursor()
             cursor.execute(sql)
-        except (AttributeError, MySQLdb.OperationalError):
+        except (AttributeError, pymysql.OperationalError):
             self.connect()
             cursor = self.conn.cursor()
             cursor.execute(sql)
