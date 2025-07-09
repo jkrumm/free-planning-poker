@@ -28,6 +28,9 @@ export const Table = ({
   const users = useRoomStore((store) => store.users);
   const status = useRoomStore((store) => store.status);
 
+  // Filter out spectators from the visual table - they'll be shown in the sidebar
+  const playersOnly = users.filter((user) => !user.isSpectator);
+
   return (
     <div className="table">
       <div className="card-place">
@@ -56,7 +59,7 @@ export const Table = ({
       </div>
 
       <div className="players">
-        {users.map((user, index) => (
+        {playersOnly.map((user, index) => (
           <div key={index} className={`player player-${index + 1}`}>
             <div
               className={`avatar bg-gray-800 ${user.status} ${!user.isPresent ? 'inactive' : 'active'}`}

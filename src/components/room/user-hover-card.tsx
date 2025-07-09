@@ -77,7 +77,7 @@ export const UserHoverCard = ({
           {user.name}
         </Text>
         <Text size="xs" mb={user.isPresent ? 0 : 'xs'}>
-          {user.isPresent ? '🟢 Currently active' : '🟠 Away from room'}
+          {user.isPresent ? '🟢 Currently present' : '🟠 Away from room'}
         </Text>
         {!user.isPresent && !!user.lastHeartbeat && (
           <Text size="xs" c="dimmed">

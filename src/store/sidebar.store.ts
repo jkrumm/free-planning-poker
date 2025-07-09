@@ -3,6 +3,7 @@ import { create } from 'zustand';
 export const SidebarTabs = {
   settings: 'settings',
   room_analytics: 'room_analytics',
+  spectators: 'spectators',
 } as const;
 
 type SidebarStore = {
