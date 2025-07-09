@@ -12,9 +12,9 @@ import { RoomStateStatus } from 'fpp-server/src/room.entity';
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
 import { isValidMediumint } from 'fpp/utils/number.utils';
+import { executeLeave } from 'fpp/utils/room.util';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
-import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
 import { EventType } from 'fpp/server/db/schema';
@@ -33,9 +33,6 @@ export const Interactions = ({
   triggerAction: (action: Action) => void;
 }) => {
   const router = useRouter();
-  // User localstorage state
-  const setRoomId = useLocalstorageStore((store) => store.setRoomId);
-  const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
 
   // User state
   const estimation = useRoomStore((store) => store.estimation);
@@ -117,19 +114,14 @@ export const Interactions = ({
               {status === RoomStateStatus.flipped ? 'New Round' : 'Reset'}
             </Button>
             <Button
-              variant={'default'}
+              variant="default"
               onClick={() => {
-                setRoomId(null);
-                setRoomReadable(null);
-                triggerAction({
-                  action: 'leave',
+                executeLeave({
                   roomId,
                   userId,
+                  triggerAction,
+                  router,
                 });
-                router
-                  .push(`/`)
-                  .then(() => ({}))
-                  .catch(() => ({}));
               }}
             >
               Leave
@@ -176,6 +168,7 @@ export const Interactions = ({
               action: 'setSpectator',
               roomId,
               userId,
+              targetUserId: userId,
               isSpectator: event.currentTarget.checked,
             });
           }}

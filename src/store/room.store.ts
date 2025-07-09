@@ -7,15 +7,8 @@ import {
 } from 'fpp-server/src/room.entity';
 import { create } from 'zustand';
 
-import {
-  executeKick,
-  notify,
-  notifyOnRoomChanges,
-  playSound,
-} from 'fpp/utils/room.util';
+import { executeKick, notifyOnRoomChanges } from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
-
-import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 type RoomStore = {
   // User

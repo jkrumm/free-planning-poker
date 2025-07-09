@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react';
 
+import { useRouter } from 'next/router';
+
 import { Button, HoverCard, Text } from '@mantine/core';
 
-import { IconUserMinus } from '@tabler/icons-react';
+import {
+  IconDoorExit,
+  IconEye,
+  IconEyeOff,
+  IconUserMinus,
+} from '@tabler/icons-react';
 import { type Action } from 'fpp-server/src/room.actions';
 import { type User } from 'fpp-server/src/room.entity';
+
+import { executeLeave } from 'fpp/utils/room.util';
 
 // Simplified function to format time since last heartbeat
 const formatTimeSince = (lastHeartbeat: number | undefined): string => {
@@ -31,6 +40,7 @@ export const UserHoverCard = ({
   roomId: number;
   triggerAction: (action: Action) => void;
 }) => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [lastSeenTime, setLastSeenTime] = useState<string>(
     formatTimeSince(user.lastHeartbeat),
@@ -47,6 +57,8 @@ export const UserHoverCard = ({
     return () => clearInterval(intervalId);
   }, [isOpen, user.isPresent, user.lastHeartbeat]);
 
+  const isOwnUser = user.id === userId;
+
   return (
     <HoverCard
       width={200}
@@ -57,9 +69,7 @@ export const UserHoverCard = ({
     >
       <HoverCard.Target>
         <div className="flex items-center justify-center gap-1.5 cursor-pointer">
-          <span className={user.id === userId ? 'font-bold' : ''}>
-            {user.name}
-          </span>
+          <span className={isOwnUser ? 'font-bold' : ''}>{user.name}</span>
         </div>
       </HoverCard.Target>
       <HoverCard.Dropdown>
@@ -74,26 +84,105 @@ export const UserHoverCard = ({
             Last signal: {lastSeenTime}
           </Text>
         )}
-        {user.id !== userId && (
-          <Button
-            variant="light"
-            color="red"
-            size="xs"
-            leftSection={<IconUserMinus size={14} />}
-            mt="md"
-            fullWidth
-            onClick={() => {
-              triggerAction({
-                action: 'kick',
-                roomId,
-                userId,
-                targetUserId: user.id,
-              });
-              setIsOpen(false);
-            }}
-          >
-            Kick from room
-          </Button>
+
+        {isOwnUser ? (
+          // Own user actions
+          <>
+            <Button
+              variant="light"
+              color={user.isSpectator ? 'blue' : 'gray'}
+              size="xs"
+              leftSection={
+                user.isSpectator ? (
+                  <IconEye size={14} />
+                ) : (
+                  <IconEyeOff size={14} />
+                )
+              }
+              mt="md"
+              fullWidth
+              onClick={() => {
+                triggerAction({
+                  action: 'setSpectator',
+                  roomId,
+                  userId,
+                  targetUserId: user.id,
+                  isSpectator: !user.isSpectator,
+                });
+                setIsOpen(false);
+              }}
+            >
+              {user.isSpectator ? 'Join voting' : 'Become spectator'}
+            </Button>
+            <Button
+              variant="light"
+              color="gray"
+              size="xs"
+              leftSection={<IconDoorExit size={14} />}
+              mt="xs"
+              fullWidth
+              onClick={() => {
+                executeLeave({
+                  roomId,
+                  userId,
+                  triggerAction,
+                  router,
+                });
+                setIsOpen(false);
+              }}
+            >
+              Leave room
+            </Button>
+          </>
+        ) : (
+          // Other users actions
+          <>
+            <Button
+              variant="light"
+              color={user.isSpectator ? 'blue' : 'gray'}
+              size="xs"
+              leftSection={
+                user.isSpectator ? (
+                  <IconEye size={14} />
+                ) : (
+                  <IconEyeOff size={14} />
+                )
+              }
+              mt="md"
+              fullWidth
+              onClick={() => {
+                triggerAction({
+                  action: 'setSpectator',
+                  roomId,
+                  userId,
+                  targetUserId: user.id,
+                  isSpectator: !user.isSpectator,
+                });
+                setIsOpen(false);
+              }}
+            >
+              {user.isSpectator ? 'Make participant' : 'Make spectator'}
+            </Button>
+            <Button
+              variant="light"
+              color="red"
+              size="xs"
+              leftSection={<IconUserMinus size={14} />}
+              mt="xs"
+              fullWidth
+              onClick={() => {
+                triggerAction({
+                  action: 'kick',
+                  roomId,
+                  userId,
+                  targetUserId: user.id,
+                });
+                setIsOpen(false);
+              }}
+            >
+              Kick from room
+            </Button>
+          </>
         )}
       </HoverCard.Dropdown>
     </HoverCard>

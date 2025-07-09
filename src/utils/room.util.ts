@@ -1,4 +1,4 @@
-import { NextRouter } from 'next/router';
+import { type NextRouter } from 'next/router';
 
 import { notifications } from '@mantine/notifications';
 
@@ -107,7 +107,7 @@ export function getStackedEstimationsFromUsers(
     });
 }
 
-export function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
+function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
   if (getFromLocalstorage('isPlaySound') === 'false') return;
   const audio = new Audio(`/sounds/${sound}.wav`);
   audio.volume = sound === 'success' || sound === 'tick' ? 0.3 : 0.2;
@@ -117,7 +117,7 @@ export function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
     .catch(() => ({}));
 }
 
-export function notify({
+function notify({
   color,
   title,
   message,
@@ -229,6 +229,40 @@ export function notifyOnRoomChanges({
       message: 'User left the room',
     });
     return;
+  }
+}
+
+export function executeLeave({
+  roomId,
+  userId,
+  triggerAction,
+  router,
+}: {
+  roomId: number;
+  userId: string;
+  triggerAction: (action: Action) => void;
+  router?: NextRouter;
+}) {
+  // Cleanup room State
+  const { setRoomId, setRoomName } = useLocalstorageStore.getState();
+  setRoomId(null);
+  setRoomName(null);
+
+  // Send leave action to server
+  triggerAction({
+    action: 'leave',
+    roomId,
+    userId,
+  });
+
+  // Navigate to homepage
+  if (router) {
+    router
+      .push('/')
+      .then(() => ({}))
+      .catch(() => ({}));
+  } else if (typeof window !== 'undefined') {
+    window.location.href = '/';
   }
 }
 
