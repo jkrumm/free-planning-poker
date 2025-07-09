@@ -1,23 +1,15 @@
 import React from 'react';
 
-import { useRouter } from 'next/router';
+import { Avatar, Badge, Group, Stack, Text } from '@mantine/core';
 
-import { Avatar, Badge, Button, Group, Stack, Text } from '@mantine/core';
-
-import {
-  IconDoorExit,
-  IconEye,
-  IconEyeOff,
-  IconUserMinus,
-} from '@tabler/icons-react';
+import { IconEye } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
 import { type User } from 'fpp-server/src/room.entity';
-
-import { executeLeave } from 'fpp/utils/room.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
+import { UserActions } from 'fpp/components/room/user-actions';
 import SidebarContent from 'fpp/components/sidebar/sidebar-content';
 
 const SidebarSpectators = ({
@@ -84,13 +76,10 @@ const SpectatorCard = ({
   spectator: User;
   triggerAction: (action: Action) => void;
 }) => {
-  const router = useRouter();
   const userId = useLocalstorageStore((state) => state.userId);
   const roomId = useLocalstorageStore((state) => state.roomId);
 
-  const isOwnUser = spectator.id === userId;
-
-  if (!userId || !roomId)
+  if (!userId || !roomId) {
     return (
       <div className="w-full text-center py-4">
         <Text size="sm" c="dimmed">
@@ -98,6 +87,7 @@ const SpectatorCard = ({
         </Text>
       </div>
     );
+  }
 
   return (
     <Group
@@ -129,81 +119,14 @@ const SpectatorCard = ({
         </Group>
 
         <Group gap="xs" mt="xs" wrap="nowrap">
-          {isOwnUser ? (
-            // Own user actions
-            <>
-              <Button
-                variant="light"
-                color="blue"
-                size="xs"
-                leftSection={<IconEyeOff size={12} />}
-                onClick={() => {
-                  triggerAction({
-                    action: 'setSpectator',
-                    roomId,
-                    userId,
-                    targetUserId: spectator.id,
-                    isSpectator: false,
-                  });
-                }}
-              >
-                Join voting
-              </Button>
-              <Button
-                variant="light"
-                color="gray"
-                size="xs"
-                leftSection={<IconDoorExit size={12} />}
-                onClick={() => {
-                  executeLeave({
-                    roomId,
-                    userId,
-                    triggerAction,
-                    router,
-                  });
-                }}
-              >
-                Leave
-              </Button>
-            </>
-          ) : (
-            // Other users actions
-            <>
-              <Button
-                variant="light"
-                color="blue"
-                size="xs"
-                leftSection={<IconEyeOff size={12} />}
-                onClick={() => {
-                  triggerAction({
-                    action: 'setSpectator',
-                    roomId,
-                    userId,
-                    targetUserId: spectator.id,
-                    isSpectator: false,
-                  });
-                }}
-              >
-                Make participant
-              </Button>
-              <Button
-                variant="light"
-                color="red"
-                size="xs"
-                leftSection={<IconUserMinus size={12} />}
-                onClick={() => {
-                  triggerAction({
-                    action: 'kick',
-                    roomId: roomId,
-                    userId: userId,
-                    targetUserId: spectator.id,
-                  });
-                }}
-              >
-                Kick
-              </Button>
-            </>
-          )}
+          <UserActions
+            user={spectator}
+            userId={userId}
+            roomId={roomId}
+            triggerAction={triggerAction}
+            layout="horizontal"
+            size="xs"
+          />
         </Group>
       </div>
     </Group>

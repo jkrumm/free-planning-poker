@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import { useRouter } from 'next/router';
+import { HoverCard, Text } from '@mantine/core';
 
-import { Button, HoverCard, Text } from '@mantine/core';
-
-import {
-  IconDoorExit,
-  IconEye,
-  IconEyeOff,
-  IconUserMinus,
-} from '@tabler/icons-react';
 import { type Action } from 'fpp-server/src/room.actions';
 import { type User } from 'fpp-server/src/room.entity';
 
-import { executeLeave } from 'fpp/utils/room.util';
+import { UserActions } from 'fpp/components/room/user-actions';
 
 // Simplified function to format time since last heartbeat
 const formatTimeSince = (lastHeartbeat: number | undefined): string => {
@@ -40,7 +32,6 @@ export const UserHoverCard = ({
   roomId: number;
   triggerAction: (action: Action) => void;
 }) => {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [lastSeenTime, setLastSeenTime] = useState<string>(
     formatTimeSince(user.lastHeartbeat),
@@ -85,105 +76,17 @@ export const UserHoverCard = ({
           </Text>
         )}
 
-        {isOwnUser ? (
-          // Own user actions
-          <>
-            <Button
-              variant="light"
-              color={user.isSpectator ? 'blue' : 'gray'}
-              size="xs"
-              leftSection={
-                user.isSpectator ? (
-                  <IconEye size={14} />
-                ) : (
-                  <IconEyeOff size={14} />
-                )
-              }
-              mt="md"
-              fullWidth
-              onClick={() => {
-                triggerAction({
-                  action: 'setSpectator',
-                  roomId,
-                  userId,
-                  targetUserId: user.id,
-                  isSpectator: !user.isSpectator,
-                });
-                setIsOpen(false);
-              }}
-            >
-              {user.isSpectator ? 'Join voting' : 'Become spectator'}
-            </Button>
-            <Button
-              variant="light"
-              color="gray"
-              size="xs"
-              leftSection={<IconDoorExit size={14} />}
-              mt="xs"
-              fullWidth
-              onClick={() => {
-                executeLeave({
-                  roomId,
-                  userId,
-                  triggerAction,
-                  router,
-                });
-                setIsOpen(false);
-              }}
-            >
-              Leave room
-            </Button>
-          </>
-        ) : (
-          // Other users actions
-          <>
-            <Button
-              variant="light"
-              color={user.isSpectator ? 'blue' : 'gray'}
-              size="xs"
-              leftSection={
-                user.isSpectator ? (
-                  <IconEye size={14} />
-                ) : (
-                  <IconEyeOff size={14} />
-                )
-              }
-              mt="md"
-              fullWidth
-              onClick={() => {
-                triggerAction({
-                  action: 'setSpectator',
-                  roomId,
-                  userId,
-                  targetUserId: user.id,
-                  isSpectator: !user.isSpectator,
-                });
-                setIsOpen(false);
-              }}
-            >
-              {user.isSpectator ? 'Make participant' : 'Make spectator'}
-            </Button>
-            <Button
-              variant="light"
-              color="red"
-              size="xs"
-              leftSection={<IconUserMinus size={14} />}
-              mt="xs"
-              fullWidth
-              onClick={() => {
-                triggerAction({
-                  action: 'kick',
-                  roomId,
-                  userId,
-                  targetUserId: user.id,
-                });
-                setIsOpen(false);
-              }}
-            >
-              Kick from room
-            </Button>
-          </>
-        )}
+        <div className="mt-4">
+          <UserActions
+            user={user}
+            userId={userId}
+            roomId={roomId}
+            triggerAction={triggerAction}
+            onActionComplete={() => setIsOpen(false)}
+            layout="vertical"
+            size="xs"
+          />
+        </div>
       </HoverCard.Dropdown>
     </HoverCard>
   );
