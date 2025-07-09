@@ -91,6 +91,7 @@
     "eslint-plugin-drizzle": "^0.2.3",
     "husky": "^9.1.7",
     "knip": "^5.61.3",
+    "lint-staged": "^16.1.2",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.13",
@@ -178,5 +179,11 @@
         }
       }
     }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
