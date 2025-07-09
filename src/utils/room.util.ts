@@ -1,3 +1,5 @@
+import { NextRouter } from 'next/router';
+
 import { notifications } from '@mantine/notifications';
 
 import confetti from 'canvas-confetti';
@@ -105,7 +107,7 @@ export function getStackedEstimationsFromUsers(
     });
 }
 
-function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
+export function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
   if (getFromLocalstorage('isPlaySound') === 'false') return;
   const audio = new Audio(`/sounds/${sound}.wav`);
   audio.volume = sound === 'success' || sound === 'tick' ? 0.3 : 0.2;
@@ -115,19 +117,21 @@ function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
     .catch(() => ({}));
 }
 
-function notify({
+export function notify({
   color,
   title,
   message,
+  autoClose,
 }: {
   color: 'red' | 'orange' | 'blue';
   title: string;
   message: string;
+  autoClose?: number | boolean;
 }) {
   if (getFromLocalstorage('isNotificationsEnabled') === 'false') return;
   notifications.show({
     color,
-    autoClose: 5000,
+    autoClose: autoClose ?? 5000,
     withCloseButton: true,
     title,
     message,
@@ -226,4 +230,41 @@ export function notifyOnRoomChanges({
     });
     return;
   }
+}
+
+export function executeKick(
+  scenario: 'kick_notification' | 'room_update_missing' | 'error_getting_user',
+  router?: NextRouter,
+): void {
+  console.warn(
+    `User was kicked from room (${scenario}), redirecting to homepage`,
+  );
+
+  // Cleanup room State
+  const { setRoomId, setRoomName } = useLocalstorageStore.getState();
+  setRoomId(null);
+  setRoomName(null);
+
+  // Play leave sound for kick
+  playSound('leave');
+
+  // Show notification about being kicked
+  notify({
+    color: 'red',
+    title: 'Kicked from room',
+    message: 'You have been removed from the room',
+    autoClose: false,
+  });
+
+  // Use router if provided, otherwise fallback to window.location
+  setTimeout(() => {
+    if (router) {
+      router
+        .push('/')
+        .then(() => ({}))
+        .catch(() => ({}));
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  }, 200);
 }

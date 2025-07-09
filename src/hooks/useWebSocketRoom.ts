@@ -11,6 +11,8 @@ import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 
 import { logMsg } from 'fpp/constants/logging.constant';
 
+import { executeKick } from 'fpp/utils/room.util';
+
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -84,13 +86,7 @@ export const useWebSocketRoom = ({
 
           // Handle kick notification
           if ('type' in data && data.type === 'kicked') {
-            console.warn('User was kicked from room:', data.message);
-            setRoomId(null);
-            setRoomReadable(null);
-            router
-              .push(`/`)
-              .then(() => ({}))
-              .catch(() => ({}));
+            executeKick('kick_notification', router);
             return;
           }
 

@@ -7,8 +7,15 @@ import {
 } from 'fpp-server/src/room.entity';
 import { create } from 'zustand';
 
-import { notifyOnRoomChanges } from 'fpp/utils/room.util';
+import {
+  executeKick,
+  notify,
+  notifyOnRoomChanges,
+  playSound,
+} from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 type RoomStore = {
   // User
@@ -69,15 +76,15 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       const userId = get().userId;
       const user = userId ? room.getUser(userId) : null;
 
-      // If user was previously connected but is no longer in the room, they were kicked
+      // If a user was previously connected but is no longer in the room, they were kicked
       if (!user && get().connectedAt && oldRoom.users.length > 0 && userId) {
-        console.warn('User was kicked from room, redirecting to homepage');
-        window.location.href = '/';
+        executeKick('room_update_missing');
         return;
       }
 
       if (!user) {
-        console.warn('User not found in room');
+        console.error('User not found in room reloading');
+        window.location.reload();
         return;
       }
 
@@ -105,8 +112,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
     } catch (error) {
       // If an error occurs when getting the user, they were likely kicked
       if (get().connectedAt && oldRoom.users.length > 0) {
-        console.warn('Error getting user, likely kicked from room:', error);
-        window.location.href = '/';
+        executeKick('error_getting_user');
       }
     }
   },
