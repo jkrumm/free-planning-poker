@@ -54,7 +54,7 @@ export const ConnectionStatus = ({
   }, 5000);
 
   return (
-    <div className="pl-5 pr-4 py-3">
+    <div className="md:pl-3 md:pr-2 pl-1 pr-1">
       <Tooltip
         label={
           <div>

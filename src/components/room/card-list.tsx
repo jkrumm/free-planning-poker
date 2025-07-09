@@ -34,9 +34,9 @@ export const CardList = ({ roomId, userId, triggerAction }: CardListProps) => {
   });
 
   return (
-    <div className="p-4 w-full">
+    <div className="p-2 w-[calc(100%+18px)] ml-1">
       <motion.div
-        className="grid gap-4"
+        className="grid gap-2 md:gap-4"
         style={{
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
         }}
