@@ -24,7 +24,7 @@ const SidebarContent = ({
       initial="hidden"
       animate="visible"
       exit="hidden"
-      className="md:mt-3 mt-2 md:ml-3 ml-2 md:mr-6 mr-3 min-w-[300px]"
+      className="md:mt-3 mt-2 md:ml-3 ml-2 md:mr-6 mr-3 md:min-w-[300px] min-w-[calc(100vw-100px)]"
     >
       {childrens.map((children, index) => (
         <motion.div

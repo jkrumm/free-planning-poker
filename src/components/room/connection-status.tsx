@@ -54,7 +54,7 @@ export const ConnectionStatus = ({
   }, 5000);
 
   return (
-    <div className="md:pl-3 md:pr-2 pl-1 pr-1">
+    <div className="md:pl-3 md:pr-2 pl-1 pr-1 pt-1">
       <Tooltip
         label={
           <div>

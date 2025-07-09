@@ -34,7 +34,7 @@ export const CardList = ({ roomId, userId, triggerAction }: CardListProps) => {
   });
 
   return (
-    <div className="p-2 w-[calc(100%+18px)] ml-1">
+    <div className="p-2 w-[calc(100%-52px)] ml-1">
       <motion.div
         className="grid gap-2 md:gap-4"
         style={{
