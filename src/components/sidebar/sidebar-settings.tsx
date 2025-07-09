@@ -2,6 +2,7 @@ import React from 'react';
 
 import {
   Button,
+  Divider,
   Switch,
   Text,
   TextInput,
@@ -14,7 +15,9 @@ import { IconBell, IconVolume } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
+import { useRoomStore } from 'fpp/store/room.store';
 
+import { UserActions } from 'fpp/components/room/user-actions';
 import SidebarContent from 'fpp/components/sidebar/sidebar-content';
 
 const SidebarSettings = ({
@@ -56,6 +59,8 @@ const UserSettings = ({
   // Room state
   const userId = useLocalstorageStore((state) => state.userId);
   const roomId = useLocalstorageStore((state) => state.roomId);
+  const users = useRoomStore((store) => store.users);
+  const currentUser = users.find((user) => user.id === userId);
 
   const form = useForm({
     initialValues: { username: username ?? '' },
@@ -99,6 +104,7 @@ const UserSettings = ({
           Change Username
         </Button>
       </form>
+
       <Switch
         checked={isPlaySound}
         onChange={() => setIsPlaySound(!isPlaySound)}
@@ -126,6 +132,7 @@ const UserSettings = ({
           )
         }
       />
+
       <Switch
         checked={isNotificationsEnabled}
         onChange={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
@@ -153,6 +160,24 @@ const UserSettings = ({
           )
         }
       />
+
+      {/* Room Actions */}
+      {currentUser && userId && roomId && (
+        <>
+          <Divider my="md" />
+          <Text size="sm" fw={500} mb="sm">
+            Room Actions
+          </Text>
+          <UserActions
+            user={currentUser}
+            userId={userId}
+            roomId={roomId}
+            triggerAction={triggerAction}
+            layout="vertical"
+            size="sm"
+          />
+        </>
+      )}
     </div>
   );
 };
