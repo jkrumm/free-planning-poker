@@ -62,7 +62,7 @@ export const Room = ({ roomId, roomName, userId, username }: RoomProps) => {
     <>
       <div className="w-screen h-screen flex">
         <div className="flex-1">
-          <div className="flex-1 items-start flex">
+          <div className="flex-1 items-start flex md:px-2 px-1 md:pt-3 pt-2">
             <ConnectionStatus connectedAt={connectedAt} />
             <Bookmark userId={userId} />
           </div>
@@ -80,7 +80,7 @@ export const Room = ({ roomId, roomName, userId, username }: RoomProps) => {
             />
           )}
         </div>
-        <div>
+        <div className="md:mr-3 mr-2">
           <Sidebar triggerAction={triggerAction} />
         </div>
       </div>

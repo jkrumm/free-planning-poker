@@ -66,7 +66,7 @@ const Sidebar = ({
       <AnimatePresence>
         {tab === SidebarTabs.room_analytics && <SidebarRoomAnalytics />}
       </AnimatePresence>
-      <div className="m-6 ml-0 flex flex-col text-white">
+      <div className="md:mt-3 mt-2 flex flex-col text-white">
         {buttons.map(({ tab: buttonTab, icon, badge }, index) => {
           const badgeCount = badge ? badge() : 0;
           const showBadge = badgeCount > 0;
@@ -76,7 +76,7 @@ const Sidebar = ({
               key={index}
               size="lg"
               variant={tab === buttonTab ? 'filled' : 'default'}
-              className="mb-4 px-3 relative overflow-visible"
+              className="md:mb-2 mb-1 px-3 relative overflow-visible"
               onClick={() => {
                 if (tab === buttonTab) {
                   setTab(null);
