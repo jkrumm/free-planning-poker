@@ -40,7 +40,7 @@ export class MessageHandler {
       }
 
       if (isSetSpectatorAction(data)) {
-        room.setSpectator(data.userId, data.isSpectator);
+        room.setSpectator(data.targetUserId, data.isSpectator);
         this.roomState.sendToEverySocketInRoom(room.id);
         return;
       }

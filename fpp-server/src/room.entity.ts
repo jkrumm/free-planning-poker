@@ -211,11 +211,11 @@ export class RoomServer extends RoomBase {
     this.autoFlip();
   }
 
-  setSpectator(userId: string, isSpectator: boolean) {
+  setSpectator(targetUserId: string, isSpectator: boolean) {
     this.users = this.users.map((user) => {
-      if (user.id === userId) {
+      if (user.id === targetUserId) {
         user.isSpectator = isSpectator;
-        user.estimation = null;
+        user.estimation = null; // Clear estimation when becoming spectator
         this.hasChanged = true;
       }
       return user;

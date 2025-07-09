@@ -38,6 +38,10 @@ export const SetSpectatorActionSchema = t.Intersect([
   t.Object({
     action: t.Literal('setSpectator'),
     isSpectator: t.Boolean(),
+    targetUserId: t.String({
+      min: 21,
+      max: 21,
+    }),
   }),
 ]);
 export type SetSpectatorAction = Static<typeof SetSpectatorActionSchema>;

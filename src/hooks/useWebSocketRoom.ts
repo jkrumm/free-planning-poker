@@ -13,7 +13,6 @@ import { logMsg } from 'fpp/constants/logging.constant';
 
 import { executeKick } from 'fpp/utils/room.util';
 
-import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
 export interface WebSocketRoomConfig {
@@ -44,8 +43,6 @@ export const useWebSocketRoom = ({
   username,
 }: WebSocketRoomConfig): WebSocketRoomResult => {
   const router = useRouter();
-  const setRoomId = useLocalstorageStore((store) => store.setRoomId);
-  const setRoomReadable = useLocalstorageStore((store) => store.setRoomName);
   const updateRoomState = useRoomStore((store) => store.update);
   const setConnectedAt = useRoomStore((store) => store.setConnectedAt);
   const connectedAt = useRoomStore((store) => store.connectedAt);
