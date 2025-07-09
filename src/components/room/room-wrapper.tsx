@@ -52,7 +52,6 @@ const RoomWrapper = () => {
         .replace(/[^A-Za-z0-9]/g, '')
         .toLowerCase();
       if (
-        window.innerWidth < 768 ||
         !queryRoom ||
         queryRoom === 'undefined' ||
         !correctedRoom ||
@@ -125,7 +124,7 @@ const RoomWrapper = () => {
   }, [queryRoom, username, firstLoad]);
 
   return (
-    <main className="relative hidden flex-col items-center justify-center w-full h-full md:flex">
+    <main className="relative flex-col items-center justify-center w-full h-full flex">
       {(() => {
         if (!username || modelOpen) {
           return (

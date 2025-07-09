@@ -493,3 +493,22 @@ h2 > span {
 .players .player .avatar.inactive {
   opacity: 0.7;
 }
+
+/* Responsive grid adjustments */
+@media (max-width: 640px) {
+  .voter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .voter-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .voter-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
