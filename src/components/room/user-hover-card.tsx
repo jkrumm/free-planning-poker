@@ -59,7 +59,7 @@ export const UserHoverCard = ({
       onClose={() => setIsOpen(false)}
     >
       <HoverCard.Target>
-        <div className="flex items-center justify-center gap-1.5 cursor-pointer">
+        <div className="flex items-center justify-start gap-1.5 cursor-pointer">
           <span className={isOwnUser ? 'font-bold' : ''}>{user.name}</span>
         </div>
       </HoverCard.Target>

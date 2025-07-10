@@ -34,11 +34,11 @@ export const CardList = ({ roomId, userId, triggerAction }: CardListProps) => {
   });
 
   return (
-    <div className="p-2 w-[calc(100%-52px)] ml-1">
+    <div className="p-0 pl-1 md:pl-3 pb-2 mt-[2px] md:mt-2 w-[calc(100vw-4px)] md:w-[calc(100vw-10px)] pr-[60px] md:pr-[65px] max-h-[calc(100vh-195px)] overflow-y-scroll">
       <motion.div
         className="grid gap-2 md:gap-4"
         style={{
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -111,21 +111,21 @@ const UserCard = ({
     >
       <Card
         className={`
-          relative min-h-[120px] transition-all duration-200
+          relative min-h-[80px] md:min-h-[120px] transition-all duration-200 py-2 px-1 md:py-4
           ${!user.isPresent ? 'opacity-70' : ''}
           hover:shadow-lg
         `}
         style={{
           borderWidth: '1px',
-          borderColor: isCurrentUser ? '#1971c2' : 'rgb(66, 66, 66)',
+          borderColor: isCurrentUser ? '#1971c2' : '#424242',
         }}
         withBorder
       >
-        <div className="flex flex-col items-center justify-center space-y-3 h-full">
+        <div className="flex flex-col items-center space-y-1 md:space-y-3 h-full">
           <Text
-            size="sm"
+            size="xs"
             fw={isCurrentUser ? 700 : 500}
-            className="text-center"
+            className="text-center max-w-full overflow-hidden"
           >
             <UserHoverCard
               user={user}
@@ -141,7 +141,7 @@ const UserCard = ({
             style={{ perspective: '1000px' }}
           >
             <motion.div
-              className="w-12 h-16 rounded relative"
+              className="w-8 h-12 md:w-12 md:h-16 rounded relative"
               style={{
                 transformStyle: 'preserve-3d',
               }}
@@ -156,7 +156,7 @@ const UserCard = ({
             >
               {/* Front face - flips when hasEstimation changes */}
               <motion.div
-                className="absolute inset-0 w-12 h-16 rounded border-2 flex items-center justify-center text-sm font-bold"
+                className="absolute inset-0 w-8 h-12 md:w-12 md:h-16 rounded border-2 flex items-center justify-center text-xs md:text-sm font-bold"
                 style={{
                   backfaceVisibility: 'hidden',
                   backgroundColor: hasEstimation ? '#22c55e20' : '#ef444420',
@@ -176,7 +176,7 @@ const UserCard = ({
 
               {/* Back face - shows estimation only when appropriate */}
               <motion.div
-                className="absolute inset-0 w-12 h-16 rounded border-2 flex items-center justify-center text-sm font-bold"
+                className="absolute inset-0 w-8 h-12 md:w-12 md:h-16 rounded border-2 flex items-center justify-center text-xs md:text-sm font-bold"
                 style={{
                   backfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
