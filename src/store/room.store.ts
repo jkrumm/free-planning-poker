@@ -89,6 +89,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
         users: room.users,
         startedAt: room.startedAt,
         isAutoFlip: room.isAutoFlip,
+        isFlipped: room.isFlipped,
         status: room.status,
       });
 
