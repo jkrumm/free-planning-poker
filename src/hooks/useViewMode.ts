@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 
+import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
 export const useViewMode = () => {
   const [isMobile, setIsMobile] = useState(false);
   const users = useRoomStore((store) => store.users);
+  const preferCardView = useLocalstorageStore((store) => store.preferCardView);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -18,7 +20,8 @@ export const useViewMode = () => {
   }, []);
 
   const playersOnly = users.filter((user) => !user.isSpectator);
-  const shouldUseCardList = isMobile || playersOnly.length > 8;
+  const shouldUseCardList =
+    preferCardView || isMobile || playersOnly.length > 8;
 
   return shouldUseCardList ? 'cardList' : 'table';
 };

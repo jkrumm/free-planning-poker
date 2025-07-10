@@ -34,6 +34,7 @@ interface LocalstorageStore {
   isPlaySound: boolean;
   isNotificationsEnabled: boolean;
   isSpectator: boolean;
+  preferCardView: boolean;
   roomId: number | null;
   roomName: string | null;
   recentRoom: string | null;
@@ -44,6 +45,7 @@ interface LocalstorageStore {
   setIsPlaySound: (isPlaySound: boolean) => void;
   setIsNotificationsEnabled: (isNotificationsEnabled: boolean) => void;
   setIsSpectator: (isSpectator: boolean) => void;
+  setPreferCardView: (preferCardView: boolean) => void;
   setRoomId: (roomId: number | null) => void;
   setRoomName: (roomName: string | null) => void;
   setRecentRoom: (recentRoom: string | null) => void;
@@ -61,6 +63,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     ? getFromLocalstorage('isNotificationsEnabled') === 'true'
     : true,
   isSpectator: getFromLocalstorage('isSpectator') === 'true',
+  preferCardView: getFromLocalstorage('preferCardView') === 'true',
   roomId: getIntFromLocalstorage('roomId'),
   roomName: getFromLocalstorage('roomName'),
   recentRoom: getFromLocalstorage('recentRoom'),
@@ -105,6 +108,10 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   setIsSpectator: (isSpectator: boolean) => {
     localStorage.setItem('isSpectator', isSpectator.toString());
     set({ isSpectator });
+  },
+  setPreferCardView: (preferCardView: boolean) => {
+    localStorage.setItem('preferCardView', preferCardView.toString());
+    set({ preferCardView });
   },
   setRoomId: (roomId: number | null) => {
     if (!roomId) {
