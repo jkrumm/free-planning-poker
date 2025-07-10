@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
-import { IconBell, IconVolume } from '@tabler/icons-react';
+import { IconBell, IconCards, IconVolume } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -54,6 +54,10 @@ const UserSettings = ({
   );
   const setIsNotificationsEnabled = useLocalstorageStore(
     (store) => store.setIsNotificationsEnabled,
+  );
+  const preferCardView = useLocalstorageStore((store) => store.preferCardView);
+  const setPreferCardView = useLocalstorageStore(
+    (store) => store.setPreferCardView,
   );
 
   // Room state
@@ -106,11 +110,39 @@ const UserSettings = ({
       </form>
 
       <Switch
+        checked={preferCardView}
+        onChange={() => setPreferCardView(!preferCardView)}
+        color="teal"
+        size="md"
+        className="mt-6 mb-2"
+        label={
+          <Text className="mt-[1px]" size="sm">
+            Prefer Card View
+          </Text>
+        }
+        thumbIcon={
+          preferCardView ? (
+            <IconCards
+              style={{ width: rem(12), height: rem(12) }}
+              color={theme.colors.teal[6]}
+              stroke={3}
+            />
+          ) : (
+            <IconCards
+              style={{ width: rem(12), height: rem(12) }}
+              color={theme.colors.red[6]}
+              stroke={3}
+            />
+          )
+        }
+      />
+
+      <Switch
         checked={isPlaySound}
         onChange={() => setIsPlaySound(!isPlaySound)}
         color="teal"
         size="md"
-        className="mt-6 mb-2"
+        className="mt-5 mb-2"
         label={
           <Text className="mt-[1px]" size="sm">
             Play Sounds
