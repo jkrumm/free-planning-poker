@@ -42,16 +42,14 @@ function Counter() {
   }, [startedAt, isFlipped]);
 
   return (
-    <div className="mb-[19px]">
-      <div
-        style={{ fontSize }}
-        className="flex min-w-[105px] max-w-[105px] overflow-hidden justify-items-start cursor-default"
-      >
-        <DigitComponent place={10} value={minutes} />
-        <DigitComponent place={1} value={minutes} />
-        <DigitComponent place={10} value={seconds} />
-        <DigitComponent place={1} value={seconds} />
-      </div>
+    <div
+      style={{ fontSize }}
+      className="flex min-w-[105px] max-w-[105px] overflow-hidden justify-items-start cursor-default"
+    >
+      <DigitComponent place={10} value={minutes} />
+      <DigitComponent place={1} value={minutes} />
+      <DigitComponent place={10} value={seconds} />
+      <DigitComponent place={1} value={seconds} />
     </div>
   );
 }

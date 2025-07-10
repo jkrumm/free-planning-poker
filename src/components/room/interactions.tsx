@@ -3,9 +3,10 @@ import { ReadyState } from 'react-use-websocket';
 
 import { useRouter } from 'next/router';
 
-import { Button, Switch } from '@mantine/core';
+import { Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
+import { IconEye } from '@tabler/icons-react';
 import { type Action } from 'fpp-server/src/room.actions';
 import { RoomStateStatus } from 'fpp-server/src/room.entity';
 
@@ -40,7 +41,6 @@ export const Interactions = ({
 
   // Room
   const status = useRoomStore((store) => store.status);
-  const isAutoFlip = useRoomStore((store) => store.isAutoFlip);
 
   // Connection
   const readyState = useRoomStore((store) => store.readyState);
@@ -49,17 +49,18 @@ export const Interactions = ({
   const roomRef = useRef(null);
 
   return (
-    <div className="interactions">
-      <div className="left">
-        <div className="settings-bar">
+    <div className="interactions w-full max-w-xl mx-auto px-2 sm:px-4 border-t md:border-0 border-[#424242] bg-[#242424]">
+      <div className="left w-full space-y-2">
+        {/* Room Name - Top Row */}
+        <div className="room-name-bar">
           <Button
             variant="outline"
             color="gray"
             size="lg"
-            className="room-name"
+            className="room-name w-auto max-h-8 py-0 mt-1"
           >
             <h2
-              className="uppercase mb-0"
+              className="uppercase m-0 text-sm sm:text-base"
               ref={roomRef}
               onKeyDown={() => ({})}
               onClick={() => {
@@ -96,40 +97,77 @@ export const Interactions = ({
                 : roomName.toUpperCase()}
             </h2>
           </Button>
-          <div>
-            <Button
-              className="mr-3"
-              disabled={!isConnected}
-              variant={
-                status === RoomStateStatus.flipped ? 'filled' : 'default'
-              }
-              onClick={() => {
-                triggerAction({
-                  action: 'reset',
-                  roomId,
-                  userId,
-                });
-              }}
-            >
-              {status === RoomStateStatus.flipped ? 'New Round' : 'Reset'}
-            </Button>
-            <Button
-              variant="default"
-              onClick={() => {
-                executeLeave({
-                  roomId,
-                  userId,
-                  triggerAction,
-                  router,
-                });
-              }}
-            >
-              Leave
-            </Button>
+        </div>
+
+        {/* Action Buttons and Counter - Middle Row */}
+        <div className="action-bar">
+          <div className="flex items-center justify-between">
+            <Button.Group>
+              <Button
+                disabled={!isConnected || status === RoomStateStatus.flipped}
+                variant={isSpectator ? 'filled' : 'default'}
+                leftSection={<IconEye size={16} />}
+                size="sm"
+                className="text-xs sm:text-sm"
+                onClick={() => {
+                  triggerAction({
+                    action: 'setSpectator',
+                    roomId,
+                    userId,
+                    targetUserId: userId,
+                    isSpectator: !isSpectator,
+                  });
+                }}
+              >
+                Spectator
+              </Button>
+              <Button
+                disabled={!isConnected}
+                variant={
+                  status === RoomStateStatus.flipped ? 'filled' : 'default'
+                }
+                size="sm"
+                className="text-xs sm:text-sm"
+                onClick={() => {
+                  triggerAction({
+                    action: 'reset',
+                    roomId,
+                    userId,
+                  });
+                }}
+              >
+                {status === RoomStateStatus.flipped ? (
+                  <>
+                    <span className="hidden sm:inline">New Round</span>
+                    <span className="sm:hidden">New</span>
+                  </>
+                ) : (
+                  'Reset'
+                )}
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="text-xs sm:text-sm"
+                onClick={() => {
+                  executeLeave({
+                    roomId,
+                    userId,
+                    triggerAction,
+                    router,
+                  });
+                }}
+              >
+                Leave
+              </Button>
+            </Button.Group>
+            <Counter />
           </div>
         </div>
+
+        {/* Estimation Buttons - Bottom Row */}
         <div className="voting-bar">
-          <Button.Group className="w-full">
+          <Button.Group className="w-full flex">
             {fibonacciSequence.map((number) => (
               <Button
                 disabled={
@@ -138,9 +176,10 @@ export const Interactions = ({
                   status === RoomStateStatus.flipped
                 }
                 variant={estimation === number ? 'filled' : 'default'}
-                size={'lg'}
+                size="lg"
                 fullWidth
                 key={number}
+                className="flex-1 text-sm sm:text-base p-0"
                 onClick={() => {
                   triggerAction({
                     action: 'estimate',
@@ -155,38 +194,6 @@ export const Interactions = ({
             ))}
           </Button.Group>
         </div>
-      </div>
-      <div className="switch-bar">
-        <Counter />
-        <Switch
-          className="mb-2 cursor-pointer"
-          disabled={!isConnected || status === RoomStateStatus.flipped}
-          label="Spectator"
-          checked={isSpectator}
-          onChange={(event) => {
-            triggerAction({
-              action: 'setSpectator',
-              roomId,
-              userId,
-              targetUserId: userId,
-              isSpectator: event.currentTarget.checked,
-            });
-          }}
-        />
-        <Switch
-          label="Auto Show"
-          className="cursor-pointer"
-          checked={isAutoFlip}
-          disabled={true}
-          onChange={(event) => {
-            triggerAction({
-              action: 'setAutoFlip',
-              roomId,
-              userId,
-              isAutoFlip: event.currentTarget.checked,
-            });
-          }}
-        />
       </div>
     </div>
   );
