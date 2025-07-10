@@ -24,7 +24,7 @@ export const useHeartbeat = ({
   // Manual heartbeat function
   const sendHeartbeat = useCallback(() => {
     if (readyState === ReadyState.OPEN) {
-      console.debug('Sending manual heartbeat');
+      console.debug('Sending manual heartbeat from useHearbeat');
       sendMessage(
         JSON.stringify({
           userId,

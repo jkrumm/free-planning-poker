@@ -53,7 +53,7 @@ export const Room = ({ roomId, roomName, userId, username }: RoomProps) => {
   });
 
   // Monitor connection health
-  useConnectionHealth();
+  useConnectionHealth({ sendMessage, userId, roomId });
 
   // Determine view mode
   const viewMode = useViewMode();
