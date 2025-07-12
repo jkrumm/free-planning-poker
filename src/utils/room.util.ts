@@ -66,14 +66,14 @@ export function getICreateVoteFromRoomState(
 export function getAverageFromUsers(
   users: User[],
   triggerAction: (action: Action) => void,
-): number {
+): string {
   const estimations = getEstimationsFromUsers(users, triggerAction);
-  return (
+  return String(
     Math.round(
       (estimations.reduce((sum, estimation) => sum + estimation, 0) /
         estimations.length) *
-        100,
-    ) / 100
+        10,
+    ) / 10,
   );
 }
 
@@ -98,7 +98,7 @@ export function getStackedEstimationsFromUsers(
   });
   // Sort by amount and then number descending
   return voting
-    .slice(0, getAverageFromUsers(users, triggerAction) > 9 ? 3 : 4)
+    .slice(0, parseInt(getAverageFromUsers(users, triggerAction)) > 9 ? 3 : 4)
     .sort((a, b) => {
       if (a.amount === b.amount) {
         return b.number - a.number;
