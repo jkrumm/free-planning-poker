@@ -66,7 +66,7 @@ h2 > span {
   background-color: #4aad4a;
   position: absolute;
   left: 50%;
-  top: 45%;
+  top: 43%;
   transform: translateX(-50%) translateY(-50%);
   border-radius: 150px;
   /*border: 15px solid #a95555;*/
@@ -366,8 +366,10 @@ h2 > span {
   font-size: 31px;
   color: white;
   position: absolute;
-  right: 15px;
+  right: -137px;
   top: 20px;
+  min-width: 120px;
+  text-align: left;
 }
 
 .card-wrapper.amount-1 {

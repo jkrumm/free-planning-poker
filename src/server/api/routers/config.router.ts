@@ -31,10 +31,9 @@ export const configRouter = createTRPCRouter({
     if (!latestTag) {
       await fetch(
         'https://api.github.com/repos/jkrumm/free-planning-poker/tags',
-      ).then(async (res) =>
-        res
-          .json()
-          .then(async (res: { name: string }[]) => {
+      )
+        .then(async (res) =>
+          res.json().then(async (res: { name: string }[]) => {
             latestTag = res[0]!.name;
 
             if (!latestTag) {
@@ -46,20 +45,20 @@ export const configRouter = createTRPCRouter({
               nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
               latestTag,
             });
-          })
-          .catch((e) => {
-            console.error('failed to fetch latest tag', e);
-            Sentry.captureException(e, {
-              tags: {
-                endpoint: logEndpoint.GET_LATEST_TAG,
-              },
-              extra: {
-                commitSha: env.VERCEL_GIT_COMMIT_SHA,
-                nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
-              },
-            });
           }),
-      );
+        )
+        .catch((e) => {
+          console.error('failed to fetch latest tag', e);
+          Sentry.captureException(e, {
+            tags: {
+              endpoint: logEndpoint.GET_LATEST_TAG,
+            },
+            extra: {
+              commitSha: env.VERCEL_GIT_COMMIT_SHA,
+              nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
+            },
+          });
+        });
     }
 
     // Fallback if latestTag is still null

@@ -86,7 +86,7 @@ export const Table = ({
   );
 };
 
-function StackedEstimations({
+export function StackedEstimations({
   users,
   triggerAction,
 }: {
@@ -97,7 +97,10 @@ function StackedEstimations({
     <>
       {getStackedEstimationsFromUsers(users, triggerAction).map(
         (item, index) => (
-          <div key={index} className={`card-wrapper amount-${item.amount}`}>
+          <div
+            key={index}
+            className={`card-wrapper relative amount-${item.amount}`}
+          >
             {(function () {
               const cards = [];
               for (let i = 0; i < item.amount; i++) {
@@ -109,10 +112,24 @@ function StackedEstimations({
               }
               return cards;
             })()}
+            {/* Add count indicator below the stack */}
+            <div
+              className="absolute h-[25px] z-50 font-medium text-center text-white"
+              style={{
+                bottom: '-45px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '100%',
+              }}
+            >
+              {item.amount}×
+            </div>
           </div>
         ),
       )}
-      <div className="average">{getAverageFromUsers(users, triggerAction)}</div>
+      <div className="average">
+        ⌀ {getAverageFromUsers(users, triggerAction)}
+      </div>
     </>
   );
 }

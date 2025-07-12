@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
+import { CardListCardPlace } from './card-list-card-place';
 import { UserHoverCard } from './user-hover-card';
 
 export interface CardListProps {
@@ -34,7 +35,16 @@ export const CardList = ({ roomId, userId, triggerAction }: CardListProps) => {
   });
 
   return (
-    <div className="p-0 pl-1 md:pl-3 pb-2 mt-[2px] md:mt-2 w-[calc(100vw-4px)] md:w-[calc(100vw-10px)] pr-[60px] md:pr-[65px] max-h-[calc(100vh-195px)] overflow-y-scroll">
+    <div className="card-list p-0 pl-2 md:pl-3 pb-2 mt-[2px] md:mt-2 w-[calc(100vw-4px)] md:w-[calc(100vw-10px)] pr-[60px] md:pr-[65px] max-h-[calc(100vh-195px)] overflow-y-scroll">
+      {/* Add CardListCardPlace at the top of the list */}
+      <CardListCardPlace
+        roomId={roomId}
+        userId={userId}
+        users={users}
+        status={status}
+        triggerAction={triggerAction}
+      />
+
       <motion.div
         className="grid gap-2 md:gap-4"
         style={{
