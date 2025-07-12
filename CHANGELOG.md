@@ -1,5 +1,22 @@
 # Changelog
 
+## 8.0.0 (2025-07-12)
+
+* feat: add room actions to settings and unify implementation ([b5f618b](https://github.com/jkrumm/free-planning-poker/commit/b5f618b))
+* feat: extend User Hover Card with setSpectator and leave ([89464b4](https://github.com/jkrumm/free-planning-poker/commit/89464b4))
+* feat: move spectators to sidebar view ([86fcda4](https://github.com/jkrumm/free-planning-poker/commit/86fcda4))
+* feat: prepare version 8 ([34484b9](https://github.com/jkrumm/free-planning-poker/commit/34484b9))
+* feat: responsive sidebar content ([69e04c6](https://github.com/jkrumm/free-planning-poker/commit/69e04c6))
+* feat: unify executeKick and show notification ([5f9f3f6](https://github.com/jkrumm/free-planning-poker/commit/5f9f3f6))
+* feat(card-list-view): added card-place for card list view ([849ca1a](https://github.com/jkrumm/free-planning-poker/commit/849ca1a))
+* feat(card-list-view): added mvp of the card list view ([abc329c](https://github.com/jkrumm/free-planning-poker/commit/abc329c))
+* feat(card-list-view): aligned responsive views and view changes ([1b40034](https://github.com/jkrumm/free-planning-poker/commit/1b40034))
+* feat(card-list-view): allow the user to prefer card list view ([e79fe59](https://github.com/jkrumm/free-planning-poker/commit/e79fe59))
+* feat(card-list-view): improved responsiveness for room ([654dd2c](https://github.com/jkrumm/free-planning-poker/commit/654dd2c))
+* fix: reduce reloading and less aggressive reconnecting logic ([27775b5](https://github.com/jkrumm/free-planning-poker/commit/27775b5))
+* fix: update isFlipped in room store to not spam sounds ([2da0f20](https://github.com/jkrumm/free-planning-poker/commit/2da0f20))
+* chore: add proper husky pre-commit config ([1a79e61](https://github.com/jkrumm/free-planning-poker/commit/1a79e61))
+
 ## 7.7.0 (2025-07-08)
 
 * chore: update default version & default stats ([4f96eba](https://github.com/jkrumm/free-planning-poker/commit/4f96eba))
