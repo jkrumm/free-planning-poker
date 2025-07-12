@@ -46,19 +46,6 @@ const Home: NextPage = () => {
           translateY={-500}
         />
         <IndexForm />
-        <div className="mx-8 mt-10 mb-10 md:hidden">
-          <Alert
-            icon={<IconAlertCircle size="1rem" />}
-            title="Not supported on mobile devices"
-            color="orange"
-            variant="outline"
-          >
-            <Text>
-              Free-Planning-Poker.com is not supported on mobile devices. Please
-              use a larger device or increase the size of your browser window.
-            </Text>
-          </Alert>
-        </div>
         <div className="gradient-image"></div>
         <div className="z-10 w-[1200px] max-w-full p-6">
           <section id="screenshot">
