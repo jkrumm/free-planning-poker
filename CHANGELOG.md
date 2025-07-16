@@ -1,5 +1,14 @@
 # Changelog
 
+## 8.1.0 (2025-07-16)
+
+* feat: change room name ([e38515a](https://github.com/jkrumm/free-planning-poker/commit/e38515a))
+* feat: improve copy to clipboard functionality ([c66318c](https://github.com/jkrumm/free-planning-poker/commit/c66318c))
+* feat: multiple responsive design improvements ([0a0911c](https://github.com/jkrumm/free-planning-poker/commit/0a0911c))
+* feat: open sidebar on specific actions ([d8d7914](https://github.com/jkrumm/free-planning-poker/commit/d8d7914))
+* feat: provide hint to copy the room URL to the user ([1d54005](https://github.com/jkrumm/free-planning-poker/commit/1d54005))
+* feat: update dependencies ([bafa352](https://github.com/jkrumm/free-planning-poker/commit/bafa352))
+
 ## 8.0.0 (2025-07-12)
 
 * feat: add room actions to settings and unify implementation ([b5f618b](https://github.com/jkrumm/free-planning-poker/commit/b5f618b))
