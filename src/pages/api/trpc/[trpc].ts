@@ -13,26 +13,6 @@ export const config = {
   region: 'fra1',
 };
 
-// create the API handler, but don't return it yet
-
-// @link https://nextjs.org/docs/api-routes/introduction
-// export default async function handler(
-//   req: NextApiRequest,
-//   res: NextApiResponse,
-// ) {
-//   return nextApiHandler(req, res);
-// }
-
-// export default async function handler(req: NextRequest) {
-//   return fetchRequestHandler({
-//     endpoint: '/api/trpc',
-//     router: appRouter,
-//     req,
-//     createContext: createTRPCContext,
-//     onError: trpcErrorHandler,
-//   });
-// }
-
 const trpcErrorHandler = ({
   error,
   type,
@@ -46,24 +26,36 @@ const trpcErrorHandler = ({
 }) => {
   const inputObj = input != null && typeof input === 'object' ? input : {};
 
-  if (
-    error.constructor.name === 'Error' ||
-    error.code === 'INTERNAL_SERVER_ERROR'
-  ) {
-    console.error('TRPC ERROR', {
+  // Only log and report unexpected errors, not business logic errors
+  const isBusinessLogicError = [
+    'BAD_REQUEST',
+    'UNAUTHORIZED',
+    'FORBIDDEN',
+    'NOT_FOUND',
+    'CONFLICT',
+    'PRECONDITION_FAILED',
+  ].includes(error.code);
+
+  if (error.code === 'INTERNAL_SERVER_ERROR' || !isBusinessLogicError) {
+    // Log internal server errors and unexpected errors
+    console.error('TRPC INTERNAL ERROR', {
       ...inputObj,
       type,
       path,
       error: {
         name: error.name,
         message: error.message,
+        code: error.code,
         stack: error.stack,
       },
     });
+
+    // Report to Sentry
     Sentry.captureException(error, {
       tags: {
         endpoint: path,
         type,
+        trpc_error_code: error.code,
       },
       extra: {
         endpoint: path,
@@ -72,25 +64,22 @@ const trpcErrorHandler = ({
       },
     });
 
+    // In production, mask internal errors
     if (env.NEXT_PUBLIC_NODE_ENV === 'production') {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Internal Server Error',
       });
-    } else {
-      throw error;
     }
-  }
-  console.warn('TRPC ERROR', {
-    ...inputObj,
-    type,
-    path,
-    error: {
-      name: error.name,
+  } else {
+    console.debug('TRPC Business Logic Error', {
+      type,
+      path,
+      code: error.code,
       message: error.message,
-      stack: error.stack,
-    },
-  });
+    });
+  }
+
   throw error;
 };
 

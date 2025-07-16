@@ -221,6 +221,79 @@ export const roomRouter = createTRPCRouter({
         };
       },
     ),
+  updateRoomName: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        roomId: z.number(),
+        newRoomName: z.string().max(15).min(3).toLowerCase().trim(),
+      }),
+    )
+    .mutation(
+      async ({ ctx: { db }, input: { userId, roomId, newRoomName } }) => {
+        if (!db) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Cannot change room name without a database connection`,
+          });
+        }
+
+        // Validate room exists
+        const existingRoom = await db.query.rooms.findFirst({
+          where: eq(rooms.id, roomId),
+        });
+
+        if (!existingRoom) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Room not found',
+          });
+        }
+
+        // Check if new name is already taken
+        const roomWithSameName = await db.query.rooms.findFirst({
+          where: or(
+            eq(rooms.name, newRoomName),
+            ...(isNaN(Number(newRoomName))
+              ? []
+              : [eq(rooms.number, Number(newRoomName))]),
+          ),
+        });
+
+        if (roomWithSameName && roomWithSameName.id !== roomId) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Room name already exists',
+          });
+        }
+
+        // Update room name
+        await db
+          .update(rooms)
+          .set({
+            name: newRoomName,
+            lastUsedAt: new Date(),
+          })
+          .where(eq(rooms.id, roomId));
+
+        // Track the room name change event
+        await db.insert(events).values({
+          userId,
+          event: EventType.CHANGED_ROOM_NAME,
+        });
+
+        // Return updated room info
+        const updatedRoom = await db.query.rooms.findFirst({
+          where: eq(rooms.id, roomId),
+        });
+
+        return {
+          roomId: updatedRoom!.id,
+          roomNumber: updatedRoom!.number,
+          roomName: updatedRoom!.name,
+        };
+      },
+    ),
   trackFlip: publicProcedure
     .input(
       z.object({
@@ -299,8 +372,6 @@ export const roomRouter = createTRPCRouter({
             }
           }
         });
-
-        console.log('Flipped room', { roomId });
       },
     ),
 });

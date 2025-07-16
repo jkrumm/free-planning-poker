@@ -139,6 +139,7 @@ export const EventType = {
   // ROOM INTERACTION EVENTS
   LEFT_ROOM: 'LEFT_ROOM',
   COPIED_ROOM_LINK: 'COPIED_ROOM_LINK',
+  CHANGED_ROOM_NAME: 'CHANGED_ROOM_NAME',
 } as const;
 
 export const RoomEvent = {
@@ -158,6 +159,7 @@ export const events = mysqlTable('events', {
     'ENTERED_RECENT_ROOM',
     'LEFT_ROOM',
     'COPIED_ROOM_LINK',
+    'CHANGED_ROOM_NAME',
   ]).notNull(),
   eventAt: timestamp('event_at').defaultNow().notNull(),
 });

@@ -514,3 +514,27 @@ h2 > span {
     grid-template-columns: repeat(6, 1fr);
   }
 }
+
+/* Inline input-button group styles */
+.inline-input-group {
+  .mantine-TextInput-root {
+    flex: 1;
+
+    .mantine-TextInput-input {
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+  }
+
+  .mantine-Button-root {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    height: 36px !important;
+    border-left: none !important;
+
+    // Handle disabled state border alignment
+    &:disabled {
+      border: 1px solid #424242 !important;
+    }
+  }
+}

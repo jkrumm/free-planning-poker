@@ -121,6 +121,22 @@ export function isChangeUsernameAction(
   return action.action === 'changeUsername';
 }
 
+/** Change Room Name action schema */
+export const ChangeRoomNameActionSchema = t.Intersect([
+  BaseActionSchema,
+  t.Object({
+    action: t.Literal('changeRoomName'),
+    roomName: t.String(),
+  }),
+]);
+export type ChangeRoomNameAction = Static<typeof ChangeRoomNameActionSchema>;
+
+export function isChangeRoomNameAction(
+  action: any
+): action is ChangeRoomNameAction {
+  return action.action === 'changeRoomName';
+}
+
 /** Heartbeat action schema */
 export const HeartbeatActionSchema = t.Intersect([
   BaseActionSchema,
@@ -190,6 +206,7 @@ export const ActionSchema = t.Union([
   LeaveActionSchema,
   RejoinActionSchema,
   ChangeUsernameActionSchema,
+  ChangeRoomNameActionSchema,
   FlipActionSchema,
   SetPresenceActionSchema,
   KickActionSchema,
