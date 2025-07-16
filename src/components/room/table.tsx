@@ -71,7 +71,11 @@ export const Table = ({
                   userId={userId}
                   roomId={roomId}
                   triggerAction={triggerAction}
-                />
+                >
+                  <span className={user.id === userId ? 'font-bold' : ''}>
+                    {user.name}
+                  </span>
+                </UserHoverCard>
               </div>
               <div
                 className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${

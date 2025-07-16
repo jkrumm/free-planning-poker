@@ -15,6 +15,8 @@ import { type User } from 'fpp-server/src/room.entity';
 
 import { executeLeave } from 'fpp/utils/room.util';
 
+import { SidebarTabs, useSidebarStore } from 'fpp/store/sidebar.store';
+
 interface UserActionsProps {
   user: User;
   userId: string;
@@ -37,6 +39,8 @@ export const UserActions = ({
   const router = useRouter();
   const isOwnUser = user.id === userId;
 
+  const setTab = useSidebarStore((state) => state.setTab);
+
   const handleSpectatorToggle = () => {
     triggerAction({
       action: 'setSpectator',
@@ -45,6 +49,7 @@ export const UserActions = ({
       targetUserId: user.id,
       isSpectator: !user.isSpectator,
     });
+    setTab(user.isSpectator ? null : SidebarTabs.spectators);
     onActionComplete?.();
   };
 
