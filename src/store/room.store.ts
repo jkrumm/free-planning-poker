@@ -3,7 +3,7 @@ import { ReadyState } from 'react-use-websocket';
 import {
   type RoomClient,
   type RoomStateStatus,
-  User,
+  type User,
 } from 'fpp-server/src/room.entity';
 import { create } from 'zustand';
 
@@ -18,6 +18,7 @@ type RoomStore = {
   isSpectator: boolean;
   // Room State
   users: User[];
+  userCount: number;
   startedAt: number;
   isFlipped: boolean;
   isFlippable: boolean;
@@ -42,6 +43,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   isSpectator: false,
   // Room State
   users: [],
+  userCount: 0,
   startedAt: Date.now(),
   isFlipped: false,
   isFlippable: false,
@@ -83,7 +85,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
 
       //  14, 15, 16, 17, 18, 19, 20,
       //         21, 22, 23, 24, 25,
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((id) => {
+      /*[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((id) => {
         room.users.push(
           new User({
             id: `player-${id}`,
@@ -94,7 +96,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
             ws: null,
           }),
         );
-      });
+      });*/
 
       set({
         // User
@@ -102,6 +104,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
         isSpectator: user.isSpectator,
         // Room State
         users: room.users,
+        userCount: room.users.length,
         startedAt: room.startedAt,
         isAutoFlip: room.isAutoFlip,
         isFlipped: room.isFlipped,

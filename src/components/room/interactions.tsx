@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { ReadyState } from 'react-use-websocket';
 
 import { useRouter } from 'next/router';
 
-import { Button, Group } from '@mantine/core';
+import { Button, Group, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
 import { IconCopy, IconEdit, IconEye } from '@tabler/icons-react';
@@ -33,6 +34,7 @@ export const Interactions = ({
   triggerAction: (action: Action) => void;
 }) => {
   const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
 
   // User state
   const estimation = useRoomStore((store) => store.estimation);
@@ -40,6 +42,7 @@ export const Interactions = ({
 
   // Room
   const status = useRoomStore((store) => store.status);
+  const userCount = useRoomStore((store) => store.userCount);
 
   // Connection
   const readyState = useRoomStore((store) => store.readyState);
@@ -74,6 +77,14 @@ export const Interactions = ({
     console.log('Edit room name clicked');
   };
 
+  const shouldShowTooltip = userCount === 1 || isHovered;
+
+  console.log({
+    shouldShowTooltip,
+    isHovered,
+    userCount,
+  });
+
   return (
     <div className="fixed bottom-0 left-0 w-screen flex justify-center h-[160px] sm:h-[170px] border-t md:border-0 border-[#424242] bg-[#242424]">
       <div className="w-full max-w-xl p-2 sm:p-4 flex flex-col space-y-2">
@@ -98,19 +109,33 @@ export const Interactions = ({
             >
               <IconCopy size={16} />
             </Button>
-            <Button
-              variant="subtle"
-              color="gray"
-              size="lg"
-              className="room-name-button"
-              onClick={handleCopyUrl}
+            <Tooltip
+              label="Click the room name to copy the URL and share it with your colleagues"
+              position="top"
+              opened={shouldShowTooltip}
+              withArrow
+              multiline
+              w={270}
+              events={{ hover: true, focus: false, touch: false }}
             >
-              <h2 className="room-name-text">
-                {isValidMediumint(roomName) && roomName.length === 6
-                  ? roomName.slice(0, 3) + ' ' + roomName.slice(3)
-                  : roomName.toUpperCase()}
-              </h2>
-            </Button>
+              <Button
+                variant="subtle"
+                color="gray"
+                size="lg"
+                className="room-name-button"
+                onClick={handleCopyUrl}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onFocus={() => setIsHovered(true)}
+                onBlur={() => setIsHovered(false)}
+              >
+                <h2 className="room-name-text">
+                  {isValidMediumint(roomName) && roomName.length === 6
+                    ? roomName.slice(0, 3) + ' ' + roomName.slice(3)
+                    : roomName.toUpperCase()}
+                </h2>
+              </Button>
+            </Tooltip>
           </Group>
         </div>
 
