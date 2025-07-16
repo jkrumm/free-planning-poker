@@ -163,6 +163,48 @@ export class RoomState {
     room.hasChanged = false;
   }
 
+  sendRoomNameChangeToAllUsers(roomId: number, roomName: string): void {
+    const room = this.rooms.get(roomId);
+    if (!room || room.users.length === 0) {
+      return;
+    }
+
+    const roomNameChangeMessage = JSON.stringify({
+      type: 'roomNameChanged',
+      roomId,
+      roomName,
+      timestamp: Date.now()
+    });
+
+    for (const user of room.users) {
+      try {
+        // Check if this user still has an active WebSocket connection
+        const hasActiveConnection = Array.from(this.userConnections.values())
+          .some(conn => conn.userId === user.id && conn.roomId === roomId);
+      
+        if (hasActiveConnection) {
+          user.ws.send(roomNameChangeMessage);
+          log.debug(
+            { userId: user.id, roomId: room.id, roomName, wsId: user.ws.id },
+            'Successfully sent room name change notification to user'
+          );
+        } else {
+          log.debug(
+            { userId: user.id, roomId: room.id },
+            'User has no active connection - skipping room name change notification'
+          );
+        }
+      } catch (error) {
+        log.debug(
+          { userId: user.id, roomId: room.id, error },
+          'Failed to send room name change notification to user - connection likely closed'
+        );
+      }
+    }
+
+    room.lastUpdated = Date.now();
+  }
+
   updateHeartbeat(wsId: string): boolean {
     const connection = this.userConnections.get(wsId);
     if (!connection) {

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import {
   Button,
-  Divider,
+  Group,
   Switch,
   Text,
   TextInput,
@@ -13,6 +13,8 @@ import { useForm } from '@mantine/form';
 
 import { IconBell, IconCards, IconVolume } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
+
+import { api } from 'fpp/utils/api';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
@@ -31,6 +33,10 @@ const SidebarSettings = ({
         {
           title: 'User Settings',
           content: <UserSettings triggerAction={triggerAction} />,
+        },
+        {
+          title: 'Room Settings',
+          content: <RoomSettings triggerAction={triggerAction} />,
         },
       ]}
     />
@@ -69,16 +75,35 @@ const UserSettings = ({
   const form = useForm({
     initialValues: { username: username ?? '' },
     validate: {
-      username: (value) =>
-        value?.replace(/[^A-Za-z]/g, '').length < 3 ||
-        value?.replace(/[^A-Za-z]/g, '').length > 15
-          ? 'Username must be between 3 and 15 characters'
-          : null,
+      username: (value) => {
+        const cleanValue = (value ? value : '')
+          .replace(/[^A-Za-z]/g, '')
+          .trim();
+        if (cleanValue.length < 3) {
+          return 'Username must be at least 3 characters';
+        }
+        if (cleanValue.length > 15) {
+          return 'Username must be at most 15 characters';
+        }
+        if (cleanValue === username) {
+          return 'Username did not change';
+        }
+        return null;
+      },
     },
+    validateInputOnChange: true,
+    validateInputOnBlur: true,
   });
 
-  const changeUsername = () => {
-    if (!roomId || !userId || username === form.values.username) {
+  const handleSubmit = () => {
+    if (!form.values.username || !roomId || !userId) {
+      return;
+    }
+
+    const cleanUsername = form.values.username.replace(/[^A-Za-z]/g, '').trim();
+
+    if (cleanUsername === username) {
+      form.setFieldError('username', 'Username did not change');
       return;
     }
 
@@ -86,27 +111,50 @@ const UserSettings = ({
       action: 'changeUsername',
       userId,
       roomId,
-      username: form.values.username,
+      username: cleanUsername,
     });
 
-    setUsername(form.values.username);
+    setUsername(cleanUsername);
+    form.setFieldValue('username', cleanUsername);
+    form.setFieldError('username', null);
   };
 
   return (
     <div className="text-left w-full">
-      <form onSubmit={form.onSubmit(changeUsername)} className="my-2">
-        <TextInput
-          {...form.getInputProps('username')}
-          onChange={(e) => {
-            form.setFieldValue(
-              'username',
-              e.currentTarget.value.trim().replace(/[^A-Za-z]/g, ''),
-            );
-          }}
-        />
-        <Button variant="default" type="submit" className="mt-2">
-          Change Username
-        </Button>
+      <form onSubmit={form.onSubmit(handleSubmit)}>
+        <div className="mb-4">
+          <Text size="sm" fw={500} className="mb-1">
+            Username
+          </Text>
+          <Text size="xs" c="dimmed" className="mb-2">
+            3-15 characters, letters only
+          </Text>
+          <Group
+            gap={0}
+            wrap="nowrap"
+            align="flex-start"
+            className="inline-input-group"
+          >
+            <TextInput
+              {...form.getInputProps('username')}
+              placeholder="Enter new username"
+              onChange={(e) => {
+                const cleanValue = e.currentTarget.value
+                  .replace(/[^A-Za-z]/g, '')
+                  .trim();
+                form.setFieldValue('username', cleanValue);
+              }}
+            />
+            <Button
+              variant="default"
+              type="submit"
+              size="sm"
+              disabled={!form.isValid()}
+            >
+              Change
+            </Button>
+          </Group>
+        </div>
       </form>
 
       <Switch
@@ -114,7 +162,7 @@ const UserSettings = ({
         onChange={() => setPreferCardView(!preferCardView)}
         color="teal"
         size="md"
-        className="mt-6 mb-2"
+        className="mt-5"
         label={
           <Text className="mt-[1px]" size="sm">
             Prefer Card View
@@ -142,7 +190,7 @@ const UserSettings = ({
         onChange={() => setIsPlaySound(!isPlaySound)}
         color="teal"
         size="md"
-        className="mt-5 mb-2"
+        className="mt-3"
         label={
           <Text className="mt-[1px]" size="sm">
             Play Sounds
@@ -170,7 +218,7 @@ const UserSettings = ({
         onChange={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
         color="teal"
         size="md"
-        className="mt-5 mb-2"
+        className="mt-3 mb-5"
         label={
           <Text className="mt-[1px]" size="sm">
             Show Notifications
@@ -196,10 +244,6 @@ const UserSettings = ({
       {/* Room Actions */}
       {currentUser && userId && roomId && (
         <>
-          <Divider my="md" />
-          <Text size="sm" fw={500} mb="sm">
-            Room Actions
-          </Text>
           <UserActions
             user={currentUser}
             userId={userId}
@@ -210,6 +254,128 @@ const UserSettings = ({
           />
         </>
       )}
+    </div>
+  );
+};
+
+const RoomSettings = ({
+  triggerAction,
+}: {
+  triggerAction: (action: Action) => void;
+}) => {
+  const userId = useLocalstorageStore((state) => state.userId);
+  const roomId = useLocalstorageStore((state) => state.roomId);
+  const roomName = useLocalstorageStore((state) => state.roomName);
+
+  const updateRoomNameMutation = api.room.updateRoomName.useMutation({
+    onSuccess: (data) => {
+      form.setFieldValue('roomName', data.roomName);
+      form.setFieldError('roomName', null);
+      if (userId && roomId && data.roomName) {
+        triggerAction({
+          action: 'changeRoomName',
+          userId,
+          roomId,
+          roomName: data.roomName,
+        });
+      }
+    },
+    onError: (error) => {
+      form.setFieldError('roomName', error.message);
+    },
+  });
+
+  const form = useForm({
+    initialValues: { roomName: roomName ?? '' },
+    validate: {
+      roomName: (value) => {
+        const cleanValue = (value ? value : '')
+          .replace(/[^A-Za-z0-9]/g, '')
+          .toLowerCase();
+        if (cleanValue.length < 3) {
+          return 'Room name must be at least 3 characters';
+        }
+        if (cleanValue.length > 15) {
+          return 'Room name must be at most 15 characters';
+        }
+        if (cleanValue === roomName) {
+          return 'Room name did not change';
+        }
+        return null;
+      },
+    },
+    validateInputOnChange: true,
+    validateInputOnBlur: true,
+  });
+
+  // Clear backend errors when user starts typing
+  useEffect(() => {
+    const handleFieldChange = () => {
+      if (form.errors.roomName && updateRoomNameMutation.isError) {
+        form.setFieldError('roomName', null);
+      }
+    };
+
+    handleFieldChange();
+  }, [form.values.roomName]);
+
+  const handleSubmit = () => {
+    if (!form.values.roomName || !userId || !roomId) {
+      return;
+    }
+
+    const cleanRoomName = form.values.roomName
+      .replace(/[^A-Za-z0-9]/g, '')
+      .toLowerCase();
+
+    updateRoomNameMutation.mutate({
+      userId,
+      roomId,
+      newRoomName: cleanRoomName,
+    });
+  };
+
+  return (
+    <div className="text-left w-full">
+      <form onSubmit={form.onSubmit(handleSubmit)}>
+        <Text size="sm" fw={500} className="mb-1">
+          Room Name
+        </Text>
+        <Text size="xs" c="dimmed" className="mb-2">
+          3-15 characters, letters and numbers only
+        </Text>
+        <Group
+          gap={0}
+          wrap="nowrap"
+          align="flex-start"
+          className="inline-input-group"
+        >
+          <TextInput
+            {...form.getInputProps('roomName')}
+            placeholder="Enter new room name"
+            onChange={(e) => {
+              const cleanValue = e.currentTarget.value
+                .replace(/[^A-Za-z0-9]/g, '')
+                .toLowerCase();
+              form.setFieldValue('roomName', cleanValue);
+
+              if (form.errors.roomName && updateRoomNameMutation.isError) {
+                form.setFieldError('roomName', null);
+              }
+            }}
+            disabled={updateRoomNameMutation.isPending}
+          />
+          <Button
+            variant="default"
+            type="submit"
+            size="sm"
+            loading={updateRoomNameMutation.isPending}
+            disabled={!form.isValid() || updateRoomNameMutation.isPending}
+          >
+            Change
+          </Button>
+        </Group>
+      </form>
     </div>
   );
 };

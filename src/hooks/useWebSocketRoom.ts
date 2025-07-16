@@ -11,7 +11,7 @@ import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 
 import { logMsg } from 'fpp/constants/logging.constant';
 
-import { executeKick } from 'fpp/utils/room.util';
+import { executeKick, executeRoomNameChange } from 'fpp/utils/room.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -77,13 +77,23 @@ export const useWebSocketRoom = ({
           const data = JSON.parse(String(message.data)) as
             | RoomDto
             | { error: string }
-            | { type: 'kicked'; message: string };
+            | { type: 'kicked'; message: string }
+            | { type: 'roomNameChanged'; roomName: string };
 
           console.debug('onMessage', data);
 
           // Handle kick notification
           if ('type' in data && data.type === 'kicked') {
             executeKick('kick_notification', router);
+            return;
+          }
+
+          // Handle roomNameChanged notification
+          if ('type' in data && data.type === 'roomNameChanged') {
+            executeRoomNameChange({
+              newRoomName: data.roomName,
+              router,
+            });
             return;
           }
 
@@ -118,7 +128,7 @@ export const useWebSocketRoom = ({
             return;
           }
 
-          updateRoomState(RoomClient.fromJson(data as RoomDto));
+          updateRoomState(RoomClient.fromJson(data));
         } catch (e) {
           console.error('Error parsing message:', e);
           console.debug('Raw message:', message.data);

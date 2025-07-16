@@ -3,6 +3,7 @@ import { log } from './index';
 import {
   type Action,
   isChangeUsernameAction,
+  isChangeRoomNameAction,
   isEstimateAction,
   isFlipAction,
   isHeartbeatAction,
@@ -76,6 +77,11 @@ export class MessageHandler {
       if (isChangeUsernameAction(data)) {
         room.changeUsername(data.userId, data.username);
         this.roomState.sendToEverySocketInRoom(room.id);
+        return;
+      }
+
+      if (isChangeRoomNameAction(data)) {
+        this.handleChangeRoomName(ws, data);
         return;
       }
 
@@ -159,6 +165,21 @@ export class MessageHandler {
     setTimeout(() => {
       this.roomState.sendToEverySocketInRoom(data.roomId);
     }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+  }
+
+  /**
+   * Handle change room name action
+   */
+  private handleChangeRoomName(ws: ElysiaWS<any>, data: Action): void {
+    if (!isChangeRoomNameAction(data)) return;
+
+    log.debug(
+      { userId: data.userId, roomId: data.roomId, roomName: data.roomName, wsId: ws.id },
+      'Room name changed - propagating to all users'
+    );
+
+    // Send the room name change notification to all users in the room
+    this.roomState.sendRoomNameChangeToAllUsers(data.roomId, data.roomName);
   }
 
   /**

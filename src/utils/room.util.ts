@@ -302,3 +302,35 @@ export function executeKick(
     }
   }, 200);
 }
+
+export function executeRoomNameChange({
+  newRoomName,
+  router,
+}: {
+  newRoomName: string;
+  router?: NextRouter;
+}): void {
+  console.log('Room name changed, redirecting to:', newRoomName);
+
+  // Update local storage with new room name
+  const { setRoomName, setRecentRoom } = useLocalstorageStore.getState();
+  setRoomName(newRoomName);
+  setRecentRoom(newRoomName);
+
+  // Show notification about room name change
+  notify({
+    color: 'blue',
+    title: 'Room name changed',
+    message: `Room name updated to: ${newRoomName.toUpperCase()}. Dont forget to update your bookmark.`,
+  });
+
+  // Navigate to new room URL
+  if (router) {
+    router
+      .push(`/room/${newRoomName}`)
+      .then(() => ({}))
+      .catch(() => ({}));
+  } else if (typeof window !== 'undefined') {
+    window.location.href = `/room/${newRoomName}`;
+  }
+}
