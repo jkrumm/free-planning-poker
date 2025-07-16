@@ -60,30 +60,20 @@ export const Room = ({ roomId, roomName, userId, username }: RoomProps) => {
 
   return (
     <>
-      <div className="w-screen h-screen flex">
-        <div className="flex-1">
-          <div className="flex-1 items-start flex md:px-2 px-1 pb-1 md:pt-3 pt-2">
-            <ConnectionStatus connectedAt={connectedAt} />
-            <Bookmark userId={userId} />
-          </div>
-          {viewMode === 'cardList' ? (
-            <CardList
-              roomId={roomId}
-              userId={userId}
-              triggerAction={triggerAction}
-            />
-          ) : (
-            <Table
-              roomId={roomId}
-              userId={userId}
-              triggerAction={triggerAction}
-            />
-          )}
-        </div>
-        <div className="md:mr-3 mr-2">
-          <Sidebar triggerAction={triggerAction} />
-        </div>
+      <div className="w-full items-start hidden md:flex h-[50px] px-1 pb-1 md:pt-3 pt-2">
+        <ConnectionStatus connectedAt={connectedAt} />
+        <Bookmark userId={userId} />
       </div>
+      {viewMode === 'cardList' ? (
+        <CardList
+          roomId={roomId}
+          userId={userId}
+          triggerAction={triggerAction}
+        />
+      ) : (
+        <Table roomId={roomId} userId={userId} triggerAction={triggerAction} />
+      )}
+      <Sidebar triggerAction={triggerAction} />
       <Interactions
         roomId={roomId}
         roomName={roomName}

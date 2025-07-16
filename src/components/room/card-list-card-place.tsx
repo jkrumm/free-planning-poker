@@ -43,7 +43,7 @@ export const CardListCardPlace = ({
                 triggerAction={triggerAction}
               />
             </div>
-            <div className="min-w-[40px]">
+            <div className="min-w-[45px]">
               <Text size="lg" fw={700} c="white">
                 ⌀ {getAverageFromUsers(users, triggerAction)}
               </Text>
@@ -99,7 +99,10 @@ function CardListStackedEstimations({
   return (
     <>
       {stackedEstimations.map((item, index) => (
-        <div key={index} className="flex flex-col items-center mr-2 last:mr-0">
+        <div
+          key={index}
+          className="flex flex-col items-center mr-0 md:mr-2 last:mr-0"
+        >
           <div
             className="relative flex items-end"
             style={{ perspective: '1000px' }}

@@ -3,7 +3,7 @@ import { ReadyState } from 'react-use-websocket';
 import {
   type RoomClient,
   type RoomStateStatus,
-  type User,
+  User,
 } from 'fpp-server/src/room.entity';
 import { create } from 'zustand';
 
@@ -81,7 +81,9 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
         return;
       }
 
-      /* [1, 2, 3, 4, 5, 6, 7].map((id) => {
+      //  14, 15, 16, 17, 18, 19, 20,
+      //         21, 22, 23, 24, 25,
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((id) => {
         room.users.push(
           new User({
             id: `player-${id}`,
@@ -92,7 +94,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
             ws: null,
           }),
         );
-      }); */
+      });
 
       set({
         // User

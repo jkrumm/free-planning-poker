@@ -26,9 +26,9 @@ const RoomPage = () => {
   const { room } = router.query as { room: string };
 
   return (
-    <div className="items-start md:flex">
+    <div className=" md:flex">
       <Meta title={room} robots="noindex,nofollow" />
-      <div className="room-wrapper flex-1">
+      <div className="h-full w-full overflow-hidden flex-1">
         <RoomWrapper />
       </div>
     </div>

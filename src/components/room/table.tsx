@@ -32,55 +32,57 @@ export const Table = ({
   const playersOnly = users.filter((user) => !user.isSpectator);
 
   return (
-    <div className="table">
-      <div className="card-place">
-        {(function () {
-          switch (status) {
-            case RoomStateStatus.flipped:
-              return (
-                <StackedEstimations
-                  users={users}
-                  triggerAction={triggerAction}
-                />
-              );
-            case RoomStateStatus.flippable:
-              return (
-                <ShowVotesButton
-                  roomId={roomId}
-                  userId={userId}
-                  triggerAction={triggerAction}
-                />
-              );
-            case RoomStateStatus.estimating:
-            default:
-              return <div className="vote">VOTE</div>;
-          }
-        })()}
-      </div>
+    <div className="h-screen">
+      <div className="table">
+        <div className="card-place">
+          {(function () {
+            switch (status) {
+              case RoomStateStatus.flipped:
+                return (
+                  <StackedEstimations
+                    users={users}
+                    triggerAction={triggerAction}
+                  />
+                );
+              case RoomStateStatus.flippable:
+                return (
+                  <ShowVotesButton
+                    roomId={roomId}
+                    userId={userId}
+                    triggerAction={triggerAction}
+                  />
+                );
+              case RoomStateStatus.estimating:
+              default:
+                return <div className="vote">VOTE</div>;
+            }
+          })()}
+        </div>
 
-      <div className="players">
-        {playersOnly.map((user, index) => (
-          <div key={index} className={`player player-${index + 1}`}>
-            <div
-              className={`avatar bg-gray-800 ${user.status} ${!user.isPresent ? 'inactive' : 'active'}`}
-            />
-            <div className={`name ${user.id === userId && 'font-bold'}`}>
-              <UserHoverCard
-                user={user}
-                userId={userId}
-                roomId={roomId}
-                triggerAction={triggerAction}
+        <div className="players">
+          {playersOnly.map((user, index) => (
+            <div key={index} className={`player player-${index + 1}`}>
+              <div
+                className={`avatar bg-gray-800 ${user.status} ${!user.isPresent ? 'inactive' : 'active'}`}
               />
+              <div className={`name ${user.id === userId && 'font-bold'}`}>
+                <UserHoverCard
+                  user={user}
+                  userId={userId}
+                  roomId={roomId}
+                  triggerAction={triggerAction}
+                />
+              </div>
+              <div
+                className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${
+                  user.status
+                } ${!user.isPresent ? 'inactive' : 'active'}`}
+              >
+                {user.estimation}
+              </div>
             </div>
-            <div
-              className={`card players ${status === RoomStateStatus.flipped && 'flipped'} ${
-                user.status
-              } ${!user.isPresent ? 'inactive' : 'active'}`}
-            >
-              {user.estimation}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

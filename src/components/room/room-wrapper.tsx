@@ -124,7 +124,7 @@ const RoomWrapper = () => {
   }, [queryRoom, username, firstLoad]);
 
   return (
-    <main className="relative flex-col items-center justify-center w-full h-full flex">
+    <div className="relative flex-col items-center justify-center flex">
       {(() => {
         if (!username || modelOpen) {
           return (
@@ -147,7 +147,7 @@ const RoomWrapper = () => {
         }
         return <Loader variant="bars" />;
       })()}
-    </main>
+    </div>
   );
 };
 
