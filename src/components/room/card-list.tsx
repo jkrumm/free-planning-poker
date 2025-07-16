@@ -35,39 +35,46 @@ export const CardList = ({ roomId, userId, triggerAction }: CardListProps) => {
   });
 
   return (
-    <div className="card-list p-0 pl-2 md:pl-3 pb-2 mt-[2px] md:mt-2 w-[calc(100vw-4px)] md:w-[calc(100vw-10px)] pr-[60px] md:pr-[65px] max-h-[calc(100vh-195px)] overflow-y-scroll">
-      {/* Add CardListCardPlace at the top of the list */}
-      <CardListCardPlace
-        roomId={roomId}
-        userId={userId}
-        users={users}
-        status={status}
-        triggerAction={triggerAction}
-      />
+    <div className="p-0 pt-2 md:pt-0 pl-2 md:pl-3 pb-2 md:mt-2 max-w-full w-full scrollbar-hide overflow-y-scroll overflow-x-hidden h-[calc(100vh-160px)] md:h-[calc(100vh-230px)]">
+      <div className="flex">
+        <div className="flex-1">
+          <CardListCardPlace
+            roomId={roomId}
+            userId={userId}
+            users={users}
+            status={status}
+            triggerAction={triggerAction}
+          />
+        </div>
+        {/* Sidebar spacer block */}
+        <div className="min-w-[64px] md:min-w-[74px] flex-shrink-0" />
+      </div>
 
-      <motion.div
-        className="grid gap-2 md:gap-4"
-        style={{
-          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <AnimatePresence mode="popLayout">
-          {sortedUsers.map((user) => (
-            <UserCard
-              key={user.id}
-              user={user}
-              userId={userId}
-              roomId={roomId}
-              triggerAction={triggerAction}
-              status={status}
-              layoutId={user.id}
-            />
-          ))}
-        </AnimatePresence>
-      </motion.div>
+      <div className="flex">
+        <motion.div
+          className="grid gap-2 md:gap-4 w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <AnimatePresence mode="popLayout">
+            {sortedUsers.map((user) => (
+              <UserCard
+                key={user.id}
+                user={user}
+                userId={userId}
+                roomId={roomId}
+                triggerAction={triggerAction}
+                status={status}
+                layoutId={user.id}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Sidebar spacer block */}
+        <div className="w-[64px] md:w-[74px] flex-shrink-0" />
+      </div>
     </div>
   );
 };

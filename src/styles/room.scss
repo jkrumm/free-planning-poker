@@ -2,10 +2,49 @@
  * Room Styling
  */
 
-.room-wrapper {
-  @apply h-screen w-screen overflow-hidden;
+html {
+  overflow: hidden;
 }
 
+/* Room Name Group - Component-specific overrides */
+.room-name-group {
+  width: fit-content;
+
+  .room-name-button {
+    background: transparent !important;
+    border: none !important;
+    padding: 6px 8px !important;
+    width: auto !important;
+    height: unset !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .room-name-text {
+      @apply m-0 text-lg font-bold uppercase text-white sm:text-xl;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+  }
+
+  .room-action-button {
+    background: transparent !important;
+    border: none !important;
+    padding: 10px 6px !important;
+    height: unset !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    svg {
+      color: #c1c2c5;
+    }
+  }
+}
+
+/* Legacy room name styles - kept for backwards compatibility */
 .room-name {
   background-position: 8px 5px;
   background-repeat: no-repeat;
@@ -21,45 +60,7 @@ h2 > span {
   margin: 0 10px;
 }
 
-.interactions {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-@media (min-width: 1000px) {
-  .interactions {
-    margin-left: 135px;
-  }
-}
-
-.left {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.voting-bar,
-.settings-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  // min-width: 546px;
-}
-
-.settings-bar {
-  margin-bottom: 10px; /* Change this value to adjust the spacing between settings-bar and voting-bar */
-}
-
-.switch-bar {
-  margin-top: auto;
-  display: block; /* remove flex from switch-bar */
-  margin-left: 15px; /* Adjust spacing between switch-bar and the other bars */
-}
-
+/* Table and Game Styles */
 .table {
   width: 1000px;
   height: 400px;
@@ -69,7 +70,6 @@ h2 > span {
   top: 43%;
   transform: translateX(-50%) translateY(-50%);
   border-radius: 150px;
-  /*border: 15px solid #a95555;*/
   box-shadow: 0 0 0 15px #a95555;
 }
 
@@ -112,6 +112,7 @@ h2 > span {
   z-index: 50;
 }
 
+/* Responsive table scaling */
 @media (max-width: 1300px), (max-height: 900px) {
   .table {
     transform: translateX(-50%) translateY(-50%) scale(0.9);
@@ -191,6 +192,7 @@ h2 > span {
   margin-right: 15px;
 }
 
+/* Players and Avatar Styles */
 .players {
   position: relative;
   width: 1000px;
@@ -257,6 +259,7 @@ h2 > span {
   z-index: 30;
 }
 
+/* Player positioning */
 .players .player.player-1 {
   top: 0;
   left: 50%;
@@ -294,10 +297,15 @@ h2 > span {
   transform: rotatez(0deg);
 }
 
-.players .player.player-8 {
-  top: 0;
+.players .player.player-5 {
+  bottom: 0;
   left: 25%;
-  transform: translatex(-50%) translatey(-50%);
+  transform: translatex(-50%) translatey(50%) rotatez(180deg);
+}
+
+.players .player.player-5 .name,
+.players .player.player-5 .card {
+  transform: rotatez(180deg);
 }
 
 .players .player.player-6 {
@@ -317,17 +325,13 @@ h2 > span {
   transform: translatex(-50%) translatey(-50%);
 }
 
-.players .player.player-5 {
-  bottom: 0;
+.players .player.player-8 {
+  top: 0;
   left: 25%;
-  transform: translatex(-50%) translatey(50%) rotatez(180deg);
+  transform: translatex(-50%) translatey(-50%);
 }
 
-.players .player.player-5 .name,
-.players .player.player-5 .card {
-  transform: rotatez(180deg);
-}
-
+/* Card Styles */
 .card {
   height: 70px;
   width: 50px;
@@ -372,6 +376,7 @@ h2 > span {
   text-align: left;
 }
 
+/* Card wrapper positioning */
 .card-wrapper.amount-1 {
   margin-left: 3px;
   top: -3px;
@@ -532,9 +537,9 @@ h2 > span {
     height: 36px !important;
     border-left: none !important;
 
-    // Handle disabled state border alignment
     &:disabled {
       border: 1px solid #424242 !important;
+      border-left: none !important;
     }
   }
 }
