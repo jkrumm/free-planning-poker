@@ -26,11 +26,13 @@ export const UserHoverCard = ({
   userId,
   roomId,
   triggerAction,
+  children,
 }: {
   user: User;
   userId: string;
   roomId: number;
   triggerAction: (action: Action) => void;
+  children: React.ReactNode;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [lastSeenTime, setLastSeenTime] = useState<string>(
@@ -48,8 +50,6 @@ export const UserHoverCard = ({
     return () => clearInterval(intervalId);
   }, [isOpen, user.isPresent, user.lastHeartbeat]);
 
-  const isOwnUser = user.id === userId;
-
   return (
     <HoverCard
       width={200}
@@ -59,9 +59,7 @@ export const UserHoverCard = ({
       onClose={() => setIsOpen(false)}
     >
       <HoverCard.Target>
-        <div className="flex items-center justify-around gap-1.5 cursor-pointer max-w-full">
-          <span className={isOwnUser ? 'font-bold' : ''}>{user.name}</span>
-        </div>
+        <div className="cursor-pointer">{children}</div>
       </HoverCard.Target>
       <HoverCard.Dropdown>
         <Text size="sm" fw={500} mb="xs">

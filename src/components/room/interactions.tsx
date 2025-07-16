@@ -17,6 +17,7 @@ import { executeLeave } from 'fpp/utils/room.util';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
+import { SidebarTabs, useSidebarStore } from 'fpp/store/sidebar.store';
 
 import { EventType } from 'fpp/server/db/schema';
 
@@ -43,6 +44,9 @@ export const Interactions = ({
   // Room
   const status = useRoomStore((store) => store.status);
   const userCount = useRoomStore((store) => store.userCount);
+
+  // Sidebar
+  const setTab = useSidebarStore((state) => state.setTab);
 
   // Connection
   const readyState = useRoomStore((store) => store.readyState);
@@ -74,16 +78,10 @@ export const Interactions = ({
   };
 
   const handleEditRoomName = () => {
-    console.log('Edit room name clicked');
+    setTab(SidebarTabs.settings);
   };
 
   const shouldShowTooltip = userCount === 1 || isHovered;
-
-  console.log({
-    shouldShowTooltip,
-    isHovered,
-    userCount,
-  });
 
   return (
     <div className="fixed bottom-0 left-0 w-screen flex justify-center h-[160px] sm:h-[170px] border-t md:border-0 border-[#424242] bg-[#242424]">
@@ -156,6 +154,7 @@ export const Interactions = ({
                   targetUserId: userId,
                   isSpectator: !isSpectator,
                 });
+                setTab(isSpectator ? null : SidebarTabs.spectators);
               }}
             >
               Spectator
