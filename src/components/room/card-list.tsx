@@ -1,6 +1,8 @@
 'use client';
 
-import { Card, Text } from '@mantine/core';
+import React from 'react';
+
+import { Card } from '@mantine/core';
 
 import { type Action } from 'fpp-server/src/room.actions';
 import { RoomStateStatus, type User } from 'fpp-server/src/room.entity';
@@ -88,133 +90,129 @@ interface UserCardProps {
   layoutId: string;
 }
 
-const UserCard = ({
-  user,
-  userId,
-  roomId,
-  triggerAction,
-  status,
-  layoutId,
-}: UserCardProps) => {
-  const hasEstimation = user.estimation !== null;
-  const isCurrentUser = user.id === userId;
-  const isFlipped = status === RoomStateStatus.flipped;
+const UserCard = React.forwardRef<HTMLDivElement, UserCardProps>(
+  ({ user, userId, roomId, triggerAction, status, layoutId }, ref) => {
+    const hasEstimation = user.estimation !== null;
+    const isCurrentUser = user.id === userId;
+    const isFlipped = status === RoomStateStatus.flipped;
 
-  // Determine what should be shown on front and back
-  const frontContent = hasEstimation ? '✓' : '?';
-  // For back content: show estimation for current user or when room is flipped, otherwise show checkmark
-  const backContent =
-    isCurrentUser || isFlipped ? (user.estimation ?? '?') : '✓';
+    // Determine what should be shown on front and back
+    const frontContent = hasEstimation ? '✓' : '?';
+    // For back content: show estimation for current user or when room is flipped, otherwise show checkmark
+    const backContent =
+      isCurrentUser || isFlipped ? (user.estimation ?? '?') : '✓';
 
-  // Card should be flipped if:
-  // 1. Room is flipped AND user has estimation, OR
-  // 2. It's the current user AND they have an estimation (always show own vote)
-  const shouldFlip =
-    (isFlipped && hasEstimation) ||
-    (isCurrentUser && hasEstimation && !isFlipped);
+    // Card should be flipped if:
+    // 1. Room is flipped AND user has estimation, OR
+    // 2. It's the current user AND they have an estimation (always show own vote)
+    const shouldFlip =
+      (isFlipped && hasEstimation) ||
+      (isCurrentUser && hasEstimation && !isFlipped);
 
-  return (
-    <motion.div
-      layoutId={layoutId}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 25,
-      }}
-      whileHover={{ scale: 1.02 }}
-    >
-      <Card
-        className={`
+    return (
+      <motion.div
+        ref={ref}
+        layoutId={layoutId}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        transition={{
+          type: 'spring',
+          stiffness: 300,
+          damping: 25,
+        }}
+        whileHover={{ scale: 1.02 }}
+      >
+        <Card
+          className={`
           relative min-h-[80px] md:min-h-[120px] transition-all duration-200 py-2 px-1 md:py-4
           ${!user.isPresent ? 'opacity-70' : ''}
           hover:shadow-lg
         `}
-        style={{
-          borderWidth: '1px',
-          borderColor: isCurrentUser ? '#1971c2' : '#424242',
-        }}
-        withBorder
-      >
-        <div className="flex flex-col items-center space-y-1 md:space-y-3 h-full">
-          <Text
-            size="xs"
-            fw={isCurrentUser ? 700 : 500}
-            className="text-center max-w-full overflow-hidden"
-          >
-            <UserHoverCard
-              user={user}
-              userId={userId}
-              roomId={roomId}
-              triggerAction={triggerAction}
-            />
-          </Text>
-
-          {/* Playing card with 3D flip */}
-          <div
-            className="flex items-center justify-center"
-            style={{ perspective: '1000px' }}
-          >
-            <motion.div
-              className="w-8 h-12 md:w-12 md:h-16 rounded relative"
-              style={{
-                transformStyle: 'preserve-3d',
-              }}
-              animate={{
-                rotateY: shouldFlip ? 180 : 0,
-              }}
-              transition={{
-                duration: 0.6,
-                ease: 'easeInOut',
-              }}
-              key={`card-${user.id}-${user.estimation}`} // Only trigger flip on actual estimation change
+          style={{
+            borderWidth: '1px',
+            borderColor: isCurrentUser ? '#1971c2' : '#424242',
+          }}
+          withBorder
+        >
+          <div className="flex flex-col items-center space-y-1 md:space-y-3 h-full">
+            <div
+              className={`text-xs md:text-sm ${isCurrentUser ? 'font-bold' : 'font-medium'} text-center max-w-full overflow-hidden`}
             >
-              {/* Front face - flips when hasEstimation changes */}
-              <motion.div
-                className="absolute inset-0 w-8 h-12 md:w-12 md:h-16 rounded border-2 flex items-center justify-center text-xs md:text-sm font-bold"
-                style={{
-                  backfaceVisibility: 'hidden',
-                  backgroundColor: hasEstimation ? '#22c55e20' : '#ef444420',
-                  borderColor: hasEstimation ? '#22c55e' : '#ef4444',
-                }}
-                animate={{
-                  rotateY: [0, 90, 0],
-                }}
-                transition={{
-                  duration: 0.6,
-                  ease: 'easeInOut',
-                }}
-                key={`front-${user.id}-${hasEstimation}`} // Trigger flip on hasEstimation change
-              >
-                {frontContent}
-              </motion.div>
+              <UserHoverCard
+                user={user}
+                userId={userId}
+                roomId={roomId}
+                triggerAction={triggerAction}
+              />
+            </div>
 
-              {/* Back face - shows estimation only when appropriate */}
+            {/* Playing card with 3D flip */}
+            <div
+              className="flex items-center justify-center"
+              style={{ perspective: '1000px' }}
+            >
               <motion.div
-                className="absolute inset-0 w-8 h-12 md:w-12 md:h-16 rounded border-2 flex items-center justify-center text-xs md:text-sm font-bold"
+                className="w-8 h-12 md:w-12 md:h-16 rounded relative"
                 style={{
-                  backfaceVisibility: 'hidden',
-                  transform: 'rotateY(180deg)',
-                  backgroundColor: 'transparent',
-                  borderColor: hasEstimation ? '#22c55e' : '#ef4444',
+                  transformStyle: 'preserve-3d',
                 }}
                 animate={{
-                  rotateY: [180, 90, 180],
+                  rotateY: shouldFlip ? 180 : 0,
                 }}
                 transition={{
                   duration: 0.6,
                   ease: 'easeInOut',
                 }}
-                key={`back-${user.id}-${hasEstimation}`} // Trigger flip on hasEstimation change
+                key={`card-${user.id}-${user.estimation}`} // Only trigger flip on actual estimation change
               >
-                {backContent}
+                {/* Front face - flips when hasEstimation changes */}
+                <motion.div
+                  className="absolute inset-0 w-8 h-12 md:w-12 md:h-16 rounded border-2 flex items-center justify-center text-xs md:text-sm font-bold"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    backgroundColor: hasEstimation ? '#22c55e20' : '#ef444420',
+                    borderColor: hasEstimation ? '#22c55e' : '#ef4444',
+                  }}
+                  animate={{
+                    rotateY: [0, 90, 0],
+                  }}
+                  transition={{
+                    duration: 0.6,
+                    ease: 'easeInOut',
+                  }}
+                  key={`front-${user.id}-${hasEstimation}`} // Trigger flip on hasEstimation change
+                >
+                  {frontContent}
+                </motion.div>
+
+                {/* Back face - shows estimation only when appropriate */}
+                <motion.div
+                  className="absolute inset-0 w-8 h-12 md:w-12 md:h-16 rounded border-2 flex items-center justify-center text-xs md:text-sm font-bold"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    transform: 'rotateY(180deg)',
+                    backgroundColor: 'transparent',
+                    borderColor: hasEstimation ? '#22c55e' : '#ef4444',
+                  }}
+                  animate={{
+                    rotateY: [180, 90, 180],
+                  }}
+                  transition={{
+                    duration: 0.6,
+                    ease: 'easeInOut',
+                  }}
+                  key={`back-${user.id}-${hasEstimation}`} // Trigger flip on hasEstimation change
+                >
+                  {backContent}
+                </motion.div>
               </motion.div>
-            </motion.div>
+            </div>
           </div>
-        </div>
-      </Card>
-    </motion.div>
-  );
-};
+        </Card>
+      </motion.div>
+    );
+  },
+);
+
+UserCard.displayName = 'UserCard';
