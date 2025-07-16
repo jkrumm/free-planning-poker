@@ -4,7 +4,6 @@ import { ReadyState } from 'react-use-websocket';
 import { useRouter } from 'next/router';
 
 import { Button, Group, Tooltip } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 
 import { IconCopy, IconEdit, IconEye } from '@tabler/icons-react';
 import { type Action } from 'fpp-server/src/room.actions';
@@ -12,14 +11,12 @@ import { RoomStateStatus } from 'fpp-server/src/room.entity';
 
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
+import { copyToClipboard } from 'fpp/utils/copy-top-clipboard.util';
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { executeLeave } from 'fpp/utils/room.util';
-import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
 import { SidebarTabs, useSidebarStore } from 'fpp/store/sidebar.store';
-
-import { EventType } from 'fpp/server/db/schema';
 
 import Counter from 'fpp/components/room/counter';
 
@@ -56,25 +53,7 @@ export const Interactions = ({
     if (!window.location) {
       return;
     }
-    if ('clipboard' in navigator) {
-      navigator.clipboard
-        .writeText(window.location.toString())
-        .then(() => ({}))
-        .catch(() => ({}));
-    } else {
-      document.execCommand('copy', true, window.location.toString());
-    }
-    notifications.show({
-      color: 'green',
-      autoClose: 3000,
-      withCloseButton: true,
-      title: 'Room URL copied to clipboard',
-      message: 'Share it with your team!',
-    });
-    sendTrackEvent({
-      event: EventType.COPIED_ROOM_LINK,
-      userId,
-    });
+    copyToClipboard(window.location.toString(), userId);
   };
 
   const handleEditRoomName = () => {
