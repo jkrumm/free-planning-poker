@@ -252,12 +252,12 @@ export const roomRouter = createTRPCRouter({
 
         // Check if new name is already taken
         const roomWithSameName = await db.query.rooms.findFirst({
-          where: or(
-            eq(rooms.name, newRoomName),
-            ...(isNaN(Number(newRoomName))
-              ? []
-              : [eq(rooms.number, Number(newRoomName))]),
-          ),
+          where: isNaN(Number(newRoomName))
+            ? eq(rooms.name, newRoomName)
+            : or(
+                eq(rooms.name, newRoomName),
+                eq(rooms.number, Number(newRoomName)),
+              ),
         });
 
         if (roomWithSameName && roomWithSameName.id !== roomId) {
