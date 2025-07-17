@@ -1,6 +1,4 @@
-import { env } from 'fpp/env';
-
-import { TRPCError } from '@trpc/server';
+import { type TRPCError } from '@trpc/server';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 
 import * as Sentry from '@sentry/nextjs';
@@ -9,9 +7,8 @@ import { appRouter } from 'fpp/server/api/root';
 import { createTRPCContext } from 'fpp/server/api/trpc';
 
 export const config = {
-  // runtime: 'edge',
   region: 'fra1',
-  maxDuration: 10, // Add 10 second timeout
+  maxDuration: 10,
 };
 
 const trpcErrorHandler = ({
@@ -26,28 +23,6 @@ const trpcErrorHandler = ({
   input: unknown;
 }) => {
   const inputObj = input != null && typeof input === 'object' ? input : {};
-
-  if (error.message?.includes('FUNCTION_INVOCATION_TIMEOUT')) {
-    console.error('TRPC TIMEOUT ERROR', {
-      ...inputObj,
-      type,
-      path,
-      timeout: true,
-    });
-
-    Sentry.captureException(error, {
-      tags: {
-        endpoint: path,
-        type,
-        trpc_error_code: 'TIMEOUT',
-      },
-    });
-
-    throw new TRPCError({
-      code: 'TIMEOUT',
-      message: 'Request timed out, please try again',
-    });
-  }
 
   // Only log and report unexpected errors, not business logic errors
   const isBusinessLogicError = [
@@ -86,24 +61,18 @@ const trpcErrorHandler = ({
         ...inputObj,
       },
     });
-
-    // In production, mask internal errors
-    if (env.NEXT_PUBLIC_NODE_ENV === 'production') {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal Server Error',
-      });
-    }
   } else {
-    console.debug('TRPC Business Logic Error', {
+    console.warn('TRPC Business Logic Error', {
       type,
       path,
-      code: error.code,
-      message: error.message,
+      error: {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      },
     });
   }
-
-  throw error;
 };
 
 export default createNextApiHandler({
