@@ -250,17 +250,36 @@ export const roomRouter = createTRPCRouter({
           });
         }
 
-        // Check if new name is already taken
-        const roomWithSameName = await db.query.rooms.findFirst({
-          where: isNaN(Number(newRoomName))
-            ? eq(rooms.name, newRoomName)
-            : or(
-                eq(rooms.name, newRoomName),
-                eq(rooms.number, Number(newRoomName)),
-              ),
-        });
+        if (existingRoom.name === newRoomName) {
+          return {
+            roomId: existingRoom.id,
+            roomNumber: existingRoom.number,
+            roomName: existingRoom.name,
+          };
+        }
 
-        if (roomWithSameName && roomWithSameName.id !== roomId) {
+        // Check if new name is already taken
+        const isNumericName = !isNaN(Number(newRoomName));
+
+        let conflictingRoom: IRoom | undefined;
+
+        if (isNumericName) {
+          // For numeric names, check both name and number fields
+          const roomNumber = Number(newRoomName);
+          conflictingRoom = await db.query.rooms.findFirst({
+            where: or(
+              eq(rooms.name, newRoomName),
+              eq(rooms.number, roomNumber),
+            ),
+          });
+        } else {
+          // For non-numeric names, only check name field
+          conflictingRoom = await db.query.rooms.findFirst({
+            where: eq(rooms.name, newRoomName),
+          });
+        }
+
+        if (conflictingRoom && conflictingRoom.id !== roomId) {
           throw new TRPCError({
             code: 'CONFLICT',
             message: 'Room name already exists',
@@ -282,15 +301,10 @@ export const roomRouter = createTRPCRouter({
           event: EventType.CHANGED_ROOM_NAME,
         });
 
-        // Return updated room info
-        const updatedRoom = await db.query.rooms.findFirst({
-          where: eq(rooms.id, roomId),
-        });
-
         return {
-          roomId: updatedRoom!.id,
-          roomNumber: updatedRoom!.number,
-          roomName: updatedRoom!.name,
+          roomId,
+          roomNumber: existingRoom.number,
+          roomName: newRoomName,
         };
       },
     ),

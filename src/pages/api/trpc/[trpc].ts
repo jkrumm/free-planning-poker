@@ -11,6 +11,7 @@ import { createTRPCContext } from 'fpp/server/api/trpc';
 export const config = {
   // runtime: 'edge',
   region: 'fra1',
+  maxDuration: 10, // Add 10 second timeout
 };
 
 const trpcErrorHandler = ({
@@ -25,6 +26,28 @@ const trpcErrorHandler = ({
   input: unknown;
 }) => {
   const inputObj = input != null && typeof input === 'object' ? input : {};
+
+  if (error.message?.includes('FUNCTION_INVOCATION_TIMEOUT')) {
+    console.error('TRPC TIMEOUT ERROR', {
+      ...inputObj,
+      type,
+      path,
+      timeout: true,
+    });
+
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: path,
+        type,
+        trpc_error_code: 'TIMEOUT',
+      },
+    });
+
+    throw new TRPCError({
+      code: 'TIMEOUT',
+      message: 'Request timed out, please try again',
+    });
+  }
 
   // Only log and report unexpected errors, not business logic errors
   const isBusinessLogicError = [
