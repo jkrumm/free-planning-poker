@@ -63,7 +63,7 @@ export const Interactions = ({
   const shouldShowTooltip = userCount === 1 || isHovered;
 
   return (
-    <div className="fixed bottom-0 left-0 w-screen flex justify-center h-[160px] sm:h-[170px] border-t md:border-0 border-[#424242] bg-[#242424]">
+    <div className="fixed bottom-0 left-0 w-screen flex justify-center h-[160px] sm:h-[170px] border-t md:border-0 border-[#424242] bg-[#242424] z-10">
       <div className="w-full max-w-xl p-2 sm:p-4 flex flex-col space-y-2">
         {/* Room Name - Top Row */}
         <div className="flex justify-start">
@@ -94,6 +94,7 @@ export const Interactions = ({
               multiline
               w={270}
               events={{ hover: true, focus: false, touch: false }}
+              zIndex={30}
             >
               <Button
                 variant="subtle"

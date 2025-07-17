@@ -8,8 +8,8 @@ import { Loader } from '@mantine/core';
 import { Meta } from 'fpp/components/meta';
 
 const CenteredLoader = () => (
-  <div className="flex min-h-screen justify-center">
-    <Loader variant="bars" className="my-auto" />
+  <div className="fixed top-0 left-0 flex items-center justify-center z-50 h-screen w-screen">
+    <Loader variant="bars" />
   </div>
 );
 
@@ -26,11 +26,9 @@ const RoomPage = () => {
   const { room } = router.query as { room: string };
 
   return (
-    <div className=" md:flex">
+    <div className="h-full w-full">
       <Meta title={room} robots="noindex,nofollow" />
-      <div className="h-full w-full overflow-hidden flex-1">
-        <RoomWrapper />
-      </div>
+      <RoomWrapper />
     </div>
   );
 };

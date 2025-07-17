@@ -46,6 +46,20 @@ const RoomWrapper = () => {
   const [modelOpen, setModelOpen] = React.useState(false);
 
   useEffect(() => {
+    // Add overflow-hidden to body when component mounts
+    document.documentElement.classList.add('overflow-hidden');
+    document.documentElement.classList.add('max-h-screen');
+    document.documentElement.classList.add('scrollbar-hide');
+
+    // Remove overflow-hidden when component unmounts
+    return () => {
+      document.documentElement.classList.remove('overflow-hidden');
+      document.documentElement.classList.remove('max-h-screen');
+      document.documentElement.classList.remove('scrollbar-hide');
+    };
+  }, []);
+
+  useEffect(() => {
     let willLeave = false;
     if (!firstLoad && queryRoom) {
       const correctedRoom = queryRoom

@@ -46,7 +46,7 @@ const Sidebar = ({
 
   return (
     <motion.div
-      className={`flex justify-end fixed top-0 right-0 md:right-3 pr-2 md:pr-0`}
+      className={`flex justify-end fixed top-0 right-0 md:right-3 pr-2 md:pr-0 z-40`}
       animate={tab !== null ? 'open' : 'closed'}
       variants={{
         open: {
