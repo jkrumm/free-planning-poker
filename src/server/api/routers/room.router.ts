@@ -38,7 +38,7 @@ const findOpenRoomNumber = async (
   while (true) {
     const number = generateRoomNumber();
     const room = await db.query.rooms.findFirst({
-      where: eq(rooms.number, number),
+      where: or(eq(rooms.number, number), eq(rooms.name, String(number))),
     });
     if (!room) {
       return number;
@@ -264,12 +264,10 @@ export const roomRouter = createTRPCRouter({
         let conflictingRoom: IRoom | undefined;
 
         if (isNumericName) {
-          // For numeric names, check both name and number fields
-          const roomNumber = Number(newRoomName);
           conflictingRoom = await db.query.rooms.findFirst({
             where: or(
               eq(rooms.name, newRoomName),
-              eq(rooms.number, roomNumber),
+              eq(rooms.number, Number(newRoomName)),
             ),
           });
         } else {
