@@ -23,17 +23,17 @@ export const HistoricalTable = ({
 }) => {
   const rows = historical.map((element, index) => (
     <Table.Tr key={index}>
-      <Table.Td className="pl-2">{element.date.toDateString()}</Table.Td>
-      <Table.Td className="mono">{element.estimations}</Table.Td>
-      <Table.Td className="mono">{element.acc_estimations}</Table.Td>
-      <Table.Td className="mono">{element.votes}</Table.Td>
-      <Table.Td className="mono">{element.acc_votes}</Table.Td>
-      <Table.Td className="mono">{element.page_views}</Table.Td>
-      <Table.Td className="mono">{element.acc_page_views}</Table.Td>
-      <Table.Td className="mono">{element.new_users}</Table.Td>
-      <Table.Td className="mono">{element.acc_new_users}</Table.Td>
-      <Table.Td className="mono">{element.rooms}</Table.Td>
-      <Table.Td className="mono">{element.acc_rooms}</Table.Td>
+      <Table.Td className="px-1">{element.date.toDateString()}</Table.Td>
+      <Table.Td className="mono px-1">{element.estimations}</Table.Td>
+      <Table.Td className="mono px-1">{element.acc_estimations}</Table.Td>
+      <Table.Td className="mono px-1">{element.votes}</Table.Td>
+      <Table.Td className="mono px-1">{element.acc_votes}</Table.Td>
+      <Table.Td className="mono px-1">{element.page_views}</Table.Td>
+      <Table.Td className="mono px-1">{element.acc_page_views}</Table.Td>
+      <Table.Td className="mono px-1">{element.new_users}</Table.Td>
+      <Table.Td className="mono px-1">{element.acc_new_users}</Table.Td>
+      <Table.Td className="mono px-1">{element.rooms}</Table.Td>
+      <Table.Td className="mono px-1">{element.acc_rooms}</Table.Td>
     </Table.Tr>
   ));
 
@@ -50,17 +50,17 @@ export const HistoricalTable = ({
             >
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th className="pl-2">Date</Table.Th>
-                  <Table.Th>Estimations</Table.Th>
-                  <Table.Th>Acc estimations</Table.Th>
-                  <Table.Th>Votes</Table.Th>
-                  <Table.Th>Acc votes</Table.Th>
-                  <Table.Th>Page views</Table.Th>
-                  <Table.Th>Acc page views</Table.Th>
-                  <Table.Th>New users</Table.Th>
-                  <Table.Th>Acc new users</Table.Th>
-                  <Table.Th>Rooms</Table.Th>
-                  <Table.Th>Acc rooms</Table.Th>
+                  <Table.Th className="px-1">Date</Table.Th>
+                  <Table.Th className="px-1">Estimations</Table.Th>
+                  <Table.Th className="px-1">Acc estimations</Table.Th>
+                  <Table.Th className="px-1">Votes</Table.Th>
+                  <Table.Th className="px-1">Acc votes</Table.Th>
+                  <Table.Th className="px-1">Page views</Table.Th>
+                  <Table.Th className="px-1">Acc page views</Table.Th>
+                  <Table.Th className="px-1">New users</Table.Th>
+                  <Table.Th className="px-1">Acc new users</Table.Th>
+                  <Table.Th className="px-1">Rooms</Table.Th>
+                  <Table.Th className="px-1">Acc rooms</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{rows}</Table.Tbody>

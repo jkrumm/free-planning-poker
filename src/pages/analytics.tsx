@@ -27,6 +27,7 @@ import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
 import { LiveDataModel } from 'fpp/components/analytics/live-data-model';
 import { ReoccurringChart } from 'fpp/components/analytics/reoccurring-chart';
+import { SentryIssuesTable } from 'fpp/components/analytics/sentry-issues-table';
 import { StatsCard } from 'fpp/components/analytics/stats-card';
 import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
@@ -88,9 +89,19 @@ const Analytics = () => {
       refetchOnReconnect: true,
     });
 
+  const { data: sentryIssues, refetch: refetchGetIssues } =
+    api.sentry.getIssues.useQuery(undefined, {
+      refetchInterval: 5000, // Match analytics polling
+      retry: true,
+      staleTime: 0,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+    });
+
   const refetch = () => {
     void refetchAnalytics();
     void refetchServerAnalytics();
+    void refetchGetIssues();
   };
 
   // Handle countdown display
@@ -142,7 +153,7 @@ const Analytics = () => {
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
   const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
 
-  if (!analytics || !serverAnalytics) {
+  if (!analytics || !serverAnalytics || !sentryIssues) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader size="xl" />
@@ -407,6 +418,10 @@ const Analytics = () => {
             historicalTableOpen={historicalTableOpen}
           />
           <HistoricalChart historical={historical} />
+
+          <h2 className="pt-8">Sentry Issues</h2>
+          <SentryIssuesTable issues={sentryIssues} />
+
           <h2 className="pt-8">Behaviour</h2>
           <SimpleGrid
             cols={{

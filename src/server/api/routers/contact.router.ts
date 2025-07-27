@@ -39,13 +39,6 @@ export const contactRouter = createTRPCRouter({
         },
         body: JSON.stringify({ name, email, subject, message }),
         signal: AbortSignal.timeout(7000),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          throw new TRPCError({
-            message: 'Failed to send email',
-            code: 'INTERNAL_SERVER_ERROR',
-          });
-        }
       });
     }),
 });

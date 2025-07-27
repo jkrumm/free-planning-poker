@@ -32,6 +32,7 @@ export const env = createEnv({
     SEND_EMAIL_PASSWORD: z.string(),
     TODOIST_SECRET: z.string(),
     FPP_SERVER_SECRET: z.string(),
+    SENTRY_API_KEY: z.string(),
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     NEXT_PUBLIC_FPP_SERVER_URL: z.string(),
@@ -67,6 +68,7 @@ export const env = createEnv({
     SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
     TODOIST_SECRET: process.env.TODOIST_SECRET,
     FPP_SERVER_SECRET: process.env.FPP_SERVER_SECRET,
+    SENTRY_API_KEY: process.env.SENTRY_API_KEY,
     NEXT_PUBLIC_FPP_SERVER_URL: process.env.NEXT_PUBLIC_FPP_SERVER_URL,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
