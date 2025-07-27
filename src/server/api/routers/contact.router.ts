@@ -31,13 +31,14 @@ export const contactRouter = createTRPCRouter({
         });
       }
 
-      await fetch(`${env.BEA_BASE_URL}:3010/fpp`, {
+      await fetch(`${env.BEA_BASE_URL}/fpp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${env.BEA_SECRET_KEY}`,
         },
         body: JSON.stringify({ name, email, subject, message }),
+        signal: AbortSignal.timeout(7000),
       }).then(async (res) => {
         if (res.status !== 200) {
           throw new TRPCError({
