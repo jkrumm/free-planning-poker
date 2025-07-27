@@ -125,7 +125,7 @@ const Contact: NextPage = () => {
                 name="name"
                 variant="filled"
                 {...form.getInputProps('name')}
-                disabled={sendMail.isSuccess}
+                disabled={sendMail.isSuccess || sendMail.isPending}
               />
               <TextInput
                 label="Email"
@@ -133,7 +133,7 @@ const Contact: NextPage = () => {
                 name="email"
                 variant="filled"
                 {...form.getInputProps('email')}
-                disabled={sendMail.isSuccess}
+                disabled={sendMail.isSuccess || sendMail.isPending}
               />
             </SimpleGrid>
 
@@ -144,7 +144,7 @@ const Contact: NextPage = () => {
               name="subject"
               variant="filled"
               {...form.getInputProps('subject')}
-              disabled={sendMail.isSuccess}
+              disabled={sendMail.isSuccess || sendMail.isPending}
             />
             <Textarea
               mt="md"
@@ -156,7 +156,7 @@ const Contact: NextPage = () => {
               name="message"
               variant="filled"
               {...form.getInputProps('message')}
-              disabled={sendMail.isSuccess}
+              disabled={sendMail.isSuccess || sendMail.isPending}
             />
 
             {!activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM) && (
@@ -180,10 +180,12 @@ const Contact: NextPage = () => {
                 size="md"
                 disabled={
                   sendMail.isSuccess ||
+                  sendMail.isPending ||
                   !activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM)
                 }
                 variant="outline"
                 color="gray"
+                loading={sendMail.isPending}
               >
                 Send message
               </Button>
