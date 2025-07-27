@@ -1,10 +1,8 @@
+import { Suspense } from 'react';
+
 import { type NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-
-import { Alert, Text } from '@mantine/core';
-
-import { IconAlertCircle } from '@tabler/icons-react';
 
 import { RouteType } from 'fpp/server/db/schema';
 
@@ -45,7 +43,9 @@ const Home: NextPage = () => {
           duration={9}
           translateY={-500}
         />
-        <IndexForm />
+        <Suspense fallback={<IndexFormSkeleton />}>
+          <IndexForm />
+        </Suspense>
         <div className="gradient-image"></div>
         <div className="z-10 w-[1200px] max-w-full p-6">
           <section id="screenshot">

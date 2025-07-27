@@ -38,7 +38,7 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
   userId = (!validateNanoId(userId) ? nanoid() : userId)!;
 
   if (userAgentFromString(req.headers['user-agent']).isBot) {
-    return { userId };
+    return res.status(200).json({ userId });
   }
 
   if (RouteType[route] === undefined) {

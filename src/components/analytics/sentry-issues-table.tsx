@@ -101,7 +101,7 @@ export const SentryIssuesTable = ({
   ));
 
   return (
-    <Card withBorder radius="md" padding="0" className="mb-12">
+    <Card withBorder radius="md" padding="0">
       <div className="overflow-y-scroll max-h-[400px]">
         <Table
           highlightOnHover
