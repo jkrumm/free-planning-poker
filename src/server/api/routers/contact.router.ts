@@ -31,7 +31,7 @@ export const contactRouter = createTRPCRouter({
         });
       }
 
-      await fetch(`http://${env.BEA_BASE_URL}:3010/fpp`, {
+      await fetch(`${env.BEA_BASE_URL}:3010/fpp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
