@@ -23,6 +23,7 @@ export const useConfigLoader = () => {
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       retry: false,
+      enabled: hasMounted,
     });
 
   const setLatestTag = useConfigStore((state) => state.setLatestTag);
@@ -33,16 +34,18 @@ export const useConfigLoader = () => {
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       retry: false,
+      enabled: hasMounted,
     });
 
   useEffect(() => {
     if (!hasMounted) {
       return;
     }
+
     startTransition(() => {
       if (statusGetFeatureFlag === 'success') {
         setFeatureFlags(featureFlags);
-      } else {
+      } else if (statusGetFeatureFlag === 'error') {
         setFeatureFlags(
           Object.keys(FeatureFlagType).map((name) => ({
             name: name as keyof typeof FeatureFlagType,
@@ -50,9 +53,29 @@ export const useConfigLoader = () => {
           })),
         );
       }
+
       if (statusGetLatestTag === 'success') {
         setLatestTag(latestTag);
       }
     });
-  }, [statusGetFeatureFlag, statusGetLatestTag]);
+  }, [
+    hasMounted,
+    statusGetFeatureFlag,
+    statusGetLatestTag,
+    featureFlags,
+    latestTag,
+    setFeatureFlags,
+    setLatestTag,
+  ]);
+
+  return {
+    isLoading:
+      !hasMounted ||
+      statusGetFeatureFlag === 'pending' ||
+      statusGetLatestTag === 'pending',
+    isReady:
+      hasMounted &&
+      statusGetFeatureFlag !== 'pending' &&
+      statusGetLatestTag !== 'pending',
+  };
 };
