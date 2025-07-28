@@ -48,9 +48,17 @@ const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
 
 const IndexForm = () => {
   const [hasMounted, setHasMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
+    // Add a small delay to ensure hydration is complete
+    const timer = setTimeout(() => {
+      startTransition(() => {
+        setIsHydrated(true);
+      });
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const router = useRouter();
@@ -112,6 +120,10 @@ const IndexForm = () => {
       estimation_count: 30000,
       user_count: 6000,
     },
+    // Only enable the query after hydration is complete
+    enabled: isHydrated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   return (
@@ -232,7 +244,9 @@ export function AnimatedNumber({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      spring.set(value);
+      startTransition(() => {
+        spring.set(value);
+      });
     }, delay);
 
     return () => clearTimeout(timeout);
