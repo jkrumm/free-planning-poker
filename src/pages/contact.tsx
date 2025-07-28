@@ -65,15 +65,15 @@ const Contact: NextPage = () => {
       <Navbar />
       <Hero />
       <main className="flex flex-col items-center justify-center">
-        <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
+        <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-6 md:mb-8">
           <Text className="mb-4">
             Do you have any questions, suggestions, or feedback? I would love to
             hear from you!
           </Text>
           <Text className="mb-4">
-            Free Planning Poker is an open-source project, and I am always happy
+            Free Planning Poker is an open-source project, and I would be happy
             to receive contributions from the community. If you want to help,
-            feel free reach out to me or to create a pull request on GitHub.
+            feel free reach out to me or to create a issue on GitHub.
           </Text>
           <a
             href="https://github.com/jkrumm/free-planning-poker/issues/new"
@@ -85,9 +85,9 @@ const Contact: NextPage = () => {
             </Button>
           </a>
         </section>
-        <section className="container flex items-center justify-center w-[800px] gap-12 px-4 pb-12 pt-8">
+        <section className="container flex items-center justify-center max-w-[800px] w-full gap-12 px-4 mb-10 md:mb-20">
           <form
-            className="w-[800px] mt-3 mb-8"
+            className="w-full max-w-[800px] mt-3 mb-8"
             onSubmit={form.onSubmit(() => {
               sendMail.mutate(form.values, {
                 onSuccess: () => {
@@ -165,7 +165,7 @@ const Contact: NextPage = () => {
                 title="Contact form disabled"
                 color="orange"
                 variant="outline"
-                className="mx-auto my-8 w-1/2"
+                className="mx-auto my-8 w-full max-w-md"
               >
                 <Text>
                   The contact form is currently disabled by a feature flag.
