@@ -2,13 +2,14 @@ import { type ReactNode } from 'react';
 
 import { Button } from '@mantine/core';
 
-import { IconEye, IconGraph, IconSettings } from '@tabler/icons-react';
+import { IconBug, IconEye, IconGraph, IconSettings } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { useRoomStore } from 'fpp/store/room.store';
 import { SidebarTabs, useSidebarStore } from 'fpp/store/sidebar.store';
 
+import SidebarFeedback from 'fpp/components/sidebar/sidebar-feedback';
 import SidebarRoomAnalytics from 'fpp/components/sidebar/sidebar-room-analytics';
 import SidebarSettings from 'fpp/components/sidebar/sidebar-settings';
 import SidebarSpectators from 'fpp/components/sidebar/sidebar-spectators';
@@ -33,6 +34,10 @@ const buttons: {
   {
     tab: SidebarTabs.room_analytics,
     icon: <IconGraph size={22} />,
+  },
+  {
+    tab: SidebarTabs.feedback,
+    icon: <IconBug size={22} />,
   },
 ];
 
@@ -70,6 +75,9 @@ const Sidebar = ({
       </AnimatePresence>
       <AnimatePresence>
         {tab === SidebarTabs.room_analytics && <SidebarRoomAnalytics />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {tab === SidebarTabs.feedback && <SidebarFeedback />}
       </AnimatePresence>
       <div className="md:mt-3 mt-2 flex flex-col text-white">
         {buttons.map(({ tab: buttonTab, icon, badge }, index) => {

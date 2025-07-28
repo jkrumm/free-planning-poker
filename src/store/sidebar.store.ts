@@ -4,6 +4,7 @@ export const SidebarTabs = {
   settings: 'settings',
   room_analytics: 'room_analytics',
   spectators: 'spectators',
+  feedback: 'feedback',
 } as const;
 
 type SidebarStore = {

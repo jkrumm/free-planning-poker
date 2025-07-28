@@ -41,6 +41,7 @@ interface LocalstorageStore {
   roomEvent: keyof typeof RoomEvent;
   userId: string | null;
   historicalTableOpen: boolean;
+  lastFeedbackSubmission: number | null;
   setUsername: (username: string) => void;
   setIsPlaySound: (isPlaySound: boolean) => void;
   setIsNotificationsEnabled: (isNotificationsEnabled: boolean) => void;
@@ -52,6 +53,8 @@ interface LocalstorageStore {
   setRoomEvent: (roomEvent: keyof typeof RoomEvent) => void;
   setUserId: (userId: string) => void;
   setHistoricalTableOpen: (historicalTableOpen: boolean) => void;
+  setLastFeedbackSubmission: (time: number) => void;
+  canSubmitFeedback: () => boolean;
 }
 
 export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
@@ -81,6 +84,10 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     return userId;
   })(),
   historicalTableOpen: getFromLocalstorage('historicalTableOpen') === 'true',
+  lastFeedbackSubmission: (() => {
+    const time = getFromLocalstorage('lastFeedbackSubmission');
+    return time ? parseInt(time, 10) : null;
+  })(),
   setUsername: (username: string) => {
     username = username.replace(/[^A-Za-z]/g, '');
 
@@ -174,5 +181,17 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   setHistoricalTableOpen: (historicalTableOpen: boolean) => {
     localStorage.setItem('historicalTableOpen', historicalTableOpen.toString());
     set({ historicalTableOpen });
+  },
+  setLastFeedbackSubmission: (time: number) => {
+    localStorage.setItem('lastFeedbackSubmission', time.toString());
+    set({ lastFeedbackSubmission: time });
+  },
+  canSubmitFeedback: () => {
+    const lastTime = get().lastFeedbackSubmission;
+    if (!lastTime) return true;
+
+    const now = Date.now();
+    const timeSinceLastSubmission = now - lastTime;
+    return timeSinceLastSubmission > 30000; // 30 seconds
   },
 }));
