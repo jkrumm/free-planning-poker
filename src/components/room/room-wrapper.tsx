@@ -138,7 +138,7 @@ const RoomWrapper = () => {
   }, [queryRoom, username, firstLoad]);
 
   return (
-    <div className="relative flex-col items-center justify-center flex">
+    <div className="h-screen w-screen flex flex-col items-center justify-center relative">
       {(() => {
         if (!username || modelOpen) {
           return (
