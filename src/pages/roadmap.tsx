@@ -29,6 +29,7 @@ import superjson from 'superjson';
 import { logMsg } from 'fpp/constants/logging.constant';
 
 import { api } from 'fpp/utils/api';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 
 import { appRouter } from 'fpp/server/api/root';
 import { type Todo } from 'fpp/server/api/routers/roadmap.router';
@@ -43,34 +44,119 @@ import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 export const getStaticProps = async (context: CreateNextContextOptions) => {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: createTRPCContext(context),
-    transformer: superjson,
-  });
+  try {
+    const helpers = createServerSideHelpers({
+      router: appRouter,
+      ctx: createTRPCContext(context),
+      transformer: superjson,
+    });
 
-  await helpers.roadmap.getRoadmap.prefetch(undefined);
+    await helpers.roadmap.getRoadmap.prefetch(undefined);
 
-  return {
-    props: { trpcState: helpers.dehydrate() },
-    revalidate: 3600,
-  };
+    return {
+      props: { trpcState: helpers.dehydrate() },
+      revalidate: 3600,
+    };
+  } catch (error) {
+    // Log the error but still return props to prevent build failure
+    Sentry.captureException(error);
+    console.error('Failed to prefetch roadmap data:', error);
+
+    return {
+      props: { trpcState: {} },
+      revalidate: 60, // Retry more frequently if there was an error
+    };
+  }
 };
 
 const Roadmap = () => {
   useTrackPageView(RouteType.ROADMAP);
 
-  const { data: roadmap } = api.roadmap.getRoadmap.useQuery(undefined, {
+  const {
+    data: roadmap,
+    error,
+    isLoading,
+    isError,
+  } = api.roadmap.getRoadmap.useQuery(undefined, {
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    retry: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  if (!roadmap) {
-    Sentry.captureException(new Error(logMsg.SSG_FAILED));
-    return <div>Loading...</div>;
+  // Handle loading state
+  if (isLoading) {
+    addBreadcrumb('Roadmap data loading', 'page');
+    return (
+      <>
+        <Meta title="Roadmap" />
+        <Navbar />
+        <Hero />
+        <main className="flex flex-col items-center justify-center">
+          <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
+            <Text>Loading roadmap...</Text>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
   }
+
+  // Handle error state
+  if (isError || !roadmap) {
+    const errorMessage = error?.message ?? logMsg.SSG_FAILED;
+
+    captureError(
+      error instanceof Error ? error : new Error(errorMessage),
+      {
+        component: 'Roadmap',
+        action: 'loadRoadmapData',
+        extra: {
+          isError,
+          hasRoadmap: !!roadmap,
+        },
+      },
+      'medium',
+    );
+
+    return (
+      <>
+        <Meta title="Roadmap - Error" />
+        <Navbar />
+        <Hero />
+        <main className="flex flex-col items-center justify-center">
+          <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
+            <Text className="mb-4">
+              Sorry, there was an error loading the roadmap. Please try
+              refreshing the page.
+            </Text>
+            <Group className="w-full justify-center gap-4">
+              <Button
+                variant="outline"
+                color="gray"
+                onClick={() => window.location.reload()}
+              >
+                Refresh Page
+              </Button>
+              <Link href="/contact">
+                <Button variant="outline" color="gray">
+                  Report Issue
+                </Button>
+              </Link>
+            </Group>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  addBreadcrumb('Roadmap data loaded successfully', 'page', {
+    todoCount: roadmap.todo.length,
+    inProgressCount: roadmap.inProgress.length,
+    doneCount: roadmap.done.length,
+  });
 
   return (
     <>
@@ -137,7 +223,7 @@ const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
         {title}
       </Title>
       {todos.map((todo, index) => (
-        <RoadmapCard todo={todo} key={index} />
+        <RoadmapCard todo={todo} key={`${title}-${index}`} />
       ))}
     </div>
   );
@@ -145,11 +231,34 @@ const RoadmapSection = ({ title, todos }: { title: string; todos: Todo[] }) => {
 
 const Markdown = dynamic(() => import('fpp/components/markdown'), {
   ssr: false,
+  loading: () => <Text c="dimmed">Loading...</Text>,
 });
 
 const RoadmapCard = ({ todo }: { todo: Todo }) => {
   const { title, description, subtasks } = todo;
   const [opened, { toggle }] = useDisclosure(false);
+
+  const handleToggle = () => {
+    try {
+      toggle();
+      addBreadcrumb('Roadmap card toggled', 'interaction', {
+        title: title.substring(0, 30),
+        opened: !opened,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to toggle roadmap card'),
+        {
+          component: 'RoadmapCard',
+          action: 'toggle',
+          extra: { title: title.substring(0, 30) },
+        },
+        'low',
+      );
+    }
+  };
 
   return (
     <Card p={0} withBorder radius="sm" className="mb-3">
@@ -163,7 +272,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
             inheritPadding
             withBorder={opened}
             className="border-t-0 p-2 m-0 cursor-pointer"
-            onClick={toggle}
+            onClick={handleToggle}
           >
             <Group className="flex-nowrap">
               <IconArrowBadgeDownFilled
@@ -187,7 +296,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
                   <List className="pr-5 roadmap-list">
                     {subtasks.map((subtask, index) => (
                       <List.Item
-                        key={index}
+                        key={`${title}-subtask-${index}`}
                         icon={
                           subtask.done ? <IconSquareCheck /> : <IconSquare />
                         }

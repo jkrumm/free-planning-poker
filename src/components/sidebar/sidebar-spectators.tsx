@@ -6,6 +6,8 @@ import { IconEye } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
 import { type User } from 'fpp-server/src/room.entity';
 
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -17,24 +19,43 @@ const SidebarSpectators = ({
 }: {
   triggerAction: (action: Action) => void;
 }) => {
-  const users = useRoomStore((store) => store.users);
-  const spectators = users.filter((user) => user.isSpectator);
+  try {
+    const users = useRoomStore((store) => store.users);
+    const spectators = users.filter((user) => user.isSpectator);
 
-  return (
-    <SidebarContent
-      childrens={[
-        {
-          title: 'Spectators',
-          content: (
-            <SpectatorsList
-              spectators={spectators}
-              triggerAction={triggerAction}
-            />
-          ),
-        },
-      ]}
-    />
-  );
+    addBreadcrumb('Spectators sidebar loaded', 'spectators', {
+      spectatorCount: spectators.length,
+      totalUsers: users.length,
+    });
+
+    return (
+      <SidebarContent
+        childrens={[
+          {
+            title: 'Spectators',
+            content: (
+              <SpectatorsList
+                spectators={spectators}
+                triggerAction={triggerAction}
+              />
+            ),
+          },
+        ]}
+      />
+    );
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to load spectators sidebar'),
+      {
+        component: 'SidebarSpectators',
+        action: 'render',
+      },
+      'medium',
+    );
+    return null;
+  }
 };
 
 const SpectatorsList = ({
@@ -44,29 +65,53 @@ const SpectatorsList = ({
   spectators: User[];
   triggerAction: (action: Action) => void;
 }) => {
-  if (spectators.length === 0) {
+  try {
+    if (spectators.length === 0) {
+      addBreadcrumb('No spectators in room', 'spectators');
+      return (
+        <div className="w-full text-center py-4">
+          <Text size="sm" c="dimmed">
+            No spectators in this room
+          </Text>
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full">
+        <Stack gap="sm">
+          {spectators.map((spectator) => (
+            <SpectatorCard
+              key={spectator.id}
+              spectator={spectator}
+              triggerAction={triggerAction}
+            />
+          ))}
+        </Stack>
+      </div>
+    );
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to render spectators list'),
+      {
+        component: 'SpectatorsList',
+        action: 'render',
+        extra: {
+          spectatorCount: spectators.length,
+        },
+      },
+      'medium',
+    );
     return (
       <div className="w-full text-center py-4">
         <Text size="sm" c="dimmed">
-          No spectators in this room
+          Error loading spectators
         </Text>
       </div>
     );
   }
-
-  return (
-    <div className="w-full">
-      <Stack gap="sm">
-        {spectators.map((spectator) => (
-          <SpectatorCard
-            key={spectator.id}
-            spectator={spectator}
-            triggerAction={triggerAction}
-          />
-        ))}
-      </Stack>
-    </div>
-  );
 };
 
 const SpectatorCard = ({
@@ -80,6 +125,19 @@ const SpectatorCard = ({
   const roomId = useLocalstorageStore((state) => state.roomId);
 
   if (!userId || !roomId) {
+    captureError(
+      'Missing required data for spectator card',
+      {
+        component: 'SpectatorCard',
+        action: 'validateData',
+        extra: {
+          hasUserId: !!userId,
+          hasRoomId: !!roomId,
+          spectatorId: spectator.id,
+        },
+      },
+      'low',
+    );
     return (
       <div className="w-full text-center py-4">
         <Text size="sm" c="dimmed">

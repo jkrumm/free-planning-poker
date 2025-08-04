@@ -11,6 +11,7 @@ import { RoomStateStatus } from 'fpp-server/src/room.entity';
 
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 import { copyToClipboard } from 'fpp/utils/copy-top-clipboard.util';
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { executeLeave } from 'fpp/utils/room.util';
@@ -50,17 +51,182 @@ export const Interactions = ({
   const isConnected = readyState === ReadyState.OPEN;
 
   const handleCopyUrl = () => {
-    if (!window.location) {
-      return;
+    try {
+      if (!window.location) {
+        captureError(
+          'Window location not available',
+          {
+            component: 'Interactions',
+            action: 'handleCopyUrl',
+            extra: { roomId, userId },
+          },
+          'low',
+        );
+        return;
+      }
+      copyToClipboard(window.location.toString(), userId);
+      addBreadcrumb('Room URL copied to clipboard', 'room', {
+        roomId,
+        roomName,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to copy room URL'),
+        {
+          component: 'Interactions',
+          action: 'handleCopyUrl',
+          extra: { roomId, userId },
+        },
+        'medium',
+      );
     }
-    copyToClipboard(window.location.toString(), userId);
   };
 
   const handleEditRoomName = () => {
-    setTab(SidebarTabs.settings);
+    try {
+      setTab(SidebarTabs.settings);
+      addBreadcrumb('Room name edit requested', 'room', {
+        roomId,
+        roomName,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to open room settings'),
+        {
+          component: 'Interactions',
+          action: 'handleEditRoomName',
+          extra: { roomId, userId },
+        },
+        'medium',
+      );
+    }
+  };
+
+  const handleSpectatorToggle = () => {
+    try {
+      triggerAction({
+        action: 'setSpectator',
+        roomId,
+        userId,
+        targetUserId: userId,
+        isSpectator: !isSpectator,
+      });
+      setTab(isSpectator ? null : SidebarTabs.spectators);
+      addBreadcrumb('Spectator mode toggled', 'room', {
+        newSpectatorState: !isSpectator,
+        roomId,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to toggle spectator mode'),
+        {
+          component: 'Interactions',
+          action: 'handleSpectatorToggle',
+          extra: {
+            roomId,
+            userId,
+            currentSpectatorState: isSpectator,
+          },
+        },
+        'medium',
+      );
+    }
+  };
+
+  const handleReset = () => {
+    try {
+      triggerAction({
+        action: 'reset',
+        roomId,
+        userId,
+      });
+      addBreadcrumb('Room reset requested', 'room', {
+        roomId,
+        status,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to reset room'),
+        {
+          component: 'Interactions',
+          action: 'handleReset',
+          extra: { roomId, userId, status },
+        },
+        'medium',
+      );
+    }
+  };
+
+  const handleLeave = () => {
+    try {
+      executeLeave({
+        roomId,
+        userId,
+        triggerAction,
+        router,
+      });
+      addBreadcrumb('Room leave requested', 'room', {
+        roomId,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to leave room'),
+        {
+          component: 'Interactions',
+          action: 'handleLeave',
+          extra: { roomId, userId },
+        },
+        'high', // High priority as it affects navigation
+      );
+    }
+  };
+
+  const handleEstimate = (number: number) => {
+    try {
+      const newEstimation = estimation === number ? null : number;
+      triggerAction({
+        action: 'estimate',
+        roomId,
+        userId,
+        estimation: newEstimation,
+      });
+      addBreadcrumb('Estimation submitted', 'room', {
+        estimation: newEstimation,
+        roomId,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to submit estimation'),
+        {
+          component: 'Interactions',
+          action: 'handleEstimate',
+          extra: {
+            roomId,
+            userId,
+            estimation: number,
+            currentEstimation: estimation,
+          },
+        },
+        'medium',
+      );
+    }
   };
 
   const shouldShowTooltip = userCount === 1 || isHovered;
+
+  addBreadcrumb('Interactions component rendered', 'room', {
+    roomId,
+    isConnected,
+    isSpectator,
+    status,
+    userCount,
+  });
 
   return (
     <div className="fixed bottom-0 left-0 w-screen flex justify-center h-[160px] sm:h-[170px] border-t md:border-0 border-[#424242] bg-[#242424] z-10">
@@ -126,16 +292,7 @@ export const Interactions = ({
               leftSection={<IconEye size={16} />}
               size="sm"
               className="text-xs sm:text-sm"
-              onClick={() => {
-                triggerAction({
-                  action: 'setSpectator',
-                  roomId,
-                  userId,
-                  targetUserId: userId,
-                  isSpectator: !isSpectator,
-                });
-                setTab(isSpectator ? null : SidebarTabs.spectators);
-              }}
+              onClick={handleSpectatorToggle}
             >
               Spectator
             </Button>
@@ -146,13 +303,7 @@ export const Interactions = ({
               }
               size="sm"
               className="text-xs sm:text-sm"
-              onClick={() => {
-                triggerAction({
-                  action: 'reset',
-                  roomId,
-                  userId,
-                });
-              }}
+              onClick={handleReset}
             >
               {status === RoomStateStatus.flipped ? (
                 <>
@@ -167,14 +318,7 @@ export const Interactions = ({
               variant="default"
               size="sm"
               className="text-xs sm:text-sm"
-              onClick={() => {
-                executeLeave({
-                  roomId,
-                  userId,
-                  triggerAction,
-                  router,
-                });
-              }}
+              onClick={handleLeave}
             >
               Leave
             </Button>
@@ -197,14 +341,7 @@ export const Interactions = ({
                 fullWidth
                 key={number}
                 className="flex-1 text-sm sm:text-base p-0"
-                onClick={() => {
-                  triggerAction({
-                    action: 'estimate',
-                    roomId,
-                    userId,
-                    estimation: estimation === number ? null : number,
-                  });
-                }}
+                onClick={() => handleEstimate(number)}
               >
                 {number}
               </Button>

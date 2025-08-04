@@ -26,7 +26,7 @@ const RoomPage = () => {
   const { room } = router.query as { room: string };
 
   return (
-    <div className="h-full w-full">
+    <div>
       <Meta title={room} robots="noindex,nofollow" />
       <Suspense fallback={<CenteredLoader />}>
         <RoomWrapper />

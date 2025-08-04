@@ -1,6 +1,7 @@
 import { RingProgress, Text } from '@mantine/core';
 
 import { api } from 'fpp/utils/api';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 import { secondsToReadableTime } from 'fpp/utils/number.utils';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -52,67 +53,126 @@ const SidebarRoomAnalytics = () => {
 
   const query = api.room.getRoomStats.useQuery({ roomId });
 
-  if (query.isLoading || query.isError || !query.data) {
+  if (query.isLoading) {
+    addBreadcrumb('Loading room analytics', 'analytics', { roomId });
     return null;
   }
 
-  const {
-    votes,
-    duration,
-    estimations,
-    estimations_per_vote,
-    avg_min_estimation,
-    avg_avg_estimation,
-    avg_max_estimation,
-    spectators,
-    spectators_per_vote,
-  } = query.data;
+  if (query.isError) {
+    captureError(
+      query.error || 'Failed to load room analytics',
+      {
+        component: 'SidebarRoomAnalytics',
+        action: 'loadRoomStats',
+        extra: {
+          roomId,
+          errorStatus: query.status,
+        },
+      },
+      'medium',
+    );
+    return null;
+  }
 
-  console.log(query.data);
+  if (!query.data) {
+    captureError(
+      'Room analytics data is null',
+      {
+        component: 'SidebarRoomAnalytics',
+        action: 'validateData',
+        extra: {
+          roomId,
+          queryStatus: query.status,
+        },
+      },
+      'low',
+    );
+    return null;
+  }
 
-  return (
-    <SidebarContent
-      childrens={[
-        {
-          title: 'Total Votes',
-          content: (
-            <>
-              <Stat title="Votes" value={votes} />
-              <Stat title="Duration" value={secondsToReadableTime(duration)} />
-            </>
-          ),
+  try {
+    const {
+      votes,
+      duration,
+      estimations,
+      estimations_per_vote,
+      avg_min_estimation,
+      avg_avg_estimation,
+      avg_max_estimation,
+      spectators,
+      spectators_per_vote,
+    } = query.data;
+
+    addBreadcrumb('Room analytics loaded successfully', 'analytics', {
+      roomId,
+      votes,
+      estimations,
+      spectators,
+    });
+
+    return (
+      <SidebarContent
+        childrens={[
+          {
+            title: 'Total Votes',
+            content: (
+              <>
+                <Stat title="Votes" value={votes} />
+                <Stat
+                  title="Duration"
+                  value={secondsToReadableTime(duration)}
+                />
+              </>
+            ),
+          },
+          {
+            title: 'Total Estimations',
+            content: (
+              <>
+                <Stat title="Estimations" value={estimations} />
+                <Stat title="Per Vote" value={estimations_per_vote} />
+              </>
+            ),
+          },
+          {
+            title: 'Average Estimations',
+            content: (
+              <>
+                <VoteRing value={avg_min_estimation} name="LOW" />
+                <VoteRing value={avg_avg_estimation} name="AVG" />
+                <VoteRing value={avg_max_estimation} name="HIGH" />
+              </>
+            ),
+          },
+          {
+            title: 'Total Spectators',
+            content: (
+              <>
+                <Stat title="Spectators" value={spectators} />
+                <Stat title="Per Vote" value={spectators_per_vote} />
+              </>
+            ),
+          },
+        ]}
+      />
+    );
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to render room analytics'),
+      {
+        component: 'SidebarRoomAnalytics',
+        action: 'renderAnalytics',
+        extra: {
+          roomId,
+          hasData: !!query.data,
         },
-        {
-          title: 'Total Estimations',
-          content: (
-            <>
-              <Stat title="Estimations" value={estimations} />
-              <Stat title="Per Vote" value={estimations_per_vote} />
-            </>
-          ),
-        },
-        {
-          title: 'Average Estimations',
-          content: (
-            <>
-              <VoteRing value={avg_min_estimation} name="LOW" />
-              <VoteRing value={avg_avg_estimation} name="AVG" />
-              <VoteRing value={avg_max_estimation} name="HIGH" />
-            </>
-          ),
-        },
-        {
-          title: 'Total Spectators',
-          content: (
-            <>
-              <Stat title="Spectators" value={spectators} />
-              <Stat title="Per Vote" value={spectators_per_vote} />
-            </>
-          ),
-        },
-      ]}
-    />
-  );
+      },
+      'medium',
+    );
+    return null;
+  }
 };
 
 export default SidebarRoomAnalytics;

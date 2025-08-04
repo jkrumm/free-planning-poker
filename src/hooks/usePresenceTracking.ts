@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 
 import { type Action } from 'fpp-server/src/room.actions';
 
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+
 import { useRoomStore } from 'fpp/store/room.store';
 
 interface PresenceTrackingConfig {
@@ -24,74 +26,192 @@ export const usePresenceTracking = ({
 
   useEffect(() => {
     const updatePresence = (isPresent: boolean) => {
-      console.debug('Updating presence:', { isPresent, userId, roomId });
-      triggerAction({
-        action: 'setPresence',
-        roomId,
-        userId,
-        isPresent,
-      });
+      try {
+        addBreadcrumb('Updating user presence', 'presence', {
+          isPresent,
+          userId,
+          roomId,
+        });
+
+        triggerAction({
+          action: 'setPresence',
+          roomId,
+          userId,
+          isPresent,
+        });
+      } catch (error) {
+        captureError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to update presence'),
+          {
+            component: 'usePresenceTracking',
+            action: 'updatePresence',
+            extra: {
+              isPresent,
+              userId,
+              roomId,
+            },
+          },
+          'medium',
+        );
+      }
     };
 
     const handleVisibilityChange = () => {
-      const isVisible = !document.hidden;
-      console.debug('Visibility changed:', {
-        isVisible,
-        hidden: document.hidden,
-      });
-      updatePresence(isVisible);
+      try {
+        const isVisible = !document.hidden;
+        addBreadcrumb('Visibility changed', 'presence', {
+          isVisible,
+          hidden: document.hidden,
+        });
 
-      if (isVisible) {
-        console.debug('Tab became visible - sending immediate heartbeat');
+        updatePresence(isVisible);
 
-        // Clear any existing timeout and send immediate heartbeat
-        if (visibilityHeartbeatRef.current) {
-          clearTimeout(visibilityHeartbeatRef.current);
+        if (isVisible) {
+          // Clear any existing timeout and send immediate heartbeat
+          if (visibilityHeartbeatRef.current) {
+            clearTimeout(visibilityHeartbeatRef.current);
+          }
+
+          // Send heartbeat after a small delay to ensure tab is fully active
+          visibilityHeartbeatRef.current = setTimeout(() => {
+            try {
+              sendHeartbeat();
+              // Reset the pong timer since we're active again
+              setLastPongReceived(Date.now());
+            } catch (error) {
+              captureError(
+                error instanceof Error
+                  ? error
+                  : new Error('Failed to send visibility heartbeat'),
+                {
+                  component: 'usePresenceTracking',
+                  action: 'handleVisibilityChange',
+                },
+                'low',
+              );
+            }
+          }, 100);
         }
-
-        // Send heartbeat after a small delay to ensure tab is fully active
-        visibilityHeartbeatRef.current = setTimeout(() => {
-          sendHeartbeat();
-          // Reset the pong timer since we're active again
-          setLastPongReceived(Date.now());
-        }, 100);
+      } catch (error) {
+        captureError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to handle visibility change'),
+          {
+            component: 'usePresenceTracking',
+            action: 'handleVisibilityChange',
+            extra: {
+              documentHidden: document.hidden,
+            },
+          },
+          'medium',
+        );
       }
     };
 
     const handleFocus = () => {
-      console.debug('Window focused - user is active');
-      updatePresence(true);
-      sendHeartbeat();
+      try {
+        addBreadcrumb('Window focused - user is active', 'presence');
+        updatePresence(true);
+        sendHeartbeat();
+      } catch (error) {
+        captureError(
+          error instanceof Error ? error : new Error('Failed to handle focus'),
+          {
+            component: 'usePresenceTracking',
+            action: 'handleFocus',
+          },
+          'low',
+        );
+      }
     };
 
     const handleBlur = () => {
-      console.debug('Window blurred - user is away');
-      updatePresence(false);
+      try {
+        addBreadcrumb('Window blurred - user is away', 'presence');
+        updatePresence(false);
+      } catch (error) {
+        captureError(
+          error instanceof Error ? error : new Error('Failed to handle blur'),
+          {
+            component: 'usePresenceTracking',
+            action: 'handleBlur',
+          },
+          'low',
+        );
+      }
     };
 
     // Network change detection
     const handleOnline = () => {
-      console.debug('Network came online - sending heartbeat');
-      sendHeartbeat();
+      try {
+        addBreadcrumb('Network came online - sending heartbeat', 'presence');
+        sendHeartbeat();
+      } catch (error) {
+        captureError(
+          error instanceof Error ? error : new Error('Failed to handle online'),
+          {
+            component: 'usePresenceTracking',
+            action: 'handleOnline',
+          },
+          'low',
+        );
+      }
     };
 
-    // Set initial presence based on current visibility and focus state
-    const isCurrentlyActive = !document.hidden && document.hasFocus();
-    updatePresence(isCurrentlyActive);
+    try {
+      // Set initial presence based on current visibility and focus state
+      const isCurrentlyActive = !document.hidden && document.hasFocus();
+      updatePresence(isCurrentlyActive);
 
-    // Add all event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('online', handleOnline);
+      // Add all event listeners
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('focus', handleFocus);
+      window.addEventListener('blur', handleBlur);
+      window.addEventListener('online', handleOnline);
+
+      addBreadcrumb('Presence tracking initialized', 'presence', {
+        isCurrentlyActive,
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to initialize presence tracking'),
+        {
+          component: 'usePresenceTracking',
+          action: 'initialization',
+        },
+        'high',
+      );
+    }
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('online', handleOnline);
-      if (visibilityHeartbeatRef.current) {
-        clearTimeout(visibilityHeartbeatRef.current);
+      try {
+        document.removeEventListener(
+          'visibilitychange',
+          handleVisibilityChange,
+        );
+        window.removeEventListener('focus', handleFocus);
+        window.removeEventListener('blur', handleBlur);
+        window.removeEventListener('online', handleOnline);
+
+        if (visibilityHeartbeatRef.current) {
+          clearTimeout(visibilityHeartbeatRef.current);
+        }
+      } catch (error) {
+        captureError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to cleanup presence tracking'),
+          {
+            component: 'usePresenceTracking',
+            action: 'cleanup',
+          },
+          'low',
+        );
       }
     };
   }, [sendHeartbeat, setLastPongReceived, triggerAction, roomId, userId]);

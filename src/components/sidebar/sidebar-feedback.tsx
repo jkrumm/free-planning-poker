@@ -6,6 +6,12 @@ import { notifications } from '@mantine/notifications';
 
 import * as Sentry from '@sentry/nextjs';
 
+import {
+  addBreadcrumb,
+  captureError,
+  captureMessage,
+} from 'fpp/utils/app-error';
+
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -14,6 +20,7 @@ import SidebarContent from 'fpp/components/sidebar/sidebar-content';
 const SidebarFeedback = () => {
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
   // Get data from localStorage
   const username = useLocalstorageStore((state) => state.username);
   const userId = useLocalstorageStore((state) => state.userId);
@@ -31,7 +38,10 @@ const SidebarFeedback = () => {
 
   // Check if user can submit feedback (rate limiting)
   useEffect(() => {
-    // Rate limiting is handled by the canSubmit variable
+    addBreadcrumb('Feedback form initialized', 'feedback', {
+      canSubmit,
+      hasLastSubmission: !!lastSubmissionTime,
+    });
   }, [lastSubmissionTime, canSubmit]);
 
   const form = useForm({
@@ -58,53 +68,111 @@ const SidebarFeedback = () => {
 
   const handleSubmit = () => {
     if (!canSubmit) {
+      captureMessage(
+        'Feedback submission blocked by rate limiting',
+        {
+          component: 'SidebarFeedback',
+          action: 'handleSubmit',
+          extra: {
+            userId: userId ?? 'unknown',
+            lastSubmissionTime: lastSubmissionTime ?? 0,
+            timeRemaining: lastSubmissionTime
+              ? Math.max(0, 30000 - (Date.now() - lastSubmissionTime))
+              : 0,
+          },
+        },
+        'info',
+      );
       return;
     }
 
-    setIsPending(true);
+    try {
+      setIsPending(true);
 
-    // Capture feedback with Sentry
-    Sentry.captureFeedback(
-      {
-        name: username ?? 'Anonymous',
-        email: form.values.email ?? undefined,
-        message: form.values.message,
-      },
-      {
-        captureContext: {
-          tags: {
-            userId: userId ?? 'unknown',
-          },
-          extra: {
-            roomState: roomStateJson,
-          },
-        },
-      },
-    );
-
-    // Store submission time in localStorage
-    const now = Date.now();
-    setLastFeedbackSubmission(now);
-
-    // Simulate a delay for better UX
-    setTimeout(() => {
-      setIsPending(false);
-      setIsSuccess(true);
-
-      notifications.show({
-        title: 'Feedback sent',
-        color: 'green',
-        message: 'Thank you for your feedback!',
+      addBreadcrumb('Submitting feedback', 'feedback', {
+        hasEmail: !!form.values.email.trim(),
+        messageLength: form.values.message.length,
       });
 
-      // Reset form after successful submission
-      form.reset();
+      // Capture feedback with Sentry
+      Sentry.captureFeedback(
+        {
+          name: username ?? 'Anonymous',
+          email: form.values.email ?? undefined,
+          message: form.values.message,
+        },
+        {
+          captureContext: {
+            tags: {
+              userId: userId ?? 'unknown',
+            },
+            extra: {
+              roomState: roomStateJson,
+            },
+          },
+        },
+      );
 
-      // Reset success state after 3 seconds
+      // Store submission time in localStorage
+      const now = Date.now();
+      setLastFeedbackSubmission(now);
+
+      // Simulate a delay for better UX
       setTimeout(() => {
-        setIsSuccess(false);
-      }, 3000);
-    }, 1000);
+        try {
+          setIsPending(false);
+          setIsSuccess(true);
+
+          notifications.show({
+            title: 'Feedback sent',
+            color: 'green',
+            message: 'Thank you for your feedback!',
+          });
+
+          addBreadcrumb('Feedback submitted successfully', 'feedback', {
+            submissionTime: now,
+          });
+
+          // Reset form after successful submission
+          form.reset();
+
+          // Reset success state after 3 seconds
+          setTimeout(() => {
+            setIsSuccess(false);
+          }, 3000);
+        } catch (error) {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to complete feedback submission'),
+            {
+              component: 'SidebarFeedback',
+              action: 'handleSubmitCompletion',
+              extra: {
+                userId: userId ?? 'unknown',
+              },
+            },
+            'medium',
+          );
+          setIsPending(false);
+        }
+      }, 1000);
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to submit feedback'),
+        {
+          component: 'SidebarFeedback',
+          action: 'handleSubmit',
+          extra: {
+            userId: userId ?? 'unknown',
+            hasEmail: !!form.values.email.trim(),
+            messageLength: form.values.message.length,
+          },
+        },
+        'high',
+      );
+      setIsPending(false);
+    }
   };
 
   return (

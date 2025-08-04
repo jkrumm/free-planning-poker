@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { type NextPage } from 'next';
 
 import {
@@ -15,6 +17,7 @@ import { notifications } from '@mantine/notifications';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 import { api } from 'fpp/utils/api';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
 import { useConfigStore } from 'fpp/store/config.store';
@@ -30,6 +33,8 @@ import Navbar from 'fpp/components/layout/navbar';
 import { Meta } from 'fpp/components/meta';
 
 const Contact: NextPage = () => {
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useTrackPageView(RouteType.CONTACT);
 
   const activeFeatureFlags = useConfigStore(
@@ -49,15 +54,225 @@ const Contact: NextPage = () => {
       message: '',
     },
     validate: {
-      name: (value) => value.trim().length > 50,
-      email: (value) =>
-        value.trim().length !== 0 &&
-        (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value) ||
-          value.trim().length > 70),
-      subject: (value) => value.trim().length < 3 || value.trim().length > 100,
-      message: (value) => value.trim().length > 800,
+      name: (value) => {
+        try {
+          return value.trim().length > 50;
+        } catch (error) {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Name validation failed'),
+            {
+              component: 'Contact',
+              action: 'validateName',
+              extra: {
+                value:
+                  typeof value === 'string'
+                    ? value.substring(0, 20)
+                    : 'invalid',
+              },
+            },
+            'low',
+          );
+          return true; // Allow submission if validation fails
+        }
+      },
+      email: (value) => {
+        try {
+          const trimmed = value.trim();
+          return (
+            trimmed.length !== 0 &&
+            (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(trimmed) ||
+              trimmed.length > 70)
+          );
+        } catch (error) {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Email validation failed'),
+            {
+              component: 'Contact',
+              action: 'validateEmail',
+              extra: { hasValue: !!value },
+            },
+            'low',
+          );
+          return true; // Allow submission if validation fails
+        }
+      },
+      subject: (value) => {
+        try {
+          const trimmed = value.trim();
+          return trimmed.length < 3 || trimmed.length > 100;
+        } catch (error) {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Subject validation failed'),
+            {
+              component: 'Contact',
+              action: 'validateSubject',
+              extra: { hasValue: !!value },
+            },
+            'low',
+          );
+          return true; // Allow submission if validation fails
+        }
+      },
+      message: (value) => {
+        try {
+          return value.trim().length > 800;
+        } catch (error) {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Message validation failed'),
+            {
+              component: 'Contact',
+              action: 'validateMessage',
+              extra: { hasValue: !!value },
+            },
+            'low',
+          );
+          return true; // Allow submission if validation fails
+        }
+      },
     },
   });
+
+  const handleFormSubmit = () => {
+    try {
+      addBreadcrumb('Contact form submission started', 'form', {
+        hasName: !!form.values.name,
+        hasEmail: !!form.values.email,
+        hasSubject: !!form.values.subject,
+        hasMessage: !!form.values.message,
+      });
+
+      sendMail.mutate(form.values, {
+        onSuccess: () => {
+          try {
+            notifications.show({
+              title: 'Email sent',
+              color: 'green',
+              message:
+                'Thank you for your message, we will get back to you as soon as possible',
+            });
+            addBreadcrumb('Contact form submission successful', 'form');
+            form.reset();
+          } catch (error) {
+            captureError(
+              error instanceof Error
+                ? error
+                : new Error('Failed to show success notification'),
+              {
+                component: 'Contact',
+                action: 'handleSuccess',
+              },
+              'low',
+            );
+          }
+        },
+        onError: (error) => {
+          try {
+            captureError(
+              error instanceof Error
+                ? error
+                : new Error('Contact form submission failed'),
+              {
+                component: 'Contact',
+                action: 'submitForm',
+                extra: {
+                  hasName: !!form.values.name,
+                  hasEmail: !!form.values.email,
+                  hasSubject: !!form.values.subject,
+                  messageLength: form.values.message.length,
+                },
+              },
+              'medium',
+            );
+
+            notifications.show({
+              title: 'Email not sent',
+              color: 'red',
+              message: 'Something went wrong, please try again later',
+            });
+          } catch (notificationError) {
+            captureError(
+              notificationError instanceof Error
+                ? notificationError
+                : new Error('Failed to show error notification'),
+              {
+                component: 'Contact',
+                action: 'handleError',
+              },
+              'low',
+            );
+          }
+        },
+      });
+
+      // Track form submission
+      try {
+        sendTrackEvent({
+          event: EventType.CONTACT_FORM_SUBMISSION,
+          userId,
+        });
+      } catch (trackingError) {
+        captureError(
+          trackingError instanceof Error
+            ? trackingError
+            : new Error('Failed to track contact form submission'),
+          {
+            component: 'Contact',
+            action: 'trackSubmission',
+            extra: { userId },
+          },
+          'low',
+        );
+      }
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to handle contact form submission'),
+        {
+          component: 'Contact',
+          action: 'handleFormSubmit',
+        },
+        'medium',
+      );
+    }
+  };
+
+  // Track page initialization
+  if (!hasInitialized) {
+    try {
+      addBreadcrumb('Contact page initialized', 'page', {
+        hasUsername: !!username,
+        hasUserId: !!userId,
+        contactFormEnabled: activeFeatureFlags.includes(
+          FeatureFlagType.CONTACT_FORM,
+        ),
+      });
+      setHasInitialized(true);
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to initialize contact page'),
+        {
+          component: 'Contact',
+          action: 'initialize',
+        },
+        'low',
+      );
+    }
+  }
+
+  const isContactFormEnabled = activeFeatureFlags.includes(
+    FeatureFlagType.CONTACT_FORM,
+  );
 
   return (
     <>
@@ -88,29 +303,7 @@ const Contact: NextPage = () => {
         <section className="container flex items-center justify-center max-w-[800px] w-full gap-12 px-4 mb-10 md:mb-20">
           <form
             className="w-full max-w-[800px] mt-3 mb-8"
-            onSubmit={form.onSubmit(() => {
-              sendMail.mutate(form.values, {
-                onSuccess: () => {
-                  notifications.show({
-                    title: 'Email sent',
-                    color: 'green',
-                    message:
-                      'Thank you for your message, we will get back to you as soon as possible',
-                  });
-                },
-                onError: () => {
-                  notifications.show({
-                    title: 'Email not sent',
-                    color: 'red',
-                    message: 'Something went wrong, please try again later',
-                  });
-                },
-              });
-              sendTrackEvent({
-                event: EventType.CONTACT_FORM_SUBMISSION,
-                userId,
-              });
-            })}
+            onSubmit={form.onSubmit(handleFormSubmit)}
           >
             <SimpleGrid
               cols={{
@@ -159,7 +352,7 @@ const Contact: NextPage = () => {
               disabled={sendMail.isSuccess || sendMail.isPending}
             />
 
-            {!activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM) && (
+            {!isContactFormEnabled && (
               <Alert
                 icon={<IconAlertCircle size="1rem" />}
                 title="Contact form disabled"
@@ -181,7 +374,7 @@ const Contact: NextPage = () => {
                 disabled={
                   sendMail.isSuccess ||
                   sendMail.isPending ||
-                  !activeFeatureFlags.includes(FeatureFlagType.CONTACT_FORM)
+                  !isContactFormEnabled
                 }
                 variant="outline"
                 color="gray"

@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, useSpring, useTransform } from 'framer-motion';
 
 import { api } from 'fpp/utils/api';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 import { generateRoomNumber } from 'fpp/utils/room-number.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -26,24 +27,42 @@ interface LandingPageAnalytics {
 }
 
 const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
-    {
-      method: 'GET',
-      keepalive: true,
-    },
-  );
-  if (!response.ok) {
-    console.error('Failed to fetch analytics:', {
-      status: response.status,
-      statusText: response.statusText,
-    });
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
+      {
+        method: 'GET',
+        keepalive: true,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as LandingPageAnalytics;
+    return data;
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to fetch landing page analytics'),
+      {
+        component: 'IndexForm',
+        action: 'fetchAnalytics',
+        extra: {
+          endpoint: 'landingpage-analytics',
+        },
+      },
+      'low', // Low priority, fallback data is available
+    );
+
+    // Return fallback data
     return {
       estimation_count: 30000,
       user_count: 6000,
     };
   }
-  return (await response.json()) as Promise<LandingPageAnalytics>;
 };
 
 const IndexForm = () => {
@@ -51,14 +70,27 @@ const IndexForm = () => {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
-    // Add a small delay to ensure hydration is complete
-    const timer = setTimeout(() => {
-      startTransition(() => {
-        setIsHydrated(true);
-      });
-    }, 100);
-    return () => clearTimeout(timer);
+    try {
+      setHasMounted(true);
+      // Add a small delay to ensure hydration is complete
+      const timer = setTimeout(() => {
+        startTransition(() => {
+          setIsHydrated(true);
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to initialize IndexForm'),
+        {
+          component: 'IndexForm',
+          action: 'useEffect',
+        },
+        'medium',
+      );
+    }
   }, []);
 
   const router = useRouter();
@@ -73,42 +105,101 @@ const IndexForm = () => {
 
   if (getOpenRoomNumberQuery.isSuccess && getOpenRoomNumberQuery.data) {
     openRoomNumber = getOpenRoomNumberQuery.data;
+  } else if (getOpenRoomNumberQuery.isError) {
+    captureError(
+      getOpenRoomNumberQuery.error || 'Failed to get open room number',
+      {
+        component: 'IndexForm',
+        action: 'getOpenRoomNumber',
+        extra: {
+          fallbackRoomNumber: openRoomNumber,
+        },
+      },
+      'low',
+    );
   }
 
   useEffect(() => {
     if (!hasMounted) {
       return;
     }
-    startTransition(() => {
-      if (!roomName || roomName === 'null' || roomName === 'undefined') {
-        setRoomReadable(null);
-      } else {
-        router
-          .push(`/room/${roomName}`)
-          .then(() => ({}))
-          .catch(() => ({}));
-      }
-    });
-  }, [hasMounted, roomName]);
+
+    try {
+      startTransition(() => {
+        if (!roomName || roomName === 'null' || roomName === 'undefined') {
+          setRoomReadable(null);
+        } else {
+          addBreadcrumb('Navigating to existing room', 'navigation', {
+            roomName,
+          });
+          router
+            .push(`/room/${roomName}`)
+            .then(() => {
+              addBreadcrumb('Navigation to room successful', 'navigation');
+            })
+            .catch((error) => {
+              captureError(
+                error instanceof Error ? error : new Error('Navigation failed'),
+                {
+                  component: 'IndexForm',
+                  action: 'navigateToRoom',
+                  extra: { roomName },
+                },
+                'medium',
+              );
+            });
+        }
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to handle room navigation'),
+        {
+          component: 'IndexForm',
+          action: 'handleRoomNavigation',
+          extra: { roomName, hasMounted },
+        },
+        'medium',
+      );
+    }
+  }, [hasMounted, roomName, router, setRoomReadable]);
 
   const form = useForm({
     initialValues: {
       room: '',
     },
     validate: {
-      room: (value) =>
-        value.replace(/[^A-Za-z0-9]/g, '').length < 3 ||
-        value.replace(/[^A-Za-z0-9]/g, '').length > 15,
+      room: (value) => {
+        const cleanValue = value.replace(/[^A-Za-z0-9]/g, '');
+        return cleanValue.length < 3 || cleanValue.length > 15;
+      },
     },
   });
 
   useEffect(() => {
-    startTransition(() => {
-      const roomValue = form.values.room
-        .replace(/[^A-Za-z0-9]/g, '')
-        .toUpperCase();
-      form.setFieldValue('room', roomValue);
-    });
+    try {
+      startTransition(() => {
+        const roomValue = form.values.room
+          .replace(/[^A-Za-z0-9]/g, '')
+          .toUpperCase();
+        form.setFieldValue('room', roomValue);
+      });
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to format room input'),
+        {
+          component: 'IndexForm',
+          action: 'formatRoomInput',
+          extra: {
+            originalValue: form.values.room,
+          },
+        },
+        'low',
+      );
+    }
   }, [form.values.room]);
 
   const words = ['fast', 'for free', 'privatly', 'easily', 'realtime'];
@@ -125,6 +216,93 @@ const IndexForm = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  const handleStartPlanning = () => {
+    try {
+      setRoomReadable(String(openRoomNumber));
+      setRoomEvent(RoomEvent.ENTERED_RANDOM_ROOM);
+      addBreadcrumb('Starting random room', 'navigation', {
+        roomNumber: openRoomNumber,
+      });
+      router
+        .push(`/room/${openRoomNumber}`)
+        .then(() => {
+          addBreadcrumb('Navigation to random room successful', 'navigation');
+        })
+        .catch((error) => {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to navigate to random room'),
+            {
+              component: 'IndexForm',
+              action: 'handleStartPlanning',
+              extra: { roomNumber: openRoomNumber },
+            },
+            'medium',
+          );
+        });
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to start planning'),
+        {
+          component: 'IndexForm',
+          action: 'handleStartPlanning',
+          extra: { roomNumber: openRoomNumber },
+        },
+        'medium',
+      );
+    }
+  };
+
+  const handleJoinRoom = () => {
+    try {
+      const roomValue = form.values.room.toLowerCase();
+      setRoomReadable(roomValue);
+      setRoomEvent(RoomEvent.ENTERED_ROOM_DIRECTLY);
+      addBreadcrumb('Joining specific room', 'navigation', {
+        roomName: roomValue,
+      });
+      router
+        .push(`/room/${roomValue}`)
+        .then(() => {
+          addBreadcrumb('Navigation to specific room successful', 'navigation');
+        })
+        .catch((error) => {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to navigate to specific room'),
+            {
+              component: 'IndexForm',
+              action: 'handleJoinRoom',
+              extra: { roomName: roomValue },
+            },
+            'medium',
+          );
+        });
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to join room'),
+        {
+          component: 'IndexForm',
+          action: 'handleJoinRoom',
+          extra: { formRoom: form.values.room },
+        },
+        'medium',
+      );
+    }
+  };
+
+  // Track component load
+  useEffect(() => {
+    if (hasMounted && isHydrated) {
+      addBreadcrumb('IndexForm fully loaded', 'component', {
+        hasAnalytics: !!analytics,
+        openRoomNumber,
+      });
+    }
+  }, [hasMounted, isHydrated, analytics, openRoomNumber]);
 
   return (
     <>
@@ -148,29 +326,11 @@ const IndexForm = () => {
           type="button"
           role="button"
           aria-label="Start Planning"
-          onClick={() => {
-            setRoomReadable(String(openRoomNumber));
-            setRoomEvent(RoomEvent.ENTERED_RANDOM_ROOM);
-            router
-              .push(`/room/${openRoomNumber}`)
-              .then(() => ({}))
-              .catch(() => ({}));
-          }}
+          onClick={handleStartPlanning}
         >
           Start Planning
         </Button>
-        <form
-          className="pl-8"
-          onSubmit={form.onSubmit(() => {
-            const roomValue = form.values.room.toLowerCase();
-            setRoomReadable(roomValue);
-            setRoomEvent(RoomEvent.ENTERED_ROOM_DIRECTLY);
-            router
-              .push(`/room/${roomValue}`)
-              .then(() => ({}))
-              .catch(() => ({}));
-          })}
-        >
+        <form className="pl-8" onSubmit={form.onSubmit(handleJoinRoom)}>
           <div className="mx-auto">
             <div className="w-full">
               <Tooltip
@@ -243,13 +403,25 @@ export function AnimatedNumber({
   );
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      startTransition(() => {
-        spring.set(value);
-      });
-    }, delay);
+    try {
+      const timeout = setTimeout(() => {
+        startTransition(() => {
+          spring.set(value);
+        });
+      }, delay);
 
-    return () => clearTimeout(timeout);
+      return () => clearTimeout(timeout);
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to animate number'),
+        {
+          component: 'AnimatedNumber',
+          action: 'useEffect',
+          extra: { value, delay },
+        },
+        'low',
+      );
+    }
   }, [spring, value, delay]);
 
   return <motion.span>{display}</motion.span>;
