@@ -4,18 +4,17 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 import {
+  Badge,
   Button,
+  Group,
   Loader,
-  Modal,
   RingProgress,
   SimpleGrid,
   Switch,
+  Table,
   Text,
   Tooltip,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-
-import { IconEye } from '@tabler/icons-react';
 
 import { api } from 'fpp/utils/api';
 import {
@@ -30,7 +29,6 @@ import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
-import { LiveDataModel } from 'fpp/components/analytics/live-data-model';
 import { ReoccurringChart } from 'fpp/components/analytics/reoccurring-chart';
 import { SentryIssuesTable } from 'fpp/components/analytics/sentry-issues-table';
 import { StatsCard } from 'fpp/components/analytics/stats-card';
@@ -153,6 +151,93 @@ function useSentryIssuesQuery() {
   return query;
 }
 
+const formatTimeAgo = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  const time = new Date(timestamp);
+  const timeString = time.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  if (seconds < 60) {
+    return `${timeString} (${seconds}s ago)`;
+  } else if (minutes < 60) {
+    return `${timeString} (${minutes}m ago)`;
+  } else if (hours < 24) {
+    return `${timeString} (${hours}h ago)`;
+  } else if (days < 7) {
+    return `${timeString} (${days}d ago)`;
+  } else {
+    return time.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }
+};
+
+const sortUsers = (
+  users: {
+    estimation: number | null;
+    isSpectator: boolean;
+    firstActive: number;
+    firstActiveReadable: string;
+    lastActive: number;
+    lastActiveReadable: string;
+  }[],
+) => {
+  return [...users].sort((a, b) => {
+    // First: users with estimations
+    if (a.estimation !== null && b.estimation === null && !b.isSpectator)
+      return -1;
+    if (b.estimation !== null && a.estimation === null && !a.isSpectator)
+      return 1;
+
+    // Second: users without estimations (but not spectators)
+    if (!a.isSpectator && b.isSpectator) return -1;
+    if (!b.isSpectator && a.isSpectator) return 1;
+
+    // Third: spectators
+    // Within same category, maintain original order
+    return 0;
+  });
+};
+
+const getUserBadgeColor = (user: {
+  estimation: number | null;
+  isSpectator: boolean;
+}) => {
+  if (user.isSpectator) return 'gray';
+  return user.estimation !== null ? 'green' : 'orange';
+};
+
+const getUserBadgeVariant = (user: {
+  estimation: number | null;
+  isSpectator: boolean;
+}) => {
+  if (user.isSpectator) return 'outline';
+  return user.estimation !== null ? 'filled' : 'light';
+};
+
+const getUserDisplayText = (user: {
+  estimation: number | null;
+  isSpectator: boolean;
+}) => {
+  if (user.isSpectator) {
+    return `👁`;
+  }
+  return user.estimation !== null ? `🎯 ${user.estimation}` : `⏳`;
+};
+
 const Analytics = () => {
   const [hasInitialized, setHasInitialized] = React.useState(false);
   const [secondsLeft, setSecondsLeft] = React.useState(0);
@@ -160,7 +245,6 @@ const Analytics = () => {
   const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
 
   useTrackPageView(RouteType.ANALYTICS);
-  const [opened, { open, close }] = useDisclosure(false);
 
   const {
     data: analytics,
@@ -352,15 +436,6 @@ const Analytics = () => {
       <Meta title="Analytics" />
       <Navbar />
       <Hero />
-      <Modal
-        opened={opened}
-        onClose={close}
-        title="Live Data"
-        centered
-        size="auto"
-      >
-        <LiveDataModel serverAnalytics={serverAnalytics} />
-      </Modal>
       <main className="flex flex-col items-center justify-center">
         <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
           <Text className="mb-4">
@@ -391,7 +466,6 @@ const Analytics = () => {
           <div className="flex w-full justify-evenely items-center">
             <div className="flex-1 flex justify-start">
               <h2>Live</h2>
-              <IconEye className="ml-4 mt-[3px]" onClick={open} size={33} />
             </div>
 
             <div className="flex-1 flex justify-center pl-7 pb-2"></div>
@@ -442,7 +516,7 @@ const Analytics = () => {
           >
             <StatsCard name="Open Rooms" value={serverAnalytics.openRooms} />
             <StatsCard
-              name="Conected Users"
+              name="Connected Users"
               value={serverAnalytics.connectedUsers}
             />
           </SimpleGrid>
@@ -453,7 +527,7 @@ const Analytics = () => {
               md: 4,
             }}
             spacing="md"
-            className="pb-8"
+            className="pb-4"
           >
             <StatsCard
               name="Today Estimations"
@@ -472,6 +546,107 @@ const Analytics = () => {
               value={historical[historical.length - 1]?.rooms ?? 0}
             />
           </SimpleGrid>
+          {/* Active Rooms Table */}
+          <Table.ScrollContainer minWidth={800}>
+            <Table striped highlightOnHover withTableBorder mt={0}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th pl={4}>Room</Table.Th>
+                  <Table.Th>Users</Table.Th>
+                  <Table.Th style={{ minWidth: '125px' }}>
+                    First Active
+                  </Table.Th>
+                  <Table.Th style={{ minWidth: '125px' }}>
+                    Last Updated
+                  </Table.Th>
+                  <Table.Th>Members</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {serverAnalytics.rooms
+                  .filter((room) => room.userCount > 1)
+                  .sort((a, b) => b.lastUpdated - a.lastUpdated)
+                  .map((room, roomIndex) => {
+                    const sortedUsers = sortUsers(room.users);
+
+                    return (
+                      <Table.Tr key={roomIndex}>
+                        <Table.Td>
+                          <Text fw={500} pl={4}>
+                            Room {roomIndex + 1}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge variant="light" color="blue">
+                            {room.userCount}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td style={{ minWidth: '130px' }}>
+                          <Text size="sm" c="dimmed">
+                            {formatTimeAgo(room.firstActive)}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ minWidth: '130px' }}>
+                          <Text size="sm" c="dimmed">
+                            {formatTimeAgo(room.lastUpdated)}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap={4} wrap="nowrap">
+                            {sortedUsers.map((user, userIndex) => (
+                              <Tooltip
+                                key={userIndex}
+                                label={
+                                  <div>
+                                    <Text size="sm" fw={500}>
+                                      {user.isSpectator
+                                        ? 'Spectator'
+                                        : user.estimation !== null
+                                          ? `Estimation: ${user.estimation}`
+                                          : 'No estimation yet'}
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                      First Active:{' '}
+                                      {formatTimeAgo(user.firstActive)}
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                      Last Active:{' '}
+                                      {formatTimeAgo(user.lastActive)}
+                                    </Text>
+                                  </div>
+                                }
+                                multiline
+                                withArrow
+                              >
+                                <Badge
+                                  variant={getUserBadgeVariant(user)}
+                                  color={getUserBadgeColor(user)}
+                                  size="sm"
+                                  style={{ cursor: 'help' }}
+                                >
+                                  {getUserDisplayText(user)}
+                                </Badge>
+                              </Tooltip>
+                            ))}
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    );
+                  })}
+                {serverAnalytics.rooms.filter((room) => room.userCount > 1)
+                  .length === 0 && (
+                  <Table.Tr>
+                    <Table.Td colSpan={5}>
+                      <Text c="dimmed" ta="center" py={12}>
+                        No active rooms with multiple users found
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+
           <h2>Traffic</h2>
           <SimpleGrid
             cols={{
