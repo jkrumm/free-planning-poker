@@ -18,6 +18,11 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconEye } from '@tabler/icons-react';
 
 import { api } from 'fpp/utils/api';
+import {
+  addBreadcrumb,
+  captureError,
+  captureMessage,
+} from 'fpp/utils/app-error';
 
 import { RouteType } from 'fpp/server/db/schema';
 
@@ -63,7 +68,97 @@ const EstimationChart = dynamic(
   },
 );
 
+// Custom hooks for analytics queries with error handling
+function useAnalyticsQuery() {
+  const query = api.analytics.getAnalytics.useQuery(undefined, {
+    refetchInterval: 5000,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchIntervalInBackground: true,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  React.useEffect(() => {
+    if (query.error) {
+      captureError(
+        query.error instanceof Error
+          ? query.error
+          : new Error('Failed to fetch analytics data'),
+        {
+          component: 'Analytics',
+          action: 'fetchAnalytics',
+        },
+        'medium',
+      );
+    }
+  }, [query.error]);
+
+  return query;
+}
+
+function useServerAnalyticsQuery() {
+  const query = api.analytics.getServerAnalytics.useQuery(undefined, {
+    refetchInterval: 5000,
+    retry: 3,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+
+  React.useEffect(() => {
+    if (query.error) {
+      captureError(
+        query.error instanceof Error
+          ? query.error
+          : new Error('Failed to fetch server analytics data'),
+        {
+          component: 'Analytics',
+          action: 'fetchServerAnalytics',
+        },
+        'medium',
+      );
+    }
+  }, [query.error]);
+
+  return query;
+}
+
+function useSentryIssuesQuery() {
+  const query = api.sentry.getIssues.useQuery(undefined, {
+    refetchInterval: 5000,
+    retry: 3,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+
+  React.useEffect(() => {
+    if (query.error) {
+      captureError(
+        query.error instanceof Error
+          ? query.error
+          : new Error('Failed to fetch Sentry issues'),
+        {
+          component: 'Analytics',
+          action: 'fetchSentryIssues',
+        },
+        'low',
+      );
+    }
+  }, [query.error]);
+
+  return query;
+}
+
 const Analytics = () => {
+  const [hasInitialized, setHasInitialized] = React.useState(false);
+  const [secondsLeft, setSecondsLeft] = React.useState(0);
+  const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
+  const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
+
   useTrackPageView(RouteType.ANALYTICS);
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -71,42 +166,35 @@ const Analytics = () => {
     data: analytics,
     dataUpdatedAt,
     refetch: refetchAnalytics,
-  } = api.analytics.getAnalytics.useQuery(undefined, {
-    refetchInterval: 5000, // Poll every 5 seconds to check for updates
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    refetchIntervalInBackground: true,
-  });
+    error: analyticsError,
+    isError: analyticsIsError,
+    isLoading: analyticsIsLoading,
+  } = useAnalyticsQuery();
 
-  const { data: serverAnalytics, refetch: refetchServerAnalytics } =
-    api.analytics.getServerAnalytics.useQuery(undefined, {
-      refetchInterval: 5000, // Match analytics polling
-      retry: true,
-      staleTime: 0,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-    });
+  const {
+    data: serverAnalytics,
+    refetch: refetchServerAnalytics,
+    error: serverAnalyticsError,
+    isError: serverAnalyticsIsError,
+    isLoading: serverAnalyticsIsLoading,
+  } = useServerAnalyticsQuery();
 
-  const { data: sentryIssues, refetch: refetchGetIssues } =
-    api.sentry.getIssues.useQuery(undefined, {
-      refetchInterval: 5000, // Match analytics polling
-      retry: true,
-      staleTime: 0,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-    });
+  const {
+    data: sentryIssues,
+    refetch: refetchGetIssues,
+    error: sentryError,
+    isError: sentryIsError,
+    isLoading: sentryIsLoading,
+  } = useSentryIssuesQuery();
 
   const refetch = () => {
+    addBreadcrumb('Analytics manual refresh triggered', 'interaction');
     void refetchAnalytics();
     void refetchServerAnalytics();
     void refetchGetIssues();
   };
 
   // Handle countdown display
-  const [secondsLeft, setSecondsLeft] = React.useState(0);
-
   React.useEffect(() => {
     if (!analytics?.cache) return;
 
@@ -150,14 +238,100 @@ const Analytics = () => {
     }
   }, [analytics?.cache]);
 
-  const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
-  const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
+  // Handle toggle functions with error handling
+  const handleHistoricalTableToggle = () => {
+    setHistoricalTableOpen(!historicalTableOpen);
+    addBreadcrumb('Historical table view toggled', 'interaction', {
+      newState: !historicalTableOpen,
+    });
+  };
 
-  if (!analytics || !serverAnalytics || !sentryIssues) {
+  const handleReduceReoccurringToggle = () => {
+    setReduceReoccurring(!reduceReoccurring);
+    addBreadcrumb('Reoccurring data reduction toggled', 'interaction', {
+      newState: !reduceReoccurring,
+    });
+  };
+
+  // Initialize tracking
+  if (!hasInitialized) {
+    addBreadcrumb('Analytics page initialized', 'page', {
+      hasAnalytics: !!analytics,
+      hasServerAnalytics: !!serverAnalytics,
+      hasSentryIssues: !!sentryIssues,
+    });
+    setHasInitialized(true);
+  }
+
+  // Handle loading states
+  const isLoading =
+    analyticsIsLoading || serverAnalyticsIsLoading || sentryIsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader size="xl" />
       </div>
+    );
+  }
+
+  // Handle critical errors (missing core analytics data)
+  if (
+    analyticsIsError ||
+    !analytics ||
+    serverAnalyticsIsError ||
+    !serverAnalytics
+  ) {
+    captureError(
+      'Critical analytics data missing',
+      {
+        component: 'Analytics',
+        action: 'checkCriticalData',
+        extra: {
+          analyticsError: analyticsError?.message ?? 'undefined',
+          serverAnalyticsError: serverAnalyticsError?.message ?? 'undefined',
+          hasAnalytics: !!analytics,
+          hasServerAnalytics: !!serverAnalytics,
+        },
+      },
+      'high',
+    );
+
+    return (
+      <div>
+        <Meta title="Analytics - Error" />
+        <Navbar />
+        <Hero />
+        <main className="flex flex-col items-center justify-center">
+          <section className="container max-w-[800px] gap-12 px-4 mt-6 mb-8">
+            <Text className="mb-4">
+              Sorry, there was an error loading the analytics data. Please try
+              refreshing the page.
+            </Text>
+            <Button
+              variant="outline"
+              color="gray"
+              onClick={() => window.location.reload()}
+            >
+              Refresh Page
+            </Button>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Warn about Sentry issues but continue
+  if (sentryIsError) {
+    captureMessage(
+      'Sentry issues failed to load, continuing without them',
+      {
+        component: 'Analytics',
+        action: 'loadSentryIssues',
+        extra: { error: sentryError?.message },
+      },
+      'warning',
     );
   }
 
@@ -387,7 +561,7 @@ const Analytics = () => {
               label="Reduce after 30days inactivity"
               className="mt-auto mb-[20px] cursor-pointer"
               checked={reduceReoccurring}
-              onChange={() => setReduceReoccurring(!reduceReoccurring)}
+              onChange={handleReduceReoccurringToggle}
             />
             <div className="mt-auto mb-[20px] flex justify-between">
               <div className="flex items-center mr-5">
@@ -410,7 +584,7 @@ const Analytics = () => {
               label="Show as Table"
               className="mt-auto mb-[20px] cursor-pointer"
               checked={historicalTableOpen}
-              onChange={() => setHistoricalTableOpen(!historicalTableOpen)}
+              onChange={handleHistoricalTableToggle}
             />
           </div>
           <HistoricalTable
@@ -419,8 +593,12 @@ const Analytics = () => {
           />
           <HistoricalChart historical={historical} />
 
-          <h2 className="pt-8">Sentry Issues</h2>
-          <SentryIssuesTable issues={sentryIssues} />
+          {!sentryIsError && sentryIssues && (
+            <>
+              <h2 className="pt-8">Sentry Issues</h2>
+              <SentryIssuesTable issues={sentryIssues} />
+            </>
+          )}
 
           <h2 className="pt-8">Behaviour</h2>
           <SimpleGrid

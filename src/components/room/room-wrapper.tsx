@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { Loader } from '@mantine/core';
 
 import { api } from 'fpp/utils/api';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -16,7 +17,9 @@ import { RouteType } from 'fpp/server/db/schema';
 
 import { sendTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
+import { ErrorBoundary } from 'fpp/components/room/error-boundry';
 import { Room } from 'fpp/components/room/room';
+import { SentryContextProvider } from 'fpp/components/room/sentry-context-provider';
 import { UsernameModel } from 'fpp/components/room/username-model';
 
 const RoomWrapper = () => {
@@ -27,13 +30,25 @@ const RoomWrapper = () => {
   const setUserIdLocalStorage = useLocalstorageStore(
     (state) => state.setUserId,
   );
-
   const setUserIdRoomState = useRoomStore((state) => state.setUserId);
+
   if (validateNanoId(userId)) {
     setUserIdRoomState(userId!);
   }
 
-  const joinRoomMutation = api.room.joinRoom.useMutation();
+  const joinRoomMutation = api.room.joinRoom.useMutation({
+    onError: (error) => {
+      captureError(
+        error,
+        {
+          component: 'RoomWrapper',
+          action: 'joinRoom',
+        },
+        'high',
+      );
+    },
+  });
+
   const queryRoom = router.query.room as string;
   const roomId = useLocalstorageStore((store) => store.roomId);
   const setRoomId = useLocalstorageStore((store) => store.setRoomId);
@@ -46,16 +61,45 @@ const RoomWrapper = () => {
   const [modelOpen, setModelOpen] = React.useState(false);
 
   useEffect(() => {
-    // Add overflow-hidden to body when component mounts
-    document.documentElement.classList.add('overflow-hidden');
-    document.documentElement.classList.add('max-h-screen');
-    document.documentElement.classList.add('scrollbar-hide');
+    try {
+      // Add overflow-hidden to body when the component mounts
+      document.documentElement.classList.add('overflow-hidden');
+      document.documentElement.classList.add('max-h-screen');
+      document.documentElement.classList.add('scrollbar-hide');
 
-    // Remove overflow-hidden when component unmounts
+      addBreadcrumb('Room wrapper mounted', 'component');
+
+      // Your existing useEffect logic here...
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to initialize room wrapper'),
+        {
+          component: 'RoomWrapper',
+          action: 'initialization',
+        },
+        'high',
+      );
+    }
+
     return () => {
-      document.documentElement.classList.remove('overflow-hidden');
-      document.documentElement.classList.remove('max-h-screen');
-      document.documentElement.classList.remove('scrollbar-hide');
+      try {
+        document.documentElement.classList.remove('overflow-hidden');
+        document.documentElement.classList.remove('max-h-screen');
+        document.documentElement.classList.remove('scrollbar-hide');
+      } catch (error) {
+        captureError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to cleanup room wrapper'),
+          {
+            component: 'RoomWrapper',
+            action: 'cleanup',
+          },
+          'low',
+        );
+      }
     };
   }, []);
 
@@ -72,6 +116,12 @@ const RoomWrapper = () => {
         correctedRoom.length < 3 ||
         correctedRoom.length > 15
       ) {
+        addBreadcrumb('No room specified', 'room', {
+          roomId,
+          roomName,
+          userId,
+        });
+
         willLeave = true;
         setRoomId(null);
         setRoomName(null);
@@ -87,6 +137,12 @@ const RoomWrapper = () => {
       }
 
       if (queryRoom !== correctedRoom) {
+        addBreadcrumb('Needs to correct room URL', 'room', {
+          roomId,
+          roomName,
+          userId,
+        });
+
         willLeave = true;
         setRoomName(correctedRoom);
         setRecentRoom(correctedRoom);
@@ -125,6 +181,12 @@ const RoomWrapper = () => {
               setUserIdLocalStorage,
               setUserIdRoomState,
             });
+
+            addBreadcrumb('Successfully joined room', 'room', {
+              roomId,
+              roomName,
+              userId,
+            });
           },
         },
       );
@@ -138,30 +200,40 @@ const RoomWrapper = () => {
   }, [queryRoom, username, firstLoad]);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center relative">
-      {(() => {
-        if (!username || modelOpen) {
-          return (
-            <UsernameModel
-              modelOpen={modelOpen}
-              setModelOpen={setModelOpen}
-              room={queryRoom}
-            />
-          );
-        }
-        if (roomId && userId && roomName) {
-          return (
-            <Room
-              roomId={roomId}
-              roomName={roomName}
-              userId={userId}
-              username={username}
-            />
-          );
-        }
-        return <Loader variant="bars" />;
-      })()}
-    </div>
+    <ErrorBoundary componentName="RoomWrapper">
+      <SentryContextProvider
+        userId={userId ?? undefined}
+        roomId={roomId ?? undefined}
+        username={username ?? undefined}
+      >
+        <div className="flex flex-col items-center justify-center relative">
+          {(() => {
+            if (!username || modelOpen) {
+              return (
+                <UsernameModel
+                  modelOpen={modelOpen}
+                  setModelOpen={setModelOpen}
+                  room={queryRoom}
+                />
+              );
+            }
+            if (roomId && userId && roomName) {
+              return (
+                <ErrorBoundary componentName="Room">
+                  <Room
+                    roomId={roomId}
+                    roomName={roomName}
+                    userId={userId}
+                    username={username}
+                  />
+                </ErrorBoundary>
+              );
+            }
+            return <Loader variant="bars" />;
+          })()}
+        </div>
+      </SentryContextProvider>
+    </ErrorBoundary>
   );
 };
 

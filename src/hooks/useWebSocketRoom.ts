@@ -5,12 +5,14 @@ import { useRouter } from 'next/router';
 
 import { env } from 'fpp/env';
 
-import * as Sentry from '@sentry/nextjs';
 import { type Action } from 'fpp-server/src/room.actions';
 import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
 
-import { logMsg } from 'fpp/constants/logging.constant';
-
+import {
+  addBreadcrumb,
+  captureError,
+  captureMessage,
+} from 'fpp/utils/app-error';
 import { executeKick, executeRoomNameChange } from 'fpp/utils/room.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
@@ -51,7 +53,6 @@ export const useWebSocketRoom = ({
   );
   const setReadyState = useRoomStore((store) => store.setReadyState);
 
-  // Use ref to store the current triggerAction function
   const triggerActionRef = useRef<((action: Action) => void) | null>(null);
 
   const { sendMessage, readyState } = useWebSocket(
@@ -63,13 +64,11 @@ export const useWebSocketRoom = ({
         Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
 
       onMessage: (message: MessageEvent<string>) => {
-        if (!message.data) {
-          return;
-        }
+        if (!message.data) return;
 
         if (message.data === 'pong') {
           setLastPongReceived(Date.now());
-          console.debug('Heartbeat pong received');
+          addBreadcrumb('Heartbeat pong received', 'websocket');
           return;
         }
 
@@ -80,29 +79,31 @@ export const useWebSocketRoom = ({
             | { type: 'kicked'; message: string }
             | { type: 'roomNameChanged'; roomName: string };
 
-          console.debug('onMessage', data);
+          addBreadcrumb('WebSocket message received', 'websocket', {
+            type: 'type' in data ? data.type : 'room_update',
+          });
 
           // Handle kick notification
           if ('type' in data && data.type === 'kicked') {
+            addBreadcrumb('User kicked from room', 'room', {
+              reason: data.message,
+            });
             executeKick('kick_notification', router);
             return;
           }
 
           // Handle roomNameChanged notification
           if ('type' in data && data.type === 'roomNameChanged') {
-            executeRoomNameChange({
-              newRoomName: data.roomName,
-              router,
+            addBreadcrumb('Room name changed', 'room', {
+              newName: data.roomName,
             });
+            executeRoomNameChange({ newRoomName: data.roomName, router });
             return;
           }
 
           if ('error' in data) {
-            // Handle specific error cases
             if (data.error === 'User not found - userId not found') {
-              console.warn('User not found on server, triggering rejoin');
-
-              // Use the ref to call triggerAction safely
+              addBreadcrumb('User not found, attempting rejoin', 'websocket');
               if (triggerActionRef.current) {
                 triggerActionRef.current({
                   action: 'rejoin',
@@ -114,68 +115,100 @@ export const useWebSocketRoom = ({
               return;
             }
 
-            console.error('Server error:', data.error);
-            Sentry.captureException(new Error(logMsg.INCOMING_MESSAGE), {
-              extra: {
-                message: JSON.stringify(data),
-                roomId,
-                userId,
+            captureError(
+              'Server error received',
+              {
+                component: 'useWebSocketRoom',
+                action: 'onMessage',
+                extra: { serverError: data.error },
               },
-              tags: {
-                endpoint: logMsg.INCOMING_MESSAGE,
-              },
-            });
+              'medium',
+            );
             return;
           }
 
           updateRoomState(RoomClient.fromJson(data));
         } catch (e) {
-          console.error('Error parsing message:', e);
-          console.debug('Raw message:', message.data);
-          Sentry.captureException(e, {
-            extra: {
-              message: message.data,
-              roomId,
-              userId,
+          captureError(
+            e instanceof Error
+              ? e
+              : new Error('Failed to parse WebSocket message'),
+            {
+              component: 'useWebSocketRoom',
+              action: 'onMessage',
+              extra: {
+                rawMessage: message.data.slice(0, 500), // Truncate long messages
+                messageLength: message.data?.length,
+              },
             },
-            tags: {
-              endpoint: logMsg.INCOMING_MESSAGE,
-            },
-          });
+            'medium',
+          );
         }
       },
+
       onError: (event) => {
+        // Filter out trusted events that are just connection state changes
         if (Object.keys(event).length === 1 && event.isTrusted) {
           return;
         }
-        console.error('WebSocket error:', event);
-        Sentry.captureException(new Error(logMsg.INCOMING_ERROR), {
-          extra: {
-            message: JSON.stringify(event),
-            roomId,
-            userId,
-          },
-          tags: {
-            endpoint: logMsg.INCOMING_ERROR,
-          },
+
+        addBreadcrumb('WebSocket error occurred', 'websocket', {
+          eventKeys: Object.keys(event).join(', '),
         });
+
+        captureError(
+          'WebSocket error occurred',
+          {
+            component: 'useWebSocketRoom',
+            action: 'onError',
+            extra: {
+              eventType: event.type || 'unknown',
+              readyState: ReadyState[readyState],
+              hasUrl: !!buildWebSocketUrl(roomId, userId, username),
+            },
+          },
+          'high',
+        );
       },
+
       onClose: (event) => {
-        console.warn('WebSocket closed:', {
+        addBreadcrumb('WebSocket disconnected', 'websocket', {
           code: event.code,
-          reason: event.reason,
+          reason: event.reason || 'No reason provided',
+          wasClean: event.wasClean,
         });
+
+        if (!event.wasClean) {
+          captureMessage(
+            'WebSocket closed unexpectedly',
+            {
+              component: 'useWebSocketRoom',
+              action: 'onClose',
+              extra: {
+                code: event.code,
+                reason: event.reason || 'No reason provided',
+              },
+            },
+            'warning',
+          );
+        }
       },
-      onOpen: (event) => {
-        console.debug('WebSocket connected:', event);
+
+      onOpen: () => {
+        addBreadcrumb('WebSocket connected successfully', 'websocket');
         setConnectedAt();
         setLastPongReceived(Date.now());
       },
+
       onReconnectStop: (numAttempts) => {
-        console.error(
-          'WebSocket reconnection failed after',
-          numAttempts,
-          'attempts',
+        captureError(
+          'WebSocket reconnection failed',
+          {
+            component: 'useWebSocketRoom',
+            action: 'onReconnectStop',
+            extra: { attempts: numAttempts },
+          },
+          'critical',
         );
       },
     },
@@ -184,29 +217,54 @@ export const useWebSocketRoom = ({
   // Sync readyState to store whenever it changes
   useEffect(() => {
     setReadyState(readyState);
+    addBreadcrumb('WebSocket state changed', 'websocket', {
+      state: ReadyState[readyState],
+    });
   }, [readyState, setReadyState]);
 
-  // Action trigger function
   const triggerAction = useCallback(
     (action: Action) => {
-      // Only send if connection is open
-      if (readyState === ReadyState.OPEN) {
-        sendMessage(JSON.stringify(action));
-      } else {
-        console.warn('Cannot send action - WebSocket not connected:', action);
+      try {
+        if (readyState === ReadyState.OPEN) {
+          const message = JSON.stringify(action);
+          sendMessage(message);
+          addBreadcrumb('WebSocket action sent', 'websocket', {
+            action: action.action,
+          });
+        } else {
+          captureMessage(
+            'Attempted to send action while WebSocket not open',
+            {
+              component: 'useWebSocketRoom',
+              action: 'triggerAction',
+              extra: {
+                actionType: action.action,
+                readyState: ReadyState[readyState],
+              },
+            },
+            'warning',
+          );
+        }
+      } catch (error) {
+        captureError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to send WebSocket action'),
+          {
+            component: 'useWebSocketRoom',
+            action: 'triggerAction',
+            extra: {
+              actionType: action.action,
+            },
+          },
+          'medium',
+        );
       }
     },
-    [sendMessage, readyState],
+    [readyState, sendMessage],
   );
 
-  // Update the ref whenever triggerAction changes
-  useEffect(() => {
-    triggerActionRef.current = triggerAction;
-  }, [triggerAction]);
+  triggerActionRef.current = triggerAction;
 
-  return {
-    triggerAction,
-    connectedAt,
-    sendMessage,
-  };
+  return { triggerAction, connectedAt, sendMessage };
 };
