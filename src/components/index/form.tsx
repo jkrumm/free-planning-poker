@@ -1,6 +1,6 @@
 'use client';
 
-import { startTransition, useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -204,18 +204,35 @@ const IndexForm = () => {
 
   const words = ['fast', 'for free', 'privatly', 'easily', 'realtime'];
 
-  const { data: analytics } = useQuery({
+  const { data: analytics, error } = useQuery({
     queryKey: ['landingPageAnalytics'],
     queryFn: fetchAnalytics,
     initialData: {
       estimation_count: 30000,
       user_count: 6000,
     },
-    // Only enable the query after hydration is complete
     enabled: isHydrated,
-    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    console.log('analytics', analytics);
+  }, [analytics]);
+
+  useEffect(() => {
+    if (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to fetch landingPageAnalytics data'),
+        {
+          component: 'IndexForm',
+          action: 'landingPageAnalytics',
+        },
+        'medium',
+      );
+    }
+  }, [error]);
 
   const handleStartPlanning = () => {
     try {
