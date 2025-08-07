@@ -1,8 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 
-import { Card, Table, Text } from '@mantine/core';
+import { Badge, Card, Table, Tabs, Text, Tooltip } from '@mantine/core';
+
+import {
+  IconBug,
+  IconEyeOff,
+  IconInfoCircle,
+  IconMessage,
+  IconUser,
+} from '@tabler/icons-react';
 
 import type { SentryIssuesResponse } from 'fpp/server/api/routers/sentry.router';
 
@@ -45,6 +53,42 @@ const formatAge = (timestamp: string): string => {
   return `${diffDay}d`;
 };
 
+// Check if issue is user feedback
+const isUserFeedback = (issue: SentryIssuesResponse): boolean => {
+  const title = issue.title.toLowerCase();
+  return (
+    title.includes('feedback') ||
+    title.includes('user report') ||
+    title.includes('user submission') ||
+    issue.issueType === 'feedback'
+  );
+};
+
+// Get level color for badges
+const getLevelColor = (level: string): string => {
+  switch (level) {
+    case 'fatal':
+      return 'red';
+    case 'error':
+      return 'red';
+    case 'warning':
+      return 'orange';
+    case 'info':
+      return 'gray';
+    case 'debug':
+      return 'gray';
+    default:
+      return 'gray';
+  }
+};
+
+// Get status color
+const getStatusColor = (status: string, substatus: string): string => {
+  if (status === 'resolved') return 'green';
+  if (substatus === 'new') return 'blue';
+  return 'gray';
+};
+
 // Simple bar chart component for trend data without tooltips
 const TrendChart = ({ data }: { data: number[] }) => {
   const maxValue = Math.max(...data, 1); // Ensure we don't divide by zero
@@ -65,65 +109,207 @@ const TrendChart = ({ data }: { data: number[] }) => {
   );
 };
 
+const IssueRow = ({ issue }: { issue: SentryIssuesResponse }) => {
+  const isFeedback = isUserFeedback(issue);
+
+  return (
+    <Table.Tr
+      key={issue.id}
+      onClick={() => window.open(issue.permalink, '_blank')}
+      style={{ cursor: 'pointer' }}
+      className={`hover:bg-gray-100 dark:hover:bg-gray-800 ${!issue.hasSeen ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+    >
+      <Table.Td className="align-middle text-left px-2 py-2">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            {isFeedback && (
+              <Badge size="xs" color="purple" variant="filled">
+                FEEDBACK
+              </Badge>
+            )}
+            <Badge
+              size="xs"
+              color={getLevelColor(issue.level)}
+              variant="filled"
+            >
+              {issue.level.toUpperCase()}
+            </Badge>
+            <Badge
+              size="xs"
+              color={getStatusColor(issue.status, issue.substatus)}
+              variant="light"
+            >
+              {issue.substatus}
+            </Badge>
+            {!issue.hasSeen && (
+              <Tooltip label="New issue">
+                <IconEyeOff size={14} className="text-blue-500" />
+              </Tooltip>
+            )}
+          </div>
+          <Text fw={500} size="sm" className="line-clamp-2">
+            {issue.title}
+          </Text>
+          {issue.culprit && (
+            <Text size="xs" c="dimmed" className="truncate">
+              {issue.culprit}
+            </Text>
+          )}
+        </div>
+      </Table.Td>
+      <Table.Td className="align-middle text-left px-2">
+        <div className="flex flex-col gap-1 text-center">
+          <Text size="sm">{formatLastSeen(issue.lastSeen)}</Text>
+          <Text size="xs" c="dimmed">
+            Age: {formatAge(issue.firstSeen)}
+          </Text>
+        </div>
+      </Table.Td>
+      <Table.Td className="align-middle text-left px-2">
+        <TrendChart data={issue.stats} />
+      </Table.Td>
+      <Table.Td className="align-middle text-center px-2">
+        <div className="flex flex-col gap-1">
+          <Text fw={600} size="sm">
+            {issue.count.toLocaleString()}
+          </Text>
+          <div className="flex items-center justify-center gap-1">
+            <IconUser size={12} />
+            <Text size="xs" c="dimmed">
+              {issue.userCount}
+            </Text>
+          </div>
+        </div>
+      </Table.Td>
+    </Table.Tr>
+  );
+};
+
 export const SentryIssuesTable = ({
   issues,
 }: {
   issues: SentryIssuesResponse[];
 }) => {
-  const rows = issues.map((issue, index) => (
-    <Table.Tr
-      key={index}
-      onClick={() => window.open(issue.permalink, '_blank')}
-      style={{ cursor: 'pointer' }}
-      className="hover:bg-gray-100 dark:hover:bg-gray-800"
-    >
-      <Table.Td className="align-middle text-left px-1">
-        <Text fw={500} size="sm">
-          {issue.type}: {issue.title}
-        </Text>
-      </Table.Td>
-      <Table.Td className="align-middle text-left px-1">
-        {formatLastSeen(issue.lastSeen)}
-      </Table.Td>
-      <Table.Td className="align-middle text-left px-1">
-        {formatAge(issue.firstSeen)}
-      </Table.Td>
-      <Table.Td className="align-middle text-left px-1">
-        <TrendChart data={issue.stats} />
-      </Table.Td>
-      <Table.Td className="align-middle text-left mono px-1">
-        {issue.count}
-      </Table.Td>
-      <Table.Td className="align-middle text-left mono px-1">
-        {issue.userCount}
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const [activeTab, setActiveTab] = useState<string>('errors');
+
+  const categorizedIssues = useMemo(() => {
+    const userFeedback = issues.filter(isUserFeedback);
+    const errors = issues.filter(
+      (issue) =>
+        !isUserFeedback(issue) &&
+        (issue.level === 'fatal' ||
+          issue.level === 'error' ||
+          issue.level === 'warning'),
+    );
+    const messages = issues.filter(
+      (issue) =>
+        !isUserFeedback(issue) &&
+        (issue.level === 'info' || issue.level === 'debug'),
+    );
+
+    return {
+      userFeedback,
+      errors,
+      messages,
+    };
+  }, [issues]);
+
+  const renderTable = (issueList: SentryIssuesResponse[]) => (
+    <div className="overflow-y-scroll max-h-[600px]">
+      <Table
+        highlightOnHover
+        stickyHeader
+        withRowBorders={true}
+        className="p-0 m-0"
+      >
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th className="text-left px-2 min-w-[300px]">
+              Issue Details
+            </Table.Th>
+            <Table.Th className="text-left px-2 min-w-[100px]">
+              Timeline
+            </Table.Th>
+            <Table.Th className="text-left px-2 min-w-[120px]">
+              Trend (14d)
+            </Table.Th>
+            <Table.Th className="text-center px-2 min-w-[80px]">
+              Events
+            </Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {issueList.map((issue) => (
+            <IssueRow key={issue.id} issue={issue} />
+          ))}
+        </Table.Tbody>
+      </Table>
+    </div>
+  );
 
   return (
     <Card withBorder radius="md" padding="0">
-      <div className="overflow-y-scroll max-h-[400px]">
-        <Table
-          highlightOnHover
-          stickyHeader
-          withRowBorders={true}
-          className="p-0 m-0"
-        >
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th className="text-left px-1">Issue</Table.Th>
-              <Table.Th className="text-left min-w-[120px] px-1">
-                Last Seen
-              </Table.Th>
-              <Table.Th className="text-left px-1">Age</Table.Th>
-              <Table.Th className="text-left px-1">Trend 14d</Table.Th>
-              <Table.Th className="text-left px-1">Events</Table.Th>
-              <Table.Th className="text-left px-1">Users</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
-      </div>
+      <Tabs
+        value={activeTab}
+        onChange={(value) => setActiveTab(value ?? 'errors')}
+      >
+        <Tabs.List className="px-4 pt-1">
+          <Tabs.Tab value="errors" leftSection={<IconBug size={16} />}>
+            Errors{' '}
+            <Badge variant="light" color="gray" size="sm">
+              {categorizedIssues.errors.length}
+            </Badge>
+          </Tabs.Tab>
+          <Tabs.Tab value="messages" leftSection={<IconInfoCircle size={16} />}>
+            Messages{' '}
+            <Badge variant="light" color="gray" size="sm">
+              {categorizedIssues.messages.length}
+            </Badge>
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="userFeedback"
+            leftSection={<IconMessage size={16} />}
+          >
+            User Feedback{' '}
+            <Badge variant="light" color="gray" size="sm">
+              {categorizedIssues.userFeedback.length}
+            </Badge>
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="errors" pt={0}>
+          {categorizedIssues.errors.length > 0 ? (
+            renderTable(categorizedIssues.errors)
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <IconBug size={48} className="mx-auto mb-4 opacity-50" />
+              <Text size="lg">No errors found</Text>
+            </div>
+          )}
+        </Tabs.Panel>
+
+        <Tabs.Panel value="messages" pt={0}>
+          {categorizedIssues.messages.length > 0 ? (
+            renderTable(categorizedIssues.messages)
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <IconInfoCircle size={48} className="mx-auto mb-4 opacity-50" />
+              <Text size="lg">No messages found</Text>
+            </div>
+          )}
+        </Tabs.Panel>
+
+        <Tabs.Panel value="userFeedback" pt={0}>
+          {categorizedIssues.userFeedback.length > 0 ? (
+            renderTable(categorizedIssues.userFeedback)
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <IconMessage size={48} className="mx-auto mb-4 opacity-50" />
+              <Text size="lg">No user feedback found</Text>
+            </div>
+          )}
+        </Tabs.Panel>
+      </Tabs>
     </Card>
   );
 };
