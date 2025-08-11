@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { ReadyState } from 'react-use-websocket';
 
 import type { HeartbeatAction } from 'fpp-server/src/room.actions';
@@ -28,6 +28,83 @@ export const useConnectionHealth = ({
   const reloadAttempts = useRef(0);
   const lastReloadTime = useRef(0);
   const warningIssued = useRef(false);
+  const recoveryAttempts = useRef(0);
+  const lastRecoveryAttempt = useRef(0);
+  const lastVisibilityChange = useRef(Date.now());
+  const isTabVisible = useRef(true);
+
+  // Track tab visibility to handle browser throttling
+  const handleVisibilityChange = useCallback(() => {
+    const wasVisible = isTabVisible.current;
+    isTabVisible.current = !document.hidden;
+    lastVisibilityChange.current = Date.now();
+
+    if (!wasVisible && isTabVisible.current) {
+      // Tab became visible again - reset warnings and check connection
+      addBreadcrumb(
+        'Tab became visible - resetting connection health state',
+        'websocket',
+      );
+      warningIssued.current = false;
+      recoveryAttempts.current = 0;
+
+      // Send immediate heartbeat to check connection
+      sendMessage(
+        JSON.stringify({
+          userId,
+          roomId,
+          action: 'heartbeat',
+        } satisfies HeartbeatAction),
+      );
+    }
+  }, [sendMessage, userId, roomId]);
+
+  // Recovery strategy before resorting to reload
+  const attemptRecovery = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastRecovery = now - lastRecoveryAttempt.current;
+
+    // Don't spam recovery attempts
+    if (timeSinceLastRecovery < 5000) {
+      return;
+    }
+
+    recoveryAttempts.current++;
+    lastRecoveryAttempt.current = now;
+
+    addBreadcrumb('Attempting connection recovery', 'websocket', {
+      attempt: recoveryAttempts.current,
+      maxAttempts: 2, // Reduced to 2 attempts
+    });
+
+    // Send heartbeat immediately and one more after 2 seconds
+    sendMessage(
+      JSON.stringify({
+        userId,
+        roomId,
+        action: 'heartbeat',
+      } satisfies HeartbeatAction),
+    );
+
+    setTimeout(() => {
+      sendMessage(
+        JSON.stringify({
+          userId,
+          roomId,
+          action: 'heartbeat',
+        } satisfies HeartbeatAction),
+      );
+    }, 2000);
+  }, [sendMessage, userId, roomId]);
+
+  useEffect(() => {
+    // Add visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [handleVisibilityChange]);
 
   useEffect(() => {
     try {
@@ -36,8 +113,15 @@ export const useConnectionHealth = ({
           try {
             const timeSinceLastPong = Date.now() - lastPongReceived;
             const timeSinceLastReload = Date.now() - lastReloadTime.current;
+            const timeSinceVisibilityChange =
+              Date.now() - lastVisibilityChange.current;
 
-            // Warning level - log but don't act yet
+            // Skip health checks if tab was recently invisible (browser throttling)
+            if (!isTabVisible.current || timeSinceVisibilityChange < 3000) {
+              return;
+            }
+
+            // Warning level - log and send heartbeat
             if (
               timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT_WARNING &&
               !warningIssued.current
@@ -46,6 +130,7 @@ export const useConnectionHealth = ({
                 timeSinceLastPong,
                 userId,
                 roomId,
+                isTabVisible: isTabVisible.current,
               });
 
               captureMessage(
@@ -57,6 +142,7 @@ export const useConnectionHealth = ({
                     timeSinceLastPong,
                     pongTimeoutWarning:
                       WEBSOCKET_CONSTANTS.PONG_TIMEOUT_WARNING,
+                    isTabVisible: isTabVisible.current,
                   },
                 },
                 'warning',
@@ -72,10 +158,22 @@ export const useConnectionHealth = ({
               );
             }
 
-            // Critical level - take action
+            // Recovery level - try reconnection strategies
             if (
               timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT_CRITICAL &&
+              recoveryAttempts.current < 2 &&
+              timeSinceLastReload > WEBSOCKET_CONSTANTS.RELOAD_COOLDOWN
+            ) {
+              attemptRecovery();
+              return;
+            }
+
+            // Critical level - reload after recovery attempts failed or sufficient time passed
+            if (
+              timeSinceLastPong >
+                WEBSOCKET_CONSTANTS.PONG_TIMEOUT_CRITICAL + 5000 && // Only 5s buffer
               timeSinceLastReload > WEBSOCKET_CONSTANTS.RELOAD_COOLDOWN &&
+              (recoveryAttempts.current >= 2 || timeSinceLastPong > 90000) && // Either recovery failed OR 90s total
               reloadAttempts.current < 3
             ) {
               addBreadcrumb(
@@ -85,6 +183,11 @@ export const useConnectionHealth = ({
                   timeSinceLastPong,
                   timeSinceLastReload,
                   reloadAttempts: reloadAttempts.current,
+                  recoveryAttempts: recoveryAttempts.current,
+                  reason:
+                    recoveryAttempts.current >= 2
+                      ? 'recovery_failed'
+                      : 'timeout_exceeded',
                 },
               );
 
@@ -97,8 +200,10 @@ export const useConnectionHealth = ({
                     timeSinceLastPong,
                     timeSinceLastReload,
                     reloadAttempts: reloadAttempts.current,
+                    recoveryAttempts: recoveryAttempts.current,
                     pongTimeoutCritical:
                       WEBSOCKET_CONSTANTS.PONG_TIMEOUT_CRITICAL,
+                    isTabVisible: isTabVisible.current,
                   },
                 },
                 'critical',
@@ -119,6 +224,7 @@ export const useConnectionHealth = ({
                 extra: {
                   timeSinceLastPong: Date.now() - lastPongReceived,
                   readyState: ReadyState[readyState],
+                  isTabVisible: isTabVisible.current,
                 },
               },
               'high',
@@ -138,6 +244,7 @@ export const useConnectionHealth = ({
       if (readyState === ReadyState.OPEN) {
         reloadAttempts.current = 0;
         warningIssued.current = false;
+        recoveryAttempts.current = 0;
       }
     } catch (error) {
       captureError(
@@ -174,5 +281,12 @@ export const useConnectionHealth = ({
         );
       }
     };
-  }, [readyState, lastPongReceived, sendMessage, userId, roomId]);
+  }, [
+    readyState,
+    lastPongReceived,
+    sendMessage,
+    userId,
+    roomId,
+    attemptRecovery,
+  ]);
 };
