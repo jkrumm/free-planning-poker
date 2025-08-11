@@ -230,7 +230,7 @@ export const SentryIssuesTable = ({
             <Table.Th className="text-left px-2 min-w-[100px]">
               Timeline
             </Table.Th>
-            <Table.Th className="text-left px-2 min-w-[120px]">
+            <Table.Th className="text-left px-2 min-w-[100px]">
               Trend (14d)
             </Table.Th>
             <Table.Th className="text-center px-2 min-w-[80px]">
@@ -253,14 +253,22 @@ export const SentryIssuesTable = ({
         value={activeTab}
         onChange={(value) => setActiveTab(value ?? 'errors')}
       >
-        <Tabs.List className="px-4 pt-1">
-          <Tabs.Tab value="errors" leftSection={<IconBug size={16} />}>
+        <Tabs.List className="md:px-4 pt-1">
+          <Tabs.Tab
+            value="errors"
+            className="px-2 md:px-6"
+            leftSection={<IconBug size={16} />}
+          >
             Errors{' '}
             <Badge variant="light" color="gray" size="sm">
               {categorizedIssues.errors.length}
             </Badge>
           </Tabs.Tab>
-          <Tabs.Tab value="messages" leftSection={<IconInfoCircle size={16} />}>
+          <Tabs.Tab
+            value="messages"
+            className="px-2 md:px-6"
+            leftSection={<IconInfoCircle size={16} />}
+          >
             Messages{' '}
             <Badge variant="light" color="gray" size="sm">
               {categorizedIssues.messages.length}
@@ -268,9 +276,10 @@ export const SentryIssuesTable = ({
           </Tabs.Tab>
           <Tabs.Tab
             value="userFeedback"
+            className="px-2 md:px-6"
             leftSection={<IconMessage size={16} />}
           >
-            User Feedback{' '}
+            Feedback{' '}
             <Badge variant="light" color="gray" size="sm">
               {categorizedIssues.userFeedback.length}
             </Badge>

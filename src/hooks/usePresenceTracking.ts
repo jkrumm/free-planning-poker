@@ -23,10 +23,19 @@ export const usePresenceTracking = ({
   const setLastPongReceived = useRoomStore(
     (store) => store.setLastPongReceived,
   );
+  // Add this ref near the top of usePresenceTracking
+  const presenceUpdateTimeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    const updatePresence = (isPresent: boolean) => {
-      try {
+  // Modify the updatePresence function to be debounced
+  const updatePresence = (isPresent: boolean) => {
+    try {
+      // Clear any pending presence updates
+      if (presenceUpdateTimeoutRef.current) {
+        clearTimeout(presenceUpdateTimeoutRef.current);
+      }
+
+      // Delay the presence update slightly to avoid race conditions during navigation
+      presenceUpdateTimeoutRef.current = setTimeout(() => {
         addBreadcrumb('Updating user presence', 'presence', {
           isPresent,
           userId,
@@ -39,25 +48,25 @@ export const usePresenceTracking = ({
           userId,
           isPresent,
         });
-      } catch (error) {
-        captureError(
-          error instanceof Error
-            ? error
-            : new Error('Failed to update presence'),
-          {
-            component: 'usePresenceTracking',
-            action: 'updatePresence',
-            extra: {
-              isPresent,
-              userId,
-              roomId,
-            },
+      }, 100); // Small delay to let WebSocket connection stabilize
+    } catch (error) {
+      captureError(
+        error instanceof Error ? error : new Error('Failed to update presence'),
+        {
+          component: 'usePresenceTracking',
+          action: 'updatePresence',
+          extra: {
+            isPresent,
+            userId,
+            roomId,
           },
-          'medium',
-        );
-      }
-    };
+        },
+        'medium',
+      );
+    }
+  };
 
+  useEffect(() => {
     const handleVisibilityChange = () => {
       try {
         const isVisible = !document.hidden;
@@ -188,6 +197,7 @@ export const usePresenceTracking = ({
       );
     }
 
+    // Update the cleanup function to clear the timeout
     return () => {
       try {
         document.removeEventListener(
@@ -200,6 +210,10 @@ export const usePresenceTracking = ({
 
         if (visibilityHeartbeatRef.current) {
           clearTimeout(visibilityHeartbeatRef.current);
+        }
+
+        if (presenceUpdateTimeoutRef.current) {
+          clearTimeout(presenceUpdateTimeoutRef.current);
         }
       } catch (error) {
         captureError(

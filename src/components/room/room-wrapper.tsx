@@ -8,6 +8,7 @@ import { Loader } from '@mantine/core';
 
 import { api } from 'fpp/utils/api';
 import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { initializeAudioContext } from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -190,6 +191,10 @@ const RoomWrapper = () => {
           },
         },
       );
+    }
+
+    if (typeof window !== 'undefined') {
+      initializeAudioContext();
     }
 
     setFirstLoad(false);

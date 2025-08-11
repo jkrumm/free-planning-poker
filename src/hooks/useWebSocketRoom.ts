@@ -17,6 +17,12 @@ import { executeKick, executeRoomNameChange } from 'fpp/utils/room.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
+// Add this interface near the top
+interface QueuedAction {
+  action: Action;
+  timestamp: number;
+}
+
 export interface WebSocketRoomConfig {
   roomId: number;
   userId: string;
@@ -54,6 +60,10 @@ export const useWebSocketRoom = ({
   const setReadyState = useRoomStore((store) => store.setReadyState);
 
   const triggerActionRef = useRef<((action: Action) => void) | null>(null);
+
+  // Add these state variables in the useWebSocketRoom function
+  const actionQueueRef = useRef<QueuedAction[]>([]);
+  const ACTION_QUEUE_TIMEOUT = 5000; // 5 seconds
 
   const { sendMessage, readyState } = useWebSocket(
     buildWebSocketUrl(roomId, userId, username),
@@ -231,6 +241,23 @@ export const useWebSocketRoom = ({
           addBreadcrumb('WebSocket action sent', 'websocket', {
             action: action.action,
           });
+        } else if (readyState === ReadyState.CONNECTING) {
+          // Queue the action if we're connecting
+          const queuedAction: QueuedAction = {
+            action,
+            timestamp: Date.now(),
+          };
+
+          actionQueueRef.current.push(queuedAction);
+
+          addBreadcrumb(
+            'WebSocket action queued while connecting',
+            'websocket',
+            {
+              action: action.action,
+              queueLength: actionQueueRef.current.length,
+            },
+          );
         } else {
           captureMessage(
             'Attempted to send action while WebSocket not open',
@@ -263,6 +290,48 @@ export const useWebSocketRoom = ({
     },
     [readyState, sendMessage],
   );
+
+  useEffect(() => {
+    if (readyState === ReadyState.OPEN && actionQueueRef.current.length > 0) {
+      const now = Date.now();
+      const validActions = actionQueueRef.current.filter(
+        (queuedAction) => now - queuedAction.timestamp < ACTION_QUEUE_TIMEOUT,
+      );
+
+      validActions.forEach(({ action }) => {
+        try {
+          const message = JSON.stringify(action);
+          sendMessage(message);
+          addBreadcrumb('Queued WebSocket action sent', 'websocket', {
+            action: action.action,
+          });
+        } catch (error) {
+          captureError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to send queued WebSocket action'),
+            {
+              component: 'useWebSocketRoom',
+              action: 'processQueuedActions',
+              extra: {
+                actionType: action.action,
+              },
+            },
+            'medium',
+          );
+        }
+      });
+
+      if (validActions.length > 0) {
+        addBreadcrumb('Processed queued actions', 'websocket', {
+          processedCount: validActions.length,
+          expiredCount: actionQueueRef.current.length - validActions.length,
+        });
+      }
+
+      actionQueueRef.current = [];
+    }
+  }, [readyState, sendMessage]);
 
   triggerActionRef.current = triggerAction;
 
