@@ -257,33 +257,242 @@ export function getStackedEstimationsFromUsers(
   }
 }
 
+// Add a flag to track if user has interacted
+let hasUserInteracted = false;
+let audioContext: AudioContext | null = null;
+const audioBuffers = new Map<string, AudioBuffer>();
+
+// Initialize audio context after user interaction
+async function initializeWebAudio() {
+  if (typeof window === 'undefined' || audioContext) return;
+
+  try {
+    audioContext = new (window.AudioContext ||
+      // eslint-disable-next-line
+      (window as any).webkitAudioContext)();
+
+    // Resume audio context if it's suspended (required by some browsers)
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
+    addBreadcrumb('Web Audio context initialized', 'audio', {
+      state: audioContext.state,
+    });
+
+    // Pre-load audio files
+    await preloadAudioFiles();
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to initialize Web Audio'),
+      {
+        component: 'initializeWebAudio',
+        action: 'initialize',
+      },
+      'medium',
+    );
+    // Fallback to HTML5 audio
+    audioContext = null;
+  }
+}
+
+async function preloadAudioFiles() {
+  if (!audioContext) return;
+
+  const sounds = ['join', 'leave', 'success', 'tick'];
+
+  try {
+    for (const sound of sounds) {
+      const response = await fetch(`/sounds/${sound}.wav`);
+      if (!response.ok) {
+        addBreadcrumb('Failed to fetch audio file', 'audio', { sound });
+        continue;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      audioBuffers.set(sound, audioBuffer);
+    }
+
+    addBreadcrumb('Audio files preloaded', 'audio', {
+      loadedCount: audioBuffers.size,
+    });
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to preload audio files'),
+      {
+        component: 'preloadAudioFiles',
+        action: 'preload',
+      },
+      'medium',
+    );
+  }
+}
+
+// Track user interaction and initialize audio
+export function initializeAudioContext() {
+  if (typeof window === 'undefined') return;
+
+  const events = ['click', 'keydown', 'touchstart', 'touchend'];
+
+  const enableAudio = () => {
+    if (hasUserInteracted) return;
+
+    hasUserInteracted = true;
+    addBreadcrumb('User interaction detected for audio', 'audio');
+
+    // Initialize Web Audio API without awaiting in event handler
+    initializeWebAudio().catch((error) => {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to initialize audio after user interaction'),
+        {
+          component: 'initializeAudioContext',
+          action: 'enableAudio',
+        },
+        'medium',
+      );
+    });
+
+    // Remove event listeners
+    events.forEach((event) => {
+      document.removeEventListener(event, enableAudio);
+    });
+  };
+
+  events.forEach((event) => {
+    document.addEventListener(event, enableAudio, { passive: true });
+  });
+}
+
+function playWebAudioSound(sound: 'join' | 'leave' | 'success' | 'tick') {
+  if (!audioContext || audioContext.state !== 'running' || !hasUserInteracted) {
+    addBreadcrumb('Web Audio not available', 'audio', {
+      hasContext: !!audioContext,
+      contextState: audioContext?.state ?? 'null',
+      hasInteraction: hasUserInteracted,
+    });
+    return false;
+  }
+
+  const buffer = audioBuffers.get(sound);
+  if (!buffer) {
+    addBreadcrumb('Audio buffer not found', 'audio', { sound });
+    return false;
+  }
+
+  try {
+    const source = audioContext.createBufferSource();
+    const gainNode = audioContext.createGain();
+
+    source.buffer = buffer;
+    gainNode.gain.value = sound === 'success' || sound === 'tick' ? 0.3 : 0.2;
+
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    source.start();
+    addBreadcrumb('Web Audio sound played', 'audio', { sound });
+    return true;
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to play Web Audio sound'),
+      {
+        component: 'playWebAudioSound',
+        action: 'play',
+        extra: { sound },
+      },
+      'low',
+    );
+    return false;
+  }
+}
+
+// Fallback to HTML5 Audio
+function playHtml5Sound(sound: 'join' | 'leave' | 'success' | 'tick') {
+  if (!hasUserInteracted) {
+    addBreadcrumb('HTML5 Audio blocked - no user interaction', 'audio', {
+      sound,
+    });
+    return;
+  }
+
+  try {
+    const audio = new Audio(`/sounds/${sound}.wav`);
+    audio.volume = sound === 'success' || sound === 'tick' ? 0.3 : 0.2;
+
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          addBreadcrumb('HTML5 Audio sound played', 'audio', { sound });
+        })
+        .catch((error) => {
+          if (error instanceof Error && error.name === 'NotAllowedError') {
+            addBreadcrumb('HTML5 Audio blocked by autoplay policy', 'audio', {
+              sound,
+            });
+          } else {
+            captureError(
+              error instanceof Error
+                ? error
+                : new Error('Failed to play HTML5 sound'),
+              {
+                component: 'playHtml5Sound',
+                action: 'play',
+                extra: {
+                  sound,
+                  errorName: error instanceof Error ? error.name : 'Unknown',
+                },
+              },
+              'low',
+            );
+          }
+        });
+    }
+  } catch (error) {
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to create HTML5 audio'),
+      {
+        component: 'playHtml5Sound',
+        action: 'create',
+        extra: { sound },
+      },
+      'low',
+    );
+  }
+}
+
 function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
   try {
     if (getFromLocalstorage('isPlaySound') === 'false') return;
-    const audio = new Audio(`/sounds/${sound}.wav`);
-    audio.volume = sound === 'success' || sound === 'tick' ? 0.3 : 0.2;
-    audio
-      .play()
-      .then(() => {
-        addBreadcrumb('Sound played', 'audio', { sound });
-      })
-      .catch((error) => {
-        captureError(
-          error instanceof Error ? error : new Error('Failed to play sound'),
-          {
-            component: 'playSound',
-            action: 'play',
-            extra: { sound },
-          },
-          'low',
-        );
-      });
+
+    if (!hasUserInteracted) {
+      addBreadcrumb('Audio blocked - no user interaction', 'audio', { sound });
+      return;
+    }
+
+    // Try Web Audio first, fallback to HTML5 Audio
+    const webAudioSuccess = playWebAudioSound(sound);
+    if (!webAudioSuccess) {
+      playHtml5Sound(sound);
+    }
   } catch (error) {
     captureError(
-      error instanceof Error ? error : new Error('Failed to initialize sound'),
+      error instanceof Error ? error : new Error('Failed to play sound'),
       {
         component: 'playSound',
-        action: 'initialize',
+        action: 'play',
         extra: { sound },
       },
       'low',
@@ -542,15 +751,21 @@ export function executeKick(
   router?: NextRouter,
 ): void {
   try {
-    captureMessage(
-      `User was kicked from room (${scenario}), redirecting to homepage`,
-      {
-        component: 'executeKick',
-        action: 'kick',
-        extra: { scenario },
-      },
-      'warning',
-    );
+    addBreadcrumb('Executing kick', 'room', {
+      scenario,
+      hasRouter: !!router,
+    });
+    if (scenario !== 'kick_notification') {
+      captureMessage(
+        `User was kicked from room (${scenario}), redirecting to homepage`,
+        {
+          component: 'executeKick',
+          action: 'kick',
+          extra: { scenario },
+        },
+        'warning',
+      );
+    }
 
     // Cleanup room State
     const { setRoomId, setRoomName } = useLocalstorageStore.getState();
