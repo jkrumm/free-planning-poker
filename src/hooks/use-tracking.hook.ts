@@ -20,7 +20,19 @@ export const useTrackPageView = (
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
+    const checkReady = () => {
+      if (document.readyState === 'complete') {
+        startTransition(() => {
+          setHasMounted(true);
+        });
+      } else {
+        // Wait a bit more if not ready
+        setTimeout(checkReady, 100);
+      }
+    };
+
+    // Start checking after next tick
+    setTimeout(checkReady, 0);
   }, []);
 
   const userId = useLocalstorageStore((state) => state.userId);
