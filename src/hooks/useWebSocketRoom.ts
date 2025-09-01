@@ -189,18 +189,32 @@ export const useWebSocketRoom = ({
         });
 
         if (!event.wasClean) {
-          captureMessage(
-            'WebSocket closed unexpectedly',
-            {
-              component: 'useWebSocketRoom',
-              action: 'onClose',
-              extra: {
+          if (event.code === 1006) {
+            // 1006 is very common - just log as info, not warning
+            addBreadcrumb(
+              'WebSocket closed abnormally (network/timeout)',
+              'websocket',
+              {
                 code: event.code,
-                reason: event.reason || 'No reason provided',
+                message:
+                  'Common network disconnection - will reconnect automatically',
               },
-            },
-            'warning',
-          );
+            );
+          } else {
+            // Other unexpected close codes are more concerning
+            captureMessage(
+              'WebSocket closed unexpectedly',
+              {
+                component: 'useWebSocketRoom',
+                action: 'onClose',
+                extra: {
+                  code: event.code,
+                  reason: event.reason || 'No reason provided',
+                },
+              },
+              'warning',
+            );
+          }
         }
       },
 
@@ -241,8 +255,63 @@ export const useWebSocketRoom = ({
           addBreadcrumb('WebSocket action sent', 'websocket', {
             action: action.action,
           });
-        } else if (readyState === ReadyState.CONNECTING) {
-          // Queue the action if we're connecting
+        } else if (
+          readyState === ReadyState.CONNECTING ||
+          readyState === ReadyState.CLOSED ||
+          readyState === ReadyState.CLOSING ||
+          readyState === ReadyState.UNINSTANTIATED
+        ) {
+          // Handle different action types with specific logic
+          switch (action.action) {
+            case 'setPresence':
+              // Remove any existing presence actions to keep only the latest state
+              actionQueueRef.current = actionQueueRef.current.filter(
+                (queuedAction) => queuedAction.action.action !== 'setPresence',
+              );
+              break;
+
+            case 'leave':
+              // Leave actions are less critical when connection is already down
+              // The server will clean up stale connections, and beforeunload uses beacon fallback
+              addBreadcrumb(
+                'Leave action skipped - connection not ready',
+                'websocket',
+                {
+                  readyState: ReadyState[readyState],
+                },
+              );
+              return; // Don't queue leave actions
+
+            case 'heartbeat':
+              // Don't queue heartbeats when not connected - they're only useful when connected
+              addBreadcrumb(
+                'Heartbeat skipped - connection not ready',
+                'websocket',
+                {
+                  readyState: ReadyState[readyState],
+                },
+              );
+              return;
+
+            case 'rejoin':
+              // Rejoin actions are only meaningful when we have a connection attempt
+              if (readyState !== ReadyState.CONNECTING) {
+                addBreadcrumb(
+                  'Rejoin action skipped - not connecting',
+                  'websocket',
+                  {
+                    readyState: ReadyState[readyState],
+                  },
+                );
+                return;
+              }
+              break;
+
+            default:
+              // Handle any future action types
+              break;
+          }
+
           const queuedAction: QueuedAction = {
             action,
             timestamp: Date.now(),
@@ -251,25 +320,13 @@ export const useWebSocketRoom = ({
           actionQueueRef.current.push(queuedAction);
 
           addBreadcrumb(
-            'WebSocket action queued while connecting',
+            'WebSocket action queued - connection not ready',
             'websocket',
             {
               action: action.action,
+              readyState: ReadyState[readyState],
               queueLength: actionQueueRef.current.length,
             },
-          );
-        } else {
-          captureMessage(
-            'Attempted to send action while WebSocket not open',
-            {
-              component: 'useWebSocketRoom',
-              action: 'triggerAction',
-              extra: {
-                actionType: action.action,
-                readyState: ReadyState[readyState],
-              },
-            },
-            'warning',
           );
         }
       } catch (error) {
@@ -282,6 +339,7 @@ export const useWebSocketRoom = ({
             action: 'triggerAction',
             extra: {
               actionType: action.action,
+              readyState: ReadyState[readyState],
             },
           },
           'medium',

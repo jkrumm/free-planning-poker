@@ -29,7 +29,7 @@ const messageHandler = new MessageHandler(roomState);
 
 const app = new Elysia({
   websocket: {
-    idleTimeout: 70,
+    idleTimeout: 180,
   },
 }).use(
   cron({

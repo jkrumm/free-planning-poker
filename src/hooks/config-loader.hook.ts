@@ -9,15 +9,44 @@ import { FeatureFlagType } from 'fpp/server/db/schema';
 
 export const useConfigLoader = () => {
   const [hasMounted, setHasMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    startTransition(() => {
+    try {
       setHasMounted(true);
-    });
+
+      const checkReady = () => {
+        if (
+          typeof document !== 'undefined' &&
+          document.readyState === 'complete'
+        ) {
+          startTransition(() => {
+            setIsHydrated(true);
+          });
+        } else {
+          setTimeout(checkReady, 100);
+        }
+      };
+
+      setTimeout(checkReady, 0);
+    } catch (error) {
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Failed to initialize useConfigLoader'),
+        {
+          component: 'useConfigLoader',
+          action: 'useEffect',
+        },
+        'medium',
+      );
+    }
   }, []);
 
   const setFeatureFlags = useConfigStore((state) => state.setFeatureFlags);
+  const setLatestTag = useConfigStore((state) => state.setLatestTag);
 
+  // Always call hooks, but enable only when hydrated
   const {
     data: featureFlags,
     status: statusGetFeatureFlag,
@@ -27,10 +56,8 @@ export const useConfigLoader = () => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: false,
-    enabled: hasMounted,
+    enabled: isHydrated, // Control execution with enabled, not conditional calls
   });
-
-  const setLatestTag = useConfigStore((state) => state.setLatestTag);
 
   const {
     data: latestTag,
@@ -41,11 +68,11 @@ export const useConfigLoader = () => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: false,
-    enabled: hasMounted,
+    enabled: isHydrated, // Control execution with enabled, not conditional calls
   });
 
   useEffect(() => {
-    if (!hasMounted) {
+    if (!isHydrated) {
       return;
     }
 
@@ -97,7 +124,7 @@ export const useConfigLoader = () => {
                 status: statusGetLatestTag,
               },
             },
-            'low', // Less critical than feature flags
+            'low',
           );
         }
       } catch (error) {
@@ -118,7 +145,7 @@ export const useConfigLoader = () => {
       }
     });
   }, [
-    hasMounted,
+    isHydrated,
     statusGetFeatureFlag,
     statusGetLatestTag,
     featureFlags,
@@ -129,13 +156,22 @@ export const useConfigLoader = () => {
     setLatestTag,
   ]);
 
+  useEffect(() => {
+    if (hasMounted && isHydrated) {
+      addBreadcrumb('Config loader fully initialized', 'component', {
+        featureFlagsStatus: statusGetFeatureFlag,
+        latestTagStatus: statusGetLatestTag,
+      });
+    }
+  }, [hasMounted, isHydrated, statusGetFeatureFlag, statusGetLatestTag]);
+
   return {
     isLoading:
-      !hasMounted ||
+      !isHydrated ||
       statusGetFeatureFlag === 'pending' ||
       statusGetLatestTag === 'pending',
     isReady:
-      hasMounted &&
+      isHydrated &&
       statusGetFeatureFlag !== 'pending' &&
       statusGetLatestTag !== 'pending',
   };

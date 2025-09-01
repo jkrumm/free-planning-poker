@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 
 import { type AppType } from 'next/app';
 
@@ -20,9 +20,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
 
   return (
     <MantineProvider defaultColorScheme="dark">
-      <Suspense fallback={<></>}>
-        <Notifications position="top-right" />
-      </Suspense>
+      <Notifications position="top-right" />
       <main>
         <Component {...pageProps} />
       </main>

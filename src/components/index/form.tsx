@@ -72,13 +72,21 @@ const IndexForm = () => {
   useEffect(() => {
     try {
       setHasMounted(true);
-      // Add a small delay to ensure hydration is complete
-      const timer = setTimeout(() => {
-        startTransition(() => {
-          setIsHydrated(true);
-        });
-      }, 100);
-      return () => clearTimeout(timer);
+
+      const checkReady = () => {
+        if (
+          typeof document !== 'undefined' &&
+          document.readyState === 'complete'
+        ) {
+          startTransition(() => {
+            setIsHydrated(true);
+          });
+        } else {
+          setTimeout(checkReady, 100);
+        }
+      };
+
+      setTimeout(checkReady, 0);
     } catch (error) {
       captureError(
         error instanceof Error
@@ -120,7 +128,7 @@ const IndexForm = () => {
   }
 
   useEffect(() => {
-    if (!hasMounted) {
+    if (!isHydrated) {
       return;
     }
 

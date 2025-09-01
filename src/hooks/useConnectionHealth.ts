@@ -133,20 +133,25 @@ export const useConnectionHealth = ({
                 isTabVisible: isTabVisible.current,
               });
 
-              captureMessage(
-                'Connection health warning - no pong received',
-                {
-                  component: 'useConnectionHealth',
-                  action: 'checkConnectionHealth',
-                  extra: {
-                    timeSinceLastPong,
-                    pongTimeoutWarning:
-                      WEBSOCKET_CONSTANTS.PONG_TIMEOUT_WARNING,
-                    isTabVisible: isTabVisible.current,
+              // Only capture as warning if it's been a while since connection was established
+              // This avoids noise during normal reconnection cycles
+              if (timeSinceLastPong > 60000) {
+                // Only warn after 60 seconds
+                captureMessage(
+                  'Connection health warning - no pong received',
+                  {
+                    component: 'useConnectionHealth',
+                    action: 'checkConnectionHealth',
+                    extra: {
+                      timeSinceLastPong,
+                      pongTimeoutWarning:
+                        WEBSOCKET_CONSTANTS.PONG_TIMEOUT_WARNING,
+                      isTabVisible: isTabVisible.current,
+                    },
                   },
-                },
-                'warning',
-              );
+                  'warning',
+                );
+              }
 
               warningIssued.current = true;
               sendMessage(
