@@ -33,7 +33,7 @@
     "@fontsource/inter": "^5.2.6",
     "@fontsource/jetbrains-mono": "^5.2.6",
     "@fontsource/manrope": "^5.2.6",
-    "@mantine/core": "^8.2.2",
+    "@mantine/core": "^8.3.2",
     "@mantine/form": "^8.2.2",
     "@mantine/hooks": "^8.2.2",
     "@mantine/next": "^6.0.22",
