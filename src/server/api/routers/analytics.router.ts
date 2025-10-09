@@ -105,12 +105,9 @@ export const analyticsRouter = createTRPCRouter({
   }),
   getServerAnalytics: publicProcedure.query(async () => {
     try {
-      const response = await fetch(
-        'https://server.free-planning-poker.com/analytics',
-        {
-          cache: 'no-store',
-        },
-      );
+      const response = await fetch('https://fpp-server.jkrumm.com/analytics', {
+        cache: 'no-store',
+      });
 
       if (!response.ok) {
         throw new Error(
