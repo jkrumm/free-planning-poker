@@ -90,7 +90,10 @@ def upsert_table(cursor, table_name, dtypes_def):
         df_mysql['was_auto_flip'] = df_mysql['was_auto_flip'].map({0: False, 1: True})
 
     # Merge new data from MySQL with existing data in Parquet
-    df = pd.concat([df_mysql, df_parquet])
+    if df_parquet.empty:
+        df = df_mysql
+    else:
+        df = pd.concat([df_mysql, df_parquet])
     df.to_parquet(parquet_file)
 
     logger.info(f"Upserted records for in read model", {
@@ -129,7 +132,10 @@ def upsert_users(cursor):
         return
 
     # Merge new data from MySQL with existing data in Parquet
-    df = pd.concat([df_mysql, df_parquet])
+    if df_parquet.empty:
+        df = df_mysql
+    else:
+        df = pd.concat([df_mysql, df_parquet])
     df.to_parquet(parquet_file)
 
     logger.info(f"Upserted records for in read model", {
