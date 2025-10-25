@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, type User } from './room.entity';
@@ -44,7 +45,12 @@ export class RoomState {
       existingUser.lastHeartbeat = Date.now();
       existingUser.isPresent = currentPresenceState; // Preserve the current presence state
       log.debug(
-        { userId: user.id, roomId, name: user.name, isPresent: currentPresenceState },
+        {
+          userId: user.id,
+          roomId,
+          name: user.name,
+          isPresent: currentPresenceState,
+        },
         'Updated existing user connection - preserved presence state'
       );
     } else {
@@ -103,7 +109,9 @@ export class RoomState {
 
   getUserConnection(wsId: string): { userId: string; roomId: number } | null {
     const connection = this.userConnections.get(wsId);
-    return connection ? { userId: connection.userId, roomId: connection.roomId } : null;
+    return connection
+      ? { userId: connection.userId, roomId: connection.roomId }
+      : null;
   }
 
   removeConnection(wsId: string): { userId: string; roomId: number } | null {
@@ -113,10 +121,10 @@ export class RoomState {
     }
 
     const { userId, roomId } = connection;
-    
+
     // Only remove the connection, not the user
     this.userConnections.delete(wsId);
-    
+
     log.debug(
       { userId, roomId, wsId },
       'WebSocket connection removed - user stays in room until heartbeat timeout'
@@ -132,15 +140,19 @@ export class RoomState {
     }
 
     const roomData = room.toStringifiedJson();
+    let successCount = 0;
+    let failureCount = 0;
 
     for (const user of room.users) {
       try {
         // Check if this user still has an active WebSocket connection
-        const hasActiveConnection = Array.from(this.userConnections.values())
-          .some(conn => conn.userId === user.id && conn.roomId === roomId);
-      
+        const hasActiveConnection = Array.from(
+          this.userConnections.values()
+        ).some((conn) => conn.userId === user.id && conn.roomId === roomId);
+
         if (hasActiveConnection) {
           user.ws.send(roomData);
+          successCount++;
           log.debug(
             { userId: user.id, roomId: room.id, wsId: user.ws.id },
             'Successfully sent room data to user'
@@ -152,11 +164,35 @@ export class RoomState {
           );
         }
       } catch (error) {
+        failureCount++;
         log.debug(
           { userId: user.id, roomId: room.id, error },
           'Failed to send message to user - connection likely closed'
         );
+        Sentry.captureException(error, {
+          tags: {
+            operation: 'sendToEverySocketInRoom',
+            roomId: String(roomId),
+            userId: user.id,
+          },
+          level: 'warning',
+        });
       }
+    }
+
+    // Track if there were excessive failures
+    if (failureCount > 0 && failureCount >= room.users.length / 2) {
+      Sentry.captureMessage('High WebSocket send failure rate in room', {
+        level: 'warning',
+        tags: {
+          roomId: String(roomId),
+        },
+        extra: {
+          totalUsers: room.users.length,
+          successCount,
+          failureCount,
+        },
+      });
     }
 
     room.lastUpdated = Date.now();
@@ -173,15 +209,16 @@ export class RoomState {
       type: 'roomNameChanged',
       roomId,
       roomName,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     for (const user of room.users) {
       try {
         // Check if this user still has an active WebSocket connection
-        const hasActiveConnection = Array.from(this.userConnections.values())
-          .some(conn => conn.userId === user.id && conn.roomId === roomId);
-      
+        const hasActiveConnection = Array.from(
+          this.userConnections.values()
+        ).some((conn) => conn.userId === user.id && conn.roomId === roomId);
+
         if (hasActiveConnection) {
           user.ws.send(roomNameChangeMessage);
           log.debug(
@@ -199,6 +236,14 @@ export class RoomState {
           { userId: user.id, roomId: room.id, error },
           'Failed to send room name change notification to user - connection likely closed'
         );
+        Sentry.captureException(error, {
+          tags: {
+            operation: 'sendRoomNameChangeToAllUsers',
+            roomId: String(roomId),
+            userId: user.id,
+          },
+          level: 'warning',
+        });
       }
     }
 
@@ -229,6 +274,8 @@ export class RoomState {
     const now = Date.now();
     // Use the constant from websocket.constants.ts
     const HEARTBEAT_TIMEOUT = WEBSOCKET_CONSTANTS.HEARTBEAT_TIMEOUT;
+    let totalRemovedUsers = 0;
+    let totalRemovedRooms = 0;
 
     for (const room of this.rooms.values()) {
       const usersToRemove: string[] = [];
@@ -249,26 +296,35 @@ export class RoomState {
         }
       }
 
-    // Remove inactive users
-    for (const userId of usersToRemove) {
-      room.removeUser(userId);
-      this.cleanupUserConnection(userId, room.id);
+      // Remove inactive users
+      for (const userId of usersToRemove) {
+        room.removeUser(userId);
+        this.cleanupUserConnection(userId, room.id);
+        totalRemovedUsers++;
+      }
+
+      // Send updates if users were removed
+      if (usersToRemove.length > 0) {
+        this.sendToEverySocketInRoom(room.id);
+      }
+
+      // Clean up empty rooms
+      if (room.users.length === 0) {
+        this.rooms.delete(room.id);
+        totalRemovedRooms++;
+        log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
+      }
     }
 
-    // Send updates if users were removed
-    if (usersToRemove.length > 0) {
-      this.sendToEverySocketInRoom(room.id);
-    }
-
-    // Clean up empty rooms
-    if (room.users.length === 0) {
-      this.rooms.delete(room.id);
-      log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
-    }
-  }}
+    // Cleanup summary is already logged by Pino
+  }
 
   // Add method to update presence
-  updateUserPresence(roomId: number, userId: string, isPresent: boolean): boolean {
+  updateUserPresence(
+    roomId: number,
+    userId: string,
+    isPresent: boolean
+  ): boolean {
     const room = this.rooms.get(roomId);
     if (!room) {
       return false;

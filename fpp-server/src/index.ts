@@ -1,15 +1,14 @@
 import { createPinoLogger } from '@bogeychan/elysia-logger';
 import cron from '@elysiajs/cron';
+import * as Sentry from '@sentry/bun';
 import { Elysia, t } from 'elysia';
-import {
-  ActionSchema,
-  CActionSchema,
-} from './room.actions';
+import { sentry } from 'elysiajs-sentry';
 import { MessageHandler } from './message.handler';
-import { RoomState } from './room.state';
-import { Analytics } from './types';
-import { WEBSOCKET_CONSTANTS } from './websocket.constants';
+import { ActionSchema, CActionSchema } from './room.actions';
 import { User } from './room.entity';
+import { RoomState } from './room.state';
+import { type Analytics } from './types';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -31,31 +30,59 @@ const app = new Elysia({
   websocket: {
     idleTimeout: 180,
   },
-}).use(
-  cron({
-    name: 'cleanupInactiveState',
-    pattern: '0 */30 * * * *', // Every 30 seconds
-    run() {
-      roomState.cleanupInactiveState();
-    },
-  })
-);
+})
+  .use(
+    cron({
+      name: 'cleanupInactiveState',
+      pattern: '0 */30 * * * *', // Every 30 seconds
+      run() {
+        roomState.cleanupInactiveState();
+      },
+    })
+  )
+  .use(
+    sentry({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV,
+    })
+  );
 
 app.get('/health', () => {
   return { status: 'ok' };
 });
 
 app.get('/analytics', (): Analytics => {
-  roomState.cleanupInactiveState();
-  return roomState.toAnalytics();
+  try {
+    roomState.cleanupInactiveState();
+    return roomState.toAnalytics();
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: 'analytics',
+      },
+    });
+    throw error;
+  }
 });
 
 app.post(
   '/leave',
   ({ body: { roomId, userId } }) => {
     log.debug({ roomId, userId }, 'Leave request via beacon');
-    roomState.removeUserFromRoom(roomId, userId);
-    return { success: true };
+
+    try {
+      roomState.removeUserFromRoom(roomId, userId);
+      return { success: true };
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          endpoint: 'leave',
+          roomId: String(roomId),
+          userId,
+        },
+      });
+      throw error;
+    }
   },
   {
     body: t.Object({
@@ -84,6 +111,15 @@ app.ws('/ws', {
         },
         'Missing query parameters'
       );
+      Sentry.captureMessage('WebSocket connection missing query parameters', {
+        level: 'warning',
+        tags: {
+          wsId: ws.id,
+        },
+        extra: {
+          query: ws.data.query,
+        },
+      });
       ws.close();
       return;
     }
@@ -93,20 +129,40 @@ app.ws('/ws', {
       'User connecting to room'
     );
 
-    // Add user but don't send immediately - wait for WebSocket to be fully ready
-    roomState.addUserToRoom(roomId, new User({
-      id: userId,
-      name: username,
-      estimation: null,
-      isSpectator: false,
-      isPresent: true,
-      ws,
-    }));
+    try {
+      // Add user but don't send immediately - wait for WebSocket to be fully ready
+      roomState.addUserToRoom(
+        roomId,
+        new User({
+          id: userId,
+          name: username,
+          estimation: null,
+          isSpectator: false,
+          isPresent: true,
+          // @ts-ignore
+          ws,
+        })
+      );
 
-    // Send initial state after a short delay to ensure WebSocket is ready
-    setTimeout(() => {
-      roomState.sendToEverySocketInRoom(roomId);
-    }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+      // Send the initial state after a short delay to ensure WebSocket is ready
+      setTimeout(() => {
+        roomState.sendToEverySocketInRoom(roomId);
+      }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          roomId: String(roomId),
+          userId,
+          wsId: ws.id,
+          operation: 'websocket_open',
+        },
+      });
+      log.error(
+        { error, roomId, userId, wsId: ws.id },
+        'Error in WebSocket open handler'
+      );
+      throw error;
+    }
   },
   message(ws, data) {
     try {
@@ -119,6 +175,15 @@ app.ws('/ws', {
           },
           'Invalid message format'
         );
+        Sentry.captureMessage('Invalid WebSocket message format', {
+          level: 'error',
+          tags: {
+            wsId: ws.id,
+          },
+          extra: {
+            receivedData: String(data),
+          },
+        });
         ws.send(
           JSON.stringify({
             error: 'Invalid message format',
@@ -131,6 +196,17 @@ app.ws('/ws', {
 
       messageHandler.handleMessage(ws, data);
     } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          wsId: ws.id,
+          action: (data as any)?.action,
+          roomId: String((data as any)?.roomId),
+          userId: (data as any)?.userId,
+        },
+        extra: {
+          messageData: data,
+        },
+      });
       if (error instanceof Error) {
         log.error({ error, wsId: ws.id, ...data }, 'Error processing message');
         ws.send(
@@ -149,11 +225,28 @@ app.ws('/ws', {
       'WebSocket connection closed'
     );
 
-    // DON'T remove user immediately - let heartbeat timeout handle it
+    const connection = roomState.getUserConnection(ws.id);
+
+    // Track abnormal closures
+    if (code !== 1000 && code !== 1001) {
+      Sentry.captureMessage('WebSocket closed with abnormal code', {
+        level: 'warning',
+        tags: {
+          closeCode: String(code),
+          wsId: ws.id,
+          roomId: connection?.roomId ? String(connection.roomId) : undefined,
+          userId: connection?.userId,
+        },
+        extra: {
+          reason: reason?.toString(),
+        },
+      });
+    }
+
+    // DON'T remove the user immediately - let heartbeat timeout handle it
     // This way users can reconnect without losing their spot
 
     // Just clean up the connection tracking
-    const connection = roomState.getUserConnection(ws.id);
     if (connection) {
       roomState.removeConnection(ws.id);
       log.debug(

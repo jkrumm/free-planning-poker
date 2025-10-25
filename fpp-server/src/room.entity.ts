@@ -1,5 +1,6 @@
 // @ts-ignore
 
+import * as Sentry from '@sentry/bun';
 import { ServerWebSocket } from 'bun';
 // @ts-ignore
 import { ElysiaWS } from 'elysia/dist/ws';
@@ -44,7 +45,14 @@ export class User {
     return userStatus.pending;
   }
 
-  constructor({ id, name, estimation, isSpectator, ws, isPresent }: CreateUserDto) {
+  constructor({
+    id,
+    name,
+    estimation,
+    isSpectator,
+    ws,
+    isPresent,
+  }: CreateUserDto) {
     this.id = id;
     this.name = name;
     this.estimation = estimation;
@@ -235,33 +243,61 @@ export class RoomServer extends RoomBase {
     const fppServerSecret = process.env.FPP_SERVER_SECRET;
 
     if (!fppServerSecret) {
-      throw new Error('FPP_SERVER_SECRET not set');
+      const error = new Error('FPP_SERVER_SECRET not set');
+      Sentry.captureException(error, {
+        tags: {
+          operation: 'flip',
+          roomId: String(this.id),
+        },
+        level: 'error',
+      });
+      throw error;
     }
 
-    fetch(
-      `${
-        process.env.NODE_ENV === 'production'
-          ? 'https://free-planning-poker.com/'
-          : 'http://localhost:3001'
-      }/api/trpc/room.trackFlip?batch=1`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
-          JSON.stringify({
-            '0': {
-              json: {
-                roomId: this.id,
-                fppServerSecret,
-                roomState: this.toStringifiedJson(),
-              },
+    // Track flip analytics - fire and forget with error handling
+    const trackingUrl = `${
+      process.env.NODE_ENV === 'production'
+        ? 'https://free-planning-poker.com/'
+        : 'http://localhost:3001'
+    }/api/trpc/room.trackFlip?batch=1`;
+
+    fetch(trackingUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(
+        JSON.stringify({
+          '0': {
+            json: {
+              roomId: this.id,
+              fppServerSecret,
+              roomState: this.toStringifiedJson(),
             },
-          })
-        ),
-      }
-    ).then();
+          },
+        })
+      ),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Analytics tracking failed with status ${response.status}`
+          );
+        }
+      })
+      .catch((error) => {
+        // Only capture analytics failures - these are non-critical
+        Sentry.captureException(error, {
+          tags: {
+            operation: 'flip_analytics',
+            roomId: String(this.id),
+          },
+          extra: {
+            trackingUrl,
+          },
+          level: 'warning',
+        });
+      });
   }
 
   private autoFlip() {

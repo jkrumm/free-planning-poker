@@ -44,11 +44,6 @@ The project uses Drizzle Kit for database migrations. Available commands:
 7. Switch the `.env` URL to use prod database
 8. Run `npm run db:migrate` to apply changes to prod database
 
-### Run analytics locally
-1. Activate venv with `source .venv/bin/activate`
-2. Install packages `python3 -m pip install -r requirements.txt`
-3. Run Flask app in dev mode `doppler run -- flask run --debug`
-
 ### Run fpp-server locally
 1. [Install Bun](https://bun.sh/docs/installation) if not already installed
 2. Create a .env file in 'fpp-server' and paste the FPP_SERVER_SECRET into it from running `doppler secrets get FPP_SERVER_SECRET --plain` 

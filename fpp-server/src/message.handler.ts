@@ -1,9 +1,9 @@
+import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import {
-  type Action,
-  isChangeUsernameAction,
   isChangeRoomNameAction,
+  isChangeUsernameAction,
   isEstimateAction,
   isFlipAction,
   isHeartbeatAction,
@@ -13,11 +13,12 @@ import {
   isResetAction,
   isSetAutoFlipAction,
   isSetPresenceAction,
-  isSetSpectatorAction
+  isSetSpectatorAction,
+  type Action,
 } from './room.actions';
+import { User } from './room.entity';
 import { type RoomState } from './room.state';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
-import { User } from './room.entity';
 
 export class MessageHandler {
   constructor(private roomState: RoomState) {}
@@ -26,9 +27,10 @@ export class MessageHandler {
    * Handle incoming WebSocket messages
    */
   handleMessage(ws: ElysiaWS<any>, data: Action): void {
-      const room = this.roomState.getOrCreateRoom(data.roomId);
-      log.debug({ ...data, wsId: ws.id }, 'Received message');
+    const room = this.roomState.getOrCreateRoom(data.roomId);
+    log.debug({ ...data, wsId: ws.id }, 'Received message');
 
+    try {
       if (isHeartbeatAction(data)) {
         this.handleHeartbeat(ws, data);
         return;
@@ -69,7 +71,11 @@ export class MessageHandler {
       }
 
       if (isSetPresenceAction(data)) {
-        this.roomState.updateUserPresence(data.roomId, data.userId, data.isPresent);
+        this.roomState.updateUserPresence(
+          data.roomId,
+          data.userId,
+          data.isPresent
+        );
         this.roomState.sendToEverySocketInRoom(data.roomId);
         return;
       }
@@ -101,17 +107,40 @@ export class MessageHandler {
         {
           error: 'Unknown action',
           wsId: ws.id,
-          data: String(data)
+          data: String(data),
         },
         'Unknown action'
       );
+      Sentry.captureMessage('Unknown WebSocket action received', {
+        level: 'error',
+        tags: {
+          wsId: ws.id,
+        },
+        extra: {
+          receivedData: data,
+        },
+      });
       ws.send(
         JSON.stringify({
           error: 'Unknown action',
           wsId: ws.id,
-          data: String(data)
+          data: String(data),
         })
       );
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          handler: 'handleMessage',
+          roomId: String(data.roomId),
+          userId: data.userId,
+          action: (data as any)?.action,
+        },
+        extra: {
+          actionData: data,
+        },
+      });
+      throw error;
+    }
   }
 
   /**
@@ -124,6 +153,14 @@ export class MessageHandler {
         { userId: data.userId, roomId: data.roomId, wsId: ws.id },
         'Heartbeat received for unknown user - user needs to reconnect'
       );
+      Sentry.captureMessage('Heartbeat received for unknown user', {
+        level: 'warning',
+        tags: {
+          roomId: String(data.roomId),
+          userId: data.userId,
+          wsId: ws.id,
+        },
+      });
       ws.send(JSON.stringify({ error: 'User not found - userId not found' }));
       return;
     }
@@ -152,19 +189,34 @@ export class MessageHandler {
       'User rejoining room'
     );
 
-    this.roomState.addUserToRoom(data.roomId, new User({
-      id: data.userId,
-      name: data.username,
-      estimation: null,
-      isSpectator: false,
-      isPresent: true,
-      ws
-    }));
+    try {
+      this.roomState.addUserToRoom(
+        data.roomId,
+        new User({
+          id: data.userId,
+          name: data.username,
+          estimation: null,
+          isSpectator: false,
+          isPresent: true,
+          ws,
+        })
+      );
 
-    // Send update after a short delay for rejoin
-    setTimeout(() => {
-      this.roomState.sendToEverySocketInRoom(data.roomId);
-    }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+      // Send update after a short delay for rejoin
+      setTimeout(() => {
+        this.roomState.sendToEverySocketInRoom(data.roomId);
+      }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          handler: 'handleRejoin',
+          roomId: String(data.roomId),
+          userId: data.userId,
+          wsId: ws.id,
+        },
+      });
+      throw error;
+    }
   }
 
   /**
@@ -174,7 +226,12 @@ export class MessageHandler {
     if (!isChangeRoomNameAction(data)) return;
 
     log.debug(
-      { userId: data.userId, roomId: data.roomId, roomName: data.roomName, wsId: ws.id },
+      {
+        userId: data.userId,
+        roomId: data.roomId,
+        roomName: data.roomName,
+        wsId: ws.id,
+      },
       'Room name changed - propagating to all users'
     );
 
@@ -189,30 +246,57 @@ export class MessageHandler {
     if (!isKickAction(data)) return;
 
     log.debug(
-      { userId: data.userId, roomId: data.roomId, targetUserId: data.targetUserId, wsId: ws.id },
+      {
+        userId: data.userId,
+        roomId: data.roomId,
+        targetUserId: data.targetUserId,
+        wsId: ws.id,
+      },
       'User kicking another user from room'
     );
 
     // Find the kicked user's WebSocket connection
     const room = this.roomState.getOrCreateRoom(data.roomId);
-    const kickedUser = room.users.find(u => u.id === data.targetUserId);
-    
+    const kickedUser = room.users.find((u) => u.id === data.targetUserId);
+
     if (kickedUser) {
       // Send kick notification to the kicked user BEFORE removing them
       try {
-        kickedUser.ws.send(JSON.stringify({ 
-          type: 'kicked',
-          message: 'You have been removed from the room'
-        }));
+        kickedUser.ws.send(
+          JSON.stringify({
+            type: 'kicked',
+            message: 'You have been removed from the room',
+          })
+        );
       } catch (error) {
-        log.debug('Failed to send kick notification - connection may be closed');
+        log.debug(
+          'Failed to send kick notification - connection may be closed'
+        );
+        Sentry.captureException(error, {
+          tags: {
+            handler: 'handleKick',
+            operation: 'send_kick_notification',
+            roomId: String(data.roomId),
+            targetUserId: data.targetUserId,
+          },
+          level: 'warning',
+        });
       }
-      
+
       // Close their WebSocket connection
       try {
         kickedUser.ws.close();
       } catch (error) {
         log.debug('Failed to close WebSocket - may already be closed');
+        Sentry.captureException(error, {
+          tags: {
+            handler: 'handleKick',
+            operation: 'close_websocket',
+            roomId: String(data.roomId),
+            targetUserId: data.targetUserId,
+          },
+          level: 'warning',
+        });
       }
     }
 
