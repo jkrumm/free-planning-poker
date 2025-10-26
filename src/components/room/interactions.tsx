@@ -7,7 +7,7 @@ import { Button, Group, Tooltip } from '@mantine/core';
 
 import { IconCopy, IconEdit, IconEye } from '@tabler/icons-react';
 import { type Action } from 'fpp-server/src/room.actions';
-import { RoomStateStatus } from 'fpp-server/src/room.entity';
+import { RoomStateStatus } from 'fpp-server/src/room.types';
 
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 

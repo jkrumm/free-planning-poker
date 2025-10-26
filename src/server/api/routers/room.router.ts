@@ -5,7 +5,8 @@ import { TRPCError } from '@trpc/server';
 import * as Sentry from '@sentry/nextjs';
 import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
-import { type RoomDto, RoomServer } from 'fpp-server/src/room.entity';
+import { RoomServer } from 'fpp-server/src/room.entity';
+import { type RoomDto } from 'fpp-server/src/room.types';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 

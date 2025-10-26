@@ -11,7 +11,7 @@ import {
   IconUserMinus,
 } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
-import { type User } from 'fpp-server/src/room.entity';
+import { type User } from 'fpp-server/src/room.types';
 
 import { executeLeave } from 'fpp/utils/room.util';
 

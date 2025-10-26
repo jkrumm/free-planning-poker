@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { HoverCard, Text } from '@mantine/core';
 
 import { type Action } from 'fpp-server/src/room.actions';
-import { type User } from 'fpp-server/src/room.entity';
+import { type User } from 'fpp-server/src/room.types';
 
 import { UserActions } from 'fpp/components/room/user-actions';
 

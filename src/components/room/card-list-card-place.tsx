@@ -5,7 +5,7 @@ import React from 'react';
 import { Button, Card, Group, Text } from '@mantine/core';
 
 import { type Action } from 'fpp-server/src/room.actions';
-import { RoomStateStatus, type User } from 'fpp-server/src/room.entity';
+import { RoomStateStatus, type User } from 'fpp-server/src/room.types';
 
 import {
   getAverageFromUsers,

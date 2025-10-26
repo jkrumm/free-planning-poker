@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { env } from 'fpp/env';
 
 import { type Action } from 'fpp-server/src/room.actions';
-import { RoomClient, type RoomDto } from 'fpp-server/src/room.entity';
+import { RoomClient, type RoomDto } from 'fpp-server/src/room.types';
 
 import {
   addBreadcrumb,

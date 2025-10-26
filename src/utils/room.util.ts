@@ -4,7 +4,8 @@ import { notifications } from '@mantine/notifications';
 
 import confetti from 'canvas-confetti';
 import type { Action } from 'fpp-server/src/room.actions';
-import { type RoomServer, type User } from 'fpp-server/src/room.entity';
+import { type RoomServer } from 'fpp-server/src/room.entity';
+import { type User } from 'fpp-server/src/room.types';
 
 import {
   addBreadcrumb,

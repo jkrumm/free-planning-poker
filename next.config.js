@@ -18,6 +18,20 @@ const nextConfig = {
     // The instrumentation hook is required for Sentry to work on the serverside
     instrumentationHook: true,
   },
+  /**
+   * @param {import('webpack').Configuration} config
+   * @param {{ isServer: boolean }} options
+   */
+  webpack: (config, { isServer }) => {
+    if (!isServer && config.resolve) {
+      // For client builds, alias room.entity to room.types to avoid Bun-specific imports
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'fpp-server/src/room.entity': require('path').resolve(__dirname, 'fpp-server/src/room.types.ts'),
+      };
+    }
+    return config;
+  },
 };
 
 // Injected content via Sentry wizard below

@@ -1,173 +1,48 @@
-// @ts-ignore
-
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - This file contains Bun-specific imports that aren't available in Next.js
 import * as Sentry from '@sentry/bun';
-import { ServerWebSocket } from 'bun';
-// @ts-ignore
-import { ElysiaWS } from 'elysia/dist/ws';
+import { type ServerWebSocket } from 'bun';
+import { type ElysiaWS } from 'elysia/dist/ws';
 import { preciseTimeout } from './utils';
 
+// Re-export shared types from room.types for backward compatibility
+export {
+  User as UserBase,
+  RoomClient,
+  RoomBase,
+  RoomStateStatus,
+  type RoomDto,
+  type CreateUserDto as CreateUserDtoBase,
+} from './room.types';
+
+// Import base classes to extend
+import {
+  User as UserBase,
+  RoomBase,
+  type CreateUserDto as CreateUserDtoBase,
+} from './room.types';
+
 /**
- * Users can estimate or spectate
+ * Server-specific extensions that require Bun/Elysia dependencies
  */
 
-export interface CreateUserDto {
-  id: string;
-  name: string;
-  estimation: number | null;
-  isSpectator: boolean;
-  isPresent: boolean;
+export interface CreateUserDto extends CreateUserDtoBase {
   ws: ElysiaWS<ServerWebSocket<any>, any>;
 }
 
-const userStatus = {
-  pending: 'pending',
-  estimated: 'estimated',
-  spectator: 'spectator',
-} as const;
-
-export class User {
-  readonly id: string;
-  name: string;
-  estimation: number | null = null;
-  isSpectator: boolean;
+export class User extends UserBase {
   ws: ElysiaWS<ServerWebSocket<any>, any>;
-  firstHeartbeat = Date.now();
-  lastHeartbeat = Date.now();
-  isPresent: boolean;
 
-  get status(): keyof typeof userStatus {
-    if (this.isSpectator) {
-      return userStatus.spectator;
-    }
-    if (this.estimation) {
-      return userStatus.estimated;
-    }
-    return userStatus.pending;
-  }
-
-  constructor({
-    id,
-    name,
-    estimation,
-    isSpectator,
-    ws,
-    isPresent,
-  }: CreateUserDto) {
-    this.id = id;
-    this.name = name;
-    this.estimation = estimation;
-    this.isSpectator = isSpectator;
-    this.isPresent = isPresent;
-    this.ws = ws;
+  constructor(params: CreateUserDto) {
+    super(params);
+    this.ws = params.ws;
   }
 }
 
 /**
- * Room has a list of Users and a status
- * The status is either estimating, flippable or flipped
- * If auto flip is enabled, the room will flip automatically once everyone estimated
- *
- * RoomDto is the serialized version of Room that is sent to the users using WebSocket
- * RoomBase is the base class which has methods to map between Room and RoomDto
- * RoomClient is the version of Room that is used on the frontend
- * RoomServer is the version of Room that is used on the backend it has additional methods to mutate the state
+ * RoomServer is the server-side version of Room with mutation methods
+ * RoomClient and RoomDto are exported from room.types.ts
  */
-
-export const RoomStateStatus = {
-  estimating: 'estimating',
-  flippable: 'flippable',
-  flipped: 'flipped',
-} as const;
-
-export interface RoomDto {
-  id: number;
-  startedAt: number;
-  lastUpdated: number;
-  users: CreateUserDto[];
-  isFlipped: boolean;
-  isAutoFlip: boolean;
-  status: keyof typeof RoomStateStatus;
-}
-
-class RoomBase {
-  readonly id: number;
-  startedAt: number;
-  lastUpdated: number;
-
-  users: User[] = [];
-  isFlipped = false;
-  isAutoFlip = false;
-
-  get isFlippable() {
-    return (
-      this.users.every(
-        (user) => user.estimation !== null || user.isSpectator
-      ) &&
-      this.users.some((user) => !user.isSpectator) &&
-      !this.isFlipped
-    );
-  }
-
-  get status(): keyof typeof RoomStateStatus {
-    if (this.isFlipped) {
-      return RoomStateStatus.flipped;
-    }
-    if (this.isFlippable) {
-      return RoomStateStatus.flippable;
-    }
-    return RoomStateStatus.estimating;
-  }
-
-  constructor(id: number) {
-    this.id = id;
-    this.startedAt = Date.now();
-    this.lastUpdated = Date.now();
-  }
-
-  // Possible to create instances of RoomClient and RoomServer
-  static fromJson<T extends RoomBase>(
-    this: new (id: number) => T,
-    roomStateDto: RoomDto
-  ) {
-    const roomState = new this(roomStateDto.id);
-    roomState.startedAt = roomStateDto.startedAt;
-    roomState.lastUpdated = roomStateDto.lastUpdated;
-    roomState.users = roomStateDto.users.map((user) => new User(user));
-    roomState.isFlipped = roomStateDto.isFlipped;
-    roomState.isAutoFlip = roomStateDto.isAutoFlip;
-    return roomState;
-  }
-
-  toJson(): RoomDto {
-    return {
-      id: this.id,
-      startedAt: this.startedAt,
-      lastUpdated: this.lastUpdated,
-      users: this.users,
-      isFlipped: this.isFlipped,
-      isAutoFlip: this.isAutoFlip,
-      status: this.status,
-    };
-  }
-
-  toStringifiedJson(): string {
-    return JSON.stringify(this.toJson());
-  }
-}
-
-export class RoomClient extends RoomBase {
-  getUser(userId: string | null) {
-    // NOTE: you can never trust frontends
-    if (!userId) {
-      throw new Error(`User not found - userId not given`);
-    }
-    const user = this.users.find((user) => user.id === userId);
-    if (!user) {
-      throw new Error(`User not found - userId not found`);
-    }
-    return user;
-  }
-}
 
 export class RoomServer extends RoomBase {
   hasChanged = false;

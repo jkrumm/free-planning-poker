@@ -4,7 +4,7 @@ import {
   type RoomClient,
   type RoomStateStatus,
   type User,
-} from 'fpp-server/src/room.entity';
+} from 'fpp-server/src/room.types';
 import { create } from 'zustand';
 
 import { executeKick, notifyOnRoomChanges } from 'fpp/utils/room.util';
