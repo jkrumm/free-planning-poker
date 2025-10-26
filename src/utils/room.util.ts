@@ -4,7 +4,7 @@ import { notifications } from '@mantine/notifications';
 
 import confetti from 'canvas-confetti';
 import type { Action } from 'fpp-server/src/room.actions';
-import { type RoomServer } from 'fpp-server/src/room.entity';
+import { type RoomBase } from 'fpp-server/src/room.types';
 import { type User } from 'fpp-server/src/room.types';
 
 import {
@@ -86,9 +86,7 @@ function getEstimationsFromUsers(
   }
 }
 
-export function getICreateVoteFromRoomState(
-  roomState: RoomServer,
-): ICreateVote {
+export function getICreateVoteFromRoomState(roomState: RoomBase): ICreateVote {
   try {
     const estimations = getEstimationsFromUsers(roomState.users);
 

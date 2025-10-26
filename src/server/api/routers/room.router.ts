@@ -5,8 +5,7 @@ import { TRPCError } from '@trpc/server';
 import * as Sentry from '@sentry/nextjs';
 import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
-import { RoomServer } from 'fpp-server/src/room.entity';
-import { type RoomDto } from 'fpp-server/src/room.types';
+import { RoomBase, type RoomDto } from 'fpp-server/src/room.types';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 
@@ -339,7 +338,7 @@ export const roomRouter = createTRPCRouter({
 
         const roomStateDto = JSON.parse(roomState) as RoomDto;
 
-        const roomStateServer = RoomServer.fromJson(roomStateDto);
+        const roomStateServer = RoomBase.fromJson(roomStateDto);
 
         promises.push(
           db.insert(votes).values(getICreateVoteFromRoomState(roomStateServer)),
