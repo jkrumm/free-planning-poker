@@ -227,8 +227,12 @@ app.ws('/ws', {
 
     const connection = roomState.getUserConnection(ws.id);
 
-    // Track abnormal closures
-    if (code !== 1000 && code !== 1001) {
+    // Track abnormal closures, but ignore common expected codes:
+    // 1000 = Normal closure
+    // 1001 = Going away (e.g., browser navigating away)
+    // 1006 = Abnormal closure (no close frame - very common for tab closes, network issues)
+    const expectedCloseCodes = [1000, 1001, 1006];
+    if (!expectedCloseCodes.includes(code)) {
       Sentry.captureMessage('WebSocket closed with abnormal code', {
         level: 'warning',
         tags: {
