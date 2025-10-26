@@ -5,4 +5,10 @@ DATA_DIR = os.getenv('DATA_DIR', './data')
 BEA_BASE_URL = os.getenv('BEA_BASE_URL')
 BEA_SECRET_KEY = os.getenv('BEA_SECRET_KEY')
 
+# Sentry configuration
+SENTRY_DSN = os.getenv('FPP_ANALYTICS_SENTRY_DSN')
+SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'production')
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '0.1'))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv('SENTRY_PROFILES_SAMPLE_RATE', '0.1'))
+
 START_DATE = "2024-06-03"
