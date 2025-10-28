@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { Badge, Card, Table, Tabs, Text, Tooltip } from '@mantine/core';
+import { Badge, Card, Select, Table, Tabs, Text, Tooltip } from '@mantine/core';
 
 import {
   IconBug,
@@ -89,6 +89,20 @@ const getStatusColor = (status: string, substatus: string): string => {
   return 'gray';
 };
 
+// Get project badge color and label
+const getProjectInfo = (project: string): { color: string; label: string } => {
+  switch (project) {
+    case 'free-planning-poker':
+      return { color: 'blue', label: 'FPP' };
+    case 'fpp-server':
+      return { color: 'violet', label: 'Server' };
+    case 'fpp-analytics':
+      return { color: 'teal', label: 'Analytics' };
+    default:
+      return { color: 'gray', label: project };
+  }
+};
+
 // Simple bar chart component for trend data without tooltips
 const TrendChart = ({ data }: { data: number[] }) => {
   const maxValue = Math.max(...data, 1); // Ensure we don't divide by zero
@@ -111,6 +125,7 @@ const TrendChart = ({ data }: { data: number[] }) => {
 
 const IssueRow = ({ issue }: { issue: SentryIssuesResponse }) => {
   const isFeedback = isUserFeedback(issue);
+  const projectInfo = getProjectInfo(issue.project);
 
   return (
     <Table.Tr
@@ -133,6 +148,9 @@ const IssueRow = ({ issue }: { issue: SentryIssuesResponse }) => {
               variant="filled"
             >
               {issue.level.toUpperCase()}
+            </Badge>
+            <Badge size="xs" color={projectInfo.color} variant="light">
+              {projectInfo.label}
             </Badge>
             <Badge
               size="xs"
@@ -191,17 +209,24 @@ export const SentryIssuesTable = ({
   issues: SentryIssuesResponse[];
 }) => {
   const [activeTab, setActiveTab] = useState<string>('errors');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
 
   const categorizedIssues = useMemo(() => {
-    const userFeedback = issues.filter(isUserFeedback);
-    const errors = issues.filter(
+    // First filter by project
+    const filteredIssues =
+      projectFilter === 'all'
+        ? issues
+        : issues.filter((issue) => issue.project === projectFilter);
+
+    const userFeedback = filteredIssues.filter(isUserFeedback);
+    const errors = filteredIssues.filter(
       (issue) =>
         !isUserFeedback(issue) &&
         (issue.level === 'fatal' ||
           issue.level === 'error' ||
           issue.level === 'warning'),
     );
-    const messages = issues.filter(
+    const messages = filteredIssues.filter(
       (issue) =>
         !isUserFeedback(issue) &&
         (issue.level === 'info' || issue.level === 'debug'),
@@ -212,7 +237,7 @@ export const SentryIssuesTable = ({
       errors,
       messages,
     };
-  }, [issues]);
+  }, [issues, projectFilter]);
 
   const renderTable = (issueList: SentryIssuesResponse[]) => (
     <div className="overflow-y-scroll max-h-[600px]">
@@ -253,38 +278,55 @@ export const SentryIssuesTable = ({
         value={activeTab}
         onChange={(value) => setActiveTab(value ?? 'errors')}
       >
-        <Tabs.List className="md:px-4 pt-1">
-          <Tabs.Tab
-            value="errors"
-            className="px-2 md:px-6"
-            leftSection={<IconBug size={16} />}
-          >
-            Errors{' '}
-            <Badge variant="light" color="gray" size="sm">
-              {categorizedIssues.errors.length}
-            </Badge>
-          </Tabs.Tab>
-          <Tabs.Tab
-            value="messages"
-            className="px-2 md:px-6"
-            leftSection={<IconInfoCircle size={16} />}
-          >
-            Messages{' '}
-            <Badge variant="light" color="gray" size="sm">
-              {categorizedIssues.messages.length}
-            </Badge>
-          </Tabs.Tab>
-          <Tabs.Tab
-            value="userFeedback"
-            className="px-2 md:px-6"
-            leftSection={<IconMessage size={16} />}
-          >
-            Feedback{' '}
-            <Badge variant="light" color="gray" size="sm">
-              {categorizedIssues.userFeedback.length}
-            </Badge>
-          </Tabs.Tab>
-        </Tabs.List>
+        <div className="flex items-center justify-between gap-4 md:px-4 pt-1 pb-0 border-b border-gray-200 dark:border-gray-700">
+          <Tabs.List className="border-0 flex-1">
+            <Tabs.Tab
+              value="errors"
+              className="px-2 md:px-6"
+              leftSection={<IconBug size={16} />}
+            >
+              Errors{' '}
+              <Badge variant="light" color="gray" size="sm">
+                {categorizedIssues.errors.length}
+              </Badge>
+            </Tabs.Tab>
+            <Tabs.Tab
+              value="messages"
+              className="px-2 md:px-6"
+              leftSection={<IconInfoCircle size={16} />}
+            >
+              Messages{' '}
+              <Badge variant="light" color="gray" size="sm">
+                {categorizedIssues.messages.length}
+              </Badge>
+            </Tabs.Tab>
+            <Tabs.Tab
+              value="userFeedback"
+              className="px-2 md:px-6"
+              leftSection={<IconMessage size={16} />}
+            >
+              Feedback{' '}
+              <Badge variant="light" color="gray" size="sm">
+                {categorizedIssues.userFeedback.length}
+              </Badge>
+            </Tabs.Tab>
+          </Tabs.List>
+          <div className="pr-4 pb-1">
+            <Select
+              value={projectFilter}
+              onChange={(value) => setProjectFilter(value ?? 'all')}
+              data={[
+                { value: 'all', label: 'All Projects' },
+                { value: 'free-planning-poker', label: 'FreePlanningPoker' },
+                { value: 'fpp-server', label: 'FPP-Server' },
+                { value: 'fpp-analytics', label: 'FPP-Analytics' },
+              ]}
+              w={200}
+              size="xs"
+              placeholder="Filter by project"
+            />
+          </div>
+        </div>
 
         <Tabs.Panel value="errors" pt={0}>
           {categorizedIssues.errors.length > 0 ? (

@@ -14,6 +14,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_apscheduler import APScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 
+import config
 from config import (
     ANALYTICS_SECRET_TOKEN,
     DATA_DIR,
@@ -192,7 +193,8 @@ def create_app(test_config=None):
     load_dotenv()
 
     # Initialize Sentry before creating the app
-    init_sentry()
+    if config.SENTRY_ENVIRONMENT == "production":
+        init_sentry()
 
     # create and configure the app
     app = Flask(__name__)
