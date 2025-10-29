@@ -230,8 +230,9 @@ app.ws('/ws', {
     // Track abnormal closures, but ignore common expected codes:
     // 1000 = Normal closure
     // 1001 = Going away (e.g., browser navigating away)
+    // 1005 = No status received (browser-generated, common on tab close/reload)
     // 1006 = Abnormal closure (no close frame - very common for tab closes, network issues)
-    const expectedCloseCodes = [1000, 1001, 1006];
+    const expectedCloseCodes = [1000, 1001, 1005, 1006];
     if (!expectedCloseCodes.includes(code)) {
       Sentry.captureMessage('WebSocket closed with abnormal code', {
         level: 'warning',
