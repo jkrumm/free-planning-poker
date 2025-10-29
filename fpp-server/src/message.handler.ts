@@ -151,18 +151,10 @@ export class MessageHandler {
   private handleHeartbeat(ws: ElysiaWS<any>, data: Action): void {
     const heartbeatUpdated = this.roomState.updateHeartbeat(ws.id);
     if (!heartbeatUpdated) {
-      log.warn(
+      log.debug(
         { userId: data.userId, roomId: data.roomId, wsId: ws.id },
         'Heartbeat received for unknown user - user needs to reconnect'
       );
-      Sentry.captureMessage('Heartbeat received for unknown user', {
-        level: 'warning',
-        tags: {
-          roomId: String(data.roomId),
-          userId: data.userId,
-          wsId: ws.id,
-        },
-      });
       ws.send(JSON.stringify({ error: 'User not found - userId not found' }));
       return;
     }
