@@ -234,7 +234,11 @@ const RoomWrapper = () => {
                 </ErrorBoundary>
               );
             }
-            return <Loader variant="bars" />;
+            return (
+              <div className="fixed top-0 left-0 flex items-center justify-center z-50 h-screen w-screen">
+                <Loader variant="bars" size="xl" />
+              </div>
+            );
           })()}
         </div>
       </SentryContextProvider>

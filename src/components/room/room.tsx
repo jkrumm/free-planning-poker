@@ -2,7 +2,6 @@ import React from 'react';
 
 import { useConnectionHealth } from 'fpp/hooks/useConnectionHealth';
 import { useHeartbeat } from 'fpp/hooks/useHeartbeat';
-import { useLeaveRoomHandler } from 'fpp/hooks/useLeaveRoomHandler';
 import { usePresenceTracking } from 'fpp/hooks/usePresenceTracking';
 import { useViewMode } from 'fpp/hooks/useViewMode';
 import { useWebSocketRoom } from 'fpp/hooks/useWebSocketRoom';
@@ -43,13 +42,6 @@ export const Room = ({ roomId, roomName, userId, username }: RoomProps) => {
     sendHeartbeat,
     roomId,
     userId,
-  });
-
-  // Handle user leaving the room
-  useLeaveRoomHandler({
-    roomId,
-    userId,
-    triggerAction,
   });
 
   // Monitor connection health
