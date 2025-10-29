@@ -21,6 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5100
 
 # Run app.py when the container launches
-# Using 2 workers with 2 threads each for low-traffic analytics app with background scheduler
-# --max-requests restarts workers after 1000 requests to prevent memory leaks
-CMD ["gunicorn", "-b", "0.0.0.0:5100", "--workers", "2", "--threads", "2", "--worker-class", "gthread", "--timeout", "120", "--max-requests", "1000", "--max-requests-jitter", "50", "app:app"]
+# Single worker configuration for personal use analytics app
+# Prevents race conditions with Parquet file reads/writes and simplifies resource usage
+# --threads=1 ensures sequential processing, avoiding concurrent Parquet file access issues
+CMD ["gunicorn", "-b", "0.0.0.0:5100", "--workers", "1", "--threads", "1", "--worker-class", "gthread", "--timeout", "120", "app:app"]
