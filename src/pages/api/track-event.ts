@@ -24,7 +24,9 @@ const TrackEvent = async (req: NextApiRequest, res: NextApiResponse) => {
     throw new MethodNotAllowedError('TRACK_EVENT only accepts POST requests');
   }
 
-  const { userId, event } = JSON.parse(req.body as string) as {
+  const { userId, event } = (
+    typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+  ) as {
     userId: string;
     event: keyof typeof EventType;
   };

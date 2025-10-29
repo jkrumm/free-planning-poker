@@ -132,7 +132,8 @@ export const sendTrackPageView = ({
 
     if (navigator.sendBeacon && userId && validateNanoId(userId)) {
       try {
-        const beaconSent = navigator.sendBeacon(url, body);
+        const blob = new Blob([body], { type: 'application/json' });
+        const beaconSent = navigator.sendBeacon(url, blob);
         if (!beaconSent) {
           throw new Error('Beacon failed to send');
         }

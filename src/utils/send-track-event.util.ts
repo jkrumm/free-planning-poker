@@ -15,9 +15,10 @@ export function sendTrackEvent({
       event,
     });
     if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: 'application/json' });
       navigator.sendBeacon(
         `${process.env.NEXT_PUBLIC_API_ROOT}api/track-event`,
-        body,
+        blob,
       );
     } else {
       fetch(`${process.env.NEXT_PUBLIC_API_ROOT}api/track-event`, {

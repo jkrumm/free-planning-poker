@@ -28,9 +28,12 @@ export const useLeaveRoomHandler = ({
 
         // Use navigator.sendBeacon for more reliable delivery
         if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify({ roomId, userId })], {
+            type: 'application/json',
+          });
           const success = navigator.sendBeacon(
             `${env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'https' : 'http'}://${env.NEXT_PUBLIC_FPP_SERVER_URL}/leave`,
-            JSON.stringify({ roomId, userId }),
+            blob,
           );
 
           if (!success) {

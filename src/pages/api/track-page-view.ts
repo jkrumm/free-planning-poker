@@ -28,7 +28,9 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // eslint-disable-next-line prefer-const
-  let { userId, route, roomId, source } = JSON.parse(req.body as string) as {
+  let { userId, route, roomId, source } = (
+    typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+  ) as {
     userId: string | null;
     route: keyof typeof RouteType;
     roomId?: number;
