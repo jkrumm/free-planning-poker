@@ -142,3 +142,5 @@ cython_debug/
 
 # PyCharm
 *idea/
+# Backup files
+*.backup
