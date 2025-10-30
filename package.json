@@ -36,7 +36,6 @@
     "@mantine/core": "^8.3.6",
     "@mantine/form": "^8.3.6",
     "@mantine/hooks": "^8.3.6",
-    "@mantine/next": "^6.0.22",
     "@mantine/notifications": "^8.3.6",
     "@sentry/nextjs": "^10.22.0",
     "@t3-oss/env-nextjs": "^0.13.8",

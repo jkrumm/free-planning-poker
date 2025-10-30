@@ -1,23 +1,23 @@
 import React from 'react';
 
-import Document, { Head, Html, Main, NextScript } from 'next/document';
+import { Head, Html, Main, NextScript } from 'next/document';
 
-import { createGetInitialProps } from '@mantine/next';
+import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 
-const getInitialProps = createGetInitialProps();
-
-export default class _Document extends Document {
-  static getInitialProps = getInitialProps;
-
-  render() {
-    return (
-      <Html className="dark prose prose-invert prose-dark">
-        <Head />
-        <body>
-          <Main />
-          <NextScript />
-        </body>
-      </Html>
-    );
-  }
+export default function Document() {
+  return (
+    <Html
+      lang="en"
+      className="dark prose prose-invert prose-dark"
+      {...mantineHtmlProps}
+    >
+      <Head>
+        <ColorSchemeScript defaultColorScheme="dark" />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
 }
