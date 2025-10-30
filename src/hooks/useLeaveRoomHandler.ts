@@ -9,11 +9,17 @@ export const useLeaveRoomHandler = (): void => {
   useEffect(() => {
     const listener = (_event: BeforeUnloadEvent) => {
       // Read from localStorage directly - most reliable
-      const roomId = localStorage.getItem('roomId');
+      const roomIdStr = localStorage.getItem('roomId');
       const userId = localStorage.getItem('userId');
 
-      if (!roomId || !userId) {
+      if (!roomIdStr || !userId) {
         return;
+      }
+
+      // Parse roomId as number to match server validation schema
+      const roomId = Number(roomIdStr);
+      if (isNaN(roomId)) {
+        return; // Invalid roomId
       }
 
       if (navigator.sendBeacon) {
