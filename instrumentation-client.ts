@@ -3,6 +3,9 @@ import { env } from 'fpp/env';
 
 import * as Sentry from '@sentry/nextjs';
 
+// Export onRouterTransitionStart hook for Next.js navigation tracking
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
 Sentry.init({
   enabled: env.NEXT_PUBLIC_NODE_ENV !== 'development',
   dsn: env.NEXT_PUBLIC_SENTRY_DSN,

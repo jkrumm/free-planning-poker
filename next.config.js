@@ -12,12 +12,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  swcMinify: true,
   transpilePackages: ['geist'],
-  experimental: {
-    // The instrumentation hook is required for Sentry to work on the serverside
-    instrumentationHook: true,
-  },
 };
 
 // Injected content via Sentry wizard below

@@ -27,7 +27,10 @@ export default async function middleware(
     return NextResponse.next();
   }
 
-  const ip = request.ip ?? '127.0.0.1';
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0] ??
+    request.headers.get('x-real-ip') ??
+    '127.0.0.1';
 
   // Rate limit apis
   if (isAPI(request.nextUrl.pathname)) {

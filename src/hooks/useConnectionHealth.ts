@@ -22,7 +22,7 @@ export const useConnectionHealth = ({
   userId: string;
   roomId: number;
 }): void => {
-  const connectionHealthRef = useRef<NodeJS.Timeout>();
+  const connectionHealthRef = useRef<NodeJS.Timeout | null>(null);
   const readyState = useRoomStore((store) => store.readyState);
   const lastPongReceived = useRoomStore((store) => store.lastPongReceived);
   const reloadAttempts = useRef(0);

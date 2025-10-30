@@ -20,7 +20,7 @@ export const useHeartbeat = ({
   userId,
   roomId,
 }: HeartbeatConfig): { sendHeartbeat: () => void } => {
-  const heartbeatTimeoutRef = useRef<NodeJS.Timeout>();
+  const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const readyState = useRoomStore((store) => store.readyState);
 
   // Manual heartbeat function

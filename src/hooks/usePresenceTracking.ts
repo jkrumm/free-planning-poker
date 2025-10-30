@@ -19,12 +19,12 @@ export const usePresenceTracking = ({
   roomId,
   userId,
 }: PresenceTrackingConfig): void => {
-  const visibilityHeartbeatRef = useRef<NodeJS.Timeout>();
+  const visibilityHeartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const setLastPongReceived = useRoomStore(
     (store) => store.setLastPongReceived,
   );
   // Add this ref near the top of usePresenceTracking
-  const presenceUpdateTimeoutRef = useRef<NodeJS.Timeout>();
+  const presenceUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Modify the updatePresence function to be debounced
   const updatePresence = (isPresent: boolean) => {
