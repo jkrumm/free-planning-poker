@@ -33,10 +33,6 @@ const RoomWrapper = () => {
   );
   const setUserIdRoomState = useRoomStore((state) => state.setUserId);
 
-  if (validateNanoId(userId)) {
-    setUserIdRoomState(userId!);
-  }
-
   const joinRoomMutation = api.room.joinRoom.useMutation({
     onError: (error) => {
       captureError(
@@ -60,6 +56,13 @@ const RoomWrapper = () => {
 
   const [firstLoad, setFirstLoad] = React.useState(true);
   const [modelOpen, setModelOpen] = React.useState(false);
+
+  // Sync userId to room state when it changes
+  useEffect(() => {
+    if (validateNanoId(userId)) {
+      setUserIdRoomState(userId!);
+    }
+  }, [userId, setUserIdRoomState]);
 
   useEffect(() => {
     try {

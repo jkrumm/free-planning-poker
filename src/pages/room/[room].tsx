@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -33,9 +33,7 @@ const RoomPage = () => {
   return (
     <div>
       <Meta title={room} robots="noindex,nofollow" />
-      <Suspense fallback={<CenteredLoader />}>
-        <RoomWrapper />
-      </Suspense>
+      <RoomWrapper />
     </div>
   );
 };
