@@ -55,7 +55,7 @@ export const roomRouter = createTRPCRouter({
   getRoomStats: publicProcedure
     .input(
       z.object({
-        roomId: z.number(),
+        roomId: z.number().positive({ error: 'Room ID must be positive' }),
       }),
     )
     .query(async ({ ctx: { db }, input: { roomId } }) => {
@@ -102,7 +102,11 @@ export const roomRouter = createTRPCRouter({
   joinRoom: publicProcedure
     .input(
       z.object({
-        queryRoom: z.string().max(15).min(2).toLowerCase().trim(),
+        queryRoom: z
+          .string()
+          .min(2, { error: 'Room name must be at least 2 characters' })
+          .max(15, { error: 'Room name must be at most 15 characters' })
+          .transform((val) => val.toLowerCase().trim()),
         userId: z.string().nullable(),
         roomEvent: z.enum([
           RoomEvent.ENTERED_ROOM_DIRECTLY,
@@ -224,9 +228,13 @@ export const roomRouter = createTRPCRouter({
   updateRoomName: publicProcedure
     .input(
       z.object({
-        userId: z.string(),
-        roomId: z.number(),
-        newRoomName: z.string().max(15).min(3).toLowerCase().trim(),
+        userId: z.string().min(1, { error: 'User ID is required' }),
+        roomId: z.number().positive({ error: 'Room ID must be positive' }),
+        newRoomName: z
+          .string()
+          .min(3, { error: 'Room name must be at least 3 characters' })
+          .max(15, { error: 'Room name must be at most 15 characters' })
+          .transform((val) => val.toLowerCase().trim()),
       }),
     )
     .mutation(
@@ -309,9 +317,11 @@ export const roomRouter = createTRPCRouter({
   trackFlip: publicProcedure
     .input(
       z.object({
-        roomState: z.string(),
-        roomId: z.number(),
-        fppServerSecret: z.string(),
+        roomState: z.string().min(1, { error: 'Room state is required' }),
+        roomId: z.number().positive({ error: 'Room ID must be positive' }),
+        fppServerSecret: z
+          .string()
+          .min(1, { error: 'Server secret is required' }),
       }),
     )
     .mutation(

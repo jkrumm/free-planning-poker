@@ -12,10 +12,16 @@ export const contactRouter = createTRPCRouter({
   sendMail: publicProcedure
     .input(
       z.object({
-        name: z.string().max(50).optional(),
-        email: z.string().email().max(70),
-        subject: z.string().min(3).max(100),
-        message: z.string().max(800).optional(),
+        name: z.string().max(50, { error: 'Name too long' }).optional(),
+        email: z
+          .string()
+          .email({ error: 'Invalid email address' })
+          .max(70, { error: 'Email too long' }),
+        subject: z
+          .string()
+          .min(3, { error: 'Subject must be at least 3 characters' })
+          .max(100, { error: 'Subject too long' }),
+        message: z.string().max(800, { error: 'Message too long' }).optional(),
       }),
     )
     .mutation(async ({ ctx, input: { name, email, subject, message } }) => {

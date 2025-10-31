@@ -10,6 +10,10 @@ import { ZodError } from 'zod';
 
 import db from 'fpp/server/db/db';
 
+/**
+ * Creates the inner tRPC context with request/response objects and database
+ * This is called for every request
+ */
 export const createInnerTRPCContext = (
   req: NextApiRequest,
   res: NextApiResponse,
@@ -21,11 +25,24 @@ export const createInnerTRPCContext = (
   };
 };
 
+/**
+ * Creates the tRPC context for Next.js API routes
+ * This is the actual context used by tRPC
+ */
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
   return createInnerTRPCContext(opts.req, opts.res);
 };
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
+/**
+ * Type helper to infer the context type
+ */
+type Context = Awaited<ReturnType<typeof createTRPCContext>>;
+
+/**
+ * Initialize tRPC with context and configuration
+ * v11 best practice: Keep transformer in links, not here
+ */
+const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -39,10 +56,18 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
   },
 });
 
+/**
+ * Export router and procedure helpers
+ * These are used to create tRPC routers and procedures
+ */
 export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
-// Global error handling middleware
+/**
+ * Global error handling middleware
+ * Transforms common database errors into user-friendly TRPCErrors
+ * v11 best practice: Use middleware for cross-cutting concerns
+ */
 const errorHandlingMiddleware = t.middleware(async ({ next }) => {
   try {
     return await next();
@@ -91,5 +116,8 @@ const errorHandlingMiddleware = t.middleware(async ({ next }) => {
   }
 });
 
-// Create a protected procedure with global error handling
+/**
+ * Public procedure with global error handling
+ * All procedures should use this to ensure consistent error handling
+ */
 export const publicProcedure = t.procedure.use(errorHandlingMiddleware);

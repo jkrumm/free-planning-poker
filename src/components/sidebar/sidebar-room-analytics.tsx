@@ -53,7 +53,7 @@ const SidebarRoomAnalytics = () => {
 
   const query = api.room.getRoomStats.useQuery({ roomId });
 
-  if (query.isLoading) {
+  if (query.isPending) {
     addBreadcrumb('Loading room analytics', 'analytics', { roomId });
     return null;
   }
@@ -66,7 +66,6 @@ const SidebarRoomAnalytics = () => {
         action: 'loadRoomStats',
         extra: {
           roomId,
-          errorStatus: query.status,
         },
       },
       'medium',
@@ -82,7 +81,6 @@ const SidebarRoomAnalytics = () => {
         action: 'validateData',
         extra: {
           roomId,
-          queryStatus: query.status,
         },
       },
       'low',
