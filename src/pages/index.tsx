@@ -53,7 +53,7 @@ const Home: NextPage = () => {
               src="/images/fpp_screenshot.png"
               width={2852 / 2.5}
               height={1586 / 2.5}
-              className="h-auto max-w-full rounded-2xl border-[5px] border-solid border-[#b8b8b8] border-opacity-15"
+              className="h-auto max-w-full rounded-2xl border-[5px] border-solid border-[#b8b8b8]/15"
               alt="Picture of the free planning poker app ui"
               placeholder="blur"
               blurDataURL={'/images/fpp_screenshot.png'}

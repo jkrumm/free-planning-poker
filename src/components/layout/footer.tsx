@@ -59,13 +59,16 @@ function Footer() {
               <a
                 href="https://github.com/jkrumm/free-planning-poker/releases"
                 target="_blank"
-                className="hover:text-[#1971c2]"
+                className="hover:text-[#1971c2] no-underline"
                 rel="noopener noreferrer"
               >
                 v{latestTag}
               </a>
               <span>•</span>
-              <Link href="/imprint#license" className="hover:text-[#1971c2]">
+              <Link
+                href="/imprint#license"
+                className="hover:text-[#1971c2] no-underline"
+              >
                 AGPLv3
               </Link>
             </div>
@@ -77,7 +80,7 @@ function Footer() {
               variant="outline"
               size="xs"
               color="grey"
-              className="!mt-4"
+              className="!mt-4 text-sm"
             >
               <IconArrowUp size={16} className="mr-2" />
               Back to Top
@@ -91,7 +94,7 @@ function Footer() {
                 <Link
                   key={link.url}
                   href={link.url}
-                  className="text-[#C1C2C5] hover:text-[#1971c2]"
+                  className="text-[#C1C2C5] hover:text-[#1971c2] no-underline"
                 >
                   {link.title}
                 </Link>
@@ -100,7 +103,7 @@ function Footer() {
                 href="https://paypal.me/johanneskrum"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#C1C2C5] hover:text-[#1971c2]"
+                className="text-[#C1C2C5] hover:text-[#1971c2] no-underline"
               >
                 Donate
               </a>
@@ -108,7 +111,7 @@ function Footer() {
                 href="https://github.com/jkrumm/free-planning-poker"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#C1C2C5] hover:text-[#1971c2]"
+                className="text-[#C1C2C5] hover:text-[#1971c2] no-underline"
               >
                 GitHub
               </a>
@@ -122,7 +125,7 @@ function Footer() {
                 <Link
                   key={link.url}
                   href={link.url}
-                  className="text-[#C1C2C5] hover:text-[#1971c2]"
+                  className="text-[#C1C2C5] hover:text-[#1971c2] no-underline"
                 >
                   {link.title}
                 </Link>

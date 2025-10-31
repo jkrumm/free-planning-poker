@@ -16,6 +16,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev -p 3001",
+    "dev:all": "concurrently --names \"next,fpp-server,analytics\" --prefix-colors \"cyan,magenta,yellow\" \"doppler run -- npm run dev\" \"cd fpp-server && bun dev\" \"cd analytics && source .venv/bin/activate && doppler run -- flask run --debug -p 5100\"",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"{src,test}/**\"",
@@ -30,9 +31,6 @@
     "db:check": "npx drizzle-kit check"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.2.8",
-    "@fontsource/jetbrains-mono": "^5.2.8",
-    "@fontsource/manrope": "^5.2.8",
     "@mantine/core": "^8.3.6",
     "@mantine/form": "^8.3.6",
     "@mantine/hooks": "^8.3.6",
@@ -64,7 +62,6 @@
     "react-intersection-observer": "^9.16.0",
     "react-markdown": "^10.1.0",
     "react-use-websocket": "^4.13.0",
-    "sass": "^1.93.2",
     "superjson": "^2.2.5",
     "tailwind-merge": "^3.3.1",
     "zod": "^3.25.76",
@@ -74,6 +71,7 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@release-it/conventional-changelog": "^10.0.1",
+    "@tailwindcss/postcss": "^4.1.16",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/canvas-confetti": "^1.9.0",
     "@types/eslint": "^8.56.12",
@@ -82,7 +80,7 @@
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
-    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.6",
     "eslint": "^8.57.1",
@@ -92,10 +90,12 @@
     "knip": "^5.66.4",
     "lint-staged": "^16.2.6",
     "postcss": "^8.5.6",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.6.14",
+    "prettier-plugin-tailwindcss": "^0.7.1",
     "release-it": "^19.0.5",
-    "tailwindcss": "^3.4.18",
+    "tailwindcss": "^4.1.16",
     "typescript": "^5.9.3"
   },
   "ct3aMetadata": {
@@ -183,7 +183,7 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "src/**/*.{json,css,scss,md}": [
+    "src/**/*.{json,css,md}": [
       "prettier --write"
     ]
   }

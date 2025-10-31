@@ -20,7 +20,7 @@ const IndexFormSkeleton = () => {
         <Button
           color="#1971C2"
           size="xl"
-          className={`left-0 mx-auto block w-[300px] bg-[linear-gradient(110deg,#2e2e2e,45%,#272727,55%,#2e2e2e)] border-[1px] border-solid border-[#424242]`}
+          className={`left-0 mx-auto block w-[300px] bg-[linear-gradient(110deg,#2e2e2e,45%,#272727,55%,#2e2e2e)] border-[1px] border-solid border-[#424242] text-[20px]`}
           type="button"
           role="button"
           aria-label="Start Planning"
@@ -33,7 +33,7 @@ const IndexFormSkeleton = () => {
               <Group className="relative w-[300px] flex-nowrap" gap="0">
                 <TextInput
                   placeholder="Join room"
-                  className={`join-room-input absolute my-4 w-[300px] rounded-md border-[0px] border-solid border-[#272727]`}
+                  className={`join-room-input absolute my-4 w-[300px] rounded-md border-[0px] border-solid border-[#272727] text-[20px]`}
                   size="xl"
                 />
                 <Button

@@ -2,42 +2,44 @@
  * Room Styling
  */
 
+@import 'tailwindcss' reference;
+
 /* Room Name Group - Component-specific overrides */
 .room-name-group {
   width: fit-content;
+}
 
-  .room-name-button {
-    background: transparent !important;
-    border: none !important;
-    padding: 6px 8px !important;
-    width: auto !important;
-    height: unset !important;
+.room-name-group .room-name-button {
+  background: transparent !important;
+  border: none !important;
+  padding: 6px 8px !important;
+  width: auto !important;
+  height: unset !important;
+}
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.05) !important;
-    }
+.room-name-group .room-name-button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
 
-    .room-name-text {
-      @apply m-0 text-lg font-bold uppercase text-white sm:text-xl;
-      letter-spacing: 0.5px;
-      line-height: 1.2;
-    }
-  }
+.room-name-group .room-name-button .room-name-text {
+  @apply m-0 text-lg font-bold text-white uppercase sm:text-xl;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
 
-  .room-action-button {
-    background: transparent !important;
-    border: none !important;
-    padding: 10px 6px !important;
-    height: unset !important;
+.room-name-group .room-action-button {
+  background: transparent !important;
+  border: none !important;
+  padding: 10px 6px !important;
+  height: unset !important;
+}
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.05) !important;
-    }
+.room-name-group .room-action-button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
 
-    svg {
-      color: #c1c2c5;
-    }
-  }
+.room-name-group .room-action-button svg {
+  color: #c1c2c5;
 }
 
 /* Legacy room name styles - kept for backwards compatibility */
@@ -517,25 +519,23 @@ h2 > span {
 }
 
 /* Inline input-button group styles */
-.inline-input-group {
-  .mantine-TextInput-root {
-    flex: 1;
+.inline-input-group .mantine-TextInput-root {
+  flex: 1;
+}
 
-    .mantine-TextInput-input {
-      border-top-right-radius: 0 !important;
-      border-bottom-right-radius: 0 !important;
-    }
-  }
+.inline-input-group .mantine-TextInput-root .mantine-TextInput-input {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
 
-  .mantine-Button-root {
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-    height: 36px !important;
-    border-left: none !important;
+.inline-input-group .mantine-Button-root {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  height: 36px !important;
+  border-left: none !important;
+}
 
-    &:disabled {
-      border: 1px solid #424242 !important;
-      border-left: none !important;
-    }
-  }
+.inline-input-group .mantine-Button-root:disabled {
+  border: 1px solid #424242 !important;
+  border-left: none !important;
 }

@@ -48,7 +48,7 @@ const PointsTable = () => {
       {data.map((row, idx) => (
         <Card
           key={idx}
-          className="mb-4 flex flex-col space-y-2 rounded border p-4 shadow-sm"
+          className="mb-4 flex flex-col space-y-2 rounded border p-4 shadow-xs"
         >
           <h3 className="my-0">{row[0]}</h3>
           <span>{row[1]}</span>

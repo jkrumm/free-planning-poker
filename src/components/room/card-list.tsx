@@ -133,7 +133,7 @@ const UserCard = React.forwardRef<HTMLDivElement, UserCardProps>(
             className={`
             relative min-h-[80px] md:min-h-[120px] transition-all duration-200 py-2 px-1 md:py-4
             ${!user.isPresent ? 'opacity-70' : ''}
-            hover:shadow-lg
+            hover:shadow-md
           `}
             style={{
               borderWidth: '1px',
