@@ -13,6 +13,7 @@ const PointsTable = () => {
     // this condition will prevent the unexpected behavior on the server side
     if (typeof window !== 'undefined') {
       // set initial state
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: Sync with window.innerWidth on mount, necessary for SSR safety
       setIsSmallScreen(window.innerWidth < 950);
 
       window.addEventListener('resize', handleResize);

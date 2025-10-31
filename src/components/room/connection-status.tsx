@@ -39,6 +39,7 @@ export const ConnectionStatus = ({
   // Fix: Properly handle timer reset and initial state
   useEffect(() => {
     if (!connectedAt) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: Initial state for timer, runs only on mount/connectedAt change
       setConnectedSince('00:00');
       return;
     }

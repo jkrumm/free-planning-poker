@@ -55,6 +55,7 @@ export const useHeartbeat = ({
   }, [readyState, sendMessage, userId, roomId]);
 
   // Primary heartbeat system - uses setTimeout for better reliability
+  /* eslint-disable react-hooks/immutability */
   const scheduleNextHeartbeat = useCallback(() => {
     try {
       if (heartbeatTimeoutRef.current) {
@@ -64,7 +65,7 @@ export const useHeartbeat = ({
       if (readyState === ReadyState.OPEN) {
         heartbeatTimeoutRef.current = setTimeout(() => {
           sendHeartbeat();
-          scheduleNextHeartbeat(); // Schedule the next one
+          scheduleNextHeartbeat(); // Recursive call to schedule next heartbeat
         }, WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL);
       }
     } catch (error) {
@@ -84,6 +85,7 @@ export const useHeartbeat = ({
       );
     }
   }, [readyState, sendHeartbeat]);
+  /* eslint-enable react-hooks/immutability */
 
   // Start/stop heartbeat based on connection state
   useEffect(() => {

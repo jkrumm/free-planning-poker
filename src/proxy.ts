@@ -19,7 +19,7 @@ const isAPI = (path: string) => {
   return /^\/api\//.exec(path);
 };
 
-export default async function middleware(
+export default async function proxy(
   request: NextRequest,
   event: NextFetchEvent,
 ): Promise<Response | undefined> {

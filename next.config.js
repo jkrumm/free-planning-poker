@@ -9,10 +9,18 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // Next.js 16: `eslint` configuration no longer supported
+  // Use `next lint --fix` or ESLint directly instead
   transpilePackages: ['geist'],
+
+  // Next.js 16: Turbopack is now stable and default
+  // No need to add --turbopack flag to scripts
+  // Use --webpack flag if you need to opt-out
+
+  // Next.js 16: Image configuration (if needed in future)
+  // images: {
+  //   minimumCacheTTL: 14400, // Default changed to 4 hours in v16
+  // },
 };
 
 // Injected content via Sentry wizard below

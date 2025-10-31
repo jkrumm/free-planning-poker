@@ -200,6 +200,7 @@ const RoomWrapper = () => {
       initializeAudioContext();
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: One-time initialization flag on mount
     setFirstLoad(false);
 
     if (!username) {

@@ -300,6 +300,7 @@ const Analytics = () => {
   // Calculate progress for the ring (0-100)
   const updateProgress = React.useMemo(() => {
     if (!analytics?.cache) return 0;
+    // eslint-disable-next-line react-hooks/purity -- Valid pattern: Date.now() in useMemo for cache progress calculation, depends on secondsLeft re-render
     const now = Date.now();
     const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
     const elapsed = (now - lastUpdateTime) / 1000;

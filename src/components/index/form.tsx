@@ -19,6 +19,8 @@ import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
 import { RoomEvent } from 'fpp/server/db/schema';
 
+import { useHasMounted } from 'fpp/hooks/use-has-mounted.hook';
+
 import { FlipWords } from './flip-words';
 
 interface LandingPageAnalytics {
@@ -66,13 +68,11 @@ const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
 };
 
 const IndexForm = () => {
-  const [hasMounted, setHasMounted] = useState(false);
+  const hasMounted = useHasMounted();
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     try {
-      setHasMounted(true);
-
       const checkReady = () => {
         if (
           typeof document !== 'undefined' &&

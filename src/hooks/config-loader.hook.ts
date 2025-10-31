@@ -7,14 +7,14 @@ import { useConfigStore } from 'fpp/store/config.store';
 
 import { FeatureFlagType } from 'fpp/server/db/schema';
 
+import { useHasMounted } from 'fpp/hooks/use-has-mounted.hook';
+
 export const useConfigLoader = () => {
-  const [hasMounted, setHasMounted] = useState(false);
+  const hasMounted = useHasMounted();
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     try {
-      setHasMounted(true);
-
       const checkReady = () => {
         if (
           typeof document !== 'undefined' &&

@@ -391,6 +391,7 @@ export const useWebSocketRoom = ({
     }
   }, [readyState, sendMessage]);
 
+  // eslint-disable-next-line react-hooks/refs -- Valid pattern: Keeping ref current for callback in action queue processing
   triggerActionRef.current = triggerAction;
 
   return { triggerAction, connectedAt, sendMessage };

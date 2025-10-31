@@ -30,6 +30,7 @@ export const useConnectionHealth = ({
   const warningIssued = useRef(false);
   const recoveryAttempts = useRef(0);
   const lastRecoveryAttempt = useRef(0);
+  // eslint-disable-next-line react-hooks/purity -- Valid pattern: Initializing ref with current timestamp for visibility tracking
   const lastVisibilityChange = useRef(Date.now());
   const isTabVisible = useRef(true);
 

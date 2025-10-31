@@ -29,6 +29,7 @@ function Counter() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: Initial state for interval timer, necessary for immediate display
     setMinutesAndSeconds();
     const timer = setInterval(() => {
       if (!isFlipped) {

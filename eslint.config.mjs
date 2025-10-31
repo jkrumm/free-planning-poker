@@ -1,10 +1,9 @@
 // @ts-check
 
-import { FlatCompat } from '@eslint/eslintrc';
-import js from '@eslint/js';
-import { defineConfig } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
 import drizzlePlugin from 'eslint-plugin-drizzle';
-import globals from 'globals';
 import { dirname } from 'path';
 import tseslint from 'typescript-eslint';
 import { fileURLToPath } from 'url';
@@ -12,40 +11,33 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// FlatCompat for Next.js config compatibility
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
-
 export default defineConfig([
-  // Global ignores
-  {
-    ignores: [
-      '**/node_modules/**',
-      '**/.next/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/coverage/**',
-      '**/*.min.js',
-      '**/analytics/**',
-      'fpp-server/**',
-      'next.config.js',
-      'tailwind.config.mjs',
-      'tailwind.config.js',
-      'prettier.config.cjs',
-      'next-env.d.ts',
-      'eslint.config.mjs',
-    ],
-  },
+  // Next.js 16: Native flat config support (no FlatCompat needed)
+  ...nextCoreWebVitals,
+  ...nextTypescript,
 
-  // Base configs
-  js.configs.recommended,
+  // TypeScript recommended configs
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
 
-  // Next.js specific configs (using FlatCompat for backward compatibility)
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  // Global ignores - Next.js 16 approach
+  globalIgnores([
+    '**/node_modules/**',
+    '**/.next/**',
+    '**/out/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/coverage/**',
+    '**/*.min.js',
+    '**/analytics/**',
+    'fpp-server/**',
+    'next.config.js',
+    'tailwind.config.mjs',
+    'tailwind.config.js',
+    'prettier.config.cjs',
+    'next-env.d.ts',
+    'eslint.config.mjs',
+  ]),
 
   // Main configuration
   {
@@ -57,13 +49,6 @@ export default defineConfig([
     },
 
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.es2021,
-      },
       parserOptions: {
         projectService: true,
         tsconfigRootDir: __dirname,
