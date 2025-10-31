@@ -248,7 +248,6 @@ const Analytics = () => {
 
   const {
     data: analytics,
-    dataUpdatedAt,
     refetch: refetchAnalytics,
     error: analyticsError,
     isError: analyticsIsError,

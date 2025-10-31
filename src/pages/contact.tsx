@@ -82,7 +82,7 @@ const Contact: NextPage = () => {
           const trimmed = value.trim();
           return (
             trimmed.length !== 0 &&
-            (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(trimmed) ||
+            (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(trimmed) ||
               trimmed.length > 70)
           );
         } catch (error) {

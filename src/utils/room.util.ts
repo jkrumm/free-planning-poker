@@ -370,7 +370,7 @@ export function initializeAudioContext() {
 }
 
 function playWebAudioSound(sound: 'join' | 'leave' | 'success' | 'tick') {
-  if (!audioContext || audioContext.state !== 'running' || !hasUserInteracted) {
+  if (audioContext?.state !== 'running' || !hasUserInteracted) {
     addBreadcrumb('Web Audio not available', 'audio', {
       hasContext: !!audioContext,
       contextState: audioContext?.state ?? 'null',

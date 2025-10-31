@@ -41,7 +41,7 @@ export const copyToClipboard = (text: string, userId: string): void => {
         event: EventType.COPIED_ROOM_LINK,
         userId,
       });
-    } catch (error) {
+    } catch {
       // Show error notification
       notifications.show({
         color: 'red',

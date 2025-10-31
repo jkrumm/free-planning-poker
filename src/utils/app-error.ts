@@ -67,13 +67,26 @@ export const captureError = (
       if (error.data && typeof error.data === 'object') {
         const data = error.data as Record<string, unknown>;
 
-        if ('code' in data && data.code) {
+        if (
+          'code' in data &&
+          data.code &&
+          (typeof data.code === 'string' || typeof data.code === 'number')
+        ) {
           scope.setTag('trpcCode', String(data.code));
         }
-        if ('httpStatus' in data && data.httpStatus) {
+        if (
+          'httpStatus' in data &&
+          data.httpStatus &&
+          (typeof data.httpStatus === 'string' ||
+            typeof data.httpStatus === 'number')
+        ) {
           scope.setTag('httpStatus', String(data.httpStatus));
         }
-        if ('path' in data && data.path) {
+        if (
+          'path' in data &&
+          data.path &&
+          (typeof data.path === 'string' || typeof data.path === 'number')
+        ) {
           scope.setTag('trpcPath', String(data.path));
         }
         if ('zodError' in data && data.zodError) {

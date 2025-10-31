@@ -129,7 +129,6 @@ const Imprint: NextPage = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              {/* eslint-disable-next-line react/no-unescaped-entities */}
               Sentry Privacy Policy
             </a>
             . In our implementation, we ensure that no PII is sent to Sentry.

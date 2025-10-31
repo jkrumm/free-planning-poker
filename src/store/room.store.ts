@@ -121,7 +121,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
         userId: user.id,
         connectedAt: get().connectedAt,
       });
-    } catch (error) {
+    } catch {
       // If an error occurs when getting the user, they were likely kicked
       if (get().connectedAt && oldRoom.users.length > 0) {
         executeKick('error_getting_user');

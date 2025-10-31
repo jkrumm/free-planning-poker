@@ -1,18 +1,23 @@
 import { env } from 'fpp/env';
 
 import * as Sentry from '@sentry/nextjs';
+import countryRegionsRaw from 'country-region-data/data.json';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import { type EventType, type RouteType } from 'fpp/server/db/schema';
 
-const countryRegions =
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require('country-region-data/data.json') as CountryRegionData[];
+type CountryRegionData = {
+  countryName: string;
+  countryShortCode: string;
+  regions: { name: string; shortCode: string }[];
+};
+
+const countryRegions = countryRegionsRaw as CountryRegionData[];
 
 export const analyticsRouter = createTRPCRouter({
-  getAnalytics: publicProcedure.query(async ({ ctx }) => {
+  getAnalytics: publicProcedure.query(async ({ ctx: _ctx }) => {
     try {
       const response = await fetch(env.ANALYTICS_URL, {
         headers: {
@@ -229,12 +234,6 @@ export interface AnalyticsResult extends ModifiedAnalyticsResponse {
   };
   duration: number;
 }
-
-type CountryRegionData = {
-  countryName: string;
-  countryShortCode: string;
-  regions: { name: string; shortCode: string }[];
-};
 
 export interface ServerAnalytics {
   connectedUsers: number;

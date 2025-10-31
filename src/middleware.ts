@@ -16,7 +16,7 @@ const ratelimit = new Ratelimit({
 });
 
 const isAPI = (path: string) => {
-  return path.match(new RegExp(`^\/api\/`));
+  return /^\/api\//.exec(path);
 };
 
 export default async function middleware(

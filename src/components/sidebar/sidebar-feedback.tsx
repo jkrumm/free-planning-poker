@@ -52,7 +52,7 @@ const SidebarFeedback = () => {
     validate: {
       email: (value) =>
         value.trim().length !== 0 &&
-        !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value)
+        !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value)
           ? 'Invalid email'
           : null,
       message: (value) =>

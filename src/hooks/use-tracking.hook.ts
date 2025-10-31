@@ -50,9 +50,7 @@ export const useTrackPageView = (
       // Extract source from URL
       const urlParams = new URLSearchParams(window.location.search);
       let source = urlParams.get('source');
-      if (source === null) {
-        source = document.referrer === '' ? null : document.referrer;
-      }
+      source ??= document.referrer === '' ? null : document.referrer;
 
       // Remove source query param from URL
       const url = new URL(window.location.href);
@@ -138,7 +136,7 @@ export const sendTrackPageView = ({
           throw new Error('Beacon failed to send');
         }
         addBreadcrumb('Page view sent via beacon', 'tracking');
-      } catch (beaconError) {
+      } catch {
         addBreadcrumb('Beacon failed, falling back to fetch', 'tracking');
         sendViaFetch(url, body, setUserIdLocalStorage, setUserIdRoomState, {
           userId,

@@ -33,7 +33,7 @@ const LEVEL_PRIORITY = {
 } as const;
 
 export const sentryRouter = createTRPCRouter({
-  getIssues: publicProcedure.query(async ({ ctx }) => {
+  getIssues: publicProcedure.query(async ({ ctx: _ctx }) => {
     const projects = [
       'free-planning-poker',
       'fpp-server',
