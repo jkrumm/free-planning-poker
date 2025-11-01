@@ -40,7 +40,7 @@
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tabler/icons-react": "^3.35.0",
     "@tailwindcss/typography": "^0.5.19",
-    "@tanstack/react-query": "^5.90.5",
+    "@tanstack/react-query": "^5.90.6",
     "@trpc/client": "^11.7.1",
     "@trpc/next": "^11.7.1",
     "@trpc/react-query": "^11.7.1",
