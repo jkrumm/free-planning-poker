@@ -5,10 +5,12 @@ import { Inter, JetBrains_Mono, Manrope } from 'next/font/google';
 
 import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
+
+import 'normalize.css/normalize.css';
+
 import 'fpp/styles/global.css';
 import 'fpp/styles/index.css';
 import 'fpp/styles/room.css';
-import 'normalize.css/normalize.css';
 
 import { api } from 'fpp/utils/api';
 
