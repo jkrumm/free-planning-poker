@@ -266,9 +266,11 @@ async function initializeWebAudio() {
   if (typeof window === 'undefined' || audioContext) return;
 
   try {
-    audioContext = new (window.AudioContext ||
+    audioContext = new (
+      window.AudioContext ||
       // eslint-disable-next-line
-      (window as any).webkitAudioContext)();
+      (window as any).webkitAudioContext
+    )();
 
     // Resume audio context if it's suspended (required by some browsers)
     if (audioContext.state === 'suspended') {
