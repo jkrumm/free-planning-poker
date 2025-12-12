@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base", ":dependencyDashboard"],
+  "timezone": "Europe/Berlin",
+  "schedule": ["before 10am on monday"],
+  "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "description": "Group all non-major updates into one single weekly PR",
+      "matchUpdateTypes": ["minor", "patch", "digest", "lockFileMaintenance"],
+      "groupName": "Weekly Maintenance",
+      "automerge": false
+    },
+    {
+      "description": "Major updates go to Dashboard (no PRs created automatically)",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
