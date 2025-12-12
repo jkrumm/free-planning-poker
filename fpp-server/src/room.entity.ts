@@ -1,8 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - This file contains Bun-specific imports that aren't available in Next.js
+
 import * as Sentry from '@sentry/bun';
 import { type ServerWebSocket } from 'bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
+// Import base classes to extend
+import {
+  RoomBase,
+  User as UserBase,
+  type CreateUserDto as CreateUserDtoBase,
+} from './room.types';
 import { preciseTimeout } from './utils';
 
 // Re-export shared types from room.types for backward compatibility
@@ -12,13 +19,6 @@ export {
   RoomBase,
   RoomStateStatus,
   type RoomDto,
-  type CreateUserDto as CreateUserDtoBase,
-} from './room.types';
-
-// Import base classes to extend
-import {
-  User as UserBase,
-  RoomBase,
   type CreateUserDto as CreateUserDtoBase,
 } from './room.types';
 

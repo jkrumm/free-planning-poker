@@ -10,6 +10,23 @@ const Configuration: UserConfig = {
     'footer-leading-blank': [2, 'always'],
     'type-case': [2, 'always', 'lower-case'],
     'type-empty': [2, 'never'],
+    'type-enum': [
+      2,
+      'always',
+      [
+        'feat',
+        'fix',
+        'docs',
+        'style',
+        'refactor',
+        'perf',
+        'test',
+        'build',
+        'ci',
+        'chore',
+        'revert',
+      ],
+    ],
     'scope-case': [0], // Disable default scope-case rule
     'scope-enum': [0], // Disable scope enum if needed
     'scope-pattern': [2, 'always'], // Enable custom scope pattern rule
@@ -26,19 +43,18 @@ const Configuration: UserConfig = {
       rules: {
         'scope-pattern': ((parsed) => {
           const scope = parsed.scope;
-          // Allow no scope or Linear token pattern (JK-[number]) or lowercase scope
+          // Allow only: no scope OR Linear token pattern (JK-[number])
           if (!scope) return [true];
 
           const isLinearToken = /^JK-\d+$/.test(scope);
-          const isLowerCase = scope === scope.toLowerCase();
 
-          if (isLinearToken || isLowerCase) {
+          if (isLinearToken) {
             return [true];
           }
 
           return [
             false,
-            `scope must be lowercase or match Linear token pattern (JK-[number])`,
+            `scope must be a Linear token (JK-[number]) or omitted entirely`,
           ];
         }) as SyncRule,
       },
