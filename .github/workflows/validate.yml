@@ -1,17 +1,18 @@
 name: Validate
 
-on: [ pull_request ]
+on: [pull_request]
 
 jobs:
   typechecking:
     name: Typechecking
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - uses: actions/cache@v4
+        id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -25,11 +26,12 @@ jobs:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - uses: actions/cache@v4
+        id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -39,18 +41,16 @@ jobs:
       - name: Run formatting
         run: npm run format:check
 
-
   linting:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Mock .env
-        run: cp .env.example .env
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - uses: actions/cache@v4
+        id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -59,19 +59,26 @@ jobs:
         run: npm ci --quiet
       - name: Run linting
         run: npm run lint
+        env:
+          SKIP_ENV_VALIDATION: '1'
 
-#  testing:
-#    name: Testing & Linting
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#      - uses: actions/setup-node@v1
-#      - uses: actions/cache@v4
-#        with:
-#          path: '**/node_modules'
-#          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-#      - name: Install npm
-#        if: steps.npm-cache.outputs.cache-hit != 'true'
-#        run: npm ci --quiet
-#      - name: Run testing
-#        run: npm run test
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Install npm
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci --quiet
+      - name: Build
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: '1'

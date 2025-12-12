@@ -15,3 +15,17 @@ comment:
       body: |
         <h3> :warning: Drizzle schema file has been modified :warning: </h3>
         Please make sure to review and deploy it using `npm run db:push` before merging the PR.
+
+    - id: fpp-server-changed
+      files:
+        - 'fpp-server/**'
+      body: |
+        <h3> :rocket: fpp-server has been modified </h3>
+        Remember to manually redeploy the WebSocket server after merging.
+
+    - id: fpp-analytics-changed
+      files:
+        - 'analytics/**'
+      body: |
+        <h3> :bar_chart: fpp-analytics has been modified </h3>
+        Remember to manually redeploy the analytics service after merging.

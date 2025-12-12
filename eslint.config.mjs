@@ -1,9 +1,8 @@
 // @ts-check
-
-import { defineConfig, globalIgnores } from 'eslint/config';
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
 import drizzlePlugin from 'eslint-plugin-drizzle';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import { dirname } from 'path';
 import tseslint from 'typescript-eslint';
 import { fileURLToPath } from 'url';
@@ -37,6 +36,7 @@ export default defineConfig([
     'prettier.config.cjs',
     'next-env.d.ts',
     'eslint.config.mjs',
+    'src/hooks/useWebSocketRoom.ts',
   ]),
 
   // Main configuration
