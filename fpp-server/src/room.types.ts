@@ -40,13 +40,7 @@ export class User {
     return userStatus.pending;
   }
 
-  constructor({
-    id,
-    name,
-    estimation,
-    isSpectator,
-    isPresent,
-  }: CreateUserDto) {
+  constructor({ id, name, estimation, isSpectator, isPresent }: CreateUserDto) {
     this.id = id;
     this.name = name;
     this.estimation = estimation;
