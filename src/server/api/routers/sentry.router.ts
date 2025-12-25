@@ -43,7 +43,7 @@ export const sentryRouter = createTRPCRouter({
     // Fetch issues from all projects in parallel
     const allIssuesPromises = projects.map((project) =>
       fetch(
-        `https://sentry.io/api/0/projects/free-planning-poker/${project}/issues/?statsPeriod=14d`,
+        `https://sentry.io/api/0/projects/jkrumm/${project}/issues/?statsPeriod=14d`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -52,6 +52,14 @@ export const sentryRouter = createTRPCRouter({
           signal: AbortSignal.timeout(7000),
         },
       ).then(async (res) => {
+        // Handle non-OK responses (404, 401, etc.) - return empty array
+        if (!res.ok) {
+          console.warn(
+            `Sentry API error for ${project}: ${res.status} ${res.statusText}`,
+          );
+          return [];
+        }
+
         const issues = (await res.json()) as {
           id: string;
           shortId: string;
