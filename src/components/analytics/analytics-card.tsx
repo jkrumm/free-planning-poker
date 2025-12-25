@@ -11,7 +11,7 @@ export const AnalyticsCard = ({
 }) => {
   const sortedData = Object.entries(data)
     .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
-    .slice(0, 30) // Get the first 30 entries
+    .slice(0, 40) // Get the first 40 entries
     .map(([name, value]) => ({ name, value })); // Map to objects with name and value
 
   const highestValue = sortedData[0]?.value ?? 0; // Get the highest value

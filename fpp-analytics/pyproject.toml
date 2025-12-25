@@ -1,0 +1,28 @@
+[project]
+name = "fpp-analytics"
+version = "2.0.0"
+description = "Free Planning Poker Analytics - FastAPI + Polars"
+requires-python = ">=3.12"
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    # Data processing
+    "polars>=1.34.0",
+    # Database (direct connection, same docker network)
+    "pymysql>=1.1.0",
+    # HTTP client (email service, UptimeKuma)
+    "httpx>=0.28.0",
+    # Monitoring
+    "sentry-sdk[fastapi]>=2.40.0",
+    # Environment
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["calculations", "routers", "util"]
+include = ["main.py", "config.py", "update_readmodel.py"]

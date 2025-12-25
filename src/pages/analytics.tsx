@@ -69,12 +69,10 @@ const EstimationChart = dynamic(
 // Custom hooks for analytics queries with error handling
 function useAnalyticsQuery() {
   const query = api.analytics.getAnalytics.useQuery(undefined, {
-    refetchInterval: 5000,
-    staleTime: 0,
+    refetchInterval: 30000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
-    refetchIntervalInBackground: true,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -99,11 +97,12 @@ function useAnalyticsQuery() {
 
 function useServerAnalyticsQuery() {
   const query = api.analytics.getServerAnalytics.useQuery(undefined, {
-    refetchInterval: 5000,
-    retry: 3,
-    staleTime: 0,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   React.useEffect(() => {
@@ -126,11 +125,12 @@ function useServerAnalyticsQuery() {
 
 function useSentryIssuesQuery() {
   const query = api.sentry.getIssues.useQuery(undefined, {
-    refetchInterval: 5000,
-    retry: 3,
-    staleTime: 0,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   React.useEffect(() => {
@@ -252,6 +252,7 @@ const Analytics = () => {
     error: analyticsError,
     isError: analyticsIsError,
     isLoading: analyticsIsLoading,
+    dataUpdatedAt,
   } = useAnalyticsQuery();
 
   const {
@@ -277,14 +278,13 @@ const Analytics = () => {
     void refetchGetIssues();
   };
 
-  // Handle countdown display
+  // Handle countdown display for 30-second refresh interval
   React.useEffect(() => {
-    if (!analytics?.cache) return;
+    if (!dataUpdatedAt) return;
 
     const updateSeconds = () => {
       const now = Date.now();
-      const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
-      const nextUpdate = lastUpdateTime + 35000; // 35 seconds from last update
+      const nextUpdate = dataUpdatedAt + 30000; // 30 seconds from last update
       const remaining = Math.max(0, Math.round((nextUpdate - now) / 1000));
       setSecondsLeft(remaining);
     };
@@ -295,32 +295,24 @@ const Analytics = () => {
     // Update every second
     const intervalId = setInterval(updateSeconds, 1000);
     return () => clearInterval(intervalId);
-  }, [analytics?.cache]);
+  }, [dataUpdatedAt]);
 
   // Calculate progress for the ring (0-100)
   const updateProgress = React.useMemo(() => {
-    if (!analytics?.cache) return 0;
-    // eslint-disable-next-line react-hooks/purity -- Valid pattern: Date.now() in useMemo for cache progress calculation, depends on secondsLeft re-render
+    if (!dataUpdatedAt) return 0;
+    // eslint-disable-next-line react-hooks/purity -- Valid pattern: Date.now() in useMemo for progress calculation, depends on secondsLeft re-render
     const now = Date.now();
-    const lastUpdateTime = new Date(analytics.cache.last_updated).getTime();
-    const elapsed = (now - lastUpdateTime) / 1000;
-    const progress = (elapsed / 35) * 100; // 35 seconds total duration
+    const elapsed = (now - dataUpdatedAt) / 1000;
+    const progress = (elapsed / 30) * 100; // 30 seconds total duration
     return Math.min(Math.max(progress, 0), 100);
-  }, [analytics?.cache, secondsLeft]);
+  }, [dataUpdatedAt, secondsLeft]);
 
-  const cacheStatusColor = React.useMemo(() => {
-    if (!analytics?.cache) return 'gray';
-    switch (analytics.cache.status) {
-      case 'fresh':
-        return 'green';
-      case 'ok':
-        return 'yellow';
-      case 'stale':
-        return 'red';
-      default:
-        return 'gray';
-    }
-  }, [analytics?.cache]);
+  // Determine color based on time remaining
+  const refreshStatusColor = React.useMemo(() => {
+    if (secondsLeft > 20) return 'green';
+    if (secondsLeft > 10) return 'yellow';
+    return 'orange';
+  }, [secondsLeft]);
 
   // Handle toggle functions with error handling
   const handleHistoricalTableToggle = () => {
@@ -469,13 +461,7 @@ const Analytics = () => {
             </div>
 
             <div className="flex-1 flex justify-center pl-7 pb-2"></div>
-            <Tooltip
-              label={
-                analytics?.cache
-                  ? `Cache ${analytics.cache.status}: ${secondsLeft}s until next update`
-                  : 'Loading...'
-              }
-            >
+            <Tooltip label={`Next refresh in ${secondsLeft}s`}>
               <div className="flex-1 flex justify-end items-center">
                 <RingProgress
                   className="mr-3"
@@ -484,7 +470,7 @@ const Analytics = () => {
                   sections={[
                     {
                       value: updateProgress,
-                      color: cacheStatusColor,
+                      color: refreshStatusColor,
                     },
                   ]}
                   label={
@@ -493,13 +479,7 @@ const Analytics = () => {
                     </Text>
                   }
                 />
-                <Button
-                  onClick={refetch}
-                  color={cacheStatusColor}
-                  variant={
-                    analytics?.cache?.status === 'stale' ? 'filled' : 'light'
-                  }
-                >
+                <Button onClick={refetch} color="gray" variant="light">
                   Refresh
                 </Button>
               </div>
