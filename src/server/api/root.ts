@@ -1,6 +1,7 @@
 import { analyticsRouter } from 'fpp/server/api/routers/analytics.router';
 import { configRouter } from 'fpp/server/api/routers/config.router';
 import { contactRouter } from 'fpp/server/api/routers/contact.router';
+import { landingpageRouter } from 'fpp/server/api/routers/landingpage.router';
 import { roadmapRouter } from 'fpp/server/api/routers/roadmap.router';
 import { roomRouter } from 'fpp/server/api/routers/room.router';
 import { sentryRouter } from 'fpp/server/api/routers/sentry.router';
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   room: roomRouter,
   roadmap: roadmapRouter,
   analytics: analyticsRouter,
+  landingpage: landingpageRouter,
   sentry: sentryRouter,
 });
 

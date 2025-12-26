@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Standalone script to sync MySQL to flat Parquet files.
-Runs every 15 minutes via docker entrypoint sleep loop.
+Runs every 10 minutes via docker entrypoint sleep loop.
 Direct DB connection (same docker network) - no round-trip.
 """
 import os
@@ -109,7 +109,6 @@ def push_uptimekuma(status: str = "up", msg: str = ""):
     try:
         params = {"status": status, "msg": msg, "ping": ""}
         httpx.get(UPTIMEKUMA_PUSH_URL, params=params, timeout=10)
-        print(f"  UptimeKuma: pushed {status}")
     except Exception as e:
         print(f"  UptimeKuma: failed to push - {e}")
 
