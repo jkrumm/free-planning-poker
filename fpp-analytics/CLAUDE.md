@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**FPP Analytics** is a lightweight Python analytics stack for Free Planning Poker. It provides on-demand analytics calculations from Parquet files, updated every 15 minutes from a MySQL database.
+**FPP Analytics** is a lightweight Python analytics stack for Free Planning Poker. It provides on-demand analytics calculations from Parquet files, updated every 10 minutes from a MySQL database.
 
 ### Tech Stack
 
@@ -20,7 +20,7 @@
 
 Two-container setup:
 1. **fpp-analytics**: FastAPI server (reads Parquet, no DB access)
-2. **fpp-analytics-updater**: Sync script (writes Parquet from MySQL every 15 min)
+2. **fpp-analytics-updater**: Sync script (writes Parquet from MySQL every 10 min)
 
 Data flows: `MySQL → Updater → Parquet files → FastAPI → Client`
 
@@ -191,7 +191,7 @@ fpp-analytics/
 ### Important Constants
 
 - `START_DATE = "2024-06-03"` - Analytics baseline date
-- Sync interval: 15 minutes (900 seconds)
+- Sync interval: 10 minutes (600 seconds)
 - Session timeout: 10 minutes (for duration calculation)
 - Moving average window: 30 days
 
@@ -305,6 +305,16 @@ Expected: 100-500ms per request (on-demand computation). This is acceptable for 
 
 ## Deployment Notes
 
+### Docker Configuration
+
+Docker configuration is **NOT in this repository**. It lives in:
+- **Location:** `/Users/johannes.krumm/SourceRoot/sideproject-docker-stack/fpp_analytics/`
+- **Dockerfile:** `Dockerfile` (FastAPI server)
+- **Dockerfile.updater:** `Dockerfile.updater` (sync script)
+- **docker-compose.yml:** In parent `sideproject-docker-stack/` directory
+
+Local development runs directly via `uv run uvicorn`. Production runs containerized on CPS.
+
 ### Docker Containers
 
 - **fpp-analytics**: FastAPI server, proxy network only, read-only volume
@@ -320,7 +330,7 @@ See `config.py` for all variables. Critical ones:
 ### Monitoring
 
 - **Sentry**: Error tracking for both containers
-- **UptimeKuma**: Push-based heartbeat from updater (every 15 min)
+- **UptimeKuma**: Push-based heartbeat from updater (every 10 min)
 - **Health endpoint**: `/health` for container health checks
 
 ---

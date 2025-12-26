@@ -95,8 +95,7 @@ export const analyticsRouter = createTRPCRouter({
           ...analytics.data.votes,
           weekday_counts: sortedWeekdayCounts,
         },
-        cache: analytics.cache,
-        duration: analytics.duration,
+        data_updated_at: analytics.data_updated_at,
       };
     } catch (e) {
       console.error('Error fetching analytics', e);
@@ -201,13 +200,7 @@ interface AnalyticsResponse {
       estimation_counts: Record<string, number>;
     };
   };
-  cache: {
-    last_updated: string;
-    age_seconds: number;
-    status: 'fresh' | 'ok' | 'stale';
-    next_update_in: number;
-  };
-  duration: number;
+  data_updated_at: string | null;
 }
 
 type ModifiedAnalyticsResponse = Omit<
@@ -226,13 +219,7 @@ interface LocationAndUserAgent {
 
 export interface AnalyticsResult extends ModifiedAnalyticsResponse {
   location_and_user_agent: LocationAndUserAgent;
-  cache: {
-    last_updated: string;
-    age_seconds: number;
-    status: 'fresh' | 'ok' | 'stale';
-    next_update_in: number;
-  };
-  duration: number;
+  data_updated_at: string | null;
 }
 
 export interface ServerAnalytics {

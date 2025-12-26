@@ -15,7 +15,7 @@ import pymysql
 import httpx
 import sentry_sdk
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Initialize Sentry for error tracking
 SENTRY_DSN = os.getenv('FPP_ANALYTICS_SENTRY_DSN')
@@ -63,15 +63,15 @@ def fetch_new_rows(conn, table: str, sync_col: str, since_value) -> list[dict]:
     """Fetch new rows from MySQL since last sync."""
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
+    # Note: table and sync_col come from hardcoded TABLES dict, so they're safe.
+    # Only since_value needs parameterization.
     if since_value is None:
         query = f"SELECT * FROM {table} ORDER BY {sync_col}"
-    elif sync_col == 'id':
-        query = f"SELECT * FROM {table} WHERE {sync_col} > {since_value} ORDER BY {sync_col}"
+        cursor.execute(query)
     else:
-        # Timestamp-based (users table)
-        query = f"SELECT * FROM {table} WHERE {sync_col} > '{since_value}' ORDER BY {sync_col}"
+        query = f"SELECT * FROM {table} WHERE {sync_col} > %s ORDER BY {sync_col}"
+        cursor.execute(query, (since_value,))
 
-    cursor.execute(query)
     return cursor.fetchall()
 
 
@@ -143,6 +143,10 @@ def main():
             push_uptimekuma("down", f"Errors: {', '.join(errors)}")
             sys.exit(1)
         else:
+            # Write cache invalidation signal for FastAPI
+            cache_status_path = DATA_DIR / "cache_status.txt"
+            cache_status_path.write_text(datetime.now(timezone.utc).isoformat())
+
             push_uptimekuma("up", f"Synced {total_records} records in {duration:.1f}s")
 
     except Exception as e:
