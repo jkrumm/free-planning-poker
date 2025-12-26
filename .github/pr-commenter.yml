@@ -25,7 +25,7 @@ comment:
 
     - id: fpp-analytics-changed
       files:
-        - 'analytics/**'
+        - 'fpp-analytics/**'
       body: |
         <h3> :bar_chart: fpp-analytics has been modified </h3>
         Remember to manually redeploy the analytics service after merging.

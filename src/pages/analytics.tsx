@@ -238,9 +238,22 @@ const getUserDisplayText = (user: {
   return user.estimation !== null ? `🎯 ${user.estimation}` : `⏳`;
 };
 
+const formatDataAge = (isoTimestamp: string | null | undefined): string => {
+  if (!isoTimestamp) return '';
+  const updatedAt = new Date(isoTimestamp).getTime();
+  const now = Date.now();
+  const diffSeconds = Math.floor((now - updatedAt) / 1000);
+
+  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+  if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`;
+  if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h ago`;
+  return `${Math.floor(diffSeconds / 86400)}d ago`;
+};
+
 const Analytics = () => {
   const [hasInitialized, setHasInitialized] = React.useState(false);
   const [secondsLeft, setSecondsLeft] = React.useState(0);
+  const [dataAge, setDataAge] = React.useState('');
   const [historicalTableOpen, setHistoricalTableOpen] = React.useState(true);
   const [reduceReoccurring, setReduceReoccurring] = React.useState(true);
 
@@ -278,24 +291,25 @@ const Analytics = () => {
     void refetchGetIssues();
   };
 
-  // Handle countdown display for 30-second refresh interval
+  // Handle countdown display for 30-second refresh interval and data age
   React.useEffect(() => {
     if (!dataUpdatedAt) return;
 
-    const updateSeconds = () => {
+    const updateTimers = () => {
       const now = Date.now();
       const nextUpdate = dataUpdatedAt + 30000; // 30 seconds from last update
       const remaining = Math.max(0, Math.round((nextUpdate - now) / 1000));
       setSecondsLeft(remaining);
+      setDataAge(formatDataAge(analytics?.data_updated_at));
     };
 
     // Initial update
-    updateSeconds();
+    updateTimers();
 
     // Update every second
-    const intervalId = setInterval(updateSeconds, 1000);
+    const intervalId = setInterval(updateTimers, 1000);
     return () => clearInterval(intervalId);
-  }, [dataUpdatedAt]);
+  }, [dataUpdatedAt, analytics?.data_updated_at]);
 
   // Calculate progress for the ring (0-100)
   const updateProgress = React.useMemo(() => {
@@ -461,29 +475,36 @@ const Analytics = () => {
             </div>
 
             <div className="flex-1 flex justify-center pl-7 pb-2"></div>
-            <Tooltip label={`Next refresh in ${secondsLeft}s`}>
-              <div className="flex-1 flex justify-end items-center">
-                <RingProgress
-                  className="mr-3"
-                  size={40}
-                  thickness={4}
-                  sections={[
-                    {
-                      value: updateProgress,
-                      color: refreshStatusColor,
-                    },
-                  ]}
-                  label={
-                    <Text ta="center" size="xs">
-                      {secondsLeft}s
-                    </Text>
-                  }
-                />
-                <Button onClick={refetch} color="gray" variant="light">
-                  Refresh
-                </Button>
-              </div>
-            </Tooltip>
+            <div className="flex-1 flex justify-end items-center">
+              {dataAge && (
+                <Text size="xs" c="dimmed" className="mr-3">
+                  Analytics updated {dataAge}
+                </Text>
+              )}
+              <Tooltip label={`Next refresh in ${secondsLeft}s`}>
+                <div className="flex items-center">
+                  <RingProgress
+                    className="mr-3"
+                    size={40}
+                    thickness={4}
+                    sections={[
+                      {
+                        value: updateProgress,
+                        color: refreshStatusColor,
+                      },
+                    ]}
+                    label={
+                      <Text ta="center" size="xs">
+                        {secondsLeft}s
+                      </Text>
+                    }
+                  />
+                </div>
+              </Tooltip>
+              <Button onClick={refetch} color="gray" variant="light">
+                Refresh
+              </Button>
+            </div>
           </div>
           <SimpleGrid
             cols={{

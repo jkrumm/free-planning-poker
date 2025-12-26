@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+
+# Data files (keep folder with .gitkeep)
+data/*
+!data/.gitkeep
+
+# IDE
+.idea/
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/

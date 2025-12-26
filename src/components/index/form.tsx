@@ -22,6 +22,9 @@ import { useHasMounted } from 'fpp/hooks/use-has-mounted.hook';
 
 import { FlipWords } from './flip-words';
 
+const FALLBACK_USER_COUNT = 10000;
+const FALLBACK_ESTIMATION_COUNT = 70000;
+
 const IndexForm = () => {
   const hasMounted = useHasMounted();
   const [isHydrated, setIsHydrated] = useState(false);
@@ -175,10 +178,14 @@ const IndexForm = () => {
 
   useEffect(() => {
     if (analyticsError) {
-      captureError(analyticsError, {
-        component: 'IndexForm',
-        action: 'landingPageAnalytics',
-      });
+      captureError(
+        analyticsError,
+        {
+          component: 'IndexForm',
+          action: 'landingPageAnalytics',
+        },
+        'low',
+      );
     }
   }, [analyticsError]);
 
@@ -335,7 +342,7 @@ const IndexForm = () => {
             </Text>
             <Text fz="lg" fw={500} className="mono">
               <AnimatedNumber
-                value={analytics?.user_count ?? 10000}
+                value={analytics?.user_count ?? FALLBACK_USER_COUNT}
                 delay={800}
               />
             </Text>
@@ -346,7 +353,7 @@ const IndexForm = () => {
             </Text>
             <Text fz="lg" fw={500} className="mono">
               <AnimatedNumber
-                value={analytics?.estimation_count ?? 70000}
+                value={analytics?.estimation_count ?? FALLBACK_ESTIMATION_COUNT}
                 delay={800}
               />
             </Text>
