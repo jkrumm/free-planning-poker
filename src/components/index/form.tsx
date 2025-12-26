@@ -8,7 +8,6 @@ import { Button, Group, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
 import { motion, useSpring, useTransform } from 'framer-motion';
 
 import { api } from 'fpp/utils/api';
@@ -22,50 +21,6 @@ import { RoomEvent } from 'fpp/server/db/schema';
 import { useHasMounted } from 'fpp/hooks/use-has-mounted.hook';
 
 import { FlipWords } from './flip-words';
-
-interface LandingPageAnalytics {
-  estimation_count: number;
-  user_count: number;
-}
-
-const fetchAnalytics = async (): Promise<LandingPageAnalytics> => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_ROOT}api/landingpage-analytics`,
-      {
-        method: 'GET',
-        keepalive: true,
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as LandingPageAnalytics;
-    return data;
-  } catch (error) {
-    captureError(
-      error instanceof Error
-        ? error
-        : new Error('Failed to fetch landing page analytics'),
-      {
-        component: 'IndexForm',
-        action: 'fetchAnalytics',
-        extra: {
-          endpoint: 'landingpage-analytics',
-        },
-      },
-      'low', // Low priority, fallback data is available
-    );
-
-    // Return fallback data
-    return {
-      estimation_count: 30000,
-      user_count: 6000,
-    };
-  }
-};
 
 const IndexForm = () => {
   const hasMounted = useHasMounted();
@@ -212,35 +167,20 @@ const IndexForm = () => {
 
   const words = ['fast', 'for free', 'privatly', 'easily', 'realtime'];
 
-  const { data: analytics, error } = useQuery({
-    queryKey: ['landingPageAnalytics'],
-    queryFn: fetchAnalytics,
-    initialData: {
-      estimation_count: 30000,
-      user_count: 6000,
-    },
-    enabled: isHydrated,
-    refetchOnWindowFocus: false,
-  });
+  const { data: analytics, error: analyticsError } =
+    api.landingpage.getAnalytics.useQuery(undefined, {
+      enabled: isHydrated,
+      refetchOnWindowFocus: false,
+    });
 
   useEffect(() => {
-    console.log('analytics', analytics);
-  }, [analytics]);
-
-  useEffect(() => {
-    if (error) {
-      captureError(
-        error instanceof Error
-          ? error
-          : new Error('Failed to fetch landingPageAnalytics data'),
-        {
-          component: 'IndexForm',
-          action: 'landingPageAnalytics',
-        },
-        'medium',
-      );
+    if (analyticsError) {
+      captureError(analyticsError, {
+        component: 'IndexForm',
+        action: 'landingPageAnalytics',
+      });
     }
-  }, [error]);
+  }, [analyticsError]);
 
   const handleStartPlanning = () => {
     try {
@@ -319,15 +259,11 @@ const IndexForm = () => {
     }
   };
 
-  // Track component load
   useEffect(() => {
     if (hasMounted && isHydrated) {
-      addBreadcrumb('IndexForm fully loaded', 'component', {
-        hasAnalytics: !!analytics,
-        openRoomNumber,
-      });
+      addBreadcrumb('IndexForm fully loaded', 'component', { openRoomNumber });
     }
-  }, [hasMounted, isHydrated, analytics, openRoomNumber]);
+  }, [hasMounted, isHydrated, openRoomNumber]);
 
   return (
     <>
@@ -398,7 +334,10 @@ const IndexForm = () => {
               USERS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              <AnimatedNumber value={analytics.user_count} delay={800} />
+              <AnimatedNumber
+                value={analytics?.user_count ?? 10000}
+                delay={800}
+              />
             </Text>
           </div>
           <div className="p-4">
@@ -406,7 +345,10 @@ const IndexForm = () => {
               ESTIMATIONS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              <AnimatedNumber value={analytics.estimation_count} delay={800} />
+              <AnimatedNumber
+                value={analytics?.estimation_count ?? 70000}
+                delay={800}
+              />
             </Text>
           </div>
         </div>
