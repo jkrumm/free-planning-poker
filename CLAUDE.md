@@ -1,7 +1,111 @@
-# Free Planning Poker - Claude Development Guide
+# Free Planning Poker - AI Development Guide
+
+## Quick Reference
+
+| Service | Runtime | Framework | Port | CLAUDE.md |
+|---------|---------|-----------|------|-----------|
+| **Next.js App** | Node 22 | Next.js 16 (Pages Router) | 3001 | This file |
+| **WebSocket Server** | Bun | Elysia 1.4 | 3003 | `fpp-server/CLAUDE.md` |
+| **Analytics API** | Python 3.12 | FastAPI | 3002 | `fpp-analytics/CLAUDE.md` |
+
+---
+
+## Multi-Service Architecture
+
+Free Planning Poker runs on three independent services:
+
+1. **Next.js App** (port 3001) - UI, tRPC API, database operations
+2. **Bun WebSocket Server** (port 3003) - Real-time room state, in-memory
+3. **FastAPI Analytics** (port 3002) - Analytics calculations, read-only
+
+📖 **For detailed architecture**, see `ARCHITECTURE.md` and `.openspec/project.md`
+
+### When to Modify Which Service
+
+**Next.js (this service):**
+- UI components, pages, routing
+- tRPC API endpoints (non-realtime)
+- Database operations via Drizzle
+- SEO, analytics tracking, auth
+
+**fpp-server (WebSocket):**
+- Real-time room state (votes, users, flip status)
+- WebSocket action handlers
+- In-memory room state management
+- Broadcast logic
+
+**fpp-analytics (FastAPI):**
+- Read-only analytics calculations
+- Parquet file processing
+- Analytics page dashboard endpoints
+
+### Cross-Service Change Patterns
+
+#### Pattern 1: Add New Room Action
+1. Define Action type in `fpp-server/src/room.actions.ts`
+2. Add handler in `fpp-server/src/message.handler.ts`
+3. Update client to send action via `triggerAction()`
+4. Update Zustand store to reflect state changes (if new state needed)
+
+#### Pattern 2: Add Database Tracking
+1. Add column/table in `src/server/db/schema.ts`
+2. Generate migration !HumanInTheLoop!: `npm run db:generate`
+3. Update tRPC router to persist data
+4. Update analytics if needed (`fpp-analytics/calculations/`)
+
+#### Pattern 3: Add Analytics Metric
+1. Update `fpp-analytics/update_readmodel.py` to sync table
+2. Create calculation in `fpp-analytics/calculations/`
+3. Add endpoint in `fpp-analytics/routers/`
+4. Consume from Next.js via tRPC proxy
+
+### Critical Cross-Service Rules
+
+#### State Synchronization
+Room state exists in THREE places:
+1. **MySQL database** - Persistent, historical (Next.js writes via Drizzle)
+2. **Bun server memory** - Authoritative, real-time (fpp-server manages)
+3. **Client Zustand store** - Local, synced via WebSocket
+
+**Rule:** Always update authoritative source first, then propagate.
+
+#### Communication Protocols
+
+| From → To | Protocol | Use Case | Example |
+|-----------|----------|----------|---------|
+| Client → Next.js | tRPC | Room creation, joining, name changes | `api.room.joinRoom.useMutation()` |
+| Client → fpp-server | WebSocket | Real-time actions (vote, flip, reset) | `triggerAction({ action: 'selectEstimation' })` |
+| fpp-server → Next.js | HTTP | Persist vote after flip | `fetch('/api/trpc/room.trackFlip')` |
+| Next.js → fpp-analytics | None | Analytics runs independently | - |
+
+#### Error Handling Responsibilities
+
+| Service | Error Handling | Sentry Context |
+|---------|----------------|----------------|
+| Next.js | Sentry breadcrumbs + `captureError()` | component, action, userId, roomId |
+| fpp-server | Sentry `captureException()` | roomId, userId, action type |
+| fpp-analytics | Sentry `capture_exception()` | endpoint, calculation type |
+
+### Development Workflow Commands
+
+```bash
+# Start all services simultaneously
+npm run dev:all                           # Next.js + WebSocket + Analytics
+
+# Or start individually:
+npm run dev                               # Next.js (port 3001)
+cd fpp-server && bun dev                  # WebSocket (port 3003)
+cd fpp-analytics && uv run uvicorn main:app --reload  # Analytics (port 3002)
+
+# Code quality (run from root)
+npm run pre                               # Format, lint, type-check, build
+```
+
+---
 
 ## Project Overview
-Free Planning Poker is a Next.js application using the **Pages Router** (not App Router). We use:
+
+Free Planning Poker is a Next.js application using the **Pages Router** (not App Router). Key technologies:
 - **Next.js 16.0.1** with Turbopack
 - **React 19.2.0** with stricter linting rules
 - **tRPC 11.7.1** for type-safe API layer
@@ -9,13 +113,6 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 - **Zustand 5.0.8** for state management
 - **Drizzle ORM 0.44.7** with MySQL
 - **Tailwind CSS 4** + **Mantine 8.3.6** for UI
-
-### Architecture
-Dual-server setup:
-1. **Next.js server** (port 3001) - Pages Router, tRPC API, database operations
-2. **Bun WebSocket server** (port 3003) - Real-time room state, in-memory
-
-📖 **For detailed architecture**, see `ARCHITECTURE.md`
 
 ## Build & Development Commands
 
@@ -109,7 +206,7 @@ useEffect(() => {
 
 ## Project Structure
 
-```
+```plaintext
 free-planning-poker/
 ├── src/
 │   ├── components/         # React components
@@ -252,32 +349,8 @@ The app has an **action queue** in `useWebSocketRoom.ts` - actions sent while di
 ### 5. Build Environment
 Local builds require `SKIP_ENV_VALIDATION=1` - environment variables are managed via Doppler.
 
-## Research & Documentation
-
-### Using MCPs for Research
-
-**IMPORTANT Rate Limits:**
-- `mcp__brave-search__brave_web_search`: **1 request per second**
-- `mcp__context7__get-library-docs`: No known rate limit
-
-**Pattern**:
-```typescript
-// For library documentation
-await mcp__context7__resolve_library_id({ libraryName: 'react' });
-await mcp__context7__get_library_docs({
-  context7CompatibleLibraryID: '/websites/react_dev',
-  topic: 'hooks useEffect best practices'
-});
-
-// For current best practices (WAIT 1 SECOND between calls)
-await sleep(1000);
-await mcp__brave-search__brave_web_search({
-  query: 'React 19 best practices 2025'
-});
-```
-
 ## Additional Resources
-
+Use Context7 MCP as a reference for documentation:
 - **Next.js 16**: https://nextjs.org/docs
 - **React 19**: https://react.dev
 - **tRPC v11**: https://trpc.io/docs
@@ -290,21 +363,22 @@ await mcp__brave-search__brave_web_search({
 
 ### Branch Strategy
 - `master` - Main branch (production)
-- Feature branches - Descriptive names
+- Feature branches - Descriptive names e.g. `feat/JK-60-add-analytics`
+- Small stuff and so on usually can go directly to `master`
 
 ### Commit Messages
-Follow conventional commits:
-```
-feat: add new feature
-fix: resolve bug
-docs: update documentation
-style: formatting changes
-refactor: code restructuring
-test: add tests
+Follow conventional commits sometimes there might be a JK ticket number but not always:
+```plaintext
+feat(JK-60): add new feature
+fix(JK-60): resolve bug
+docs(JK-60): update documentation
+style(JK-60): formatting changes
+refactor(JK-60): code restructuring
+test(JK-60): add tests
 chore: maintenance tasks
 ```
 
 ---
 
-**Last Updated**: 2025-10-31
-**For detailed architecture explanation**: See `ARCHITECTURE.md`
+**Last Updated**: 2025-12-27
+**For detailed architecture explanation**: See `ARCHITECTURE.md` and `.openspec/project.md`
