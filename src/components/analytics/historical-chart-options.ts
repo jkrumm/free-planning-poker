@@ -40,7 +40,6 @@ export function renderer(
   // Format the date as "May 19 2024"
   const formattedDate = `${monthName} ${day} ${year}`;
   return {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
     content: `${value} on ${formattedDate}`,
     color: '#fff',
     title,

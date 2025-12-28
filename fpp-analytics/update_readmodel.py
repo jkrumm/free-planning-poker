@@ -4,54 +4,59 @@ Standalone script to sync MySQL to flat Parquet files.
 Runs every 10 minutes via docker entrypoint sleep loop.
 Direct DB connection (same docker network) - no round-trip.
 """
+
 import os
 import sys
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-import polars as pl
-import pymysql
-import httpx
-import sentry_sdk
-from pathlib import Path
-from datetime import datetime, timezone
+# Imports after load_dotenv() to ensure environment variables are available
+from datetime import UTC, datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
+
+import httpx  # noqa: E402
+import polars as pl  # noqa: E402
+import pymysql  # noqa: E402
+import sentry_sdk  # noqa: E402
 
 # Initialize Sentry for error tracking
-SENTRY_DSN = os.getenv('FPP_ANALYTICS_SENTRY_DSN')
+SENTRY_DSN = os.getenv("FPP_ANALYTICS_SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        environment=os.getenv('SENTRY_ENVIRONMENT', 'production'),
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
         traces_sample_rate=0.1,
     )
 
-DATA_DIR = Path(os.getenv('DATA_DIR', './data'))
-UPTIMEKUMA_PUSH_URL = os.getenv('UPTIMEKUMA_PUSH_URL')
+DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
+UPTIMEKUMA_PUSH_URL = os.getenv("UPTIMEKUMA_PUSH_URL")
 
 # DB config (same docker network)
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'mariadb'),
-    'port': int(os.getenv('DB_PORT', '3306')),
-    'user': os.getenv('DB_USERNAME', 'fpp'),
-    'password': os.getenv('DB_PASSWORD'),
-    'database': 'free-planning-poker',
-    'charset': 'utf8mb4',
+    "host": os.getenv("DB_HOST", "mariadb"),
+    "port": int(os.getenv("DB_PORT", "3306")),
+    "user": os.getenv("DB_USERNAME", "fpp"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": "free-planning-poker",
+    "charset": "utf8mb4",
 }
 
 # Table definitions: {table_name: sync_column}
 # 5 tables sync by id, users syncs by created_at (no auto-increment PK)
 TABLES = {
-    'fpp_estimations': 'id',
-    'fpp_events': 'id',
-    'fpp_page_views': 'id',
-    'fpp_rooms': 'id',
-    'fpp_votes': 'id',
-    'fpp_users': 'created_at',
+    "fpp_estimations": "id",
+    "fpp_events": "id",
+    "fpp_page_views": "id",
+    "fpp_rooms": "id",
+    "fpp_votes": "id",
+    "fpp_users": "created_at",
 }
 
 
-def get_last_sync_value(parquet_path: Path, sync_col: str):
+def get_last_sync_value(parquet_path: Path, sync_col: str) -> Any:
     """Read last synced value from existing Parquet file metadata."""
     if not parquet_path.exists():
         return None
@@ -59,7 +64,9 @@ def get_last_sync_value(parquet_path: Path, sync_col: str):
     return lf.select(pl.col(sync_col).max()).collect().item()
 
 
-def fetch_new_rows(conn, table: str, sync_col: str, since_value) -> list[dict]:
+def fetch_new_rows(
+    conn: Any, table: str, sync_col: str, since_value: Any
+) -> list[dict[str, Any]]:
     """Fetch new rows from MySQL since last sync."""
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
@@ -72,10 +79,10 @@ def fetch_new_rows(conn, table: str, sync_col: str, since_value) -> list[dict]:
         query = f"SELECT * FROM {table} WHERE {sync_col} > %s ORDER BY {sync_col}"
         cursor.execute(query, (since_value,))
 
-    return cursor.fetchall()
+    return cursor.fetchall()  # type: ignore[no-any-return]
 
 
-def sync_table(conn, table: str, sync_col: str) -> int:
+def sync_table(conn: Any, table: str, sync_col: str) -> int:
     """Sync a single table from MySQL to Parquet (atomic write)."""
     parquet_path = DATA_DIR / f"{table}.parquet"
     temp_path = DATA_DIR / f".{table}.parquet.tmp"
@@ -101,7 +108,7 @@ def sync_table(conn, table: str, sync_col: str) -> int:
     return len(rows)
 
 
-def push_uptimekuma(status: str = "up", msg: str = ""):
+def push_uptimekuma(status: str = "up", msg: str = "") -> None:
     """Push heartbeat to UptimeKuma cron monitor."""
     if not UPTIMEKUMA_PUSH_URL:
         return
@@ -113,7 +120,7 @@ def push_uptimekuma(status: str = "up", msg: str = ""):
         print(f"  UptimeKuma: failed to push - {e}")
 
 
-def main():
+def main() -> None:
     start_time = datetime.now()
     DATA_DIR.mkdir(exist_ok=True)
     total_records = 0
@@ -136,7 +143,9 @@ def main():
 
         # Summary log (always print)
         error_suffix = f", {len(errors)} errors" if errors else ""
-        print(f"[{datetime.now().isoformat()}] Sync: {total_records} records ({duration:.1f}s){error_suffix}")
+        print(
+            f"[{datetime.now().isoformat()}] Sync: {total_records} records ({duration:.1f}s){error_suffix}"
+        )
 
         # Push to UptimeKuma
         if errors:
@@ -145,7 +154,7 @@ def main():
         else:
             # Write cache invalidation signal for FastAPI
             cache_status_path = DATA_DIR / "cache_status.txt"
-            cache_status_path.write_text(datetime.now(timezone.utc).isoformat())
+            cache_status_path.write_text(datetime.now(UTC).isoformat())
 
             push_uptimekuma("up", f"Synced {total_records} records in {duration:.1f}s")
 
@@ -156,5 +165,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

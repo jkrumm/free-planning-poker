@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - This file contains Bun-specific imports
-
 import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
@@ -12,7 +9,8 @@ export class RoomState {
   private rooms = new Map<number, RoomServer>();
   private userConnections = new Map<
     string,
-    { roomId: number; userId: string; ws: ElysiaWS<any> }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    { roomId: number; userId: string; ws: ElysiaWS<any, any> }
   >();
 
   getOrCreateRoom(roomId: number): RoomServer {
@@ -166,7 +164,7 @@ export class RoomState {
             'User has no active connection - skipping message send'
           );
         }
-      } catch (error) {
+      } catch (error: unknown) {
         failureCount++;
         log.debug(
           { userId: user.id, roomId: room.id, error },
@@ -234,7 +232,7 @@ export class RoomState {
             'User has no active connection - skipping room name change notification'
           );
         }
-      } catch (error) {
+      } catch (error: unknown) {
         log.debug(
           { userId: user.id, roomId: room.id, error },
           'Failed to send room name change notification to user - connection likely closed'
@@ -277,8 +275,6 @@ export class RoomState {
     const now = Date.now();
     // Use the constant from websocket.constants.ts
     const HEARTBEAT_TIMEOUT = WEBSOCKET_CONSTANTS.HEARTBEAT_TIMEOUT;
-    let totalRemovedUsers = 0;
-    let totalRemovedRooms = 0;
 
     for (const room of this.rooms.values()) {
       const usersToRemove: string[] = [];
@@ -303,7 +299,6 @@ export class RoomState {
       for (const userId of usersToRemove) {
         room.removeUser(userId);
         this.cleanupUserConnection(userId, room.id);
-        totalRemovedUsers++;
       }
 
       // Send updates if users were removed
@@ -314,7 +309,6 @@ export class RoomState {
       // Clean up empty rooms
       if (room.users.length === 0) {
         this.rooms.delete(room.id);
-        totalRemovedRooms++;
         log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
       }
     }

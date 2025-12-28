@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - This file contains Bun-specific imports
-
 import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
@@ -29,7 +26,7 @@ export class MessageHandler {
   /**
    * Handle incoming WebSocket messages
    */
-  handleMessage(ws: ElysiaWS<any>, data: Action): void {
+  handleMessage(ws: ElysiaWS, data: Action): void {
     const room = this.roomState.getOrCreateRoom(data.roomId);
     log.debug({ ...data, wsId: ws.id }, 'Received message');
 
@@ -130,13 +127,13 @@ export class MessageHandler {
           data: String(data),
         })
       );
-    } catch (error) {
+    } catch (error: unknown) {
       Sentry.captureException(error, {
         tags: {
           handler: 'handleMessage',
           roomId: String(data.roomId),
           userId: data.userId,
-          action: (data as any)?.action,
+          action: data.action,
         },
         extra: {
           actionData: data,
@@ -149,7 +146,7 @@ export class MessageHandler {
   /**
    * Handle heartbeat action
    */
-  private handleHeartbeat(ws: ElysiaWS<any>, data: Action): void {
+  private handleHeartbeat(ws: ElysiaWS, data: Action): void {
     const heartbeatUpdated = this.roomState.updateHeartbeat(ws.id);
     if (!heartbeatUpdated) {
       log.debug(
@@ -165,7 +162,7 @@ export class MessageHandler {
   /**
    * Handle leave action
    */
-  private handleLeave(ws: ElysiaWS<any>, data: Action): void {
+  private handleLeave(ws: ElysiaWS, data: Action): void {
     log.debug(
       { userId: data.userId, roomId: data.roomId, wsId: ws.id },
       'User leaving room'
@@ -176,7 +173,7 @@ export class MessageHandler {
   /**
    * Handle rejoin action
    */
-  private handleRejoin(ws: ElysiaWS<any>, data: Action): void {
+  private handleRejoin(ws: ElysiaWS, data: Action): void {
     if (!isRejoinAction(data)) return;
 
     log.debug(
@@ -201,7 +198,7 @@ export class MessageHandler {
       setTimeout(() => {
         this.roomState.sendToEverySocketInRoom(data.roomId);
       }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
-    } catch (error) {
+    } catch (error: unknown) {
       Sentry.captureException(error, {
         tags: {
           handler: 'handleRejoin',
@@ -217,7 +214,7 @@ export class MessageHandler {
   /**
    * Handle change room name action
    */
-  private handleChangeRoomName(ws: ElysiaWS<any>, data: Action): void {
+  private handleChangeRoomName(ws: ElysiaWS, data: Action): void {
     if (!isChangeRoomNameAction(data)) return;
 
     log.debug(
@@ -237,7 +234,7 @@ export class MessageHandler {
   /**
    * Handle kick action
    */
-  private handleKick(ws: ElysiaWS<any>, data: Action): void {
+  private handleKick(ws: ElysiaWS, data: Action): void {
     if (!isKickAction(data)) return;
 
     log.debug(
@@ -263,7 +260,7 @@ export class MessageHandler {
             message: 'You have been removed from the room',
           })
         );
-      } catch (error) {
+      } catch (error: unknown) {
         log.debug(
           'Failed to send kick notification - connection may be closed'
         );
@@ -281,7 +278,7 @@ export class MessageHandler {
       // Close their WebSocket connection
       try {
         kickedUser.ws.close();
-      } catch (error) {
+      } catch (error: unknown) {
         log.debug('Failed to close WebSocket - may already be closed');
         Sentry.captureException(error, {
           tags: {

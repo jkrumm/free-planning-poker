@@ -1,5 +1,5 @@
 export interface AnalyticsUser {
-  estimation: any;
+  estimation: number | null;
   isSpectator: boolean;
   firstActive: number;
   firstActiveReadable: string;

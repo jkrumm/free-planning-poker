@@ -1,8 +1,5 @@
-// @ts-ignore
-
 import { TypeCompiler } from '@sinclair/typebox/compiler';
-// @ts-ignore
-import { Static, t } from 'elysia';
+import { t, type Static } from 'elysia';
 
 export const BaseActionSchema = t.Object({
   userId: t.String({
@@ -28,8 +25,13 @@ export const EstimateActionSchema = t.Intersect([
 ]);
 export type EstimateAction = Static<typeof EstimateActionSchema>;
 
-export function isEstimateAction(action: any): action is EstimateAction {
-  return action.action === 'estimate';
+export function isEstimateAction(action: unknown): action is EstimateAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'estimate'
+  );
 }
 
 /** SetSpectator action schema */
@@ -47,9 +49,14 @@ export const SetSpectatorActionSchema = t.Intersect([
 export type SetSpectatorAction = Static<typeof SetSpectatorActionSchema>;
 
 export function isSetSpectatorAction(
-  action: any
+  action: unknown
 ): action is SetSpectatorAction {
-  return action.action === 'setSpectator';
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'setSpectator'
+  );
 }
 
 /** Reset action schema */
@@ -61,8 +68,13 @@ export const ResetActionSchema = t.Intersect([
 ]);
 export type ResetAction = Static<typeof ResetActionSchema>;
 
-export function isResetAction(action: any): action is ResetAction {
-  return action.action === 'reset';
+export function isResetAction(action: unknown): action is ResetAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'reset'
+  );
 }
 
 /** SetAutoFlip action schema */
@@ -75,8 +87,15 @@ export const SetAutoFlipActionSchema = t.Intersect([
 ]);
 export type SetAutoFlipAction = Static<typeof SetAutoFlipActionSchema>;
 
-export function isSetAutoFlipAction(action: any): action is SetAutoFlipAction {
-  return action.action === 'setAutoFlip';
+export function isSetAutoFlipAction(
+  action: unknown
+): action is SetAutoFlipAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'setAutoFlip'
+  );
 }
 
 /** Leave action schema */
@@ -88,8 +107,13 @@ export const LeaveActionSchema = t.Intersect([
 ]);
 export type LeaveAction = Static<typeof LeaveActionSchema>;
 
-export function isLeaveAction(action: any): action is LeaveAction {
-  return action.action === 'leave';
+export function isLeaveAction(action: unknown): action is LeaveAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'leave'
+  );
 }
 
 /** Flip action schema */
@@ -101,8 +125,13 @@ export const FlipActionSchema = t.Intersect([
 ]);
 export type FlipAction = Static<typeof FlipActionSchema>;
 
-export function isFlipAction(action: any): action is FlipAction {
-  return action.action === 'flip';
+export function isFlipAction(action: unknown): action is FlipAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'flip'
+  );
 }
 
 /** Change Username action schema */
@@ -116,9 +145,14 @@ export const ChangeUsernameActionSchema = t.Intersect([
 export type ChangeUsernameAction = Static<typeof ChangeUsernameActionSchema>;
 
 export function isChangeUsernameAction(
-  action: any
+  action: unknown
 ): action is ChangeUsernameAction {
-  return action.action === 'changeUsername';
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'changeUsername'
+  );
 }
 
 /** Change Room Name action schema */
@@ -132,9 +166,14 @@ export const ChangeRoomNameActionSchema = t.Intersect([
 export type ChangeRoomNameAction = Static<typeof ChangeRoomNameActionSchema>;
 
 export function isChangeRoomNameAction(
-  action: any
+  action: unknown
 ): action is ChangeRoomNameAction {
-  return action.action === 'changeRoomName';
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'changeRoomName'
+  );
 }
 
 /** Heartbeat action schema */
@@ -146,8 +185,13 @@ export const HeartbeatActionSchema = t.Intersect([
 ]);
 export type HeartbeatAction = Static<typeof HeartbeatActionSchema>;
 
-export function isHeartbeatAction(action: any): action is HeartbeatAction {
-  return action.action === 'heartbeat';
+export function isHeartbeatAction(action: unknown): action is HeartbeatAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'heartbeat'
+  );
 }
 
 /** Rejoin action schema */
@@ -160,8 +204,13 @@ export const RejoinActionSchema = t.Intersect([
 ]);
 export type RejoinAction = Static<typeof RejoinActionSchema>;
 
-export function isRejoinAction(action: any): action is RejoinAction {
-  return action.action === 'rejoin';
+export function isRejoinAction(action: unknown): action is RejoinAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'rejoin'
+  );
 }
 
 export const SetPresenceActionSchema = t.Object({
@@ -173,8 +222,13 @@ export const SetPresenceActionSchema = t.Object({
 
 export type SetPresenceAction = Static<typeof SetPresenceActionSchema>;
 
-export function isSetPresenceAction(data: any): data is SetPresenceAction {
-  return data.action === 'setPresence';
+export function isSetPresenceAction(data: unknown): data is SetPresenceAction {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'action' in data &&
+    data.action === 'setPresence'
+  );
 }
 
 /** Kick action schema */
@@ -190,8 +244,13 @@ export const KickActionSchema = t.Intersect([
 ]);
 export type KickAction = Static<typeof KickActionSchema>;
 
-export function isKickAction(action: any): action is KickAction {
-  return action.action === 'kick';
+export function isKickAction(action: unknown): action is KickAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'action' in action &&
+    action.action === 'kick'
+  );
 }
 
 /**

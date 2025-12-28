@@ -1,4 +1,5 @@
 """Simple file-based cache invalidation for analytics endpoint."""
+
 from pathlib import Path
 from typing import Any
 

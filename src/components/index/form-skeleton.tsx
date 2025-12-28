@@ -2,6 +2,12 @@ import { Button, Group, Text, TextInput, Title } from '@mantine/core';
 
 import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 
+// Use hardcoded formatted strings to match AnimatedNumber initial render
+// This prevents hydration mismatches from locale-dependent toLocaleString()
+// Using space separator (ISO 31-0 standard) - neutral for all locales
+const FALLBACK_USER_COUNT_FORMATTED = '10 000';
+const FALLBACK_ESTIMATION_COUNT_FORMATTED = '70 000';
+
 const IndexFormSkeleton = () => {
   return (
     <>
@@ -61,7 +67,7 @@ const IndexFormSkeleton = () => {
               USERS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              6000
+              {FALLBACK_USER_COUNT_FORMATTED}
             </Text>
           </div>
           <div className="p-4">
@@ -69,7 +75,7 @@ const IndexFormSkeleton = () => {
               ESTIMATIONS
             </Text>
             <Text fz="lg" fw={500} className="mono">
-              30000
+              {FALLBACK_ESTIMATION_COUNT_FORMATTED}
             </Text>
           </div>
         </div>

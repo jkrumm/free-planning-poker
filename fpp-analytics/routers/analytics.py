@@ -1,19 +1,22 @@
+from typing import Any
+
 from fastapi import APIRouter, Response
-from calculations.traffic import calc_traffic
-from calculations.votes import calc_votes
+
 from calculations.behaviour import calc_behaviour
-from calculations.reoccurring import calc_reoccurring
+from calculations.daily import calc_daily_analytics
 from calculations.historical import calc_historical
 from calculations.location import calc_location_and_user_agent
-from calculations.daily import calc_daily_analytics
-from util.http_client import send_daily_email
+from calculations.reoccurring import calc_reoccurring
+from calculations.traffic import calc_traffic
+from calculations.votes import calc_votes
 from util.cache import get_cached_response, set_cached_response
+from util.http_client import send_daily_email
 
 router = APIRouter()
 
 
 @router.get("/")
-async def get_analytics(response: Response):
+async def get_analytics(response: Response) -> dict[str, Any]:
     """Main analytics endpoint - cached, invalidated when Parquet files update."""
     cached, cache_hit, cache_ts = get_cached_response()
 
@@ -38,7 +41,7 @@ async def get_analytics(response: Response):
 
 
 @router.get("/daily-analytics")
-async def get_daily_analytics():
+async def get_daily_analytics() -> dict[str, Any]:
     """Calculate daily analytics and send email report."""
     daily = calc_daily_analytics()
     await send_daily_email(daily)

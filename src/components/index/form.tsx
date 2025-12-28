@@ -20,10 +20,10 @@ import { RoomEvent } from 'fpp/server/db/schema';
 
 import { useHasMounted } from 'fpp/hooks/use-has-mounted.hook';
 
-import { FlipWords } from './flip-words';
+import { FlipWords } from 'fpp/components/index/flip-words';
 
-const FALLBACK_USER_COUNT = 10000;
-const FALLBACK_ESTIMATION_COUNT = 70000;
+export const FALLBACK_USER_COUNT = 10000;
+export const FALLBACK_ESTIMATION_COUNT = 70000;
 
 const IndexForm = () => {
   const hasMounted = useHasMounted();
@@ -372,8 +372,11 @@ export function AnimatedNumber({
   delay?: number;
 }) {
   const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
+  // Use space separator (ISO 31-0 standard) - neutral for all locales
   const display = useTransform(spring, (current) =>
-    Math.round(current).toLocaleString(),
+    Math.round(current)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ' '),
   );
 
   useEffect(() => {

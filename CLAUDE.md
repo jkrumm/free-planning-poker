@@ -126,12 +126,28 @@ npm run dev:all                          # Start all services (Next.js, fpp-serv
 # Building (REQUIRED env var)
 SKIP_ENV_VALIDATION=1 npm run build
 
-# Code Quality
+# Code Quality & Validation
+npm run validate                         # Validate all services in parallel
+npm run validate:nextjs                  # Validate Next.js only
+npm run validate:fpp-server              # Validate fpp-server only
+npm run validate:fpp-analytics           # Validate fpp-analytics only
+
+# Next.js specific
 npm run lint                             # Run ESLint
 npm run lint:fix                         # Auto-fix ESLint issues
 npm run type-check                       # TypeScript type checking
 npm run format                           # Format with Prettier
 npm run pre                              # Run all checks (format, lint, type-check, build)
+
+# fpp-server specific
+cd fpp-server && bun run validate        # All checks for fpp-server
+cd fpp-server && bun run lint            # ESLint for fpp-server
+cd fpp-server && bun run type-check      # TypeScript for fpp-server
+
+# fpp-analytics specific
+npm run fpp-analytics:validate           # All checks for fpp-analytics
+npm run fpp-analytics:lint               # Ruff lint
+npm run fpp-analytics:type-check         # mypy type check
 
 # Database
 npm run db:generate                      # Generate Drizzle migrations - Only suggest to user

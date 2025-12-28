@@ -6,13 +6,13 @@ Bun-powered WebSocket server managing real-time planning poker room state. Runs 
 
 ### Tech Stack
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| Runtime | Bun | latest |
-| Framework | Elysia | 1.4.18 |
-| Validation | TypeBox | latest |
-| Monitoring | Sentry | @sentry/bun 10.30.0 |
-| Logging | @bogeychan/elysia-logger (pino) | latest |
+| Component  | Technology                      | Version             |
+| ---------- | ------------------------------- | ------------------- |
+| Runtime    | Bun                             | latest              |
+| Framework  | Elysia                          | 1.4.18              |
+| Validation | TypeBox                         | latest              |
+| Monitoring | Sentry                          | @sentry/bun 10.30.0 |
+| Logging    | @bogeychan/elysia-logger (pino) | latest              |
 
 ### Architecture Role
 
@@ -23,24 +23,28 @@ This service is the **AUTHORITATIVE source for real-time room state**. All room 
 ## Critical Rules
 
 ### 🚨 In-Memory State Only
+
 - ALL room state lives in `RoomState.rooms` Map
 - NO database access from this service
 - State persists only while server is running
 - Server restart = all active rooms lost (acceptable for short-lived planning sessions)
 
 ### 🚨 TypeBox Validation (NOT Zod)
+
 - Every incoming WebSocket message MUST validate against `CActionSchema`
 - Invalid messages are silently dropped (no error response)
 - Use `Type.Object()`, not `z.object()` (this is NOT Zod)
 - Syntax: `Type.String({ minLength: 21, maxLength: 21 })`
 
 ### 🚨 Broadcast Pattern
+
 - State changes ALWAYS broadcast to entire room via `sendToEverySocketInRoom()`
 - NO individual user updates (creates race conditions)
 - Broadcast sends full room DTO, not diffs
 - Pre-serialize once with `room.toStringifiedJson()`, send same string to all
 
 ### 🚨 Heartbeat System
+
 - Client heartbeat: Every 5 minutes
 - Server cleanup: Every 30 minutes (cron job)
 - Users inactive >30min are removed automatically
@@ -70,6 +74,7 @@ fpp-server/src/
 ## Key Files Explained
 
 ### index.ts
+
 - Elysia app factory with WebSocket route
 - TypeBox validation on incoming messages
 - Connection tracking (open, close, error)
@@ -78,12 +83,14 @@ fpp-server/src/
 - CORS handled by Elysia (same-origin only)
 
 ### message.handler.ts
+
 - Switch statement on `action` discriminator
 - Updates room state via RoomState methods
 - Broadcasts after every state change
 - Handles tRPC fetch for vote persistence (when room flips)
 
 ### room.state.ts
+
 - Central `Map<roomId, RoomServer>` of all active rooms
 - `sendToEverySocketInRoom()` - core broadcast method
 - `addUserToRoom()`, `removeUserFromRoom()` - user lifecycle
@@ -91,12 +98,14 @@ fpp-server/src/
 - Separate `userConnections` Map for WebSocket tracking
 
 ### room.entity.ts
+
 - `RoomServer` class - room state + mutation methods
 - `UserServer` class - user state + mutation methods
 - Methods like `flip()`, `reset()`, `selectEstimation()`
 - Auto-flip logic with 1-second delay
 
 ### room.actions.ts
+
 - TypeBox schemas for every action type
 - Union type `Action` as discriminated union
 - Validation happens before message.handler receives
@@ -109,6 +118,7 @@ fpp-server/src/
 ### Adding a New WebSocket Action
 
 **Step 1: Define Action Type** (`room.actions.ts`):
+
 ```typescript
 export interface NewActionAction {
   action: 'newAction';
@@ -126,6 +136,7 @@ export const CNewActionActionSchema = Type.Object({
 ```
 
 **Step 2: Add to Union** (`room.actions.ts`):
+
 ```typescript
 export type Action =
   | JoinAction
@@ -142,6 +153,7 @@ export const CActionSchema = Type.Union([
 ```
 
 **Step 3: Handle Action** (`message.handler.ts`):
+
 ```typescript
 case 'newAction': {
   const room = roomState.rooms.get(action.roomId);
@@ -160,6 +172,7 @@ case 'newAction': {
 ```
 
 **Step 4: Client Integration** (in Next.js):
+
 ```typescript
 triggerAction({
   action: 'newAction',
@@ -228,10 +241,59 @@ try {
 
 ---
 
+## Code Quality & Validation
+
+### Available Commands
+
+```bash
+bun run format        # Auto-fix formatting
+bun run format:check  # Check formatting (CI)
+bun run lint          # Run ESLint
+bun run lint:fix      # Auto-fix ESLint issues
+bun run type-check    # TypeScript type checking
+bun run build         # Build for production
+bun run validate      # Run all checks
+```
+
+### Validation Philosophy
+
+- **TypeScript**: Strict mode enabled in tsconfig.json
+- **ESLint**: TypeScript recommended rules (pragmatic `any` allowed for WebSocket types)
+- **Prettier**: Import sorting with @ianvs/prettier-plugin-sort-imports
+- **Type checking**: `tsc --noEmit` for comprehensive checks
+
+### Before Committing
+
+```bash
+bun run validate
+# Or from root:
+npm run validate:fpp-server
+```
+
+### CI Validation
+
+4 parallel GitHub Actions jobs on every PR:
+
+1. Formatting check
+2. Linting
+3. Type checking
+4. Build
+
+### ESLint Configuration
+
+Uses flat config (`eslint.config.mjs`) with:
+
+- TypeScript recommended + stylistic rules
+- Relaxed `no-explicit-any` for pragmatic WebSocket handling
+- Unused vars allowed with `_` prefix
+- No React rules (not needed for WebSocket server)
+
+---
+
 ## Testing & Verification
 
 ```bash
-# Run dev server with hot reload USUALLY ONLY RUN BY HUMAN 
+# Run dev server with hot reload USUALLY ONLY RUN BY HUMAN
 bun dev
 
 # Build for production
@@ -259,16 +321,19 @@ bun run format
 ## Performance Characteristics
 
 ### Memory Usage
+
 - Each room: ~2-5 KB (depends on user count)
 - Each user: ~500 bytes
 - 1000 active rooms with 10 users each: ~20-50 MB
 
 ### Broadcast Latency
+
 - Local broadcast: <5ms
 - Network + client render: 20-100ms typical
 - Scales linearly with users per room (O(n))
 
 ### Connection Limits
+
 - Bun WebSocket: Tested to 10k concurrent connections
 - Typical usage: 50-200 concurrent rooms
 - No artificial limits imposed
@@ -280,13 +345,15 @@ bun run format
 ### 1. TypeBox vs Zod
 
 ❌ **Wrong** (Zod syntax):
+
 ```typescript
-z.object({ action: z.literal('vote') })
+z.object({ action: z.literal('vote') });
 ```
 
 ✅ **Correct** (TypeBox syntax):
+
 ```typescript
-Type.Object({ action: Type.Literal('vote') })
+Type.Object({ action: Type.Literal('vote') });
 ```
 
 **Why TypeBox?** Faster validation, better for WebSocket hot path.
@@ -294,13 +361,15 @@ Type.Object({ action: Type.Literal('vote') })
 ### 2. Serialization
 
 ❌ **Wrong** (double-stringify):
+
 ```typescript
-ws.send(JSON.stringify(room.toStringifiedJson()))
+ws.send(JSON.stringify(room.toStringifiedJson()));
 ```
 
 ✅ **Correct** (already stringified):
+
 ```typescript
-ws.send(room.toStringifiedJson())
+ws.send(room.toStringifiedJson());
 ```
 
 `toStringifiedJson()` returns a string (already JSON.stringify'd).
@@ -311,6 +380,7 @@ ws.send(room.toStringifiedJson())
 - Server cleanup: **30 minutes**
 
 Gap is intentional:
+
 - Avoids premature removal on network hiccups
 - Gives users 25 minutes of grace period
 - Reconnection works seamlessly within this window
@@ -318,7 +388,7 @@ Gap is intentional:
 ### 4. Cron Job Schedule
 
 ```typescript
-pattern: '0 */30 * * * *'  // Runs at 0 and 30 minutes past every hour
+pattern: '0 */30 * * * *'; // Runs at 0 and 30 minutes past every hour
 ```
 
 NOT "every 30 minutes from server start" - runs on the clock (0:00, 0:30, 1:00, 1:30, etc.).
@@ -377,25 +447,30 @@ log.error({ error, roomId }, 'Failed to broadcast');
 ### Design Decisions
 
 **1. Dual-Map Structure**
+
 - `rooms`: Authoritative state
 - `userConnections`: WebSocket tracking
 - Separation allows WebSocket-agnostic room logic
 
 **2. Connection ≠ User**
+
 - Users persist beyond WebSocket lifetime
 - Enables graceful reconnects
 - Heartbeat is source of truth for removal
 
 **3. Dirty Flag Pattern**
+
 - `hasChanged` prevents unnecessary broadcasts
 - Optimistic approach: assume change, reset after broadcast
 
 **4. No Database in Hot Path**
+
 - MySQL only for: room creation, user join, vote persistence
 - WebSocket actions touch zero persistent storage
 - Trade-off: Lose ephemeral state on restart
 
 **5. Single Responsibility**
+
 - `RoomServer`: Domain logic + mutations
 - `RoomState`: Lifecycle + broadcasting
 - `MessageHandler`: Action routing
@@ -412,7 +487,9 @@ log.error({ error, roomId }, 'Failed to broadcast');
 ---
 
 ## Additional Resources
+
 Use Context7 MCP as a reference for documentation:
+
 - **Elysia Docs**: https://elysiajs.com
 - **TypeBox Docs**: https://github.com/sinclairzx81/typebox
 - **Bun WebSocket**: https://bun.sh/docs/api/websockets
