@@ -32,21 +32,27 @@ export const configRouter = createTRPCRouter({
       await fetch(
         'https://api.github.com/repos/jkrumm/free-planning-poker/tags',
       )
-        .then(async (res) =>
-          res.json().then(async (res: { name: string }[]) => {
-            latestTag = res[0]!.name;
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error(
+              `GitHub API error: ${res.status} ${res.statusText}`,
+            );
+          }
+          return res.json() as Promise<{ name: string }[]>;
+        })
+        .then(async (res: { name: string }[]) => {
+          latestTag = res[0]!.name;
 
-            if (!latestTag) {
-              throw new Error('no latest tag found');
-            }
+          if (!latestTag) {
+            throw new Error('no latest tag found');
+          }
 
-            console.warn('fetched latest tag', {
-              commitSha: env.VERCEL_GIT_COMMIT_SHA,
-              nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
-              latestTag,
-            });
-          }),
-        )
+          console.warn('fetched latest tag', {
+            commitSha: env.VERCEL_GIT_COMMIT_SHA,
+            nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
+            latestTag,
+          });
+        })
         .catch((e) => {
           console.error('failed to fetch latest tag', e);
           Sentry.captureException(e, {

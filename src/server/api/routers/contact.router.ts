@@ -37,7 +37,7 @@ export const contactRouter = createTRPCRouter({
         });
       }
 
-      await fetch(`${env.BEA_BASE_URL}/fpp`, {
+      const response = await fetch(`${env.BEA_BASE_URL}/fpp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,5 +46,12 @@ export const contactRouter = createTRPCRouter({
         body: JSON.stringify({ name, email, subject, message }),
         signal: AbortSignal.timeout(7000),
       });
+
+      if (!response.ok) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to send contact form: ${response.status} ${response.statusText}`,
+        });
+      }
     }),
 });

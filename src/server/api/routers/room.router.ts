@@ -76,7 +76,14 @@ export const roomRouter = createTRPCRouter({
           Authorization: env.ANALYTICS_SECRET_TOKEN,
         },
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(
+              `Analytics API error: ${res.status} ${res.statusText}`,
+            );
+          }
+          return res.json();
+        })
         .catch((e) => {
           console.error('Error fetching room stats', e);
           Sentry.captureException(e, {
