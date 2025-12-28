@@ -1,8 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - This file contains Bun-specific imports that aren't available in Next.js
-
 import * as Sentry from '@sentry/bun';
-import { type ServerWebSocket } from 'bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 // Import base classes to extend
 import {
@@ -14,24 +10,26 @@ import { preciseTimeout } from './utils';
 
 // Re-export shared types from room.types for backward compatibility
 export {
-  User as UserBase,
   RoomClient,
   RoomBase,
   RoomStateStatus,
   type RoomDto,
   type CreateUserDto as CreateUserDtoBase,
 } from './room.types';
+export { User as UserBase } from './room.types';
 
 /**
  * Server-specific extensions that require Bun/Elysia dependencies
  */
 
 export interface CreateUserDto extends CreateUserDtoBase {
-  ws: ElysiaWS<ServerWebSocket<any>, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ws: ElysiaWS<any, any>;
 }
 
 export class User extends UserBase {
-  ws: ElysiaWS<ServerWebSocket<any>, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ws: ElysiaWS<any, any>;
 
   constructor(params: CreateUserDto) {
     super(params);
@@ -45,6 +43,9 @@ export class User extends UserBase {
  */
 
 export class RoomServer extends RoomBase {
+  // Override to use server-side User class with WebSocket
+  declare users: User[];
+
   hasChanged = false;
   isFlipAction = false;
 

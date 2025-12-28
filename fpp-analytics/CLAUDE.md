@@ -107,6 +107,70 @@ if not data:
     raise HTTPException(status_code=404, detail="Not found")
 ```
 
+## Validation & Code Quality
+
+### Tooling
+
+| Tool | Purpose |
+|------|---------|
+| **Ruff** | Linter + Formatter (replaces Flake8, Black, isort) |
+| **mypy** | Static type checker |
+
+### Commands
+
+**Via root npm:**
+```bash
+npm run fpp-analytics:format:check   # Check formatting
+npm run fpp-analytics:format         # Auto-fix formatting
+npm run fpp-analytics:lint           # Check linting
+npm run fpp-analytics:lint:fix       # Auto-fix linting
+npm run fpp-analytics:type-check     # Type checking
+npm run fpp-analytics:validate       # All checks combined
+```
+
+**Direct uv:**
+```bash
+cd fpp-analytics
+uv run ruff format .        # Auto-fix formatting
+uv run ruff format --check . # Check formatting
+uv run ruff check .         # Check linting
+uv run ruff check --fix .   # Auto-fix linting
+uv run mypy .               # Type checking
+```
+
+### Ruff Configuration
+
+- **Python 3.12**
+- **Line length**: 88 (Black compatible)
+- **Rules**: E, W, F, I, B, C4, UP, ARG, SIM
+- **Ignores**: E501 (line length), B008 (FastAPI Depends)
+
+### mypy Configuration
+
+Strict mode (equivalent to TypeScript `strict: true`):
+- All functions must have type hints
+- No `Any` types without justification
+- Pragmatic ignores for Polars/httpx (incomplete stubs)
+
+### Type Hint Requirements
+
+```python
+# ✅ Good
+def calc_metric(df: pl.DataFrame) -> dict:
+    return {"value": 42}
+
+# ❌ Bad (mypy error)
+def calc_metric(df):
+    return {"value": 42}
+```
+
+### CI Validation
+
+3 parallel GitHub Actions jobs on every PR:
+1. Formatting (Ruff)
+2. Linting (Ruff)
+3. Type checking (mypy)
+
 ---
 
 ## Directory Structure

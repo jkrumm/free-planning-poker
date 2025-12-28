@@ -1,5 +1,8 @@
-from fastapi import APIRouter
 from pathlib import Path
+from typing import Any
+
+from fastapi import APIRouter
+
 from config import DATA_DIR
 
 router = APIRouter()
@@ -15,21 +18,16 @@ REQUIRED_FILES = [
 
 
 @router.get("/health")
-async def health_check():
+async def health_check() -> dict[str, Any]:
     """Health check endpoint - verifies Parquet files exist."""
     data_dir = Path(DATA_DIR)
 
-    parquet_status = {
-        f: (data_dir / f).exists()
-        for f in REQUIRED_FILES
-    }
+    parquet_status = {f: (data_dir / f).exists() for f in REQUIRED_FILES}
 
     all_present = all(parquet_status.values())
 
     total_size = sum(
-        (data_dir / f).stat().st_size
-        for f in REQUIRED_FILES
-        if (data_dir / f).exists()
+        (data_dir / f).stat().st_size for f in REQUIRED_FILES if (data_dir / f).exists()
     )
 
     return {
@@ -42,6 +40,6 @@ async def health_check():
             "storage": {
                 "status": "ok",
                 "data_size_mb": round(total_size / (1024 * 1024), 2),
-            }
-        }
+            },
+        },
     }

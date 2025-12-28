@@ -1,13 +1,15 @@
 import logging
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, HTTPException, Header, Request
-from starlette.middleware.base import BaseHTTPMiddleware
 import sentry_sdk
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
-from routers import analytics, room, health
-from config import SENTRY_DSN, SENTRY_ENVIRONMENT, ANALYTICS_SECRET_TOKEN
+from config import ANALYTICS_SECRET_TOKEN, SENTRY_DSN, SENTRY_ENVIRONMENT
+from routers import analytics, health, room
 
 # Configure logging
 logging.basicConfig(
@@ -21,7 +23,9 @@ logger = logging.getLogger("fpp-analytics")
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Custom request logging with duration, path params, and cache status."""
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         start_time = time.perf_counter()
         response = await call_next(request)
         duration_ms = (time.perf_counter() - start_time) * 1000
@@ -50,7 +54,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def verify_auth(authorization: str = Header(None)):
+def verify_auth(authorization: str = Header(None)) -> bool:
     """Verify Bearer token authentication."""
     if not ANALYTICS_SECRET_TOKEN:
         raise HTTPException(status_code=500, detail="Auth not configured")
@@ -60,7 +64,7 @@ def verify_auth(authorization: str = Header(None)):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     # Startup: Initialize Sentry
     if SENTRY_DSN:
         sentry_sdk.init(
@@ -69,7 +73,7 @@ async def lifespan(app: FastAPI):
             traces_sample_rate=0.1,
             profiles_sample_rate=0.1,
             # Filter out health check transactions
-            before_send_transaction=lambda event, hint: (
+            before_send_transaction=lambda event, _hint: (
                 None if event.get("transaction") == "/health" else event
             ),
         )
@@ -90,15 +94,8 @@ app.add_middleware(RequestLoggingMiddleware)
 app.include_router(health.router)
 
 # Authenticated analytics routes
-app.include_router(
-    analytics.router,
-    dependencies=[Depends(verify_auth)]
-)
-app.include_router(
-    room.router,
-    prefix="/room",
-    dependencies=[Depends(verify_auth)]
-)
+app.include_router(analytics.router, dependencies=[Depends(verify_auth)])
+app.include_router(room.router, prefix="/room", dependencies=[Depends(verify_auth)])
 
 
 if __name__ == "__main__":

@@ -1,41 +1,33 @@
 """Location and user agent analytics using Polars."""
-import polars as pl
+
 from pathlib import Path
+from typing import Any
+
+import polars as pl
+
 from config import DATA_DIR
 
 TOP_N = 40
 
 
-def calc_location_and_user_agent() -> dict:
+def calc_location_and_user_agent() -> dict[str, Any]:
     """Calculate location and user agent breakdown."""
     data_dir = Path(DATA_DIR)
 
     # Load user data
     df_users = pl.read_parquet(
         data_dir / "fpp_users.parquet",
-        columns=["device", "os", "browser", "country", "region", "city"]
+        columns=["device", "os", "browser", "country", "region", "city"],
     )
 
     # Device breakdown
-    device = dict(
-        df_users.group_by("device")
-        .len()
-        .iter_rows()
-    )
+    device = dict(df_users.group_by("device").len().iter_rows())
 
     # OS breakdown
-    operating_system = dict(
-        df_users.group_by("os")
-        .len()
-        .iter_rows()
-    )
+    operating_system = dict(df_users.group_by("os").len().iter_rows())
 
     # Browser breakdown
-    browser = dict(
-        df_users.group_by("browser")
-        .len()
-        .iter_rows()
-    )
+    browser = dict(df_users.group_by("browser").len().iter_rows())
 
     # Country breakdown (top N by count)
     country = dict(
@@ -72,5 +64,5 @@ def calc_location_and_user_agent() -> dict:
         "browser": browser,
         "country": country,
         "country_region": country_region,
-        "country_city": country_city
+        "country_city": country_city,
     }

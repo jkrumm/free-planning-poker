@@ -1,25 +1,31 @@
 """Vote statistics calculation using Polars."""
-import polars as pl
+
 from pathlib import Path
+from typing import Any
+
+import polars as pl
+
 from config import DATA_DIR
 
 
-def calc_votes() -> dict:
+def calc_votes() -> dict[str, Any]:
     """Calculate vote statistics from Parquet file."""
     data_dir = Path(DATA_DIR)
     lf = pl.scan_parquet(data_dir / "fpp_votes.parquet")
 
     # Aggregate all metrics in a single query
-    metrics = lf.select([
-        pl.len().alias("total_votes"),
-        pl.col("amount_of_estimations").sum().alias("total_estimations"),
-        pl.col("amount_of_estimations").mean().alias("avg_estimations_per_vote"),
-        pl.col("amount_of_spectators").mean().alias("avg_spectators_per_vote"),
-        (pl.col("duration").mean() / 60).alias("avg_duration_per_vote"),
-        pl.col("avg_estimation").mean().alias("avg_estimation"),
-        pl.col("min_estimation").mean().alias("avg_min_estimation"),
-        pl.col("max_estimation").mean().alias("avg_max_estimation"),
-    ]).collect()
+    metrics = lf.select(
+        [
+            pl.len().alias("total_votes"),
+            pl.col("amount_of_estimations").sum().alias("total_estimations"),
+            pl.col("amount_of_estimations").mean().alias("avg_estimations_per_vote"),
+            pl.col("amount_of_spectators").mean().alias("avg_spectators_per_vote"),
+            (pl.col("duration").mean() / 60).alias("avg_duration_per_vote"),
+            pl.col("avg_estimation").mean().alias("avg_estimation"),
+            pl.col("min_estimation").mean().alias("avg_min_estimation"),
+            pl.col("max_estimation").mean().alias("avg_max_estimation"),
+        ]
+    ).collect()
 
     # Weekday distribution
     weekday_counts = (
@@ -30,7 +36,15 @@ def calc_votes() -> dict:
         .collect()
     )
 
-    weekday_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    weekday_names = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
     weekday_dict = {
         weekday_names[row["weekday"] - 1]: row["len"]
         for row in weekday_counts.iter_rows(named=True)
@@ -39,11 +53,7 @@ def calc_votes() -> dict:
     # Estimation value distribution
     lf_estimations = pl.scan_parquet(data_dir / "fpp_estimations.parquet")
     estimation_counts = (
-        lf_estimations
-        .group_by("estimation")
-        .len()
-        .sort("estimation")
-        .collect()
+        lf_estimations.group_by("estimation").len().sort("estimation").collect()
     )
 
     estimation_dict = {

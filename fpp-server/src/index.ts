@@ -139,7 +139,6 @@ app.ws('/ws', {
           estimation: null,
           isSpectator: false,
           isPresent: true,
-          // @ts-ignore
           ws,
         })
       );
@@ -195,13 +194,35 @@ app.ws('/ws', {
       }
 
       messageHandler.handleMessage(ws, data);
-    } catch (error) {
+    } catch (error: unknown) {
+      const actionData =
+        typeof data === 'object' && data !== null
+          ? (data as Record<string, unknown>)
+          : {};
+
+      // Safely convert to strings for Sentry tags
+      const actionStr =
+        typeof actionData.action === 'string' ||
+        typeof actionData.action === 'number'
+          ? String(actionData.action)
+          : 'unknown';
+      const roomIdStr =
+        typeof actionData.roomId === 'string' ||
+        typeof actionData.roomId === 'number'
+          ? String(actionData.roomId)
+          : 'unknown';
+      const userIdStr =
+        typeof actionData.userId === 'string' ||
+        typeof actionData.userId === 'number'
+          ? String(actionData.userId)
+          : 'unknown';
+
       Sentry.captureException(error, {
         tags: {
           wsId: ws.id,
-          action: (data as any)?.action,
-          roomId: String((data as any)?.roomId),
-          userId: (data as any)?.userId,
+          action: actionStr,
+          roomId: roomIdStr,
+          userId: userIdStr,
         },
         extra: {
           messageData: data,

@@ -4,14 +4,91 @@
 
 Based on NextJs, tRPC, Drizzle and Mantine UI components.
 
-Mostly using Websocket communication utilizing Ably as Websocket service 
-and self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
+Uses a three-service architecture: Next.js app (port 3001), Bun WebSocket server (port 3003) for real-time features, and FastAPI analytics (port 5100). Self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
 
 All "personal" data is stored only in the visitors local storage.
 
 ## See in action
 
 ![demo](https://raw.githubusercontent.com/jkrumm/planning-poker/master/public/recording.gif)
+
+## Quick Start
+
+Free Planning Poker runs on three services. Start all at once with `npm run dev:all` or individually:
+
+| Service | Runtime | Port | Command | Config |
+|---------|---------|------|---------|--------|
+| **Next.js App** | Node 22 | 3001 | `doppler run -- npm run dev` | Doppler |
+| **WebSocket Server** | Bun | 3003 | `cd fpp-server && bun dev` | .env file |
+| **Analytics API** | Python 3.12 (uv) | 5100 | `cd fpp-analytics && uv run uvicorn main:app --reload --port 5100` | .env file |
+
+📖 **For detailed architecture**, see `ARCHITECTURE.md` and `fpp-server/CLAUDE.md`, `fpp-analytics/CLAUDE.md`
+
+**Note:** Run `cd fpp-analytics && uv run python update_readmodel.py` once before first start to generate Parquet files.
+
+---
+
+## Validation
+
+The project uses comprehensive validation across all three services.
+
+### Local Development
+
+```bash
+# Validate all services in parallel (fastest)
+npm run validate
+
+# Validate individual services
+npm run validate:nextjs       # Next.js: format, lint, type-check, build
+npm run validate:fpp-server   # fpp-server: format, lint, type-check, build
+npm run validate:fpp-analytics # fpp-analytics: format, lint, type-check
+```
+
+### Service-Specific Commands
+
+**Next.js:**
+```bash
+npm run format        # Auto-fix formatting
+npm run lint:fix      # Auto-fix linting
+npm run type-check    # TypeScript check
+npm run build         # Next.js build
+npm run pre           # All checks combined
+```
+
+**fpp-server:**
+```bash
+cd fpp-server
+bun run format        # Auto-fix formatting
+bun run lint:fix      # Auto-fix linting
+bun run type-check    # TypeScript check
+bun run build         # Bun build
+bun run validate      # All checks combined
+```
+
+**fpp-analytics:**
+```bash
+npm run fpp-analytics:format       # Auto-fix formatting
+npm run fpp-analytics:lint:fix     # Auto-fix linting
+npm run fpp-analytics:type-check   # mypy check
+npm run fpp-analytics:validate     # All checks combined
+
+# Or directly:
+cd fpp-analytics
+uv run ruff format .       # Auto-fix formatting
+uv run ruff check --fix .  # Auto-fix linting
+uv run mypy .              # Type checking
+```
+
+### CI Validation
+
+GitHub Actions validates all services in parallel on every PR:
+- **Next.js**: 4 jobs (formatting, linting, type-checking, build)
+- **fpp-server**: 4 jobs (formatting, linting, type-checking, build)
+- **fpp-analytics**: 3 jobs (formatting, linting, type-checking)
+
+**Total: 11 parallel jobs**
+
+---
 
 ### Run locally
 
@@ -46,12 +123,18 @@ The project uses Drizzle Kit for database migrations. Available commands:
 
 ### Run fpp-server locally
 1. [Install Bun](https://bun.sh/docs/installation) if not already installed
-2. Create a .env file in 'fpp-server' and paste the FPP_SERVER_SECRET into it from running `doppler secrets get FPP_SERVER_SECRET --plain` 
-3. Run `bun run dev` in the `fpp-server` directory
+2. Create `.env` file in `fpp-server/` directory (see `fpp-server/.env.example`):
+   ```bash
+   TRPC_URL=http://localhost:3001/api/trpc
+   FPP_SERVER_SECRET=dev-secret  # Or from Doppler: doppler secrets get FPP_SERVER_SECRET --plain
+   SENTRY_DSN=  # Optional
+   NODE_ENV=development
+   ```
+3. Run `cd fpp-server && bun dev`
 
 ### Run fpp-analytics locally
-1. Install mysql `brew install mysql`
-2. Activate venv `source .venv/bin/activate`
-3. Install requirements `python3 -m pip install -r requirements.txt`
-5. Copy the .env.example to .env and add the FPP_DB_PW secret
-6. Run the app: `flask run --debug -p 5100`
+1. Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+2. Install dependencies: `cd fpp-analytics && uv sync`
+3. Copy `.env.example` to `.env` and populate variables (see `fpp-analytics/.env.example`)
+4. Generate Parquet files (first time only): `uv run python update_readmodel.py`
+5. Run the API: `uv run uvicorn main:app --reload --port 5100`

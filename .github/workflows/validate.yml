@@ -3,58 +3,72 @@ name: Validate
 on: [pull_request]
 
 jobs:
-  typechecking:
-    name: Typechecking
+  # Next.js Validation (4 jobs)
+  validate-nextjs-typecheck:
+    name: Next.js - Type Checking
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - uses: actions/cache@v4
         id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: Install npm
+      - uses: actions/cache@v4
+        id: bun-cache
+        with:
+          path: 'fpp-server/node_modules'
+          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lockb') }}
+      - name: Install Next.js dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci --quiet
-      - name: Run typechecking
+      - name: Install fpp-server dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true'
+        run: cd fpp-server && bun install
+      - name: Run type checking
         run: npm run type-check
+        env:
+          SKIP_ENV_VALIDATION: '1'
 
-  formatting:
-    name: Formatting
+  validate-nextjs-formatting:
+    name: Next.js - Formatting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - uses: actions/cache@v4
         id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: Install npm
+      - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci --quiet
-      - name: Run formatting
+      - name: Run formatting check
         run: npm run format:check
 
-  linting:
-    name: Linting
+  validate-nextjs-linting:
+    name: Next.js - Linting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - uses: actions/cache@v4
         id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: Install npm
+      - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci --quiet
       - name: Run linting
@@ -62,23 +76,152 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: '1'
 
-  build:
-    name: Build
+  validate-nextjs-build:
+    name: Next.js - Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - uses: actions/cache@v4
         id: npm-cache
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: Install npm
+      - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci --quiet
       - name: Build
         run: npm run build
         env:
           SKIP_ENV_VALIDATION: '1'
+
+  # fpp-server Validation (4 jobs)
+  validate-fpp-server-formatting:
+    name: fpp-server - Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/cache@v4
+        id: bun-cache
+        with:
+          path: 'fpp-server/node_modules'
+          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lockb') }}
+      - name: Install dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true'
+        run: cd fpp-server && bun install
+      - name: Run formatting check
+        run: cd fpp-server && bun run format:check
+
+  validate-fpp-server-linting:
+    name: fpp-server - Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/cache@v4
+        id: bun-cache
+        with:
+          path: 'fpp-server/node_modules'
+          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lockb') }}
+      - name: Install dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true'
+        run: cd fpp-server && bun install
+      - name: Run linting
+        run: cd fpp-server && bun run lint
+
+  validate-fpp-server-typecheck:
+    name: fpp-server - Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/cache@v4
+        id: bun-cache
+        with:
+          path: 'fpp-server/node_modules'
+          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lockb') }}
+      - name: Install dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true'
+        run: cd fpp-server && bun install
+      - name: Run type checking
+        run: cd fpp-server && bun run type-check
+
+  validate-fpp-server-build:
+    name: fpp-server - Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/cache@v4
+        id: bun-cache
+        with:
+          path: 'fpp-server/node_modules'
+          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lockb') }}
+      - name: Install dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true'
+        run: cd fpp-server && bun install
+      - name: Build
+        run: cd fpp-server && bun run build
+
+  # fpp-analytics Validation (3 jobs)
+  validate-fpp-analytics-formatting:
+    name: fpp-analytics - Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'fpp-analytics/uv.lock'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: cd fpp-analytics && uv sync --extra dev
+      - name: Run formatting check
+        run: cd fpp-analytics && uv run ruff format --check .
+
+  validate-fpp-analytics-linting:
+    name: fpp-analytics - Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'fpp-analytics/uv.lock'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: cd fpp-analytics && uv sync --extra dev
+      - name: Run linting
+        run: cd fpp-analytics && uv run ruff check .
+
+  validate-fpp-analytics-typecheck:
+    name: fpp-analytics - Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'fpp-analytics/uv.lock'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: cd fpp-analytics && uv sync --extra dev
+      - name: Run type checking
+        run: cd fpp-analytics && uv run mypy .

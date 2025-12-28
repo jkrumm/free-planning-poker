@@ -1,11 +1,15 @@
 """Daily analytics for email reports using Polars."""
-import polars as pl
-from pathlib import Path
+
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any
+
+import polars as pl
+
 from config import DATA_DIR
 
 
-def calc_daily_analytics() -> dict:
+def calc_daily_analytics() -> dict[str, Any]:
     """Calculate last 24 hours analytics for daily email."""
     data_dir = Path(DATA_DIR)
     yesterday = datetime.now() - timedelta(days=1)
@@ -38,5 +42,5 @@ def calc_daily_analytics() -> dict:
         "estimations": estimations,
         "rooms": rooms,
         "unique_users": unique_users,
-        "page_views": page_views
+        "page_views": page_views,
     }

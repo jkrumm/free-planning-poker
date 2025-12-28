@@ -1,3 +1,3 @@
-from routers import analytics, room, health
+from routers import analytics, health, room
 
 __all__ = ["analytics", "room", "health"]

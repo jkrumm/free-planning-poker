@@ -1,31 +1,35 @@
 """Reoccurring users and rooms time series using Polars."""
-import polars as pl
+
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from datetime import datetime, timedelta
+from typing import Any
+
+import polars as pl
+
 from config import DATA_DIR, START_DATE
 
 
-def calc_reoccurring() -> list[dict]:
+def calc_reoccurring() -> list[dict[str, Any]]:
     """Calculate reoccurring users and rooms time series."""
     data_dir = Path(DATA_DIR)
 
     # Load estimation data
     df_estimations = pl.read_parquet(
         data_dir / "fpp_estimations.parquet",
-        columns=["user_id", "room_id", "estimated_at"]
+        columns=["user_id", "room_id", "estimated_at"],
     )
 
     # Create date range from START_DATE to today
     start_date = datetime.strptime(START_DATE, "%Y-%m-%d").date()
     end_date = datetime.now().date()
 
-    reoccurring = []
-    users: set = set()
-    rooms: set = set()
-    accounted_users: set = set()
-    accounted_rooms: set = set()
-    last_active_user: dict = {}
-    last_active_room: dict = {}
+    reoccurring: list[dict[str, str | int]] = []
+    users: set[str] = set()
+    rooms: set[int] = set()
+    accounted_users: set[str] = set()
+    accounted_rooms: set[int] = set()
+    last_active_user: dict[str, date] = {}
+    last_active_room: dict[int, date] = {}
 
     current_date = start_date
     while current_date <= end_date:
@@ -64,21 +68,25 @@ def calc_reoccurring() -> list[dict]:
 
         # Calculate adjusted (active within last 30 days)
         adjusted_reoccurring_users = sum(
-            1 for user in accounted_users
+            1
+            for user in accounted_users
             if (current_date - last_active_user[user]).days <= 30
         )
         adjusted_reoccurring_rooms = sum(
-            1 for room in accounted_rooms
+            1
+            for room in accounted_rooms
             if (current_date - last_active_room[room]).days <= 30
         )
 
-        reoccurring.append({
-            "date": current_date.isoformat(),
-            "reoccurring_users": reoccurring_users,
-            "reoccurring_rooms": reoccurring_rooms,
-            "adjusted_reoccurring_users": adjusted_reoccurring_users,
-            "adjusted_reoccurring_rooms": adjusted_reoccurring_rooms,
-        })
+        reoccurring.append(
+            {
+                "date": current_date.isoformat(),
+                "reoccurring_users": reoccurring_users,
+                "reoccurring_rooms": reoccurring_rooms,
+                "adjusted_reoccurring_users": adjusted_reoccurring_users,
+                "adjusted_reoccurring_rooms": adjusted_reoccurring_rooms,
+            }
+        )
 
         current_date += timedelta(days=1)
 

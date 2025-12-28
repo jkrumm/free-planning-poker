@@ -1,10 +1,14 @@
 """Per-room statistics calculation using Polars."""
-import polars as pl
+
 from pathlib import Path
+from typing import Any
+
+import polars as pl
+
 from config import DATA_DIR
 
 
-def calc_room_stats(room_id: int) -> dict:
+def calc_room_stats(room_id: int) -> dict[str, Any]:
     """Calculate statistics for a specific room."""
     data_dir = Path(DATA_DIR)
 
@@ -27,18 +31,20 @@ def calc_room_stats(room_id: int) -> dict:
             "avg_avg_estimation": 0,
             "avg_max_estimation": 0,
             "spectators": 0,
-            "spectators_per_vote": 0
+            "spectators_per_vote": 0,
         }
 
     # Aggregate metrics
-    metrics = votes.select([
-        pl.col("duration").mean().alias("avg_duration"),
-        pl.col("amount_of_estimations").sum().alias("total_estimations"),
-        pl.col("min_estimation").mean().alias("avg_min"),
-        pl.col("avg_estimation").mean().alias("avg_avg"),
-        pl.col("max_estimation").mean().alias("avg_max"),
-        pl.col("amount_of_spectators").sum().alias("total_spectators"),
-    ]).row(0, named=True)
+    metrics = votes.select(
+        [
+            pl.col("duration").mean().alias("avg_duration"),
+            pl.col("amount_of_estimations").sum().alias("total_estimations"),
+            pl.col("min_estimation").mean().alias("avg_min"),
+            pl.col("avg_estimation").mean().alias("avg_avg"),
+            pl.col("max_estimation").mean().alias("avg_max"),
+            pl.col("amount_of_spectators").sum().alias("total_spectators"),
+        ]
+    ).row(0, named=True)
 
     duration = round(metrics["avg_duration"] or 0, 0)
     estimations = int(metrics["total_estimations"] or 0)
@@ -58,5 +64,5 @@ def calc_room_stats(room_id: int) -> dict:
         "avg_avg_estimation": avg_avg_estimation,
         "avg_max_estimation": avg_max_estimation,
         "spectators": spectators,
-        "spectators_per_vote": spectators_per_vote
+        "spectators_per_vote": spectators_per_vote,
     }
