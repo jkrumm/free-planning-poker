@@ -81,7 +81,12 @@ export const roadmapRouter = createTRPCRouter({
             Authorization: `Bearer ${env.TODOIST_SECRET}`,
           },
         },
-      ).then((res) => res.json())) as { items: Task[] }
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error(`Todoist API error: ${res.status} ${res.statusText}`);
+        }
+        return res.json();
+      })) as { items: Task[] }
     ).items;
 
     // Load all completed tasks
@@ -94,7 +99,12 @@ export const roadmapRouter = createTRPCRouter({
             Authorization: `Bearer ${env.TODOIST_SECRET}`,
           },
         },
-      ).then((res) => res.json())) as { items: Task[] }
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error(`Todoist API error: ${res.status} ${res.statusText}`);
+        }
+        return res.json();
+      })) as { items: Task[] }
     ).items;
 
     // Completed tasks don't have a parent_id, so we need to fetch the parent_id of each completed task
@@ -108,7 +118,14 @@ export const roadmapRouter = createTRPCRouter({
               Authorization: `Bearer ${env.TODOIST_SECRET}`,
             },
           },
-        ).then((res) => res.json())) as {
+        ).then((res) => {
+          if (!res.ok) {
+            throw new Error(
+              `Todoist API error: ${res.status} ${res.statusText}`,
+            );
+          }
+          return res.json();
+        })) as {
           ancestors: {
             id: string;
           }[];

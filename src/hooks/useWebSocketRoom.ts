@@ -232,7 +232,7 @@ export const useWebSocketRoom = ({
             action: 'onReconnectStop',
             extra: { attempts: numAttempts },
           },
-          'critical',
+          'low',
         );
       },
     },
