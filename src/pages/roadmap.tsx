@@ -18,7 +18,6 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
-import * as Sentry from '@sentry/nextjs';
 import {
   IconArrowBadgeDownFilled,
   IconSquare,
@@ -59,8 +58,17 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
     };
   } catch (error) {
     // Log the error but still return props to prevent build failure
-    Sentry.captureException(error);
-    console.error('Failed to prefetch roadmap data:', error);
+    captureError(
+      error instanceof Error
+        ? error
+        : new Error('Failed to prefetch roadmap data'),
+      {
+        component: 'Roadmap',
+        action: 'getStaticProps',
+      },
+      'high',
+    );
+    // captureError already logs to console in development mode
 
     return {
       props: { trpcState: {} },

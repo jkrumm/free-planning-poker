@@ -4,7 +4,7 @@ import { Button, Group, Text, TextInput, Textarea } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 
-import * as Sentry from '@sentry/nextjs';
+import { captureFeedback } from '@sentry/nextjs';
 
 import {
   addBreadcrumb,
@@ -95,7 +95,7 @@ const SidebarFeedback = () => {
       });
 
       // Capture feedback with Sentry
-      Sentry.captureFeedback(
+      captureFeedback(
         {
           name: username ?? 'Anonymous',
           email: form.values.email ?? undefined,
