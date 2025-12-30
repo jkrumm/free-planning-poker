@@ -104,6 +104,8 @@ class HistoricalChartOptions {
   }
 
   toOptions(): AgChartOptions {
+    // Type assertion needed due to AG Charts v13 type inference issue with dictionary axes
+    // The runtime types are correct as per the migration guide
     return {
       theme: 'ag-polychroma-dark',
       background: {
@@ -130,14 +132,17 @@ class HistoricalChartOptions {
           fill: '#40C057',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Estimations Daily', '#40C057'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
           type: 'line',
           xKey: 'date',
           yKey: 'acc_estimations',
+          yAxis: 'yRight',
           yName: 'Estimations Acc',
           visible: this.showEstimations && this.showAcc,
           strokeWidth: 2,
@@ -149,8 +154,10 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Estimations Acc', '#40C057'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -169,7 +176,9 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Estimations MA', '#40C057'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) =>
+              renderer(params, 'Estimations MA', '#40C057'),
           },
         },
         {
@@ -182,13 +191,16 @@ class HistoricalChartOptions {
           fill: '#1971C2',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            renderer: (params) => renderer(params, 'Votes Daily', '#1971C2'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) =>
+              renderer(params, 'Votes Daily', '#1971C2'),
           },
         },
         {
           type: 'line',
           xKey: 'date',
           yKey: 'acc_votes',
+          yAxis: 'yRight',
           yName: 'Votes Acc',
           visible: this.showVotes && this.showAcc,
           strokeWidth: 2,
@@ -200,7 +212,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Votes Acc', '#1971C2'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) => renderer(params, 'Votes Acc', '#1971C2'),
           },
         },
         {
@@ -219,7 +232,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Votes MA', '#1971C2'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) => renderer(params, 'Votes MA', '#1971C2'),
           },
         },
         {
@@ -232,13 +246,16 @@ class HistoricalChartOptions {
           fill: '#8931B2',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            renderer: (params) => renderer(params, 'Rooms Daily', '#8931B2'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) =>
+              renderer(params, 'Rooms Daily', '#8931B2'),
           },
         },
         {
           type: 'line',
           xKey: 'date',
           yKey: 'acc_rooms',
+          yAxis: 'yRight',
           yName: 'Rooms Acc',
           visible: this.showRooms && this.showAcc,
           strokeWidth: 2,
@@ -250,7 +267,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Rooms Acc', '#8931B2'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) => renderer(params, 'Rooms Acc', '#8931B2'),
           },
         },
         {
@@ -269,7 +287,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Rooms MA', '#8931B2'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) => renderer(params, 'Rooms MA', '#8931B2'),
           },
         },
         {
@@ -282,14 +301,17 @@ class HistoricalChartOptions {
           fill: '#FA5252',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Pages Views Daily', '#FA5252'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
           type: 'line',
           xKey: 'date',
           yKey: 'acc_page_views',
+          yAxis: 'yRight',
           yName: 'Page Views Acc',
           visible: this.showPageViews && this.showAcc,
           strokeWidth: 2,
@@ -301,7 +323,9 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Page Views Acc', '#FA5252'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) =>
+              renderer(params, 'Page Views Acc', '#FA5252'),
           },
         },
         {
@@ -320,7 +344,9 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) => renderer(params, 'Page Views MA', '#FA5252'),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            renderer: (params: any) =>
+              renderer(params, 'Page Views MA', '#FA5252'),
           },
         },
         {
@@ -333,14 +359,17 @@ class HistoricalChartOptions {
           fill: '#FAB005',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Unique Users Daily', '#FAB005'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
           type: 'line',
           xKey: 'date',
           yKey: 'acc_new_users',
+          yAxis: 'yRight',
           yName: 'Unique Users Acc',
           visible: this.showNewUsers && this.showAcc,
           strokeWidth: 2,
@@ -352,8 +381,10 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Unique Users Acc', '#FAB005'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -372,31 +403,21 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Unique Users MA', '#FAB005'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
       ],
-      axes: [
-        {
+      axes: {
+        x: {
           type: 'time',
           position: 'bottom',
         },
-        {
+        y: {
           type: 'number',
           position: 'left',
-          keys: [
-            'estimations',
-            'votes',
-            'page_views',
-            'new_users',
-            'rooms',
-            'ma_estimations',
-            'ma_rooms',
-            'ma_votes',
-            'ma_page_views',
-            'ma_new_users',
-          ],
           title: {
             text: this.leftLegendName,
           },
@@ -406,16 +427,9 @@ class HistoricalChartOptions {
           //   },
           // },
         },
-        {
+        yRight: {
           type: 'number',
           position: 'right',
-          keys: [
-            'acc_estimations',
-            'acc_rooms',
-            'acc_votes',
-            'acc_page_views',
-            'acc_new_users',
-          ],
           title: {
             enabled: true,
             text: 'Accumulated amount',
@@ -426,8 +440,9 @@ class HistoricalChartOptions {
           //   },
           // },
         },
-      ],
-    };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- AG Charts v13 type inference bug requires type assertion
+    } as any as AgChartOptions;
   }
 }
 

@@ -9,6 +9,7 @@ import { renderer } from 'fpp/components/analytics/historical-chart-options';
 
 class ReoccurringChartOptions {
   toOptions(): AgChartOptions {
+    // Type assertion needed due to AG Charts v13 type inference issue with dictionary axes
     return {
       theme: 'ag-polychroma-dark',
       background: {
@@ -29,6 +30,7 @@ class ReoccurringChartOptions {
           type: 'line',
           xKey: 'date',
           yKey: 'users',
+          yAxis: 'y',
           yName: 'Reoccurring Users',
           strokeWidth: 2,
           stroke: '#1971C2',
@@ -39,14 +41,17 @@ class ReoccurringChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Reoccurring Users', '#1971C2'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
           type: 'line',
           xKey: 'date',
           yKey: 'rooms',
+          yAxis: 'yRight',
           yName: 'Reoccurring Rooms',
           strokeWidth: 2,
           stroke: '#40C057',
@@ -57,34 +62,35 @@ class ReoccurringChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            renderer: (params) =>
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+            renderer: (params: any) =>
               renderer(params, 'Reoccurring Rooms', '#40C057'),
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
       ],
-      axes: [
-        {
+      axes: {
+        x: {
           type: 'time',
           position: 'bottom',
         },
-        {
+        y: {
           type: 'number',
           position: 'left',
-          keys: ['users'],
           title: {
             text: 'Reoccurring Users',
           },
         },
-        {
+        yRight: {
           type: 'number',
           position: 'right',
-          keys: ['rooms'],
           title: {
             text: 'Reoccurring Rooms',
           },
         },
-      ],
-    };
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- AG Charts v13 type inference bug requires type assertion
+    } as any as AgChartOptions;
   }
 }
 
