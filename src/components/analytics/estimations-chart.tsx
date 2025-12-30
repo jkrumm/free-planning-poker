@@ -41,24 +41,22 @@ const EstimationChart = ({
               fill: '#C4C4C4',
             },
           ],
-          axes: [
-            {
+          axes: {
+            x: {
               type: 'category',
               position: 'bottom',
               title: {
                 text: xAxisName,
               },
-              keys: ['category'],
             },
-            {
+            y: {
               type: 'number',
               position: 'left',
               title: {
                 text: yXisName,
               },
-              keys: ['value'],
             },
-          ],
+          },
         }}
       />
     </div>

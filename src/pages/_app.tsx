@@ -12,6 +12,7 @@ import 'fpp/styles/global.css';
 import 'fpp/styles/index.css';
 import 'fpp/styles/room.css';
 
+import 'fpp/utils/ag-charts-init';
 import { api } from 'fpp/utils/api';
 
 import { useConfigLoader } from 'fpp/hooks/config-loader.hook';
