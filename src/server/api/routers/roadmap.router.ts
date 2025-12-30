@@ -1,5 +1,6 @@
 import { env } from 'fpp/env';
 
+import { toCustomTRPCError } from 'fpp/server/api/custom-error';
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 
 type Task = {
@@ -72,45 +73,87 @@ export const roadmapRouter = createTRPCRouter({
     done: Todo[];
   }>(async () => {
     // Load all running tasks
-    const tasks = (
-      (await fetch(
-        `https://api.todoist.com/sync/v9/projects/get_data?project_id=2315663023`,
+    const tasksResponse = await fetch(
+      `https://api.todoist.com/sync/v9/projects/get_data?project_id=2315663023`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${env.TODOIST_SECRET}`,
+        },
+      },
+    ).catch((error) => {
+      throw toCustomTRPCError(error, 'Failed to fetch running tasks', {
+        component: 'roadmapRouter',
+        action: 'getRoadmap',
+        extra: {
+          endpoint: 'projects/get_data',
+        },
+      });
+    });
+
+    if (!tasksResponse.ok) {
+      throw toCustomTRPCError(
+        new Error(
+          `Todoist API error: ${tasksResponse.status} ${tasksResponse.statusText}`,
+        ),
+        'Todoist API returned error for running tasks',
         {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${env.TODOIST_SECRET}`,
+          component: 'roadmapRouter',
+          action: 'getRoadmap',
+          extra: {
+            endpoint: 'projects/get_data',
+            status: tasksResponse.status,
           },
         },
-      ).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Todoist API error: ${res.status} ${res.statusText}`);
-        }
-        return res.json();
-      })) as { items: Task[] }
-    ).items;
+      );
+    }
+
+    const tasks = ((await tasksResponse.json()) as { items: Task[] }).items;
 
     // Load all completed tasks
-    let completedTasks = (
-      (await fetch(
-        `https://api.todoist.com/sync/v9/completed/get_all?project_id=2315663023`,
+    const completedTasksResponse = await fetch(
+      `https://api.todoist.com/sync/v9/completed/get_all?project_id=2315663023`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${env.TODOIST_SECRET}`,
+        },
+      },
+    ).catch((error) => {
+      throw toCustomTRPCError(error, 'Failed to fetch completed tasks', {
+        component: 'roadmapRouter',
+        action: 'getRoadmap',
+        extra: {
+          endpoint: 'completed/get_all',
+        },
+      });
+    });
+
+    if (!completedTasksResponse.ok) {
+      throw toCustomTRPCError(
+        new Error(
+          `Todoist API error: ${completedTasksResponse.status} ${completedTasksResponse.statusText}`,
+        ),
+        'Todoist API returned error for completed tasks',
         {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${env.TODOIST_SECRET}`,
+          component: 'roadmapRouter',
+          action: 'getRoadmap',
+          extra: {
+            endpoint: 'completed/get_all',
+            status: completedTasksResponse.status,
           },
         },
-      ).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Todoist API error: ${res.status} ${res.statusText}`);
-        }
-        return res.json();
-      })) as { items: Task[] }
+      );
+    }
+
+    let completedTasks = (
+      (await completedTasksResponse.json()) as { items: Task[] }
     ).items;
 
     // Completed tasks don't have a parent_id, so we need to fetch the parent_id of each completed task
     completedTasks = await Promise.all(
       completedTasks.map(async (task) => {
-        const completedTaskDetail = (await fetch(
+        const completedTaskDetailResponse = await fetch(
           `https://api.todoist.com/sync/v9/items/get?item_id=${task.task_id}`,
           {
             method: 'GET',
@@ -118,21 +161,44 @@ export const roadmapRouter = createTRPCRouter({
               Authorization: `Bearer ${env.TODOIST_SECRET}`,
             },
           },
-        ).then((res) => {
-          if (!res.ok) {
-            throw new Error(
-              `Todoist API error: ${res.status} ${res.statusText}`,
-            );
-          }
-          return res.json();
-        })) as {
-          ancestors: {
-            id: string;
-          }[];
-          item: {
-            description: string;
+        ).catch((error) => {
+          throw toCustomTRPCError(error, 'Failed to fetch task details', {
+            component: 'roadmapRouter',
+            action: 'getRoadmap',
+            extra: {
+              endpoint: 'items/get',
+              taskId: task.task_id,
+            },
+          });
+        });
+
+        if (!completedTaskDetailResponse.ok) {
+          throw toCustomTRPCError(
+            new Error(
+              `Todoist API error: ${completedTaskDetailResponse.status} ${completedTaskDetailResponse.statusText}`,
+            ),
+            'Todoist API returned error for task details',
+            {
+              component: 'roadmapRouter',
+              action: 'getRoadmap',
+              extra: {
+                endpoint: 'items/get',
+                taskId: task.task_id,
+                status: completedTaskDetailResponse.status,
+              },
+            },
+          );
+        }
+
+        const completedTaskDetail =
+          (await completedTaskDetailResponse.json()) as {
+            ancestors: {
+              id: string;
+            }[];
+            item: {
+              description: string;
+            };
           };
-        };
 
         return {
           ...task,

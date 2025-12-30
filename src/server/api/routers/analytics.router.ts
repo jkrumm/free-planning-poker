@@ -1,10 +1,10 @@
 import { env } from 'fpp/env';
 
-import * as Sentry from '@sentry/nextjs';
 import countryRegionsRaw from 'country-region-data/data.json';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
+import { toCustomTRPCError } from 'fpp/server/api/custom-error';
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import { type EventType, type RouteType } from 'fpp/server/db/schema';
 
@@ -18,117 +18,137 @@ const countryRegions = countryRegionsRaw as CountryRegionData[];
 
 export const analyticsRouter = createTRPCRouter({
   getAnalytics: publicProcedure.query(async ({ ctx: _ctx }) => {
-    try {
-      const response = await fetch(env.ANALYTICS_URL, {
-        headers: {
-          Authorization: env.ANALYTICS_SECRET_TOKEN,
-        },
-        cache: 'no-store',
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Analytics API responded with status: ${response.status}`,
-        );
-      }
-
-      const analytics = (await response.json()) as AnalyticsResponse;
-
-      const countryCounts: Record<string, number> = {};
-      Object.entries(analytics.data.location_and_user_agent.country).forEach(
-        ([country, count]) => {
-          const countryName = `${country} - ${
-            countryRegions.find((c) => c.countryShortCode === country)
-              ?.countryName ?? country
-          }`;
-          countryCounts[countryName] = count;
-        },
-      );
-
-      const regionCounts: Record<string, number> = {};
-      analytics.data.location_and_user_agent.country_region.forEach((i) => {
-        const regionName = `${i.country} - ${
-          countryRegions
-            .find((c) => c.countryShortCode === i.country)
-            ?.regions.find((r) => r.shortCode === i.region)?.name ?? i.region
-        }`;
-        regionCounts[regionName] = i.count;
-      });
-
-      const cityCounts: Record<string, number> = {};
-      analytics.data.location_and_user_agent.country_city.forEach((i) => {
-        const cityName = `${i.country} - ${i.city}`;
-        cityCounts[cityName] = i.count;
-      });
-
-      const weekdayOrder: (keyof Record<string, number>)[] = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-      ];
-
-      const sortedWeekdayCounts: Record<string, number> = weekdayOrder.reduce(
-        (acc, day) => {
-          if (analytics.data.votes.weekday_counts[day] !== undefined) {
-            acc[day] = analytics.data.votes.weekday_counts[day]!;
-          }
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      return {
-        ...analytics.data,
-        location_and_user_agent: {
-          browser: analytics.data.location_and_user_agent.browser,
-          country: countryCounts,
-          city: cityCounts,
-          region: regionCounts,
-          device: analytics.data.location_and_user_agent.device,
-          os: analytics.data.location_and_user_agent.os,
-        },
-        votes: {
-          ...analytics.data.votes,
-          weekday_counts: sortedWeekdayCounts,
-        },
-        data_updated_at: analytics.data_updated_at,
-      };
-    } catch (e) {
-      console.error('Error fetching analytics', e);
-      Sentry.captureException(e, {
-        tags: {
+    const response = await fetch(env.ANALYTICS_URL, {
+      headers: {
+        Authorization: env.ANALYTICS_SECRET_TOKEN,
+      },
+      cache: 'no-store',
+    }).catch((error) => {
+      throw toCustomTRPCError(error, 'Failed to fetch analytics API', {
+        component: 'analyticsRouter',
+        action: 'getAnalytics',
+        extra: {
           endpoint: logEndpoint.GET_ANALYTICS,
+          analyticsUrl: env.ANALYTICS_URL,
         },
       });
-      throw e;
+    });
+
+    if (!response.ok) {
+      throw toCustomTRPCError(
+        new Error(`Analytics API responded with status: ${response.status}`),
+        'Analytics API returned error status',
+        {
+          component: 'analyticsRouter',
+          action: 'getAnalytics',
+          extra: {
+            endpoint: logEndpoint.GET_ANALYTICS,
+            analyticsUrl: env.ANALYTICS_URL,
+            status: response.status,
+          },
+        },
+      );
     }
+
+    const analytics = (await response.json()) as AnalyticsResponse;
+
+    const countryCounts: Record<string, number> = {};
+    Object.entries(analytics.data.location_and_user_agent.country).forEach(
+      ([country, count]) => {
+        const countryName = `${country} - ${
+          countryRegions.find((c) => c.countryShortCode === country)
+            ?.countryName ?? country
+        }`;
+        countryCounts[countryName] = count;
+      },
+    );
+
+    const regionCounts: Record<string, number> = {};
+    analytics.data.location_and_user_agent.country_region.forEach((i) => {
+      const regionName = `${i.country} - ${
+        countryRegions
+          .find((c) => c.countryShortCode === i.country)
+          ?.regions.find((r) => r.shortCode === i.region)?.name ?? i.region
+      }`;
+      regionCounts[regionName] = i.count;
+    });
+
+    const cityCounts: Record<string, number> = {};
+    analytics.data.location_and_user_agent.country_city.forEach((i) => {
+      const cityName = `${i.country} - ${i.city}`;
+      cityCounts[cityName] = i.count;
+    });
+
+    const weekdayOrder: (keyof Record<string, number>)[] = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    const sortedWeekdayCounts: Record<string, number> = weekdayOrder.reduce(
+      (acc, day) => {
+        if (analytics.data.votes.weekday_counts[day] !== undefined) {
+          acc[day] = analytics.data.votes.weekday_counts[day]!;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    return {
+      ...analytics.data,
+      location_and_user_agent: {
+        browser: analytics.data.location_and_user_agent.browser,
+        country: countryCounts,
+        city: cityCounts,
+        region: regionCounts,
+        device: analytics.data.location_and_user_agent.device,
+        os: analytics.data.location_and_user_agent.os,
+      },
+      votes: {
+        ...analytics.data.votes,
+        weekday_counts: sortedWeekdayCounts,
+      },
+      data_updated_at: analytics.data_updated_at,
+    };
   }),
   getServerAnalytics: publicProcedure.query(async () => {
-    try {
-      const response = await fetch('https://fpp-server.jkrumm.com/analytics', {
-        cache: 'no-store',
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Server analytics API responded with status: ${response.status}`,
-        );
-      }
-
-      return response.json() as Promise<ServerAnalytics>;
-    } catch (e) {
-      console.error('Error fetching server analytics', e);
-      Sentry.captureException(e, {
-        tags: {
+    const response = await fetch('https://fpp-server.jkrumm.com/analytics', {
+      cache: 'no-store',
+    }).catch((error) => {
+      throw toCustomTRPCError(error, 'Failed to fetch server analytics API', {
+        component: 'analyticsRouter',
+        action: 'getServerAnalytics',
+        extra: {
           endpoint: logEndpoint.GET_SERVER_ANALYTICS,
+          serverUrl: 'https://fpp-server.jkrumm.com/analytics',
         },
       });
-      throw e;
+    });
+
+    if (!response.ok) {
+      throw toCustomTRPCError(
+        new Error(
+          `Server analytics API responded with status: ${response.status}`,
+        ),
+        'Server analytics API returned error status',
+        {
+          component: 'analyticsRouter',
+          action: 'getServerAnalytics',
+          extra: {
+            endpoint: logEndpoint.GET_SERVER_ANALYTICS,
+            serverUrl: 'https://fpp-server.jkrumm.com/analytics',
+            status: response.status,
+          },
+        },
+      );
     }
+
+    return response.json() as Promise<ServerAnalytics>;
   }),
 });
 

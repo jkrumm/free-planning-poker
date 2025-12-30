@@ -2,7 +2,6 @@ import { env } from 'fpp/env';
 
 import { TRPCError } from '@trpc/server';
 
-import * as Sentry from '@sentry/nextjs';
 import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
 import { RoomBase, type RoomDto } from 'fpp-server/src/room.types';
@@ -16,6 +15,7 @@ import { generateRoomNumber } from 'fpp/utils/room-number.util';
 import { getICreateVoteFromRoomState } from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
+import { toCustomTRPCError } from 'fpp/server/api/custom-error';
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import {
   EventType,
@@ -60,9 +60,18 @@ export const roomRouter = createTRPCRouter({
     )
     .query(async ({ ctx: { db }, input: { roomId } }) => {
       // Validate room exists
-      const room = await db.query.rooms.findFirst({
-        where: eq(rooms.id, roomId),
-      });
+      const room = await db.query.rooms
+        .findFirst({
+          where: eq(rooms.id, roomId),
+        })
+        .catch((error) => {
+          throw toCustomTRPCError(error, 'Failed to query room', {
+            component: 'roomRouter',
+            action: 'getRoomStats',
+            extra: { roomId },
+          });
+        });
+
       if (!room) {
         throw new TRPCError({
           code: 'NOT_FOUND',
@@ -71,30 +80,44 @@ export const roomRouter = createTRPCRouter({
       }
 
       // Fetch room stats from analytics service
-      return (await fetch(`${env.ANALYTICS_URL}/room/${roomId}/stats`, {
-        headers: {
-          Authorization: env.ANALYTICS_SECRET_TOKEN,
+      const response = await fetch(
+        `${env.ANALYTICS_URL}/room/${roomId}/stats`,
+        {
+          headers: {
+            Authorization: env.ANALYTICS_SECRET_TOKEN,
+          },
         },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(
-              `Analytics API error: ${res.status} ${res.statusText}`,
-            );
-          }
-          return res.json();
-        })
-        .catch((e) => {
-          console.error('Error fetching room stats', e);
-          Sentry.captureException(e, {
+      ).catch((error) => {
+        throw toCustomTRPCError(error, 'Failed to fetch room stats', {
+          component: 'roomRouter',
+          action: 'getRoomStats',
+          extra: {
+            roomId,
+            endpoint: logEndpoint.GET_ANALYTICS,
+            analyticsUrl: `${env.ANALYTICS_URL}/room/${roomId}/stats`,
+          },
+        });
+      });
+
+      if (!response.ok) {
+        throw toCustomTRPCError(
+          new Error(
+            `Analytics API error: ${response.status} ${response.statusText}`,
+          ),
+          'Analytics API returned error status',
+          {
+            component: 'roomRouter',
+            action: 'getRoomStats',
             extra: {
               roomId,
-            },
-            tags: {
               endpoint: logEndpoint.GET_ANALYTICS,
+              status: response.status,
             },
-          });
-        })) as {
+          },
+        );
+      }
+
+      return response.json() as Promise<{
         votes: number;
         duration: number;
         estimations: number;
@@ -104,7 +127,7 @@ export const roomRouter = createTRPCRouter({
         avg_max_estimation: number;
         spectators: number;
         spectators_per_vote: number;
-      };
+      }>;
     }),
   joinRoom: publicProcedure
     .input(
@@ -129,23 +152,48 @@ export const roomRouter = createTRPCRouter({
         if (!validateNanoId(userId)) {
           userId = nanoid();
           const userPayload = await getUserPayload(req);
-          await db.insert(users).values({
-            id: userId,
-            ...userPayload,
-          });
+          await db
+            .insert(users)
+            .values({
+              id: userId,
+              ...userPayload,
+            })
+            .catch((error) => {
+              throw toCustomTRPCError(error, 'Failed to create user', {
+                component: 'roomRouter',
+                action: 'joinRoom',
+                extra: { userId, queryRoom },
+              });
+            });
         }
 
         if (isValidMediumint(queryRoom)) {
-          room = await db.query.rooms.findFirst({
-            where: or(
-              eq(rooms.name, queryRoom),
-              eq(rooms.number, Number(queryRoom)),
-            ),
-          });
+          room = await db.query.rooms
+            .findFirst({
+              where: or(
+                eq(rooms.name, queryRoom),
+                eq(rooms.number, Number(queryRoom)),
+              ),
+            })
+            .catch((error) => {
+              throw toCustomTRPCError(error, 'Failed to query room by number', {
+                component: 'roomRouter',
+                action: 'joinRoom',
+                extra: { queryRoom },
+              });
+            });
         } else {
-          room = await db.query.rooms.findFirst({
-            where: eq(rooms.name, queryRoom),
-          });
+          room = await db.query.rooms
+            .findFirst({
+              where: eq(rooms.name, queryRoom),
+            })
+            .catch((error) => {
+              throw toCustomTRPCError(error, 'Failed to query room by name', {
+                component: 'roomRouter',
+                action: 'joinRoom',
+                extra: { queryRoom },
+              });
+            });
         }
 
         if (room) {
@@ -153,16 +201,40 @@ export const roomRouter = createTRPCRouter({
             roomEvent === RoomEvent.ENTERED_ROOM_DIRECTLY
               ? EventType.ENTERED_EXISTING_ROOM
               : roomEvent;
-          await db.insert(events).values({
-            userId: userId!,
-            event,
-          });
+          await db
+            .insert(events)
+            .values({
+              userId: userId!,
+              event,
+            })
+            .catch((error) => {
+              throw toCustomTRPCError(
+                error,
+                'Failed to record room entry event',
+                {
+                  component: 'roomRouter',
+                  action: 'joinRoom',
+                  extra: { userId, roomId: room!.id, event },
+                },
+              );
+            });
           await db
             .update(rooms)
             .set({
               lastUsedAt: new Date(),
             })
-            .where(eq(rooms.id, room.id));
+            .where(eq(rooms.id, room.id))
+            .catch((error) => {
+              throw toCustomTRPCError(
+                error,
+                'Failed to update room timestamp',
+                {
+                  component: 'roomRouter',
+                  action: 'joinRoom',
+                  extra: { roomId: room!.id },
+                },
+              );
+            });
           return {
             userId: userId!,
             roomId: room.id,
@@ -212,17 +284,36 @@ export const roomRouter = createTRPCRouter({
         };
 
         if (!room) {
-          await recursiveInsert();
+          await recursiveInsert().catch((error) => {
+            throw toCustomTRPCError(error, 'Failed to create room', {
+              component: 'roomRouter',
+              action: 'joinRoom',
+              extra: { queryRoom, retryCount },
+            });
+          });
         }
 
         const event: keyof typeof EventType =
           roomEvent === RoomEvent.ENTERED_ROOM_DIRECTLY
             ? EventType.ENTERED_NEW_ROOM
             : roomEvent;
-        await db.insert(events).values({
-          userId: userId!,
-          event,
-        });
+        await db
+          .insert(events)
+          .values({
+            userId: userId!,
+            event,
+          })
+          .catch((error) => {
+            throw toCustomTRPCError(
+              error,
+              'Failed to record new room entry event',
+              {
+                component: 'roomRouter',
+                action: 'joinRoom',
+                extra: { userId, roomId: room!.id, event },
+              },
+            );
+          });
 
         return {
           userId: userId!,
@@ -254,9 +345,17 @@ export const roomRouter = createTRPCRouter({
         }
 
         // Validate room exists
-        const existingRoom = await db.query.rooms.findFirst({
-          where: eq(rooms.id, roomId),
-        });
+        const existingRoom = await db.query.rooms
+          .findFirst({
+            where: eq(rooms.id, roomId),
+          })
+          .catch((error) => {
+            throw toCustomTRPCError(error, 'Failed to query room', {
+              component: 'roomRouter',
+              action: 'updateRoomName',
+              extra: { userId, roomId },
+            });
+          });
 
         if (!existingRoom) {
           throw new TRPCError({
@@ -279,17 +378,41 @@ export const roomRouter = createTRPCRouter({
         let conflictingRoom: IRoom | undefined;
 
         if (isNumericName) {
-          conflictingRoom = await db.query.rooms.findFirst({
-            where: or(
-              eq(rooms.name, newRoomName),
-              eq(rooms.number, Number(newRoomName)),
-            ),
-          });
+          conflictingRoom = await db.query.rooms
+            .findFirst({
+              where: or(
+                eq(rooms.name, newRoomName),
+                eq(rooms.number, Number(newRoomName)),
+              ),
+            })
+            .catch((error) => {
+              throw toCustomTRPCError(
+                error,
+                'Failed to check for name conflicts',
+                {
+                  component: 'roomRouter',
+                  action: 'updateRoomName',
+                  extra: { userId, roomId, newRoomName },
+                },
+              );
+            });
         } else {
           // For non-numeric names, only check name field
-          conflictingRoom = await db.query.rooms.findFirst({
-            where: eq(rooms.name, newRoomName),
-          });
+          conflictingRoom = await db.query.rooms
+            .findFirst({
+              where: eq(rooms.name, newRoomName),
+            })
+            .catch((error) => {
+              throw toCustomTRPCError(
+                error,
+                'Failed to check for name conflicts',
+                {
+                  component: 'roomRouter',
+                  action: 'updateRoomName',
+                  extra: { userId, roomId, newRoomName },
+                },
+              );
+            });
         }
 
         if (conflictingRoom && conflictingRoom.id !== roomId) {
@@ -306,13 +429,33 @@ export const roomRouter = createTRPCRouter({
             name: newRoomName,
             lastUsedAt: new Date(),
           })
-          .where(eq(rooms.id, roomId));
+          .where(eq(rooms.id, roomId))
+          .catch((error) => {
+            throw toCustomTRPCError(error, 'Failed to update room name', {
+              component: 'roomRouter',
+              action: 'updateRoomName',
+              extra: { userId, roomId, newRoomName },
+            });
+          });
 
         // Track the room name change event
-        await db.insert(events).values({
-          userId,
-          event: EventType.CHANGED_ROOM_NAME,
-        });
+        await db
+          .insert(events)
+          .values({
+            userId,
+            event: EventType.CHANGED_ROOM_NAME,
+          })
+          .catch((error) => {
+            throw toCustomTRPCError(
+              error,
+              'Failed to record name change event',
+              {
+                component: 'roomRouter',
+                action: 'updateRoomName',
+                extra: { userId, roomId },
+              },
+            );
+          });
 
         return {
           roomId,
@@ -379,28 +522,26 @@ export const roomRouter = createTRPCRouter({
             .where(eq(rooms.id, roomId)),
         );
 
-        await Promise.allSettled(promises).then((results) => {
-          for (const result of results) {
-            if (
-              result.status === 'rejected' &&
-              result.reason instanceof TRPCError
-            ) {
-              console.error('Failed to fully set room state', {
+        const results = await Promise.allSettled(promises);
+        const failedResults = results.filter(
+          (r): r is PromiseRejectedResult => r.status === 'rejected',
+        );
+
+        if (failedResults.length > 0) {
+          throw toCustomTRPCError(
+            failedResults[0]!.reason,
+            'Failed to persist room state',
+            {
+              component: 'roomRouter',
+              action: 'trackFlip',
+              extra: {
                 roomId,
-                error: {
-                  message: result.reason.message,
-                  code: result.reason.code,
-                  stack: result.reason.stack,
-                },
-              });
-            }
-          }
-          for (const result of results) {
-            if (result.status === 'rejected') {
-              throw result.reason;
-            }
-          }
-        });
+                failedCount: failedResults.length,
+                totalCount: promises.length,
+              },
+            },
+          );
+        }
       },
     ),
 });

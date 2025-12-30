@@ -12,8 +12,9 @@
 import { type TRPCError } from '@trpc/server';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 
-import * as Sentry from '@sentry/nextjs';
+import { captureError } from 'fpp/utils/app-error';
 
+import { CustomTRPCError } from 'fpp/server/api/custom-error';
 import { appRouter } from 'fpp/server/api/root';
 import { createTRPCContext } from 'fpp/server/api/trpc';
 
@@ -32,6 +33,8 @@ export const config = {
  *
  * Business logic errors (BAD_REQUEST, NOT_FOUND, etc.) are expected and logged as warnings
  * System errors (INTERNAL_SERVER_ERROR, etc.) are unexpected and reported to Sentry
+ *
+ * CustomTRPCError carries metadata from routers for enhanced error tracking
  */
 const trpcErrorHandler = ({
   error,
@@ -44,57 +47,60 @@ const trpcErrorHandler = ({
   path: string | undefined;
   input: unknown;
 }) => {
-  const inputObj = input != null && typeof input === 'object' ? input : {};
+  // NOTE: Below is for now disabled to start with strict monitoring and later on allow isBusinessLogicError to not go to Sentry
+  // Business logic errors are expected - log but don't capture in Sentry
+  // NOTE: Starting with strict monitoring via console.warn to ensure correct error classification.
+  // These errors (NOT_FOUND, BAD_REQUEST, etc.) are NOT captured in Sentry (as intended).
+  // if (isBusinessLogicError(error)) {
+  //   console.warn('TRPC Business Logic Error', {
+  //     type,
+  //     path,
+  //     error: {
+  //       name: error.name,
+  //       message: error.message,
+  //       code: error.code,
+  //     },
+  //   });
+  //   // Skip Sentry capture for expected business logic errors
+  //   return;
+  // }
 
-  // Business logic errors are expected user-facing errors
-  const isBusinessLogicError = [
-    'BAD_REQUEST',
-    'UNAUTHORIZED',
-    'FORBIDDEN',
-    'NOT_FOUND',
-    'CONFLICT',
-    'PRECONDITION_FAILED',
-  ].includes(error.code);
+  console.error('TRPC System Error', {
+    type,
+    path,
+    error: {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    },
+  });
 
-  if (error.code === 'INTERNAL_SERVER_ERROR' || !isBusinessLogicError) {
-    // Log internal server errors and unexpected errors
-    console.error('TRPC INTERNAL ERROR', {
-      ...inputObj,
-      type,
-      path,
-      error: {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
-      },
-    });
-
-    // Report to Sentry for monitoring
-    Sentry.captureException(error, {
-      tags: {
-        endpoint: path,
-        type,
-        trpc_error_code: error.code,
-      },
-      extra: {
-        endpoint: path,
-        type,
-        ...inputObj,
-      },
-    });
+  // Check if error has custom metadata from router
+  if (error instanceof CustomTRPCError) {
+    // Use metadata provided by router (component, action, extra, severity)
+    captureError(error, error.metadata, error.metadata.severity ?? 'high');
   } else {
-    // Business logic errors are expected, just log as warnings
-    console.warn('TRPC Business Logic Error', {
-      type,
-      path,
-      error: {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
+    // Fallback for errors without metadata (uncaught system errors)
+    const inputObj = input != null && typeof input === 'object' ? input : {};
+
+    captureError(
+      error,
+      {
+        component: 'trpcMiddleware',
+        action: path ?? 'unknown',
+        extra: {
+          endpoint: path ?? 'unknown',
+          type,
+          trpc_error_code: error.code,
+          ...(Object.keys(inputObj).length > 0 &&
+          Object.keys(inputObj).length <= 5
+            ? inputObj
+            : { inputKeyCount: Object.keys(inputObj).length }),
+        },
       },
-    });
+      'high',
+    );
   }
 };
 

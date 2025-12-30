@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import { setUser } from '@sentry/nextjs';
 import { create } from 'zustand';
 
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
@@ -79,7 +79,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
       return null;
     }
     if (userId !== null) {
-      Sentry.setUser({ id: userId });
+      setUser({ id: userId });
     }
     return userId;
   })(),
@@ -174,7 +174,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     if (get().userId === userId || !validateNanoId(userId)) {
       return;
     }
-    Sentry.setUser({ id: userId });
+    setUser({ id: userId });
     saveToLocalstorage('userId', userId);
     set({ userId });
   },
