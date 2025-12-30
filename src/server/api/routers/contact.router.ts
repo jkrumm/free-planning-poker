@@ -5,7 +5,6 @@ import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { toCustomTRPCError } from 'fpp/server/api/custom-error';
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import { FeatureFlagType, featureFlags } from 'fpp/server/db/schema';
 
@@ -30,17 +29,7 @@ export const contactRouter = createTRPCRouter({
         .select()
         .from(featureFlags)
         .where(eq(featureFlags.name, FeatureFlagType.CONTACT_FORM))
-        .execute()
-        .catch((error) => {
-          throw toCustomTRPCError(error, 'Failed to query feature flag', {
-            component: 'contactRouter',
-            action: 'sendMail',
-            extra: {
-              featureFlag: FeatureFlagType.CONTACT_FORM,
-            },
-          });
-        });
-
+        .execute();
       if (!featureFlagEntry[0]?.enabled) {
         throw new TRPCError({
           message: 'CONTACT_FORM feature flag is not enabled',
@@ -56,34 +45,13 @@ export const contactRouter = createTRPCRouter({
         },
         body: JSON.stringify({ name, email, subject, message }),
         signal: AbortSignal.timeout(7000),
-      }).catch((error) => {
-        throw toCustomTRPCError(error, 'Failed to send contact email', {
-          component: 'contactRouter',
-          action: 'sendMail',
-          extra: {
-            email,
-            subject: subject.substring(0, 50),
-            beaBaseUrl: env.BEA_BASE_URL,
-          },
-        });
       });
 
       if (!response.ok) {
-        throw toCustomTRPCError(
-          new Error(
-            `Failed to send contact form: ${response.status} ${response.statusText}`,
-          ),
-          'Contact email API returned error status',
-          {
-            component: 'contactRouter',
-            action: 'sendMail',
-            extra: {
-              email,
-              subject: subject.substring(0, 50),
-              status: response.status,
-            },
-          },
-        );
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to send contact form: ${response.status} ${response.statusText}`,
+        });
       }
     }),
 });

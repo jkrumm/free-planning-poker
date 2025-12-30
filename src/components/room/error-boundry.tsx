@@ -2,7 +2,7 @@ import React, { Component, type ReactNode } from 'react';
 
 import { Button, Container, Text, Title } from '@mantine/core';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import * as Sentry from '@sentry/nextjs';
 
 interface Props {
   children: ReactNode;
@@ -13,6 +13,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorId?: string;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -26,30 +27,29 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Add breadcrumb for error boundary catch
-    addBreadcrumb(
-      `Error boundary caught error in ${this.props.componentName ?? 'Unknown Component'}`,
-      'error',
-      {
-        componentStack: errorInfo.componentStack?.substring(0, 100) ?? 'N/A',
-        errorMessage: error.message,
-      },
-    );
+    // Capture error with Sentry and get the event ID for user reference
+    const errorId = Sentry.withScope((scope) => {
+      scope.setTag('component', this.props.componentName ?? 'ErrorBoundary');
+      scope.setTag('errorBoundary', 'true');
+      scope.setLevel('error');
 
-    // Capture error with full context
-    captureError(
-      error,
-      {
-        component: this.props.componentName ?? 'ErrorBoundary',
-        action: 'componentDidCatch',
-        extra: {
-          errorBoundary: 'true',
-          componentStack: errorInfo.componentStack?.substring(0, 200) ?? 'N/A',
-          hasComponentStack: !!errorInfo.componentStack,
+      scope.setExtra('componentStack', errorInfo.componentStack);
+      scope.setExtra('errorInfo', errorInfo);
+
+      scope.addBreadcrumb({
+        message: `Error boundary caught error in ${this.props.componentName ?? 'Unknown Component'}`,
+        category: 'error',
+        level: 'error',
+        data: {
+          componentStack: errorInfo.componentStack,
+          errorMessage: error.message,
         },
-      },
-      'critical', // Maps to 'fatal' level in Sentry
-    );
+      });
+
+      return Sentry.captureException(error);
+    });
+
+    this.setState({ errorId });
   }
 
   render() {
@@ -64,15 +64,21 @@ export class ErrorBoundary extends Component<Props, State> {
             <Title order={2} mb="md">
               Something went wrong
             </Title>
-            <Text size="lg" c="dimmed" mb="xl">
+            <Text size="lg" c="dimmed" mb="md">
               We have been notified about this error and will fix it soon.
             </Text>
+            {this.state.errorId && (
+              <Text size="sm" c="dimmed" mb="xl">
+                Error ID: {this.state.errorId}
+              </Text>
+            )}
             <Button
               variant="outline"
               onClick={() => {
                 this.setState({
                   hasError: false,
                   error: undefined,
+                  errorId: undefined,
                 });
                 window.location.reload();
               }}

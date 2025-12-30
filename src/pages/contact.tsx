@@ -183,7 +183,6 @@ const Contact: NextPage = () => {
                 component: 'Contact',
                 action: 'submitForm',
                 extra: {
-                  code: String(error.data?.code),
                   hasName: !!form.values.name,
                   hasEmail: !!form.values.email,
                   hasSubject: !!form.values.subject,

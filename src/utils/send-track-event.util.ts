@@ -1,6 +1,6 @@
-import { logEndpoint } from 'fpp/constants/logging.constant';
+import * as Sentry from '@sentry/nextjs';
 
-import { captureError } from 'fpp/utils/app-error';
+import { logEndpoint } from 'fpp/constants/logging.constant';
 
 export function sendTrackEvent({
   event,
@@ -30,18 +30,16 @@ export function sendTrackEvent({
       });
     }
   } catch (e) {
-    captureError(
-      e instanceof Error ? e : new Error('Failed to track event'),
-      {
-        component: 'sendTrackEvent',
-        action: 'trackEvent',
-        extra: {
+    if (e instanceof Error) {
+      Sentry.captureException(e, {
+        tags: {
           endpoint: logEndpoint.TRACK_EVENT,
-          userId: userId ?? 'unknown',
+        },
+        extra: {
+          userId,
           event,
         },
-      },
-      'medium',
-    );
+      });
+    }
   }
 }

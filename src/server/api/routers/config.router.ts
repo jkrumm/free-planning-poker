@@ -1,10 +1,9 @@
 import { env } from 'fpp/env';
 
+import * as Sentry from '@sentry/nextjs';
 import { sql } from 'drizzle-orm';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
-
-import { captureError } from 'fpp/utils/app-error';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import { FeatureFlagType, featureFlags } from 'fpp/server/db/schema';
@@ -55,20 +54,16 @@ export const configRouter = createTRPCRouter({
           });
         })
         .catch((e) => {
-          // captureError already logs to console in development mode
-          captureError(
-            e instanceof Error ? e : new Error('Failed to fetch latest tag'),
-            {
-              component: 'configRouter',
-              action: 'getLatestTag',
-              extra: {
-                endpoint: logEndpoint.GET_LATEST_TAG,
-                commitSha: env.VERCEL_GIT_COMMIT_SHA,
-                nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
-              },
+          console.error('failed to fetch latest tag', e);
+          Sentry.captureException(e, {
+            tags: {
+              endpoint: logEndpoint.GET_LATEST_TAG,
             },
-            'medium',
-          );
+            extra: {
+              commitSha: env.VERCEL_GIT_COMMIT_SHA,
+              nodeEnv: env.NEXT_PUBLIC_NODE_ENV,
+            },
+          });
         });
     }
 

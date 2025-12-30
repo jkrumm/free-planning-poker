@@ -16,8 +16,6 @@ import { api } from 'fpp/utils/api';
 
 import { useConfigLoader } from 'fpp/hooks/config-loader.hook';
 
-import { ErrorBoundary } from 'fpp/components/room/error-boundry';
-
 // Load fonts with next/font for zero FOUC
 // font-display: block makes browser wait for font before rendering
 const inter = Inter({
@@ -65,9 +63,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
       >
         <Notifications position="top-right" />
         <main>
-          <ErrorBoundary componentName="App">
-            <Component {...pageProps} />
-          </ErrorBoundary>
+          <Component {...pageProps} />
         </main>
       </MantineProvider>
     </div>

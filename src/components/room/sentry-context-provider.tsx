@@ -1,6 +1,6 @@
 import React, { type ReactNode, useEffect } from 'react';
 
-import { getCurrentScope } from '@sentry/nextjs';
+import * as Sentry from '@sentry/nextjs';
 
 interface SentryContextProviderProps {
   children: ReactNode;
@@ -17,7 +17,7 @@ export const SentryContextProvider: React.FC<SentryContextProviderProps> = ({
 }) => {
   useEffect(() => {
     // Set global Sentry context when room/user data changes
-    const scope = getCurrentScope();
+    const scope = Sentry.getCurrentScope();
     scope.clear();
 
     // Set user context
