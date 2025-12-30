@@ -99,6 +99,35 @@ export default defineConfig([
           drizzleObjectName: ['db'],
         },
       ],
+
+      // Sentry: Enforce captureError wrapper instead of direct Sentry calls
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@sentry/nextjs',
+              importNames: ['captureException', 'captureMessage', 'addBreadcrumb'],
+              message:
+                'Use captureError(), captureMessage(), or addBreadcrumb() from fpp/utils/app-error instead of direct Sentry calls for consistent context and severity handling.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // Exception: Files that legitimately need direct Sentry access
+  {
+    name: 'sentry-exceptions',
+    files: [
+      'src/utils/app-error.ts',
+      'instrumentation.ts',
+      'instrumentation-client.ts',
+      'sentry.*.config.ts',
+    ],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 ]);

@@ -1,7 +1,8 @@
-import * as Sentry from '@sentry/nextjs';
 import { count } from 'drizzle-orm';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
+
+import { captureError } from 'fpp/utils/app-error';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import db from 'fpp/server/db/db';
@@ -24,10 +25,20 @@ export const landingpageRouter = createTRPCRouter({
         user_count: userResult[0]?.count ?? FALLBACK_USER_COUNT,
       };
     } catch (error) {
-      console.error('Error fetching landing page analytics:', error);
-      Sentry.captureException(error, {
-        tags: { endpoint: logEndpoint.GET_LANDINGPAGE_ANALYTICS },
-      });
+      // captureError already logs to console in development mode
+      captureError(
+        error instanceof Error
+          ? error
+          : new Error('Error fetching landing page analytics'),
+        {
+          component: 'landingpageRouter',
+          action: 'getAnalytics',
+          extra: {
+            endpoint: logEndpoint.GET_LANDINGPAGE_ANALYTICS,
+          },
+        },
+        'high',
+      );
 
       return {
         estimation_count: FALLBACK_ESTIMATION_COUNT,

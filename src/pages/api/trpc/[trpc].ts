@@ -12,8 +12,12 @@
 import { type TRPCError } from '@trpc/server';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 
-import * as Sentry from '@sentry/nextjs';
+import { captureError } from 'fpp/utils/app-error';
 
+import {
+  CustomTRPCError,
+  isBusinessLogicError,
+} from 'fpp/server/api/custom-error';
 import { appRouter } from 'fpp/server/api/root';
 import { createTRPCContext } from 'fpp/server/api/trpc';
 
@@ -32,6 +36,8 @@ export const config = {
  *
  * Business logic errors (BAD_REQUEST, NOT_FOUND, etc.) are expected and logged as warnings
  * System errors (INTERNAL_SERVER_ERROR, etc.) are unexpected and reported to Sentry
+ *
+ * CustomTRPCError carries metadata from routers for enhanced error tracking
  */
 const trpcErrorHandler = ({
   error,
@@ -44,47 +50,10 @@ const trpcErrorHandler = ({
   path: string | undefined;
   input: unknown;
 }) => {
-  const inputObj = input != null && typeof input === 'object' ? input : {};
-
-  // Business logic errors are expected user-facing errors
-  const isBusinessLogicError = [
-    'BAD_REQUEST',
-    'UNAUTHORIZED',
-    'FORBIDDEN',
-    'NOT_FOUND',
-    'CONFLICT',
-    'PRECONDITION_FAILED',
-  ].includes(error.code);
-
-  if (error.code === 'INTERNAL_SERVER_ERROR' || !isBusinessLogicError) {
-    // Log internal server errors and unexpected errors
-    console.error('TRPC INTERNAL ERROR', {
-      ...inputObj,
-      type,
-      path,
-      error: {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
-      },
-    });
-
-    // Report to Sentry for monitoring
-    Sentry.captureException(error, {
-      tags: {
-        endpoint: path,
-        type,
-        trpc_error_code: error.code,
-      },
-      extra: {
-        endpoint: path,
-        type,
-        ...inputObj,
-      },
-    });
-  } else {
-    // Business logic errors are expected, just log as warnings
+  // Business logic errors are expected - log but don't capture in Sentry
+  // NOTE: Starting with strict monitoring - capturing all business logic errors initially
+  // to ensure nothing is missed. Will gradually open up as we confirm expected behavior.
+  if (isBusinessLogicError(error)) {
     console.warn('TRPC Business Logic Error', {
       type,
       path,
@@ -92,9 +61,50 @@ const trpcErrorHandler = ({
         name: error.name,
         message: error.message,
         code: error.code,
-        stack: error.stack,
       },
     });
+    // TODO: Once confident in error classification, keep this return uncommented
+    // For now, temporarily comment out to capture business logic errors in Sentry
+    return;
+  }
+
+  // System errors should be captured
+  console.error('TRPC System Error', {
+    type,
+    path,
+    error: {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    },
+  });
+
+  // Check if error has custom metadata from router
+  if (error instanceof CustomTRPCError) {
+    // Use metadata provided by router (component, action, extra, severity)
+    captureError(error, error.metadata, error.metadata.severity ?? 'high');
+  } else {
+    // Fallback for errors without metadata (uncaught system errors)
+    const inputObj = input != null && typeof input === 'object' ? input : {};
+
+    captureError(
+      error,
+      {
+        component: 'trpcMiddleware',
+        action: path ?? 'unknown',
+        extra: {
+          endpoint: path ?? 'unknown',
+          type,
+          trpc_error_code: error.code,
+          ...(Object.keys(inputObj).length > 0 &&
+          Object.keys(inputObj).length <= 5
+            ? inputObj
+            : { inputKeyCount: Object.keys(inputObj).length }),
+        },
+      },
+      'high',
+    );
   }
 };
 

@@ -1,8 +1,8 @@
 import { env } from 'fpp/env';
 
-import * as Sentry from '@sentry/nextjs';
-
 import { logEndpoint } from 'fpp/constants/logging.constant';
+
+import { captureError } from 'fpp/utils/app-error';
 
 export const dynamic = 'force-dynamic'; // no caching
 
@@ -19,14 +19,19 @@ export default async function handler() {
       console.log('Daily analytics invoked ', res.status);
     })
     .catch((e) => {
-      console.error('Error invoking daily analytics', e, {
-        route: env.ANALYTICS_URL + '/daily-analytics',
-      });
-      Sentry.captureException(e, {
-        tags: {
-          endpoint: logEndpoint.DAILY_ANALYTICS,
+      // captureError already logs to console in development mode
+      captureError(
+        e instanceof Error ? e : new Error('Error invoking daily analytics'),
+        {
+          component: 'analytics-cron',
+          action: 'invokeDailyAnalytics',
+          extra: {
+            endpoint: logEndpoint.DAILY_ANALYTICS,
+            analyticsUrl: env.ANALYTICS_URL + '/daily-analytics',
+          },
         },
-      });
+        'high',
+      );
       return { message: 'Error invoking daily analytics', status: 500 };
     });
 

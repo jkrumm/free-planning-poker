@@ -2,8 +2,6 @@ import { startTransition, useEffect, useState } from 'react';
 
 import { env } from 'fpp/env';
 
-import * as Sentry from '@sentry/nextjs';
-
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
 import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
@@ -168,20 +166,6 @@ export const sendTrackPageView = ({
       },
       'medium',
     );
-
-    // Legacy Sentry capture for backward compatibility
-    if (error instanceof Error) {
-      Sentry.captureException(error, {
-        tags: {
-          endpoint: logEndpoint.TRACK_PAGE_VIEW,
-        },
-        extra: {
-          userId,
-          route,
-          roomId,
-        },
-      });
-    }
   }
 };
 
