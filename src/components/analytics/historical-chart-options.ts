@@ -1,20 +1,38 @@
-import type { AgChartOptions } from 'ag-charts-community';
+import type {
+  AgCartesianChartOptions,
+  AgCartesianSeriesTooltipRendererParams,
+  AgTooltipRendererResult,
+} from 'ag-charts-community';
+
+// Data structure for historical analytics chart
+export interface HistoricalChartData {
+  date: Date;
+  estimations: number;
+  acc_estimations: number;
+  ma_estimations: number;
+  votes: number;
+  acc_votes: number;
+  ma_votes: number;
+  rooms: number;
+  acc_rooms: number;
+  ma_rooms: number;
+  page_views: number;
+  acc_page_views: number;
+  ma_page_views: number;
+  new_users: number;
+  acc_new_users: number;
+  ma_new_users: number;
+}
 
 export function renderer(
-  params: {
-    datum: Record<string, number>;
-    xKey: string;
-    yKey: string;
-  },
+  params: AgCartesianSeriesTooltipRendererParams,
   title: string,
-  color: string,
-) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const value = params.datum[params.yKey].toFixed(0);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const date = new Date(params.datum[params.xKey]);
+  _color: string,
+): AgTooltipRendererResult {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- AG Charts params datum structure
+  const value = (params.datum[params.yKey] as number).toFixed(0);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- AG Charts params datum structure
+  const date = new Date(params.datum[params.xKey] as Date);
 
   // Define an array of month names
   const months = [
@@ -40,11 +58,9 @@ export function renderer(
   // Format the date as "May 19 2024"
   const formattedDate = `${monthName} ${day} ${year}`;
   return {
-    content: `${value} on ${formattedDate}`,
-    color: '#fff',
     title,
-    backgroundColor: color,
-  };
+    content: `${value} on ${formattedDate}`,
+  } as AgTooltipRendererResult;
 }
 
 class HistoricalChartOptions {
@@ -103,9 +119,10 @@ class HistoricalChartOptions {
     return '';
   }
 
-  toOptions(): AgChartOptions {
-    // Type assertion needed due to AG Charts v13 type inference issue with dictionary axes
-    // The runtime types are correct as per the migration guide
+  toOptions(): AgCartesianChartOptions {
+    // Note: AG Charts v13 runtime supports yAxis on series, but TypeScript types don't include it yet
+    // This is a known discrepancy between the migration guide and type definitions
+    // Using double type assertion to work around incomplete type definitions
     return {
       theme: 'ag-polychroma-dark',
       background: {
@@ -132,10 +149,8 @@ class HistoricalChartOptions {
           fill: '#40C057',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Estimations Daily', '#40C057'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -154,10 +169,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Estimations Acc', '#40C057'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -176,8 +189,7 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Estimations MA', '#40C057'),
           },
         },
@@ -191,8 +203,7 @@ class HistoricalChartOptions {
           fill: '#1971C2',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Votes Daily', '#1971C2'),
           },
         },
@@ -212,8 +223,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) => renderer(params, 'Votes Acc', '#1971C2'),
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
+              renderer(params, 'Votes Acc', '#1971C2'),
           },
         },
         {
@@ -232,8 +243,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) => renderer(params, 'Votes MA', '#1971C2'),
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
+              renderer(params, 'Votes MA', '#1971C2'),
           },
         },
         {
@@ -246,8 +257,7 @@ class HistoricalChartOptions {
           fill: '#8931B2',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Rooms Daily', '#8931B2'),
           },
         },
@@ -267,8 +277,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) => renderer(params, 'Rooms Acc', '#8931B2'),
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
+              renderer(params, 'Rooms Acc', '#8931B2'),
           },
         },
         {
@@ -287,8 +297,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) => renderer(params, 'Rooms MA', '#8931B2'),
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
+              renderer(params, 'Rooms MA', '#8931B2'),
           },
         },
         {
@@ -301,10 +311,8 @@ class HistoricalChartOptions {
           fill: '#FA5252',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Pages Views Daily', '#FA5252'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -323,8 +331,7 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Page Views Acc', '#FA5252'),
           },
         },
@@ -344,8 +351,7 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Page Views MA', '#FA5252'),
           },
         },
@@ -359,10 +365,8 @@ class HistoricalChartOptions {
           fill: '#FAB005',
           fillOpacity: this.showAcc || this.showMa ? 0.2 : 1,
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Unique Users Daily', '#FAB005'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -381,10 +385,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Unique Users Acc', '#FAB005'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -403,10 +405,8 @@ class HistoricalChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Unique Users MA', '#FAB005'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
       ],
@@ -441,8 +441,7 @@ class HistoricalChartOptions {
           // },
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- AG Charts v13 type inference bug requires type assertion
-    } as any as AgChartOptions;
+    } as unknown as AgCartesianChartOptions;
   }
 }
 

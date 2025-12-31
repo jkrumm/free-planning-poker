@@ -16,6 +16,8 @@ import {
   Tooltip,
 } from '@mantine/core';
 
+// AG Charts module registration (only needed for analytics page)
+import 'fpp/utils/ag-charts-init';
 import { api } from 'fpp/utils/api';
 import {
   addBreadcrumb,
