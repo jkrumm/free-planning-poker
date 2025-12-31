@@ -2,14 +2,25 @@
 
 import React from 'react';
 
-import type { AgChartOptions } from 'ag-charts-community';
+import type {
+  AgCartesianChartOptions,
+  AgCartesianSeriesTooltipRendererParams,
+} from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { renderer } from 'fpp/components/analytics/historical-chart-options';
 
+// Data structure for reoccurring chart
+export interface ReoccurringChartData {
+  date: Date;
+  users: number;
+  rooms: number;
+}
+
 class ReoccurringChartOptions {
-  toOptions(): AgChartOptions {
-    // Type assertion needed due to AG Charts v13 type inference issue with dictionary axes
+  toOptions(): AgCartesianChartOptions {
+    // Note: AG Charts v13 runtime supports yAxis on series, but TypeScript types don't include it yet
+    // Using double type assertion to work around incomplete type definitions
     return {
       theme: 'ag-polychroma-dark',
       background: {
@@ -41,10 +52,8 @@ class ReoccurringChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Reoccurring Users', '#1971C2'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
         {
@@ -62,10 +71,8 @@ class ReoccurringChartOptions {
             type: 'smooth',
           },
           tooltip: {
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
-            renderer: (params: any) =>
+            renderer: (params: AgCartesianSeriesTooltipRendererParams) =>
               renderer(params, 'Reoccurring Rooms', '#40C057'),
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
           },
         },
       ],
@@ -89,8 +96,7 @@ class ReoccurringChartOptions {
           },
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- AG Charts v13 type inference bug requires type assertion
-    } as any as AgChartOptions;
+    } as unknown as AgCartesianChartOptions;
   }
 }
 
