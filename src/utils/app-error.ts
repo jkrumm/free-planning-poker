@@ -2,6 +2,8 @@ import { TRPCClientError, type TRPCClientErrorLike } from '@trpc/client';
 
 import * as Sentry from '@sentry/nextjs';
 
+import { logger } from './logger';
+
 export interface ErrorContext {
   component?: string;
   action?: string;
@@ -35,9 +37,21 @@ export const captureError = (
     errorObj = error as Error;
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    console.error('[Error]', errorObj.message, context);
-  }
+  // Log to Pino before sending to Sentry
+  logger.error(
+    {
+      component: context.component,
+      action: context.action,
+      severity,
+      error: {
+        name: errorObj.name,
+        message: errorObj.message,
+        stack: errorObj.stack,
+      },
+      ...context.extra,
+    },
+    `[${severity}] ${context.component ?? 'Unknown'}:${context.action ?? 'Unknown'} - ${errorObj.message}`,
+  );
 
   Sentry.withScope((scope) => {
     // Set a severity level
@@ -119,8 +133,26 @@ export const captureMessage = (
   context: ErrorContext = {},
   level: 'debug' | 'info' | 'warning' | 'error' = 'info',
 ): void => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[${level.toUpperCase()}]`, message, context);
+  // Log to Pino before sending to Sentry
+  const logData = {
+    component: context.component,
+    action: context.action,
+    ...context.extra,
+  };
+
+  switch (level) {
+    case 'debug':
+      logger.debug(logData, message);
+      break;
+    case 'info':
+      logger.info(logData, message);
+      break;
+    case 'warning':
+      logger.warn(logData, message);
+      break;
+    case 'error':
+      logger.error(logData, message);
+      break;
   }
 
   Sentry.withScope((scope) => {

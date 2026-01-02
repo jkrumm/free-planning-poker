@@ -17,6 +17,7 @@ dependencies = [
     "sentry-sdk[fastapi]>=2.40.0",
     # Environment
     "python-dotenv>=1.0.0",
+    "python-json-logger>=4.0.0",
 ]
 
 [project.optional-dependencies]
