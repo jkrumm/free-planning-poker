@@ -22,6 +22,12 @@ import polars as pl  # noqa: E402
 import pymysql  # noqa: E402
 import sentry_sdk  # noqa: E402
 
+from util.sentry_wrapper import (  # noqa: E402
+    ErrorContext,
+    add_error_breadcrumb,
+    capture_error,
+)
+
 # Initialize Sentry for error tracking
 SENTRY_DSN = os.getenv("FPP_ANALYTICS_SENTRY_DSN")
 if SENTRY_DSN:
@@ -126,17 +132,53 @@ def main() -> None:
     total_records = 0
     errors = []
 
+    add_error_breadcrumb(
+        message="Starting read model sync",
+        category="sync",
+        data={"tables": list(TABLES.keys())},
+    )
+
     try:
         conn = pymysql.connect(**DB_CONFIG)
 
+        add_error_breadcrumb(
+            message="Database connection established",
+            category="database",
+            data={"host": DB_CONFIG["host"]},
+        )
+
         for table, sync_col in TABLES.items():
             try:
-                total_records += sync_table(conn, table, sync_col)
+                add_error_breadcrumb(
+                    message=f"Syncing table {table}",
+                    category="sync",
+                    data={"table": table, "sync_col": sync_col},
+                )
+                records_synced = sync_table(conn, table, sync_col)
+                total_records += records_synced
+                if records_synced > 0:
+                    add_error_breadcrumb(
+                        message=f"Synced {records_synced} records from {table}",
+                        category="sync",
+                        data={"table": table, "records": records_synced},
+                    )
             except Exception as e:
                 error_msg = f"{table}: {e}"
                 print(f"[{datetime.now().isoformat()}] ERROR {error_msg}")
                 errors.append(error_msg)
-                sentry_sdk.capture_exception(e)
+                capture_error(
+                    e,
+                    ErrorContext(
+                        component="update_readmodel",
+                        action="sync_table",
+                        extra={
+                            "table": table,
+                            "sync_col": sync_col,
+                            "error_msg": error_msg,
+                        },
+                    ),
+                    severity="high",
+                )
 
         conn.close()
         duration = (datetime.now() - start_time).total_seconds()
@@ -156,13 +198,34 @@ def main() -> None:
             cache_status_path = DATA_DIR / "cache_status.txt"
             cache_status_path.write_text(datetime.now(UTC).isoformat())
 
+            add_error_breadcrumb(
+                message="Sync completed successfully",
+                category="sync",
+                data={"total_records": total_records, "duration": duration},
+            )
+
             push_uptimekuma("up", f"Synced {total_records} records in {duration:.1f}s")
 
     except Exception as e:
         print(f"[{datetime.now().isoformat()}] FATAL: {e}")
-        sentry_sdk.capture_exception(e)
+        capture_error(
+            e,
+            ErrorContext(
+                component="update_readmodel",
+                action="main",
+                extra={
+                    "error_type": type(e).__name__,
+                    "db_host": DB_CONFIG.get("host", "unknown"),
+                },
+            ),
+            severity="critical",
+        )
         push_uptimekuma("down", str(e))
         sys.exit(1)
+    finally:
+        # Ensure Sentry events are sent before exit
+        if SENTRY_DSN:
+            sentry_sdk.flush(timeout=5.0)
 
 
 if __name__ == "__main__":

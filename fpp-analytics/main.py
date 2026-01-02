@@ -4,12 +4,16 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
+from fastapi.responses import JSONResponse
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 from config import ANALYTICS_SECRET_TOKEN, SENTRY_DSN, SENTRY_ENVIRONMENT
 from routers import analytics, health, room
+from util.sentry_wrapper import ErrorContext, capture_error
 
 # Configure logging
 logging.basicConfig(
@@ -72,13 +76,22 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
             environment=SENTRY_ENVIRONMENT,
             traces_sample_rate=0.1,
             profiles_sample_rate=0.1,
+            integrations=[
+                FastApiIntegration(
+                    transaction_style="endpoint",
+                    failed_request_status_codes=[500, 599],
+                ),
+                StarletteIntegration(),
+            ],
             # Filter out health check transactions
             before_send_transaction=lambda event, _hint: (
                 None if event.get("transaction") == "/health" else event
             ),
         )
     yield
-    # Shutdown: cleanup if needed
+    # Shutdown: Flush Sentry events
+    if SENTRY_DSN:
+        sentry_sdk.flush(timeout=2.0)
 
 
 app = FastAPI(
@@ -86,6 +99,36 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+
+# Global exception handler for unhandled system errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Capture unexpected system errors in Sentry.
+
+    Note: HTTPException bypasses this handler (business logic errors are not captured).
+    """
+    # Capture in Sentry with request context
+    capture_error(
+        exc,
+        ErrorContext(
+            component="global_handler",
+            action=f"{request.method} {request.url.path}",
+            extra={
+                "path": request.url.path,
+                "method": request.method,
+                "query_params": dict(request.query_params),
+            },
+        ),
+        severity="critical",
+    )
+
+    # Return safe error response
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Internal server error"},
+    )
+
 
 # Custom request logging (replaces uvicorn access log)
 app.add_middleware(RequestLoggingMiddleware)

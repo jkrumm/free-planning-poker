@@ -92,20 +92,147 @@ app.include_router(router, dependencies=[Depends(verify_auth)])
 
 ### Error Handling
 
+**Pattern:** Always log via Python logging, only send to Sentry in production.
+
+**Import:**
 ```python
-# Use Sentry for error tracking
-import sentry_sdk
+from util.sentry_wrapper import ErrorContext, capture_error, add_error_breadcrumb
+```
+
+**Behavior:**
+| Environment | Python logging | Sentry |
+|-------------|---------------|--------|
+| development | ✅ Console logs | ❌ No Sentry |
+| production  | ✅ Console logs | ✅ Sends to Sentry |
+
+**Environment Detection:**
+```python
+SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "development")
+SEND_TO_SENTRY = SENTRY_ENVIRONMENT == "production"
+```
+
+#### FastAPI Endpoints
+
+```python
+from fastapi import APIRouter, HTTPException
+from util.sentry_wrapper import ErrorContext, capture_error, add_error_breadcrumb
+
+@router.get("/analytics")
+async def get_analytics():
+    try:
+        add_error_breadcrumb(
+            message="Fetching analytics data",
+            category="analytics",
+            data={"endpoint": "get_analytics"}
+        )
+
+        result = calculate_metrics()
+        return result
+
+    except Exception as e:
+        capture_error(
+            e,
+            ErrorContext(
+                component="analytics_router",
+                action="get_analytics",
+                extra={"user_id": user_id}
+            ),
+            severity="high"
+        )
+        raise  # Let global handler return 500 response
+```
+
+#### Standalone Scripts (update_readmodel.py)
+
+```python
+from util.sentry_wrapper import ErrorContext, capture_error, add_error_breadcrumb
+
+def main():
+    add_error_breadcrumb("Starting sync", "sync", {"tables": ["fpp_votes"]})
+
+    try:
+        sync_tables()
+    except Exception as e:
+        capture_error(
+            e,
+            ErrorContext(
+                component="update_readmodel",
+                action="main",
+                extra={"error_type": type(e).__name__}
+            ),
+            severity="critical"
+        )
+        sys.exit(1)
+    finally:
+        # Ensure Sentry events are sent before exit
+        if SENTRY_DSN:
+            sentry_sdk.flush(timeout=5.0)
+```
+
+#### HTTP Client Errors
+
+```python
+from util.sentry_wrapper import ErrorContext, capture_error
 
 try:
-    result = risky_operation()
-except Exception as e:
-    sentry_sdk.capture_exception(e)
-    raise  # Re-raise after logging
+    response = await client.post(url, json=data, timeout=30.0)
+    if response.status_code != 200:
+        error = EmailServiceError(f"Status {response.status_code}")
+        capture_error(
+            error,
+            ErrorContext(
+                component="http_client",
+                action="send_email",
+                extra={"url": url, "status": response.status_code}
+            ),
+            severity="medium"
+        )
+        raise error
 
-# For expected errors, use HTTPException
+except httpx.TimeoutException as e:
+    capture_error(e, ErrorContext(...), severity="medium")
+    raise
+```
+
+#### Severity Guidelines
+
+| Severity | Use Case | Python Logging | Sentry (prod) |
+|----------|----------|----------------|---------------|
+| `critical` | Fatal errors, app crash | CRITICAL | fatal |
+| `high` | User action blocked (DB error, API failure) | ERROR | error |
+| `medium` | Degraded experience (email service down) | WARNING | warning |
+| `low` | Informational (cache miss) | INFO | info |
+
+#### What NOT to Capture
+
+```python
+# ❌ Don't capture business logic errors
+if room_id <= 0:
+    raise HTTPException(status_code=400, detail="Invalid room_id")
+
+# ❌ Don't capture validation errors
 if not data:
     raise HTTPException(status_code=404, detail="Not found")
+
+# ✅ Do capture system errors
+try:
+    df = pl.read_parquet(path)  # File might not exist
+except Exception as e:
+    capture_error(e, ErrorContext(...), "high")
+    raise
 ```
+
+#### Global Exception Handler
+
+All unhandled exceptions are automatically captured by the global handler in `main.py`:
+```python
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    capture_error(exc, ErrorContext("global_handler", ...), "critical")
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+```
+
+Note: `HTTPException` bypasses this handler (business logic errors are not captured).
 
 ## Validation & Code Quality
 
