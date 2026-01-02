@@ -91,6 +91,10 @@ const app = new Elysia({
     };
   });
 
+app.get('/', () => {
+  return { status: 'ok', service: 'fpp-server' };
+});
+
 app.get('/health', () => {
   return { status: 'ok' };
 });
