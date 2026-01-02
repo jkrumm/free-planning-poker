@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 import sentry_sdk
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from pythonjsonlogger import jsonlogger
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -15,13 +16,62 @@ from config import ANALYTICS_SECRET_TOKEN, SENTRY_DSN, SENTRY_ENVIRONMENT
 from routers import analytics, health, room
 from util.sentry_wrapper import ErrorContext, capture_error
 
-# Configure logging
+
+# Custom JSON formatter to match Pino structure
+class PinoJsonFormatter(jsonlogger.JsonFormatter):
+    """JSON formatter that outputs Pino-compatible log format."""
+
+    def add_fields(
+        self,
+        log_record: dict[str, object],
+        record: logging.LogRecord,
+        message_dict: dict[str, object],
+    ) -> None:
+        super().add_fields(log_record, record, message_dict)
+        # Map Python levels to Pino levels
+        level_map = {
+            "DEBUG": 20,  # Pino debug
+            "INFO": 30,  # Pino info
+            "WARNING": 40,  # Pino warn
+            "ERROR": 50,  # Pino error
+            "CRITICAL": 60,  # Pino fatal
+        }
+        log_record["level"] = level_map.get(record.levelname, 30)
+        log_record["time"] = int(record.created * 1000)  # Pino uses ms timestamp
+        # Use message if available, otherwise use a default based on context
+        msg = log_record.pop("message", None)
+        if not msg:
+            # Generate message from available context
+            msg = f"{log_record.get('component', 'unknown')}:{log_record.get('action', 'unknown')}"
+        log_record["msg"] = msg
+        log_record["service"] = "fpp-analytics"
+
+
+# Configure JSON logging
+handler = logging.StreamHandler()
+formatter = PinoJsonFormatter("%(time)s %(level)s %(name)s %(msg)s")
+handler.setFormatter(formatter)
+
+# Configure root logger and uvicorn loggers
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[handler],
 )
 logger = logging.getLogger("fpp-analytics")
+
+# Disable Uvicorn's default access logger (we use custom middleware)
+uvicorn_access_logger = logging.getLogger("uvicorn.access")
+uvicorn_access_logger.disabled = True
+
+# Configure Uvicorn error logger to use JSON format
+uvicorn_error_logger = logging.getLogger("uvicorn.error")
+uvicorn_error_logger.handlers = [handler]
+uvicorn_error_logger.propagate = False
+
+# Configure Uvicorn general logger to use JSON format
+uvicorn_logger = logging.getLogger("uvicorn")
+uvicorn_logger.handlers = [handler]
+uvicorn_logger.propagate = False
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -38,22 +88,34 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         if request.url.path == "/health" and response.status_code == 200:
             return response
 
-        # Build log message with path params
-        path_params = request.path_params
-        params_str = ""
-        if path_params:
-            params_str = " | " + " ".join(f"{k}={v}" for k, v in path_params.items())
+        # Build structured log data as extra kwargs
+        log_extra = {
+            "component": "httpRequest",
+            "action": request.url.path,
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "duration": round(duration_ms, 2),
+        }
+
+        # Add path params if present
+        if request.path_params:
+            log_extra["pathParams"] = dict(request.path_params)
 
         # Add cache status for main analytics endpoint
-        cache_str = ""
         if request.url.path == "/" and "X-Cache" in response.headers:
-            cache_str = f" | cache={response.headers['X-Cache']}"
+            log_extra["cache"] = response.headers["X-Cache"]
 
-        logger.info(
-            f"{request.method} {request.url.path} | "
-            f"{response.status_code} | "
-            f"{duration_ms:.0f}ms{params_str}{cache_str}"
-        )
+        # Log message
+        log_msg = f"{request.method} {request.url.path} {response.status_code}"
+
+        # Use appropriate log level based on status code
+        if response.status_code >= 500:
+            logger.error(log_msg, extra=log_extra)
+        elif response.status_code >= 400:
+            logger.warning(log_msg, extra=log_extra)
+        else:
+            logger.info(log_msg, extra=log_extra)
 
         return response
 

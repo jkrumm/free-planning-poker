@@ -6,7 +6,8 @@
 |---------|---------|-----------|------|-----------|
 | **Next.js App** | Node 22 | Next.js 16 (Pages Router) | 3001 | This file |
 | **WebSocket Server** | Bun | Elysia 1.4 | 3003 | `fpp-server/CLAUDE.md` |
-| **Analytics API** | Python 3.12 | FastAPI | 3002 | `fpp-analytics/CLAUDE.md` |
+| **Analytics API** | Python 3.12 | FastAPI | 5100 | `fpp-analytics/CLAUDE.md` |
+| **Logdy (Logs UI)** | Go | Logdy | 8080 | - |
 
 ---
 
@@ -16,7 +17,8 @@ Free Planning Poker runs on three independent services:
 
 1. **Next.js App** (port 3001) - UI, tRPC API, database operations
 2. **Bun WebSocket Server** (port 3003) - Real-time room state, in-memory
-3. **FastAPI Analytics** (port 3002) - Analytics calculations, read-only
+3. **FastAPI Analytics** (port 5100) - Analytics calculations, read-only
+4. **Logdy** (port 8080) - Unified log viewer (local development only)
 
 📖 **For detailed architecture**, see `ARCHITECTURE.md` and `.openspec/project.md`
 
@@ -154,6 +156,109 @@ npm run db:generate                      # Generate Drizzle migrations - Only su
 npm run db:migrate                       # Run migrations - Only suggest to user
 npm run db:studio                        # Open Drizzle Studio - Only suggest to user
 ```
+
+## Logdy Integration
+
+Logdy provides a unified web UI for viewing logs from all services in real-time during local development.
+
+**Web UI:** http://localhost:8080
+
+### Features
+
+- Real-time log streaming from all services (Next.js, fpp-server, fpp-analytics)
+- Automatic JSON log parsing (Pino structured logs)
+- Filter by service name (`service:free-planning-poker`, `service:fpp-server`, `service:fpp-analytics`)
+- Filter by origin port (8081=Next.js, 8082=fpp-server, 8083=fpp-analytics)
+- Search across all logs (field-based: e.g., `userId:abc123`, `level:error`, `component:auth`)
+- Color-coded log levels (20=debug, 30=info, 40=warn, 50=error, 60=fatal)
+- Timeline view with timestamps
+
+### Installation (One-time per Machine)
+
+```bash
+brew tap logdyhq/logdy
+brew install logdy
+
+# Verify installation
+logdy --version
+```
+
+### Usage
+
+```bash
+# Start all services with Logdy (recommended for multi-service development)
+npm run dev:all
+# Opens:
+# - http://localhost:3001 (Next.js)
+# - http://localhost:3003 (fpp-server)
+# - http://localhost:5100 (fpp-analytics)
+# - http://localhost:8080 (Logdy UI)
+
+# Start individual services without Logdy (simpler for single-service work)
+npm run dev              # Next.js only
+cd fpp-server && bun dev # fpp-server only
+cd fpp-analytics && uv run uvicorn main:app --reload --port 5100 # Analytics only
+```
+
+### Logging Architecture
+
+All services use structured JSON logging (Pino format):
+
+| Service | Logger | Format | Output |
+|---------|--------|--------|--------|
+| **Next.js** | Pino | JSON | stdout |
+| **fpp-server** | Pino | JSON | stdout |
+| **fpp-analytics** | python-json-logger | JSON (Pino-compatible) | stdout |
+
+**Pino Log Format:**
+```json
+{
+  "level": 30,              // 10=trace, 20=debug, 30=info, 40=warn, 50=error, 60=fatal
+  "time": 1704206400000,    // Unix timestamp (ms)
+  "msg": "User logged in",
+  "service": "free-planning-poker",  // Service identifier
+  "userId": "abc123",       // Custom fields
+  "component": "auth",
+  "action": "login"
+}
+```
+
+**Benefits:**
+- Unified log viewing across all three services
+- JSON structure makes logs searchable and filterable
+- Production-ready (structured logs work with log aggregation tools)
+- Error logs automatically sent to Sentry
+
+**How it works:**
+- Logdy runs in **socket mode** listening on ports 8081, 8082, 8083
+- Each service pipes logs to its dedicated port via `logdy forward`
+- Logs are tagged with `origin.port` for filtering (8081=Next.js, 8082=fpp-server, 8083=fpp-analytics)
+- Web UI (port 8080) aggregates and displays all streams in real-time
+
+**Note:** Next.js dev server outputs some plain text logs (e.g., "GET /api/... 200 in 632ms (compile: 4ms)") that cannot be suppressed. These are development-only and won't appear in production (`next start`).
+
+**Logdy Configuration:**
+- Config file: `logdy.config.json` (automatically loaded)
+- Custom columns: time, level, service, msg, error
+- Middleware: Filters debug logs (level < 30) and noisy compile logs
+- Error column: Displays `error.message` field in red for easy spotting
+
+### Production Logging
+
+All services output **production-ready JSON logs** to stdout:
+
+**Current setup:**
+- Services output structured JSON logs (Pino format)
+- All logs include `service` field for filtering
+- Logs go to stdout/stderr (captured by Docker/K8s)
+- Compatible with any JSON log aggregation tool
+
+**Log correlation:**
+- Filter by `service` field: `free-planning-poker`, `fpp-server`, `fpp-analytics`
+- Correlate by `userId`, `roomId` across services
+- Future: Add `requestId` for distributed tracing
+
+**Note:** Production log aggregation tool (Loki, Datadog, etc.) not yet configured.
 
 ## Critical Rules
 

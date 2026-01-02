@@ -12,15 +12,9 @@ import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  transport:
-    process.env.NODE_ENV === 'production'
-      ? undefined
-      : {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-          },
-        },
+  base: {
+    service: 'fpp-server',
+  },
 });
 
 // Initialize Sentry before Elysia app

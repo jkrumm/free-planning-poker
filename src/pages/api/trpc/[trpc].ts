@@ -9,10 +9,13 @@
  *
  * @see https://trpc.io/docs/v11/server/adapters/nextjs
  */
+import { type NextApiRequest, type NextApiResponse } from 'next';
+
 import { type TRPCError } from '@trpc/server';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 
 import { captureError } from 'fpp/utils/app-error';
+import { logger } from 'fpp/utils/logger';
 
 import { CustomTRPCError } from 'fpp/server/api/custom-error';
 import { appRouter } from 'fpp/server/api/root';
@@ -49,32 +52,34 @@ const trpcErrorHandler = ({
 }) => {
   // NOTE: Below is for now disabled to start with strict monitoring and later on allow isBusinessLogicError to not go to Sentry
   // Business logic errors are expected - log but don't capture in Sentry
-  // NOTE: Starting with strict monitoring via console.warn to ensure correct error classification.
+  // NOTE: Starting with strict monitoring via logger.warn to ensure correct error classification.
   // These errors (NOT_FOUND, BAD_REQUEST, etc.) are NOT captured in Sentry (as intended).
   // if (isBusinessLogicError(error)) {
-  //   console.warn('TRPC Business Logic Error', {
+  //   logger.warn({
+  //     component: 'trpcErrorHandler',
+  //     action: path ?? 'unknown',
   //     type,
-  //     path,
-  //     error: {
-  //       name: error.name,
-  //       message: error.message,
-  //       code: error.code,
-  //     },
-  //   });
+  //     errorName: error.name,
+  //     errorCode: error.code,
+  //   }, 'tRPC Business Logic Error');
   //   // Skip Sentry capture for expected business logic errors
   //   return;
   // }
 
-  console.error('TRPC System Error', {
-    type,
-    path,
-    error: {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
+  logger.error(
+    {
+      component: 'trpcErrorHandler',
+      action: path ?? 'unknown',
+      type,
+      error: {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      },
     },
-  });
+    'tRPC System Error',
+  );
 
   // Check if error has custom metadata from router
   if (error instanceof CustomTRPCError) {
@@ -105,11 +110,42 @@ const trpcErrorHandler = ({
 };
 
 /**
- * Export Next.js API handler
+ * Base tRPC handler
  * v11: Uses createNextApiHandler for Pages Router
  */
-export default createNextApiHandler({
+const trpcHandler = createNextApiHandler({
   router: appRouter,
   createContext: createTRPCContext,
   onError: trpcErrorHandler,
 });
+
+/**
+ * Wrapped handler with request logging
+ * Logs all tRPC requests in structured JSON format
+ */
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  const start = Date.now();
+
+  // Execute tRPC handler
+  await trpcHandler(req, res);
+
+  // Log request after completion
+  const duration = Date.now() - start;
+  const level =
+    res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info';
+
+  logger[level](
+    {
+      component: 'trpcHandler',
+      action: req.url?.split('?')[0] ?? 'unknown',
+      method: req.method,
+      path: req.url,
+      status: res.statusCode,
+      duration,
+    },
+    `${req.method} ${req.url} ${res.statusCode} in ${duration}ms`,
+  );
+}

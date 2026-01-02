@@ -1,0 +1,66 @@
+{
+	"name": "main",
+	"columns": [
+		{
+			"id": "603981",
+			"name": "time",
+			"handlerTsCode": "(line: Message): CellHandler => {\n    const ts = line.json_content?.time;\n    if (!ts) return { text: '-' };\n    const d = new Date(ts);\n    return { text: d.toTimeString().slice(0, 8) };\n}",
+			"idx": 3,
+			"width": 70
+		},
+		{
+			"id": "340030",
+			"name": "lvl",
+			"handlerTsCode": "(line: Message): CellHandler => {\n    const level = line.json_content?.level;\n    const config = {\n        20: { text: 'DEBUG', style: { color: '#888' } },\n        30: { text: 'INFO', style: { color: '#4ade80' } },\n        40: { text: 'WARN', style: { color: '#facc15', fontWeight: 'bold' } },\n        50: { text: 'ERROR', style: { color: '#f87171', fontWeight: 'bold' } },\n        60: { text: 'FATAL', style: { color: '#f87171', fontWeight: 'bold' } }\n    };\n    return config[level] || { text: '???', style: { color: '#888' } };\n}",
+			"idx": 2,
+			"width": 50,
+			"faceted": true
+		},
+		{
+			"id": "223965",
+			"name": "service",
+			"handlerTsCode": "(line: Message): CellHandler => {\n    const service = line.json_content?.service;\n    return { text: service ?? \"-\" }\n}",
+			"faceted": true,
+			"width": 150,
+			"idx": 5
+		},
+		{
+			"id": "097291",
+			"name": "msg",
+			"handlerTsCode": "(line: Message): CellHandler => {\n  return { text: line.json_content?.msg || '-' };\n}",
+			"idx": 11,
+			"width": 370
+		},
+		{
+			"id": "249977",
+			"name": "error",
+			"handlerTsCode": "(line: Message): CellHandler => {\n  const err = line.json_content?.error?.message;\n  return { text: err || '-', style: err ? { color: '#f87171' } : {} };\n}",
+			"faceted": false,
+			"width": 220,
+			"idx": 9
+		},
+		{
+			"id": "361711",
+			"name": "raw",
+			"handlerTsCode": "(line: Message): CellHandler => {\n    return { text: line.content }\n}",
+			"faceted": false,
+			"width": 700,
+			"idx": 12
+		}
+	],
+	"settings": {
+		"leftColWidth": 300,
+		"drawerColWidth": 900,
+		"maxMessages": 1000,
+		"middlewares": [
+			{
+				"id": "m_109494",
+				"name": "Filter debug and noisy logs",
+				"handlerTsCode": "(line: Message): Message | void => {\n  const level = line.json_content?.level;\n  const msg = line.json_content?.msg;\n\n  // Filter debug logs\n  if (level < 30) return;\n\n  // Filter noisy logs\n  if (!line.content || line.content.includes('(compile:')) return;\n\n  return line;\n}"
+			}
+		],
+		"entriesOrder": "desc",
+		"correlationIdField": "",
+		"paintCorrelationIdCell": true
+	}
+}
