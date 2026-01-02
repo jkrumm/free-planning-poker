@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 // Import base classes to extend
 import {
@@ -7,6 +6,7 @@ import {
   type CreateUserDto as CreateUserDtoBase,
 } from './room.types';
 import { preciseTimeout } from './utils';
+import { captureError } from './utils/app-error';
 
 // Re-export shared types from room.types for backward compatibility
 export {
@@ -120,13 +120,17 @@ export class RoomServer extends RoomBase {
 
     if (!fppServerSecret) {
       const error = new Error('FPP_SERVER_SECRET not set');
-      Sentry.captureException(error, {
-        tags: {
-          operation: 'flip',
-          roomId: String(this.id),
+      captureError(
+        error,
+        {
+          component: 'roomEntity',
+          action: 'flip',
+          extra: {
+            roomId: String(this.id),
+          },
         },
-        level: 'error',
-      });
+        'critical'
+      );
       throw error;
     }
 
@@ -163,16 +167,18 @@ export class RoomServer extends RoomBase {
       })
       .catch((error) => {
         // Only capture analytics failures - these are non-critical
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'flip_analytics',
-            roomId: String(this.id),
+        captureError(
+          error as Error,
+          {
+            component: 'roomEntity',
+            action: 'trackFlipAnalytics',
+            extra: {
+              roomId: String(this.id),
+              trackingUrl,
+            },
           },
-          extra: {
-            trackingUrl,
-          },
-          level: 'warning',
-        });
+          'low'
+        );
       });
   }
 

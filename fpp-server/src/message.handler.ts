@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import {
@@ -18,6 +17,7 @@ import {
 } from './room.actions';
 import { User } from './room.entity';
 import { type RoomState } from './room.state';
+import { captureError, captureMessage } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class MessageHandler {
@@ -103,23 +103,23 @@ export class MessageHandler {
       }
 
       // If we get here, it's an unknown action
-      log.error(
+      const unknownAction = (data as { action?: unknown }).action;
+      captureMessage(
+        'Unknown WebSocket action received',
         {
-          error: 'Unknown action',
-          wsId: ws.id,
-          data: String(data),
+          component: 'messageHandler',
+          action: 'routeAction',
+          extra: {
+            wsId: ws.id,
+            receivedAction:
+              typeof unknownAction === 'string' ||
+              typeof unknownAction === 'number'
+                ? String(unknownAction)
+                : JSON.stringify(unknownAction),
+          },
         },
-        'Unknown action'
+        'medium'
       );
-      Sentry.captureMessage('Unknown WebSocket action received', {
-        level: 'error',
-        tags: {
-          wsId: ws.id,
-        },
-        extra: {
-          receivedData: data,
-        },
-      });
       ws.send(
         JSON.stringify({
           error: 'Unknown action',
@@ -128,17 +128,18 @@ export class MessageHandler {
         })
       );
     } catch (error: unknown) {
-      Sentry.captureException(error, {
-        tags: {
-          handler: 'handleMessage',
-          roomId: String(data.roomId),
-          userId: data.userId,
+      captureError(
+        error as Error,
+        {
+          component: 'messageHandler',
           action: data.action,
+          extra: {
+            roomId: String(data.roomId),
+            userId: data.userId,
+          },
         },
-        extra: {
-          actionData: data,
-        },
-      });
+        'high'
+      );
       throw error;
     }
   }
@@ -199,14 +200,19 @@ export class MessageHandler {
         this.roomState.sendToEverySocketInRoom(data.roomId);
       }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
     } catch (error: unknown) {
-      Sentry.captureException(error, {
-        tags: {
-          handler: 'handleRejoin',
-          roomId: String(data.roomId),
-          userId: data.userId,
-          wsId: ws.id,
+      captureError(
+        error as Error,
+        {
+          component: 'handleRejoin',
+          action: 'reconnectUser',
+          extra: {
+            roomId: String(data.roomId),
+            userId: data.userId,
+            wsId: ws.id,
+          },
         },
-      });
+        'high'
+      );
       throw error;
     }
   }
@@ -261,34 +267,36 @@ export class MessageHandler {
           })
         );
       } catch (error: unknown) {
-        log.debug(
-          'Failed to send kick notification - connection may be closed'
-        );
-        Sentry.captureException(error, {
-          tags: {
-            handler: 'handleKick',
-            operation: 'send_kick_notification',
-            roomId: String(data.roomId),
-            targetUserId: data.targetUserId,
+        captureError(
+          error as Error,
+          {
+            component: 'handleKick',
+            action: 'sendKickNotification',
+            extra: {
+              roomId: String(data.roomId),
+              targetUserId: data.targetUserId,
+            },
           },
-          level: 'warning',
-        });
+          'medium'
+        );
       }
 
       // Close their WebSocket connection
       try {
         kickedUser.ws.close();
       } catch (error: unknown) {
-        log.debug('Failed to close WebSocket - may already be closed');
-        Sentry.captureException(error, {
-          tags: {
-            handler: 'handleKick',
-            operation: 'close_websocket',
-            roomId: String(data.roomId),
-            targetUserId: data.targetUserId,
+        captureError(
+          error as Error,
+          {
+            component: 'handleKick',
+            action: 'closeWebSocket',
+            extra: {
+              roomId: String(data.roomId),
+              targetUserId: data.targetUserId,
+            },
           },
-          level: 'warning',
-        });
+          'medium'
+        );
       }
     }
 

@@ -1,8 +1,8 @@
-import * as Sentry from '@sentry/bun';
 import { type ElysiaWS } from 'elysia/dist/ws';
 import { log } from './index';
 import { RoomServer, type User } from './room.entity';
 import { type Analytics, type AnalyticsUser } from './types';
+import { captureError, captureMessage } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class RoomState {
@@ -166,34 +166,41 @@ export class RoomState {
         }
       } catch (error: unknown) {
         failureCount++;
-        log.debug(
-          { userId: user.id, roomId: room.id, error },
-          'Failed to send message to user - connection likely closed'
-        );
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'sendToEverySocketInRoom',
-            roomId: String(roomId),
-            userId: user.id,
+        captureError(
+          error as Error,
+          {
+            component: 'roomState',
+            action: 'broadcastToUser',
+            extra: {
+              roomId: String(roomId),
+              userId: user.id,
+              totalUsers: room.users.length,
+            },
           },
-          level: 'warning',
-        });
+          'medium'
+        );
       }
     }
 
     // Track if there were excessive failures
     if (failureCount > 0 && failureCount >= room.users.length / 2) {
-      Sentry.captureMessage('High WebSocket send failure rate in room', {
-        level: 'warning',
-        tags: {
-          roomId: String(roomId),
+      captureMessage(
+        'High WebSocket send failure rate in room',
+        {
+          component: 'roomState',
+          action: 'broadcastAll',
+          extra: {
+            roomId: String(roomId),
+            totalUsers: room.users.length,
+            successCount,
+            failureCount,
+            failureRate: Number(
+              ((failureCount / room.users.length) * 100).toFixed(1)
+            ),
+          },
         },
-        extra: {
-          totalUsers: room.users.length,
-          successCount,
-          failureCount,
-        },
-      });
+        'high'
+      );
     }
 
     room.lastUpdated = Date.now();
@@ -233,18 +240,19 @@ export class RoomState {
           );
         }
       } catch (error: unknown) {
-        log.debug(
-          { userId: user.id, roomId: room.id, error },
-          'Failed to send room name change notification to user - connection likely closed'
-        );
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'sendRoomNameChangeToAllUsers',
-            roomId: String(roomId),
-            userId: user.id,
+        captureError(
+          error as Error,
+          {
+            component: 'roomState',
+            action: 'sendRoomNameChange',
+            extra: {
+              roomId: String(roomId),
+              userId: user.id,
+              roomName,
+            },
           },
-          level: 'warning',
-        });
+          'medium'
+        );
       }
     }
 

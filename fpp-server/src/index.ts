@@ -2,12 +2,12 @@ import { createPinoLogger } from '@bogeychan/elysia-logger';
 import cron from '@elysiajs/cron';
 import * as Sentry from '@sentry/bun';
 import { Elysia, t } from 'elysia';
-import { sentry } from 'elysiajs-sentry';
 import { MessageHandler } from './message.handler';
 import { ActionSchema, CActionSchema } from './room.actions';
 import { User } from './room.entity';
 import { RoomState } from './room.state';
 import { type Analytics } from './types';
+import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
@@ -21,6 +21,38 @@ export const log = createPinoLogger({
             colorize: true,
           },
         },
+});
+
+// Initialize Sentry before Elysia app
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? 'development',
+  enabled: process.env.NODE_ENV !== 'development',
+
+  // Performance monitoring
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+
+  // Privacy filtering (match Next.js beforeSend)
+  beforeSend(event) {
+    // Remove PII
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+      delete event.user.geo;
+    }
+
+    // Remove sensitive headers
+    if (event.request?.headers) {
+      delete event.request.headers;
+    }
+
+    // Sample high-frequency connection errors (10%)
+    if (event.tags?.errorType === 'connection') {
+      return Math.random() < 0.1 ? event : null;
+    }
+
+    return event;
+  },
 });
 
 const roomState = new RoomState();
@@ -40,12 +72,30 @@ const app = new Elysia({
       },
     })
   )
-  .use(
-    sentry({
-      dsn: process.env.SENTRY_DSN,
-      environment: process.env.NODE_ENV,
-    })
-  );
+  // Centralized error handler (HTTP endpoints only)
+  .onError(({ code, error, set, request }) => {
+    const url = new URL(request.url);
+
+    captureError(
+      error as Error,
+      {
+        component: 'elysiaOnError',
+        action: url.pathname,
+        extra: {
+          errorCode: code,
+          method: request.method,
+        },
+      },
+      'high'
+    );
+
+    set.status = code === 'VALIDATION' ? 400 : 500;
+    return {
+      error:
+        code === 'VALIDATION' ? 'Invalid request' : 'Internal server error',
+      timestamp: Date.now(),
+    };
+  });
 
 app.get('/health', () => {
   return { status: 'ok' };
@@ -56,11 +106,14 @@ app.get('/analytics', (): Analytics => {
     roomState.cleanupInactiveState();
     return roomState.toAnalytics();
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: {
-        endpoint: 'analytics',
+    captureError(
+      error as Error,
+      {
+        component: 'httpEndpoint',
+        action: 'analytics',
       },
-    });
+      'high'
+    );
     throw error;
   }
 });
@@ -74,13 +127,18 @@ app.post(
       roomState.removeUserFromRoom(roomId, userId);
       return { success: true };
     } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          endpoint: 'leave',
-          roomId: String(roomId),
-          userId,
+      captureError(
+        error as Error,
+        {
+          component: 'httpEndpoint',
+          action: 'leave',
+          extra: {
+            roomId: String(roomId),
+            userId,
+          },
         },
-      });
+        'high'
+      );
       throw error;
     }
   },
@@ -102,25 +160,27 @@ app.ws('/ws', {
   open(ws) {
     const { roomId, userId, username } = ws.data.query;
 
+    addBreadcrumb('WebSocket connection opened', 'websocket', {
+      roomId: roomId ? String(roomId) : 'unknown',
+      userId: userId ?? 'unknown',
+    });
+
     if (!roomId || !userId || !username) {
-      log.error(
+      captureMessage(
+        'WebSocket connection missing query parameters',
         {
-          error: 'Missing query parameters',
-          wsId: ws.id,
-          query: ws.data.query,
+          component: 'websocketOpen',
+          action: 'validateParams',
+          extra: {
+            wsId: ws.id,
+            hasRoomId: !!roomId,
+            hasUserId: !!userId,
+            hasUsername: !!username,
+          },
         },
-        'Missing query parameters'
+        'medium'
       );
-      Sentry.captureMessage('WebSocket connection missing query parameters', {
-        level: 'warning',
-        tags: {
-          wsId: ws.id,
-        },
-        extra: {
-          query: ws.data.query,
-        },
-      });
-      ws.close();
+      ws.close(1008, 'Missing parameters');
       return;
     }
 
@@ -148,41 +208,65 @@ app.ws('/ws', {
         roomState.sendToEverySocketInRoom(roomId);
       }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
     } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          roomId: String(roomId),
-          userId,
-          wsId: ws.id,
-          operation: 'websocket_open',
+      captureError(
+        error as Error,
+        {
+          component: 'websocketOpen',
+          action: 'setupConnection',
+          extra: {
+            roomId: String(roomId),
+            userId,
+            wsId: ws.id,
+          },
         },
-      });
-      log.error(
-        { error, roomId, userId, wsId: ws.id },
-        'Error in WebSocket open handler'
+        'high'
       );
-      throw error;
+      ws.close(1011, 'Setup failed');
     }
   },
   message(ws, data) {
+    const actionData =
+      typeof data === 'object' && data !== null
+        ? (data as Record<string, unknown>)
+        : {};
+
+    // Extract action info for breadcrumb
+    const actionStr =
+      typeof actionData.action === 'string' ||
+      typeof actionData.action === 'number'
+        ? String(actionData.action)
+        : 'unknown';
+    const roomIdStr =
+      typeof actionData.roomId === 'string' ||
+      typeof actionData.roomId === 'number'
+        ? String(actionData.roomId)
+        : 'unknown';
+    const userIdStr =
+      typeof actionData.userId === 'string' ||
+      typeof actionData.userId === 'number'
+        ? String(actionData.userId)
+        : 'unknown';
+
+    addBreadcrumb(`WebSocket action: ${actionStr}`, 'websocket.action', {
+      roomId: roomIdStr,
+      userId: userIdStr,
+      action: actionStr,
+    });
+
     try {
       if (!CActionSchema.Check(data)) {
-        log.error(
+        captureMessage(
+          'Invalid WebSocket message format',
           {
-            error: 'Invalid message format',
-            wsId: ws.id,
-            data: String(data),
+            component: 'websocketMessage',
+            action: 'validateMessage',
+            extra: {
+              wsId: ws.id,
+              receivedData: String(data),
+            },
           },
-          'Invalid message format'
+          'medium'
         );
-        Sentry.captureMessage('Invalid WebSocket message format', {
-          level: 'error',
-          tags: {
-            wsId: ws.id,
-          },
-          extra: {
-            receivedData: String(data),
-          },
-        });
         ws.send(
           JSON.stringify({
             error: 'Invalid message format',
@@ -195,46 +279,26 @@ app.ws('/ws', {
 
       messageHandler.handleMessage(ws, data);
     } catch (error: unknown) {
-      const actionData =
-        typeof data === 'object' && data !== null
-          ? (data as Record<string, unknown>)
-          : {};
-
-      // Safely convert to strings for Sentry tags
-      const actionStr =
-        typeof actionData.action === 'string' ||
-        typeof actionData.action === 'number'
-          ? String(actionData.action)
-          : 'unknown';
-      const roomIdStr =
-        typeof actionData.roomId === 'string' ||
-        typeof actionData.roomId === 'number'
-          ? String(actionData.roomId)
-          : 'unknown';
-      const userIdStr =
-        typeof actionData.userId === 'string' ||
-        typeof actionData.userId === 'number'
-          ? String(actionData.userId)
-          : 'unknown';
-
-      Sentry.captureException(error, {
-        tags: {
-          wsId: ws.id,
+      captureError(
+        error as Error,
+        {
+          component: 'websocketMessage',
           action: actionStr,
-          roomId: roomIdStr,
-          userId: userIdStr,
+          extra: {
+            wsId: ws.id,
+            roomId: roomIdStr,
+            userId: userIdStr,
+          },
         },
-        extra: {
-          messageData: data,
-        },
-      });
+        'high'
+      );
+
       if (error instanceof Error) {
-        log.error({ error, wsId: ws.id, ...data }, 'Error processing message');
         ws.send(
           JSON.stringify({
             error: error.message,
+            timestamp: Date.now(),
             wsId: ws.id,
-            ...data,
           })
         );
       }
@@ -255,18 +319,28 @@ app.ws('/ws', {
     // 1006 = Abnormal closure (no close frame - very common for tab closes, network issues)
     const expectedCloseCodes = [1000, 1001, 1005, 1006];
     if (!expectedCloseCodes.includes(code)) {
-      Sentry.captureMessage('WebSocket closed with abnormal code', {
-        level: 'warning',
-        tags: {
-          closeCode: String(code),
-          wsId: ws.id,
-          roomId: connection?.roomId ? String(connection.roomId) : undefined,
-          userId: connection?.userId,
-        },
-        extra: {
-          reason: reason?.toString(),
-        },
+      addBreadcrumb('WebSocket abnormal close', 'websocket', {
+        closeCode: String(code),
+        reason: reason?.toString() ?? 'unknown',
+        roomId: connection?.roomId ? String(connection.roomId) : 'unknown',
+        userId: connection?.userId ?? 'unknown',
       });
+
+      captureMessage(
+        `WebSocket closed with abnormal code: ${code}`,
+        {
+          component: 'websocketClose',
+          action: 'handleClose',
+          extra: {
+            closeCode: code,
+            reason: reason?.toString() ?? 'none',
+            wsId: ws.id,
+            roomId: connection?.roomId ? String(connection.roomId) : 'unknown',
+            userId: connection?.userId ?? 'unknown',
+          },
+        },
+        'low'
+      );
     }
 
     // DON'T remove the user immediately - let heartbeat timeout handle it

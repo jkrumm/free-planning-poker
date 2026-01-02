@@ -56,18 +56,18 @@ This service is the **AUTHORITATIVE source for real-time room state**. All room 
 
 ```
 fpp-server/src/
-├── index.ts               # Elysia app, WebSocket route, cron jobs (146 lines)
-├── message.handler.ts     # Action handler switch (301 lines)
-├── room.state.ts          # In-memory Map<roomId, RoomServer> (388 lines)
-├── room.entity.ts         # RoomServer & UserServer classes (206 lines)
-├── room.actions.ts        # TypeBox schemas & Action types (219 lines)
-├── room.types.ts          # DTOs for client serialization (146 lines)
-├── types.ts               # Shared utility types (23 lines)
-├── utils.ts               # Helper functions (17 lines)
-└── websocket.constants.ts # Cron schedule (4 lines)
+├── index.ts               # Elysia app, WebSocket route, cron jobs
+├── message.handler.ts     # Action handler switch
+├── room.state.ts          # In-memory Map<roomId, RoomServer>
+├── room.entity.ts         # RoomServer & UserServer classes
+├── room.actions.ts        # TypeBox schemas & Action types
+├── room.types.ts          # DTOs for client serialization
+├── types.ts               # Shared utility types
+├── utils.ts               # Helper functions
+├── utils/
+│   └── app-error.ts       # Sentry error handling wrappers
+└── websocket.constants.ts # Cron schedule
 ```
-
-**Total:** ~1,550 lines for a complete real-time WebSocket server
 
 ---
 
@@ -215,29 +215,83 @@ await fetch(`${process.env.TRPC_URL}/room.trackFlip`, {
 
 ## Error Handling
 
-### Sentry Integration
+fpp-server uses @sentry/bun with centralized error capture matching the Next.js service architecture.
+
+### Error Capture Helpers
+
+**Import:**
 
 ```typescript
-import * as Sentry from '@sentry/bun';
-
-try {
-  // risky operation
-} catch (error) {
-  Sentry.captureException(error, {
-    tags: { roomId, userId, action: action.action },
-  });
-  // Don't throw - silently fail to avoid disrupting other users
-}
+import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
 ```
 
-**NO custom error wrapper** - Direct Sentry usage only.
+**Usage:**
+
+```typescript
+// System errors
+captureError(
+  error as Error,
+  {
+    component: 'messageHandler',
+    action: 'selectEstimation',
+    extra: { roomId, userId },
+  },
+  'high'
+);
+
+// Informational messages
+captureMessage(
+  'Unknown action received',
+  {
+    component: 'messageHandler',
+    action: 'routeAction',
+    extra: { action: message.action },
+  },
+  'medium'
+);
+
+// Breadcrumbs (lifecycle events)
+addBreadcrumb('WebSocket connection opened', 'websocket', {
+  roomId,
+  userId,
+});
+```
+
+### Error Severity Guidelines
+
+| Severity     | Use Case                 | Examples                                            |
+| ------------ | ------------------------ | --------------------------------------------------- |
+| **critical** | Data loss, service crash | Room state corruption, missing environment variable |
+| **high**     | User action blocked      | Message handler crash, broadcast failure (>50%)     |
+| **medium**   | Degraded experience      | Individual send failure, analytics tracking failure |
+| **low**      | Informational            | Unknown action, connection error (expected)         |
+
+### What NOT to Capture
+
+- Room/user not found (stale state, expected)
+- Invalid message format (validation, expected)
+- Normal WebSocket closes (1000, 1001, 1005, 1006)
+- Connection errors (sampled at 10%)
+
+### Centralized Capture Points
+
+**HTTP endpoints:** Elysia `onError` hook captures all uncaught errors
+**WebSocket messages:** Manual try-catch in message handler
+**WebSocket lifecycle:** Manual capture in open/error handlers
+
+### Privacy & Performance
+
+- **PII removed:** email, IP, geo, headers (beforeSend)
+- **Sampling:** Connection errors sampled at 10%
+- **Performance tracing:** 10% in production
+- **Development:** Sentry disabled, console.error fallback
 
 ### Graceful Degradation
 
 - **Invalid messages**: Silently drop (already filtered by TypeBox)
 - **Room not found**: Skip action (user likely stale)
 - **User not in room**: Skip action (already left)
-- **WebSocket send fails**: Remove user from room (connection lost)
+- **WebSocket send fails**: Capture error, continue to other users
 
 ---
 
