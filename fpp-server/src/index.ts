@@ -70,6 +70,12 @@ const app = new Elysia({
   .onError(({ code, error, set, request }) => {
     const url = new URL(request.url);
 
+    // NOT_FOUND is expected (favicon.ico, robots.txt, etc.) - don't capture
+    if (code === 'NOT_FOUND') {
+      set.status = 404;
+      return { error: 'Not found', timestamp: Date.now() };
+    }
+
     captureError(
       error as Error,
       {
