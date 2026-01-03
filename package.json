@@ -27,7 +27,7 @@
     "format": "prettier --write \"{src,test}/**\"",
     "format:check": "prettier --check \"{src,test}/**\"",
     "type-check": "tsc --noEmit",
-    "prepare": "husky",
+    "prepare": "lefthook install",
     "pre": "npm run format && npm run lint && npm run type-check  && SKIP_ENV_VALIDATION=1 npm run build",
     "validate": "concurrently --names \"nextjs,fpp-server,fpp-analytics\" --prefix-colors \"cyan,magenta,yellow\" \"npm run pre\" \"cd fpp-server && bun run validate\" \"npm run fpp-analytics:validate\"",
     "validate:nextjs": "npm run pre",
@@ -104,9 +104,8 @@
     "eslint-config-next": "^16.1.1",
     "eslint-plugin-drizzle": "^0.2.3",
     "globals": "^17.0.0",
-    "husky": "^9.1.7",
     "knip": "^5.79.0",
-    "lint-staged": "^16.2.7",
+    "lefthook": "^2.0.13",
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
@@ -146,14 +145,5 @@
         }
       }
     }
-  },
-  "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "src/**/*.{json,css,md}": [
-      "prettier --write"
-    ]
   }
 }

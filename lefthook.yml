@@ -1,0 +1,38 @@
+pre-commit:
+  parallel: true
+  commands:
+    # Next.js
+    nextjs-format:
+      run: npm run format:check
+    nextjs-lint:
+      run: SKIP_ENV_VALIDATION=1 npm run lint
+    nextjs-typecheck:
+      run: SKIP_ENV_VALIDATION=1 npm run type-check
+
+    # fpp-server
+    fpp-server-format:
+      root: fpp-server
+      run: bun run format:check
+    fpp-server-lint:
+      root: fpp-server
+      run: bun run lint
+    fpp-server-typecheck:
+      root: fpp-server
+      run: bun run type-check
+
+    # fpp-analytics
+    fpp-analytics-format:
+      root: fpp-analytics
+      run: uv run ruff format --check
+    fpp-analytics-lint:
+      root: fpp-analytics
+      run: uv run ruff check
+    fpp-analytics-typecheck:
+      root: fpp-analytics
+      run: uv run mypy .
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
+
