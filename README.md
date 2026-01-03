@@ -151,3 +151,7 @@ The project uses Drizzle Kit for database migrations. Available commands:
 3. Copy `.env.example` to `.env` and populate variables (see `fpp-analytics/.env.example`)
 4. Generate Parquet files (first time only): `uv run python update_readmodel.py`
 5. Run the API: `uv run uvicorn main:app --reload --port 5100`
+
+### Releases
+
+Releases are created via `npm run release` (release-it) or `/release-fpp` Claude Code command for AI-enhanced release notes.
