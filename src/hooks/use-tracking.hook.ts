@@ -45,14 +45,15 @@ export const useTrackPageView = (
     }
 
     try {
-      // Extract source from URL
+      // Extract source from URL (support both ?source= and ?utm_source=)
       const urlParams = new URLSearchParams(window.location.search);
-      let source = urlParams.get('source');
+      let source = urlParams.get('source') ?? urlParams.get('utm_source');
       source ??= document.referrer === '' ? null : document.referrer;
 
-      // Remove source query param from URL
+      // Remove source query params from URL
       const url = new URL(window.location.href);
       url.searchParams.delete('source');
+      url.searchParams.delete('utm_source');
 
       startTransition(() => {
         window.history.replaceState({}, '', url.toString());
