@@ -144,3 +144,6 @@ cython_debug/
 *idea/
 # Backup files
 *.backup
+
+# Auto Claude data directory
+.auto-claude/

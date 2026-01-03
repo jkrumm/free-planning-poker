@@ -1,16 +1,29 @@
 # [Free-Planning-Poker.com](https://free-planning-poker.com/)
 
-#### Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.
+Straightforward planning poker. Create a room, share the link, vote instantly. No fuzz.
 
-Based on NextJs, tRPC, Drizzle and Mantine UI components.
+## Why Free Planning Poker?
 
-Uses a three-service architecture: Next.js app (port 3001), Bun WebSocket server (port 3003) for real-time features, and FastAPI analytics (port 5100). Self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
+- **Free forever** - No limits, no premium tiers, no hidden costs
+- **No sign-up required** - Create a room and start voting immediately
+- **Privacy-first** - No tracking cookies, no IP addresses stored, all data stays in your browser's localStorage
+- **GDPR compliant** - Privacy by design, hosted on a private German VPS
+- **Unlimited** - No cap on participants, rooms, or votes
+- **Mobile-friendly** - Works on any device
+- **Battle-tested** - Stable in production with hundreds of daily users
+- **Open source** - Inspect the code yourself
 
-All "personal" data is stored only in the visitors local storage.
-
-## See in action
+**[Start Planning](https://free-planning-poker.com/?source=github)**
 
 ![demo](https://raw.githubusercontent.com/jkrumm/planning-poker/master/public/recording.gif)
+
+---
+
+## Technical Overview
+
+Based on Next.js, tRPC, Drizzle and Mantine UI components.
+
+Uses a three-service architecture: Next.js app (port 3001), Bun WebSocket server (port 3003) for real-time features, and FastAPI analytics (port 5100). Self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
 
 ## Quick Start
 
@@ -22,7 +35,7 @@ Free Planning Poker runs on three services. Start all at once with `npm run dev:
 | **WebSocket Server** | Bun | 3003 | `cd fpp-server && bun dev` | .env file |
 | **Analytics API** | Python 3.12 (uv) | 5100 | `cd fpp-analytics && uv run uvicorn main:app --reload --port 5100` | .env file |
 
-📖 **For detailed architecture**, see `ARCHITECTURE.md` and `fpp-server/CLAUDE.md`, `fpp-analytics/CLAUDE.md`
+**For detailed architecture**, see `ARCHITECTURE.md` and `fpp-server/CLAUDE.md`, `fpp-analytics/CLAUDE.md`
 
 **Note:** Run `cd fpp-analytics && uv run python update_readmodel.py` once before first start to generate Parquet files.
 
@@ -109,7 +122,7 @@ The project uses Drizzle Kit for database migrations. Available commands:
 - `npm run db:studio` - Open Drizzle Studio database GUI
 - `npm run db:check` - Check if schema and database are in sync
 
-⚠️ **Important**: Before running any migration commands, verify that your `.env` file contains the correct `DATABASE_URL` - ensure it points to your local development database, not production!
+**Important**: Before running any migration commands, verify that your `.env` file contains the correct `DATABASE_URL` - ensure it points to your local development database, not production!
 
 **Migration workflow:**
 1. Make changes to `src/server/db/schema.ts`
