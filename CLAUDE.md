@@ -813,7 +813,23 @@ test(JK-60): add tests
 chore: maintenance tasks
 ```
 
+### Releases
+
+Use the `/release-fpp` command to create releases with AI-enhanced GitHub release notes:
+
+```bash
+/release-fpp [version]  # version: patch/minor/major (optional)
+```
+
+**Workflow:**
+1. Analyzes commits since last tag
+2. Generates AI summary (title, highlights, description)
+3. Runs `npm run release` (interactive version selection)
+4. Edits GitHub release to prepend AI summary
+
+**Note:** CHANGELOG.md stays clean with conventional changelog only. AI content appears only in GitHub release notes.
+
 ---
 
-**Last Updated**: 2025-12-27
+**Last Updated**: 2026-01-03
 **For detailed architecture explanation**: See `ARCHITECTURE.md` and `.openspec/project.md`
