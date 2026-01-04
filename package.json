@@ -119,31 +119,7 @@
   "ct3aMetadata": {
     "initVersion": "7.30.2"
   },
-  "release-it": {
-    "git": {
-      "requireBranch": "master",
-      "commitMessage": "chore: release v${version}"
-    },
-    "github": {
-      "release": true
-    },
-    "npm": {
-      "publish": false
-    },
-    "hooks": {
-      "before:init": "git pull",
-      "after:release": [
-        "git pull",
-        "echo Successfully released ${name} v${version} to ${repo.repository}."
-      ]
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "infile": "CHANGELOG.md",
-        "preset": {
-          "name": "conventionalcommits"
-        }
-      }
-    }
+  "overrides": {
+    "conventional-changelog-conventionalcommits": "^8.0.0"
   }
 }

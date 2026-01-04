@@ -1,0 +1,46 @@
+{
+  "$schema": "https://unpkg.com/release-it@19/schema/release-it.json",
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "${version}",
+    "tagAnnotation": "Release ${version}",
+    "tag": true,
+    "commit": true,
+    "push": true,
+    "requireCleanWorkingDir": true,
+    "requireBranch": "master"
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Release ${version}",
+    "tokenRef": "GITHUB_TOKEN"
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:init": ["git pull"],
+    "after:release": ["git pull", "echo Successfully released ${name} v${version}"]
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "header": "# Changelog\n\nAll notable changes to this project will be documented in this file.\n",
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "Features" },
+          { "type": "fix", "section": "Bug Fixes" },
+          { "type": "perf", "section": "Performance" },
+          { "type": "refactor", "section": "Refactoring" },
+          { "type": "docs", "section": "Documentation" },
+          { "type": "ci", "section": "CI/CD" },
+          { "type": "chore", "section": "Maintenance", "hidden": true },
+          { "type": "test", "section": "Tests", "hidden": true },
+          { "type": "style", "section": "Styles", "hidden": true },
+          { "type": "build", "section": "Build", "hidden": true }
+        ]
+      }
+    }
+  }
+}
