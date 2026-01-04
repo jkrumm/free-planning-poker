@@ -2,168 +2,154 @@
 description: "Create a release with AI-generated summary for GitHub release notes"
 arguments:
   - name: version
-    description: "Optional version hint (patch/minor/major). Default: let release-it auto-detect"
+    description: "Version to release (e.g., 8.4.0) or bump type (patch/minor/major)"
     required: false
 ---
 
 # Release Command for Free Planning Poker
 
-Create releases with AI-enhanced GitHub release notes while keeping CHANGELOG.md clean with conventional changelog only.
+Create releases with AI-enhanced GitHub release notes. Uses `release-it` with `@release-it/conventional-changelog` for automated versioning and changelog generation.
 
 ## Prerequisites
 
 - Must be on `master` branch
 - Working directory must be clean (no uncommitted changes)
-- `gh` CLI authenticated
+- `gh` CLI authenticated (`gh auth login`)
+
+## Configuration
+
+Release configuration is in `.release-it.json`:
+- Conventional commits preset with grouped sections
+- Auto-generates CHANGELOG.md
+- Creates GitHub release automatically
+- npm override for `conventional-changelog-conventionalcommits@^8.0.0` in package.json
 
 ## Workflow
 
 ### Phase 1: Pre-flight Checks
 
 ```bash
-# Verify branch
+# Verify branch and clean state
 git branch --show-current  # Must be master
-
-# Verify clean state
-git status --porcelain  # Must be empty
-
-# Get last tag
-git describe --tags --abbrev=0
+git status --porcelain     # Must be empty
+git describe --tags --abbrev=0  # Show last tag
 ```
 
-### Phase 2: Analyze Changes
-
-Run these commands to understand the release scope:
+### Phase 2: Analyze Commits
 
 ```bash
 # Get commits since last tag
 git log --oneline $(git describe --tags --abbrev=0)..HEAD
-
-# Get commit details for AI analysis
-git log --pretty=format:"%s%n%b" $(git describe --tags --abbrev=0)..HEAD
 ```
 
-Categorize commits by type:
-- `feat:` → Features (user-facing improvements)
+Categorize by type for AI summary:
+- `feat:` → Features
 - `fix:` → Bug Fixes
-- `refactor:` → Code Refactoring
+- `refactor:` → Refactoring
 - `docs:` → Documentation
-- `ci:` → CI/CD improvements
-- `chore:` → Maintenance
+- `ci:` → CI/CD
+- `chore:` → Maintenance (hidden in changelog)
 
 ### Phase 3: Generate AI Summary
 
-Based on the commits, generate:
+Create a summary with:
 
-1. **Release Title** (catchy, ~5-10 words)
-   - Format: `<version> - <theme>`
-   - Example: `8.3.0 - Observability & Polish`
+1. **Release Title** (theme, ~5 words)
+   - Example: "Observability & Developer Experience"
 
-2. **Executive Summary** (2-3 sentences)
+2. **Summary Paragraph** (2-3 sentences)
    - What this release brings
-   - Key improvements for users/developers
+   - Key improvements
 
-3. **Key Highlights** (4-6 bullet points)
-   - Major features and improvements
-   - Focus on impact, not implementation details
-
-**Output Format:**
-```markdown
-## <Title>
-
-<Executive summary paragraph>
-
-### Key Highlights
-- Highlight 1
-- Highlight 2
-- ...
-
----
-
-<Conventional changelog will appear below>
-```
+3. **Key Highlights** (5-7 bullet points)
+   - Major features
+   - Focus on impact
 
 ### Phase 4: Execute Release
 
-Run release-it interactively:
-
 ```bash
-npm run release
+# Get GitHub token and run release
+GITHUB_TOKEN=$(gh auth token) npm run release -- <version> --ci
 ```
 
-**Interactive prompts:**
-1. Version bump selection (patch/minor/major or specific version)
-2. Changelog preview confirmation
-3. Git commit/tag confirmation
-4. GitHub release confirmation
+Where `<version>` is:
+- Specific version: `8.4.0`
+- Bump type: `patch`, `minor`, `major`
+- Auto (based on commits): omit version argument
 
-Wait for release-it to complete. It will:
-- Update `CHANGELOG.md` with conventional commits
-- Create git commit: `chore: release v<version>`
-- Create git tag
-- Create GitHub release with auto-generated notes
+This will:
+1. Update version in package.json
+2. Generate changelog entries in CHANGELOG.md
+3. Create git commit and tag
+4. Push to GitHub
+5. Create GitHub release with changelog
 
 ### Phase 5: Enhance GitHub Release
 
-After release-it completes, update GitHub release with AI summary:
+After release completes, prepend AI summary:
 
 ```bash
-# Get the new version tag
-NEW_TAG=$(git describe --tags --abbrev=0)
+# Get current notes
+gh release view <version> --json body -q .body > /tmp/release-notes-original.md
 
-# Fetch current release notes
-gh release view $NEW_TAG --json body -q .body > /tmp/release-notes.md
+# Create enhanced notes (AI summary + original)
+# Write to /tmp/release-notes-enhanced.md
 
-# Prepend AI summary to release notes
-# (Create new file with AI summary + existing notes)
-
-# Update the release
-gh release edit $NEW_TAG --notes-file /tmp/enhanced-release-notes.md
-```
-
-**Final release format:**
-```markdown
-## 8.3.0 - Observability & Polish
-
-This release brings unified structured logging across all services...
-
-### Key Highlights
-- Unified JSON logging with Logdy integration
-- Centralized error handling with CustomTRPCError
-- ...
-
----
-
-## What's Changed
-### Features
-* feat: ... by @jkrumm in #XX
-...
-
-### Bug Fixes
-* fix: ... by @jkrumm in #XX
-...
+# Update release
+gh release edit <version> \
+  --title "Release <version> - <Theme Title>" \
+  --notes-file /tmp/release-notes-enhanced.md
 ```
 
 ### Phase 6: Verify
 
 ```bash
-# Show the release
-gh release view $NEW_TAG
-
-# Open in browser
-gh release view $NEW_TAG --web
+# Open release in browser
+gh release view <version> --web
 ```
 
-## Error Handling
+## Example AI Summary Format
 
-- **Not on master**: Abort, ask user to switch branches
-- **Uncommitted changes**: Abort, ask user to commit or stash
-- **release-it fails**: Check error, may need to resolve manually
-- **gh release edit fails**: Provide manual edit URL
+```markdown
+## <Theme Title>
+
+<2-3 sentence summary of what this release brings>
+
+### Key Highlights
+- **Feature 1** description
+- **Feature 2** description
+- **Improvement** description
+- ...
+
+---
+
+## [<version>](...) (<date>)
+<auto-generated changelog below>
+```
+
+## Troubleshooting
+
+### "Working dir must be clean"
+```bash
+git status  # Check what's dirty
+git checkout -- <files>  # Restore if needed
+```
+
+### "whatBump is not a function"
+The `.release-it.json` config and `overrides` in package.json should prevent this. If it occurs:
+1. Verify `.release-it.json` exists with proper preset object format
+2. Check `overrides` in package.json has `conventional-changelog-conventionalcommits@^8.0.0`
+3. Run `rm -rf node_modules package-lock.json && npm install`
+
+### GitHub token issues
+```bash
+gh auth login  # Re-authenticate if needed
+gh auth token  # Verify token works
+```
 
 ## Notes
 
-- CHANGELOG.md remains clean (conventional changelog only)
-- AI summary only appears in GitHub release notes
-- release-it handles version bumping, tagging, and publishing
-- This command guides the process but requires user interaction for version selection
+- CHANGELOG.md is auto-managed by release-it (don't edit manually)
+- AI summary only appears in GitHub release notes (not CHANGELOG.md)
+- Version follows semantic versioning based on conventional commits
+- The `--ci` flag enables non-interactive mode
