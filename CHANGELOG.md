@@ -1,5 +1,48 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+
+## [8.3.0](https://github.com/jkrumm/free-planning-poker/compare/8.2.0...8.3.0) (2026-01-04)
+
+### Features
+
+* add /release-fpp command for AI-enhanced releases ([e42873f](https://github.com/jkrumm/free-planning-poker/commit/e42873fef3b211b5c74d419ef04e9041bb40a9af))
+* add utm_source query parameter support for tracking ([674c598](https://github.com/jkrumm/free-planning-poker/commit/674c598da2dba55f1cd8238c5a7c3569307bef38))
+* **JK-60:** added landing page analytics API ([63eafad](https://github.com/jkrumm/free-planning-poker/commit/63eafad18dcfead114514dab310383212350a1e9))
+* **JK-60:** added logging, caching and data age to analytics ([24e365f](https://github.com/jkrumm/free-planning-poker/commit/24e365fd540175752bca9edb1e31cf346b9edf2f))
+* **JK-85:** add unified JSON logging with Logdy ([bf6984b](https://github.com/jkrumm/free-planning-poker/commit/bf6984b125e2da8df625313000881a516a3dae22))
+
+### Bug Fixes
+
+* add root route to fpp-server to prevent NOT_FOUND errors ([b0492e3](https://github.com/jkrumm/free-planning-poker/commit/b0492e31a1810f8c495a9b94cb41e8103ac60b32))
+* filter NOT_FOUND from Sentry in fpp-server ([8f63001](https://github.com/jkrumm/free-planning-poker/commit/8f63001882cbe11eeb2f5bcdc3ca5aaa3f0a12ab))
+* **JK-60:** update Sentry project URL and handle non-OK API responses ([0fb1272](https://github.com/jkrumm/free-planning-poker/commit/0fb1272ff9473ba5d401c69d91f3d8797af41049))
+* **JK-73:** add HTTP response validation to prevent unhandled promise rejections ([1ada732](https://github.com/jkrumm/free-planning-poker/commit/1ada732be1572a634aab2096a4dd0f7ec550c360))
+* proper release-it configuration with external config file ([e90fb04](https://github.com/jkrumm/free-planning-poker/commit/e90fb04dce6ae9fc7ff631d4fd7f4f0262652055))
+* simplify release-it preset config to fix whatBump error ([f3bb690](https://github.com/jkrumm/free-planning-poker/commit/f3bb6900427e72286aeaae08e01086a42a33afe7))
+
+### Refactoring
+
+* complete AG Charts v13 migration with improved type safety ([b0cc247](https://github.com/jkrumm/free-planning-poker/commit/b0cc2476e3386d772e4e52d7ab510a83ba6d5f59))
+* **JK-60:** new fpp-analytics using FastAPI & Polars ([3adf564](https://github.com/jkrumm/free-planning-poker/commit/3adf56494baf1f5c46b5cf2f1c88d2a4c0735134))
+* **JK-65:** centralize Sentry error handling for fpp-analytics ([44e598f](https://github.com/jkrumm/free-planning-poker/commit/44e598f51b8f6a12f9430d7214b1e4081ade744b))
+* **JK-65:** centralize tRPC error handling with CustomTRPCError ([dfa792f](https://github.com/jkrumm/free-planning-poker/commit/dfa792fad8c1dd7e0f96108c1d0de1ba8df6e772))
+* **JK-65:** centralize tRPC error handling with CustomTRPCError ([582e8ba](https://github.com/jkrumm/free-planning-poker/commit/582e8baa0d750379f51376bef1794b6cfa7967a6))
+* **JK-65:** centralize tRPC error handling with Pino integration ([b16ee26](https://github.com/jkrumm/free-planning-poker/commit/b16ee2669cd656eb7aa977dc37815356d65ed773))
+
+### Documentation
+
+* add releases section to README ([fac0b90](https://github.com/jkrumm/free-planning-poker/commit/fac0b90cbd4b40a3eec2984fdc78932821b4f01d))
+* **JK-64:** establish AI development workflow with OpenSpec ([70b9e2f](https://github.com/jkrumm/free-planning-poker/commit/70b9e2fd8bcbf231d6ef06ff9daae150142cd728))
+* revamp README with developer-focused marketing section ([2eaaea8](https://github.com/jkrumm/free-planning-poker/commit/2eaaea8a10af5a8ca7c9145c4762c90e00fc77b9))
+
+### CI/CD
+
+* implement deep validation infrastructure across all services ([83d281f](https://github.com/jkrumm/free-planning-poker/commit/83d281f49037321a8859ee12d2efd77650e12532))
+
+# Changelog
+
 ## 8.2.0 (2025-11-01)
 
 * fix: add 1005 to allow abnormal WebSocket close codes ([b65a034](https://github.com/jkrumm/free-planning-poker/commit/b65a034))
