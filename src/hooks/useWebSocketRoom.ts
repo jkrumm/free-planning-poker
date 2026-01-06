@@ -225,15 +225,13 @@ export const useWebSocketRoom = ({
       },
 
       onReconnectStop: (numAttempts) => {
-        captureError(
-          'WebSocket reconnection failed',
-          {
-            component: 'useWebSocketRoom',
-            action: 'onReconnectStop',
-            extra: { attempts: numAttempts },
-          },
-          'low',
-        );
+        // Don't capture to Sentry - this is expected after 20 retries (~190 seconds)
+        // User likely closed laptop, lost network, or intentionally left
+        addBreadcrumb('WebSocket reconnection exhausted', 'websocket', {
+          attempts: numAttempts,
+          message:
+            'All retry attempts exhausted - expected after prolonged network loss',
+        });
       },
     },
   );

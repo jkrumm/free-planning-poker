@@ -321,16 +321,11 @@ async function preloadAudioFiles() {
       loadedCount: audioBuffers.size,
     });
   } catch (error) {
-    captureError(
-      error instanceof Error
-        ? error
-        : new Error('Failed to preload audio files'),
-      {
-        component: 'preloadAudioFiles',
-        action: 'preload',
-      },
-      'medium',
-    );
+    // EncodingError and similar decode failures are expected browser limitations
+    // (e.g., browser doesn't support WAV codec). App gracefully degrades to silent.
+    addBreadcrumb('Audio preload failed', 'audio', {
+      errorName: error instanceof Error ? error.name : 'Unknown',
+    });
   }
 }
 
@@ -437,9 +432,16 @@ function playHtml5Sound(sound: 'join' | 'leave' | 'success' | 'tick') {
           addBreadcrumb('HTML5 Audio sound played', 'audio', { sound });
         })
         .catch((error) => {
-          if (error instanceof Error && error.name === 'NotAllowedError') {
-            addBreadcrumb('HTML5 Audio blocked by autoplay policy', 'audio', {
+          if (
+            error instanceof Error &&
+            (error.name === 'NotAllowedError' ||
+              error.name === 'NotSupportedError')
+          ) {
+            // NotAllowedError: Browser autoplay policy blocked audio
+            // NotSupportedError: Browser doesn't support audio format (expected limitation)
+            addBreadcrumb('HTML5 Audio blocked or not supported', 'audio', {
               sound,
+              errorName: error.name,
             });
           } else {
             captureError(

@@ -70,7 +70,8 @@ export const config = {
      * - api/blocked (blocked api endpoint)
      * - blocked (blocked page)
      * - api/get-rooms (get-rooms api endpoint) (ssr)
+     * - api/track-page-view (analytics tracking, safe to exempt)
      */
-    '/((?!_next|static|favicon.ico|api/blocked|blocked|api/get-rooms|monitoring).*)',
+    '/((?!_next|static|favicon.ico|api/blocked|blocked|api/get-rooms|api/track-page-view|monitoring).*)',
   ],
 };

@@ -33,6 +33,7 @@ export const useConnectionHealth = ({
   // eslint-disable-next-line react-hooks/purity -- Valid pattern: Initializing ref with current timestamp for visibility tracking
   const lastVisibilityChange = useRef(Date.now());
   const isTabVisible = useRef(true);
+  const isUnloadingRef = useRef(false);
 
   // Track tab visibility to handle browser throttling
   const handleVisibilityChange = useCallback(() => {
@@ -102,8 +103,18 @@ export const useConnectionHealth = ({
     // Add visibility change listener
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Track page unload to skip error capture when user closes tab
+    // Both events needed: beforeunload for legacy support, pagehide for modern browsers
+    const handleUnload = () => {
+      isUnloadingRef.current = true;
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('pagehide', handleUnload);
     };
   }, [handleVisibilityChange]);
 
@@ -182,6 +193,17 @@ export const useConnectionHealth = ({
               (recoveryAttempts.current >= 2 || timeSinceLastPong > 90000) && // Either recovery failed OR 90s total
               reloadAttempts.current < 3
             ) {
+              // Skip error capture and reload if user is closing the tab
+              // This prevents false positives when tab closure causes connection timeout
+              if (isUnloadingRef.current) {
+                addBreadcrumb(
+                  'Connection health critical during page unload - skipping',
+                  'websocket',
+                  { timeSinceLastPong },
+                );
+                return;
+              }
+
               addBreadcrumb(
                 'Connection health critical - forcing reload',
                 'websocket',
@@ -212,7 +234,7 @@ export const useConnectionHealth = ({
                     isTabVisible: isTabVisible.current,
                   },
                 },
-                'critical',
+                'high',
               );
 
               reloadAttempts.current++;

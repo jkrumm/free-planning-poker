@@ -183,18 +183,28 @@ const sendViaFetch = (
 ) => {
   fetch(url, { body, method: 'POST', keepalive: true })
     .then((res) => {
+      // Handle rate limiting or WAF blocks gracefully - don't capture as errors
+      if (res.status === 403 || res.status === 429) {
+        addBreadcrumb('Page view tracking rate limited', 'tracking', {
+          status: res.status,
+        });
+        return null;
+      }
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
       return res.json() as Promise<{ userId: string }>;
     })
-    .then(({ userId }) => {
+    .then((data) => {
+      // Skip if rate limited (returned null from previous .then())
+      if (!data) return;
+
       startTransition(() => {
-        setUserIdRoomState(userId);
-        setUserIdLocalStorage(userId);
+        setUserIdRoomState(data.userId);
+        setUserIdLocalStorage(data.userId);
       });
       addBreadcrumb('Page view tracking successful', 'tracking', {
-        newUserId: userId,
+        newUserId: data.userId,
       });
     })
     .catch((fetchError) => {
