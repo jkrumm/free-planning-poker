@@ -42,7 +42,7 @@ Sentry.init({
 
     // Sample high-frequency connection errors (10%)
     if (event.tags?.errorType === 'connection') {
-      return Math.random() < 0.1 ? event : null;
+      return Math.random() < 0.1 ? event : null; //NOSONAR - sampling rate, not crypto
     }
 
     return event;
