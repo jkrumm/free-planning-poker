@@ -19,7 +19,7 @@ def get_current_timestamp() -> str | None:
     try:
         if cache_file.exists():
             return cache_file.read_text().strip()
-    except (OSError, PermissionError, UnicodeDecodeError) as e:
+    except (OSError, UnicodeDecodeError) as e:  # PermissionError derives from OSError
         sentry_sdk.capture_exception(e)
     return None
 

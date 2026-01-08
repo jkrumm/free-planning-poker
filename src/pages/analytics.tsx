@@ -573,7 +573,7 @@ const Analytics = () => {
                     const sortedUsers = sortUsers(room.users);
 
                     return (
-                      <Table.Tr key={roomIndex}>
+                      <Table.Tr key={room.firstActive}>
                         <Table.Td>
                           <Text fw={500} pl={4}>
                             Room {roomIndex + 1}
@@ -596,9 +596,9 @@ const Analytics = () => {
                         </Table.Td>
                         <Table.Td>
                           <Group gap={4} wrap="nowrap">
-                            {sortedUsers.map((user, userIndex) => (
+                            {sortedUsers.map((user) => (
                               <Tooltip
-                                key={userIndex}
+                                key={user.firstActive}
                                 label={
                                   <div>
                                     <Text size="sm" fw={500}>

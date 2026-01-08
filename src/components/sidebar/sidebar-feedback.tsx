@@ -55,12 +55,12 @@ const SidebarFeedback = () => {
         !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value)
           ? 'Invalid email'
           : null,
-      message: (value) =>
-        value.trim().length < 15
-          ? 'Message must be at least 15 characters'
-          : value.trim().length > 500
-            ? 'Message must be at most 500 characters'
-            : null,
+      message: (value) => {
+        const len = value.trim().length;
+        if (len < 15) return 'Message must be at least 15 characters';
+        if (len > 500) return 'Message must be at most 500 characters';
+        return null;
+      },
     },
     validateInputOnChange: true,
     validateInputOnBlur: true,

@@ -24,7 +24,7 @@ Sentry.init({
   enabled: process.env.NODE_ENV !== 'development',
 
   // Performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
 
   // Privacy filtering (match Next.js beforeSend)
   beforeSend(event) {
