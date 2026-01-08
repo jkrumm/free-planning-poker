@@ -12,6 +12,13 @@ function saveToLocalstorage(key: string, value: string) {
   localStorage.setItem(key, value);
 }
 
+function removeFromLocalstorage(key: string) {
+  if (typeof window == 'undefined') {
+    return;
+  }
+  localStorage.removeItem(key);
+}
+
 export function getFromLocalstorage(key: string): string | null {
   if (typeof window == 'undefined') {
     return null;
@@ -20,13 +27,15 @@ export function getFromLocalstorage(key: string): string | null {
 }
 
 function getIntFromLocalstorage(key: string): number | null {
-  if (
-    typeof window == 'undefined' ||
-    Number.isInteger(localStorage.getItem(key))
-  ) {
+  if (typeof window == 'undefined') {
     return null;
   }
-  return Number(localStorage.getItem(key));
+  const value = localStorage.getItem(key);
+  if (value === null) {
+    return null;
+  }
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 interface LocalstorageStore {
@@ -74,7 +83,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   userId: (() => {
     const userId = getFromLocalstorage('userId');
     if (!validateNanoId(userId) && typeof window !== 'undefined') {
-      localStorage.removeItem('userId');
+      removeFromLocalstorage('userId');
       set({ userId: null });
       return null;
     }
@@ -102,27 +111,27 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     set({ username });
   },
   setIsPlaySound: (isPlaySound: boolean) => {
-    localStorage.setItem('isPlaySound', isPlaySound.toString());
+    saveToLocalstorage('isPlaySound', isPlaySound.toString());
     set({ isPlaySound });
   },
   setIsNotificationsEnabled: (isNotificationsEnabled: boolean) => {
-    localStorage.setItem(
+    saveToLocalstorage(
       'isNotificationsEnabled',
       isNotificationsEnabled.toString(),
     );
     set({ isNotificationsEnabled });
   },
   setIsSpectator: (isSpectator: boolean) => {
-    localStorage.setItem('isSpectator', isSpectator.toString());
+    saveToLocalstorage('isSpectator', isSpectator.toString());
     set({ isSpectator });
   },
   setPreferCardView: (preferCardView: boolean) => {
-    localStorage.setItem('preferCardView', preferCardView.toString());
+    saveToLocalstorage('preferCardView', preferCardView.toString());
     set({ preferCardView });
   },
   setRoomId: (roomId: number | null) => {
     if (!roomId) {
-      localStorage.removeItem('roomId');
+      removeFromLocalstorage('roomId');
       set({ roomId: null });
       return;
     }
@@ -135,7 +144,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   },
   setRoomName: (roomName: string | null) => {
     if (!roomName) {
-      localStorage.removeItem('roomName');
+      removeFromLocalstorage('roomName');
       set({ roomName: null });
       return;
     }
@@ -152,7 +161,7 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
   },
   setRecentRoom: (recentRoom: string | null) => {
     if (!recentRoom) {
-      localStorage.removeItem('recentRoom');
+      removeFromLocalstorage('recentRoom');
       set({ recentRoom: null });
       return;
     }
@@ -179,11 +188,11 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     set({ userId });
   },
   setHistoricalTableOpen: (historicalTableOpen: boolean) => {
-    localStorage.setItem('historicalTableOpen', historicalTableOpen.toString());
+    saveToLocalstorage('historicalTableOpen', historicalTableOpen.toString());
     set({ historicalTableOpen });
   },
   setLastFeedbackSubmission: (time: number) => {
-    localStorage.setItem('lastFeedbackSubmission', time.toString());
+    saveToLocalstorage('lastFeedbackSubmission', time.toString());
     set({ lastFeedbackSubmission: time });
   },
   canSubmitFeedback: () => {
