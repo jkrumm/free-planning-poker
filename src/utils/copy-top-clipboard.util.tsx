@@ -19,7 +19,7 @@ export const copyToClipboard = (text: string, userId: string): void => {
         document.body.appendChild(textarea);
         textarea.select();
 
-        const successful = document.execCommand('copy');
+        const successful = document.execCommand('copy'); //NOSONAR - Valid fallback for Clipboard API in older browsers
         document.body.removeChild(textarea);
 
         if (!successful) {

@@ -118,6 +118,7 @@ export const useConnectionHealth = ({
     try {
       if (readyState === ReadyState.OPEN) {
         const checkConnectionHealth = () => {
+          //NOSONAR - Connection health logic is inherently stateful with multiple threshold levels
           try {
             const timeSinceLastPong = Date.now() - lastPongReceived;
             const timeSinceLastReload = Date.now() - lastReloadTime.current;
