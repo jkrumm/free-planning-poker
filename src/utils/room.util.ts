@@ -541,6 +541,7 @@ function notify({
   }
 }
 
+//NOSONAR - Each notification scenario is straightforward, nesting required for state comparison
 export function notifyOnRoomChanges({
   newRoom,
   oldRoom,

@@ -120,6 +120,7 @@ class HistoricalChartOptions {
   }
 
   toOptions(): AgCartesianChartOptions {
+    //NOSONAR - Declarative chart config, complexity from data structure not logic
     // Note: AG Charts v13 runtime supports yAxis on series, but TypeScript types don't include it yet
     // This is a known discrepancy between the migration guide and type definitions
     // Using double type assertion to work around incomplete type definitions

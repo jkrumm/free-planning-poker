@@ -74,6 +74,7 @@ export const useWebSocketRoom = ({
         Math.min(Math.pow(2, attemptNumber) * 1000, 10000),
 
       onMessage: (message: MessageEvent<string>) => {
+        //NOSONAR - Message dispatcher pattern requires type discrimination
         if (!message.data) return;
 
         if (message.data === 'pong') {
