@@ -5,11 +5,7 @@ import type { HeartbeatAction } from 'fpp-server/src/room.actions';
 
 import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
-import {
-  addBreadcrumb,
-  captureError,
-  captureMessage,
-} from 'fpp/utils/app-error';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -145,26 +141,6 @@ export const useConnectionHealth = ({
                 isTabVisible: isTabVisible.current,
               });
 
-              // Only capture as warning if it's been a while since connection was established
-              // This avoids noise during normal reconnection cycles
-              if (timeSinceLastPong > 60000) {
-                // Only warn after 60 seconds
-                captureMessage(
-                  'Connection health warning - no pong received',
-                  {
-                    component: 'useConnectionHealth',
-                    action: 'checkConnectionHealth',
-                    extra: {
-                      timeSinceLastPong,
-                      pongTimeoutWarning:
-                        WEBSOCKET_CONSTANTS.PONG_TIMEOUT_WARNING,
-                      isTabVisible: isTabVisible.current,
-                    },
-                  },
-                  'warning',
-                );
-              }
-
               warningIssued.current = true;
               sendMessage(
                 JSON.stringify({
@@ -217,24 +193,6 @@ export const useConnectionHealth = ({
                       ? 'recovery_failed'
                       : 'timeout_exceeded',
                 },
-              );
-
-              captureError(
-                'Connection health critical - forcing reconnection',
-                {
-                  component: 'useConnectionHealth',
-                  action: 'checkConnectionHealth',
-                  extra: {
-                    timeSinceLastPong,
-                    timeSinceLastReload,
-                    reloadAttempts: reloadAttempts.current,
-                    recoveryAttempts: recoveryAttempts.current,
-                    pongTimeoutCritical:
-                      WEBSOCKET_CONSTANTS.PONG_TIMEOUT_CRITICAL,
-                    isTabVisible: isTabVisible.current,
-                  },
-                },
-                'high',
               );
 
               reloadAttempts.current++;
