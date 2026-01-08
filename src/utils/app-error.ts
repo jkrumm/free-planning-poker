@@ -10,13 +10,91 @@ export interface ErrorContext {
   extra?: Record<string, string | number | boolean | null>;
 }
 
+type Severity = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Map severity level to Sentry level
+ */
+const mapSeverityToSentryLevel = (
+  severity: Severity,
+): 'fatal' | 'error' | 'warning' | 'info' => {
+  const levelMap: Record<Severity, 'fatal' | 'error' | 'warning' | 'info'> = {
+    critical: 'fatal',
+    high: 'error',
+    medium: 'warning',
+    low: 'info',
+  };
+  return levelMap[severity];
+};
+
+/**
+ * Set TRPC-specific tags on Sentry scope
+ */
+const setTRPCErrorTags = (
+  scope: Sentry.Scope,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: TRPCClientError<any>,
+  context: ErrorContext,
+): void => {
+  scope.setTag('errorType', 'TRPCClientError');
+
+  if ('input' in context) scope.setExtra('trpcInput', context.input);
+  if ('output' in context) scope.setExtra('trpcOutput', context.output);
+
+  if (!error.data || typeof error.data !== 'object') return;
+
+  const data = error.data as Record<string, unknown>;
+
+  // Set tags for known TRPC data fields
+  const tagMappings: Array<{ key: string; tag: string }> = [
+    { key: 'code', tag: 'trpcCode' },
+    { key: 'httpStatus', tag: 'httpStatus' },
+    { key: 'path', tag: 'trpcPath' },
+  ];
+
+  for (const { key, tag } of tagMappings) {
+    const value = data[key];
+    if (value && (typeof value === 'string' || typeof value === 'number')) {
+      scope.setTag(tag, String(value));
+    }
+  }
+
+  if (data.zodError) {
+    scope.setTag('hasZodError', 'true');
+    scope.setExtra('zodError', data.zodError);
+  }
+
+  scope.setExtra('trpcErrorData', data);
+};
+
+/**
+ * Create an Error object from various input types
+ */
+const normalizeError = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: Error | string | TRPCClientErrorLike<any>,
+): Error => {
+  if (typeof error === 'string') {
+    return new Error(error);
+  }
+
+  if (error instanceof TRPCClientError) {
+    const errorObj = new Error(error.message);
+    errorObj.name = 'TRPCClientError';
+    errorObj.stack = error.stack;
+    return errorObj;
+  }
+
+  return error as Error;
+};
+
 export const captureError = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: Error | string | TRPCClientErrorLike<any>,
   context: ErrorContext = {},
-  severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
+  severity: Severity = 'medium',
 ): void => {
-  context.extra = context.extra
+  const extra = context.extra
     ? Object.fromEntries(
         Object.entries(context.extra).map(([key, value]) => [
           key,
@@ -24,18 +102,9 @@ export const captureError = (
         ]),
       )
     : {};
+  context.extra = extra;
 
-  let errorObj: Error;
-
-  if (typeof error === 'string') {
-    errorObj = new Error(error);
-  } else if (error instanceof TRPCClientError) {
-    errorObj = new Error(error.message);
-    errorObj.name = 'TRPCClientError';
-    errorObj.stack = error.stack;
-  } else {
-    errorObj = error as Error;
-  }
+  const errorObj = normalizeError(error);
 
   // Log to Pino before sending to Sentry
   logger.error(
@@ -48,80 +117,29 @@ export const captureError = (
         message: errorObj.message,
         stack: errorObj.stack,
       },
-      ...context.extra,
+      ...extra,
     },
     `[${severity}] ${context.component ?? 'Unknown'}:${context.action ?? 'Unknown'} - ${errorObj.message}`,
   );
 
   Sentry.withScope((scope) => {
-    // Set a severity level
-    scope.setLevel(
-      severity === 'critical'
-        ? 'fatal'
-        : severity === 'high'
-          ? 'error'
-          : severity === 'medium'
-            ? 'warning'
-            : 'info',
-    );
+    scope.setLevel(mapSeverityToSentryLevel(severity));
 
     if (context.component) scope.setTag('component', context.component);
     if (context.action) scope.setTag('action', context.action);
 
     if (error instanceof TRPCClientError) {
-      scope.setTag('errorType', 'TRPCClientError');
-
-      if ('input' in context && context) {
-        scope.setExtra('trpcInput', context.input);
-      }
-      if ('output' in context && context) {
-        scope.setExtra('trpcOutput', context.output);
-      }
-
-      if (error.data && typeof error.data === 'object') {
-        const data = error.data as Record<string, unknown>;
-
-        if (
-          'code' in data &&
-          data.code &&
-          (typeof data.code === 'string' || typeof data.code === 'number')
-        ) {
-          scope.setTag('trpcCode', String(data.code));
-        }
-        if (
-          'httpStatus' in data &&
-          data.httpStatus &&
-          (typeof data.httpStatus === 'string' ||
-            typeof data.httpStatus === 'number')
-        ) {
-          scope.setTag('httpStatus', String(data.httpStatus));
-        }
-        if (
-          'path' in data &&
-          data.path &&
-          (typeof data.path === 'string' || typeof data.path === 'number')
-        ) {
-          scope.setTag('trpcPath', String(data.path));
-        }
-        if ('zodError' in data && data.zodError) {
-          scope.setTag('hasZodError', 'true');
-          scope.setExtra('zodError', data.zodError);
-        }
-
-        scope.setExtra('trpcErrorData', data);
-      }
+      setTRPCErrorTags(scope, error, context);
     }
 
-    if (context.extra) {
-      Object.entries(context.extra).forEach(([key, value]) => {
-        scope.setExtra(key, value);
-      });
-    }
+    Object.entries(extra).forEach(([key, value]) => {
+      scope.setExtra(key, value);
+    });
 
     scope.addBreadcrumb({
       message: `Error in ${context.component ?? 'Unknown'}: ${context.action ?? 'Unknown action'}`,
       level: 'error',
-      data: context.extra,
+      data: extra,
     });
 
     Sentry.captureException(errorObj);
