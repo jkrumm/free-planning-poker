@@ -64,6 +64,26 @@ export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 /**
+ * Detect MySQL duplicate key errors and return field name
+ */
+const detectDuplicateKeyError = (error: Error): 'name' | 'number' | null => {
+  if (!error.message.includes('Duplicate entry')) return null;
+  if (error.message.includes('rooms_name_unique_idx')) return 'name';
+  if (error.message.includes('rooms_number_unique_idx')) return 'number';
+  return null;
+};
+
+/**
+ * Detect database connection errors
+ */
+const isConnectionError = (error: Error): boolean => {
+  return (
+    error.message.includes('Connection lost') ||
+    error.message.includes('timeout')
+  );
+};
+
+/**
  * Global error handling middleware
  * Transforms common database errors into user-friendly TRPCErrors
  * v11 best practice: Use middleware for cross-cutting concerns
@@ -72,39 +92,27 @@ const errorHandlingMiddleware = t.middleware(async ({ next }) => {
   try {
     return await next();
   } catch (error) {
+    // Re-throw TRPCErrors as-is
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+
     // Handle known database errors
     if (error instanceof Error) {
-      // MySQL duplicate key errors
-      if (error.message.includes('Duplicate entry')) {
-        if (error.message.includes('rooms_name_unique_idx')) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Room name already exists',
-          });
-        }
-        if (error.message.includes('rooms_number_unique_idx')) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Room number already exists',
-          });
-        }
+      const duplicateField = detectDuplicateKeyError(error);
+      if (duplicateField) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `Room ${duplicateField} already exists`,
+        });
       }
 
-      // Connection timeouts
-      if (
-        error.message.includes('Connection lost') ||
-        error.message.includes('timeout')
-      ) {
+      if (isConnectionError(error)) {
         throw new TRPCError({
           code: 'TIMEOUT',
           message: 'Database connection timeout',
         });
       }
-    }
-
-    // Re-throw TRPCErrors as-is
-    if (error instanceof TRPCError) {
-      throw error;
     }
 
     // Convert unknown errors to internal server errors
