@@ -134,8 +134,12 @@ export default async function handler(
 
   // Log request after completion
   const duration = Date.now() - start;
-  const level =
-    res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info';
+  const getLogLevel = (statusCode: number): 'error' | 'warn' | 'info' => {
+    if (statusCode >= 500) return 'error';
+    if (statusCode >= 400) return 'warn';
+    return 'info';
+  };
+  const level = getLogLevel(res.statusCode);
 
   logger[level](
     {

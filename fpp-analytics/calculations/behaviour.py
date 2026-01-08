@@ -19,7 +19,9 @@ def extract_sources(
 
     # Process each mapping
     for target, pattern in sources_mapping:
-        for key in list(sources.keys()):
+        for key in list(
+            sources.keys()
+        ):  # NOSONAR - list() required for safe dict mutation during iteration
             if re.search(pattern, key):
                 if target in updated_sources:
                     updated_sources[target] += sources.pop(key)
