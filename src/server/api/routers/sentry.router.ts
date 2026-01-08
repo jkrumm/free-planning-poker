@@ -1,5 +1,7 @@
 import { env } from 'fpp/env';
 
+import { logger } from 'fpp/utils/logger';
+
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 
 export type SentryIssuesResponse = {
@@ -76,8 +78,15 @@ async function fetchProjectIssues(
   );
 
   if (!res.ok) {
-    console.warn(
-      `Sentry API error for ${project}: ${res.status} ${res.statusText}`,
+    logger.warn(
+      {
+        component: 'sentryRouter',
+        action: 'fetchProjectIssues',
+        project,
+        status: res.status,
+        statusText: res.statusText,
+      },
+      `Sentry API error for ${project}`,
     );
     return [];
   }

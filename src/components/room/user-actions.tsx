@@ -27,6 +27,71 @@ interface UserActionsProps {
   size?: 'xs' | 'sm' | 'md';
 }
 
+interface ButtonConfig {
+  key: string;
+  color: string;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}
+
+/**
+ * Get icon size based on button size prop
+ */
+const getIconSize = (size: 'xs' | 'sm' | 'md'): number =>
+  size === 'xs' ? 12 : 14;
+
+/**
+ * Build button configurations based on user context
+ */
+const buildButtonConfigs = (
+  isOwnUser: boolean,
+  user: User,
+  layout: 'horizontal' | 'vertical',
+  iconSize: number,
+  handlers: {
+    onSpectatorToggle: () => void;
+    onLeaveRoom: () => void;
+    onKickUser: () => void;
+  },
+): ButtonConfig[] => {
+  const spectatorButton: ButtonConfig = {
+    key: 'spectator',
+    color: user.isSpectator ? 'blue' : 'gray',
+    icon: user.isSpectator ? (
+      <IconEye size={iconSize} />
+    ) : (
+      <IconEyeOff size={iconSize} />
+    ),
+    label: isOwnUser
+      ? user.isSpectator
+        ? 'Join voting'
+        : 'Become spectator'
+      : user.isSpectator
+        ? 'Make participant'
+        : 'Make spectator',
+    onClick: handlers.onSpectatorToggle,
+  };
+
+  const secondButton: ButtonConfig = isOwnUser
+    ? {
+        key: 'leave',
+        color: 'gray',
+        icon: <IconDoorExit size={iconSize} />,
+        label: layout === 'vertical' ? 'Leave room' : 'Leave',
+        onClick: handlers.onLeaveRoom,
+      }
+    : {
+        key: 'kick',
+        color: 'red',
+        icon: <IconUserMinus size={iconSize} />,
+        label: layout === 'vertical' ? 'Kick from room' : 'Kick',
+        onClick: handlers.onKickUser,
+      };
+
+  return [spectatorButton, secondButton];
+};
+
 export const UserActions = ({
   user,
   userId,
@@ -38,40 +103,43 @@ export const UserActions = ({
 }: UserActionsProps) => {
   const router = useRouter();
   const isOwnUser = user.id === userId;
-
   const setTab = useSidebarStore((state) => state.setTab);
 
-  const handleSpectatorToggle = () => {
-    triggerAction({
-      action: 'setSpectator',
-      roomId,
-      userId,
-      targetUserId: user.id,
-      isSpectator: !user.isSpectator,
-    });
-    setTab(user.isSpectator ? null : SidebarTabs.spectators);
-    onActionComplete?.();
+  const handlers = {
+    onSpectatorToggle: () => {
+      triggerAction({
+        action: 'setSpectator',
+        roomId,
+        userId,
+        targetUserId: user.id,
+        isSpectator: !user.isSpectator,
+      });
+      setTab(user.isSpectator ? null : SidebarTabs.spectators);
+      onActionComplete?.();
+    },
+    onLeaveRoom: () => {
+      executeLeave({ roomId, userId, triggerAction, router });
+      onActionComplete?.();
+    },
+    onKickUser: () => {
+      triggerAction({
+        action: 'kick',
+        roomId,
+        userId,
+        targetUserId: user.id,
+      });
+      onActionComplete?.();
+    },
   };
 
-  const handleLeaveRoom = () => {
-    executeLeave({
-      roomId,
-      userId,
-      triggerAction,
-      router,
-    });
-    onActionComplete?.();
-  };
-
-  const handleKickUser = () => {
-    triggerAction({
-      action: 'kick',
-      roomId,
-      userId,
-      targetUserId: user.id,
-    });
-    onActionComplete?.();
-  };
+  const iconSize = getIconSize(size);
+  const buttons = buildButtonConfigs(
+    isOwnUser,
+    user,
+    layout,
+    iconSize,
+    handlers,
+  );
 
   const Container = layout === 'vertical' ? Stack : Group;
   const containerProps =
@@ -79,67 +147,21 @@ export const UserActions = ({
       ? { gap: 'xs' }
       : { gap: 'xs', wrap: 'nowrap' as const };
 
-  if (isOwnUser) {
-    return (
-      <Container {...containerProps}>
-        <Button
-          variant="light"
-          color={user.isSpectator ? 'blue' : 'gray'}
-          size={size}
-          leftSection={
-            user.isSpectator ? (
-              <IconEye size={size === 'xs' ? 12 : 14} />
-            ) : (
-              <IconEyeOff size={size === 'xs' ? 12 : 14} />
-            )
-          }
-          onClick={handleSpectatorToggle}
-          {...(layout === 'vertical' && { fullWidth: true })}
-        >
-          {user.isSpectator ? 'Join voting' : 'Become spectator'}
-        </Button>
-        <Button
-          variant="light"
-          color="gray"
-          size={size}
-          leftSection={<IconDoorExit size={size === 'xs' ? 12 : 14} />}
-          onClick={handleLeaveRoom}
-          {...(layout === 'vertical' && { fullWidth: true })}
-        >
-          {layout === 'vertical' ? 'Leave room' : 'Leave'}
-        </Button>
-      </Container>
-    );
-  }
-
   return (
     <Container {...containerProps}>
-      <Button
-        variant="light"
-        color={user.isSpectator ? 'blue' : 'gray'}
-        size={size}
-        leftSection={
-          user.isSpectator ? (
-            <IconEye size={size === 'xs' ? 12 : 14} />
-          ) : (
-            <IconEyeOff size={size === 'xs' ? 12 : 14} />
-          )
-        }
-        onClick={handleSpectatorToggle}
-        {...(layout === 'vertical' && { fullWidth: true })}
-      >
-        {user.isSpectator ? 'Make participant' : 'Make spectator'}
-      </Button>
-      <Button
-        variant="light"
-        color="red"
-        size={size}
-        leftSection={<IconUserMinus size={size === 'xs' ? 12 : 14} />}
-        onClick={handleKickUser}
-        {...(layout === 'vertical' && { fullWidth: true })}
-      >
-        {layout === 'vertical' ? 'Kick from room' : 'Kick'}
-      </Button>
+      {buttons.map((btn) => (
+        <Button
+          key={btn.key}
+          variant="light"
+          color={btn.color}
+          size={size}
+          leftSection={btn.icon}
+          onClick={btn.onClick}
+          {...(layout === 'vertical' && { fullWidth: true })}
+        >
+          {btn.label}
+        </Button>
+      ))}
     </Container>
   );
 };
