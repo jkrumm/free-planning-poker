@@ -93,16 +93,27 @@ export function captureMessage(
   } as const;
 
   // Log to Pino with structured data (use warn for medium/high, info for low)
-  const logFn = severity === 'low' ? log.info : log.warn;
-  logFn(
-    {
-      component: context.component ?? 'unknown',
-      action: context.action ?? 'unknown',
-      severity,
-      ...context.extra,
-    },
-    `[${severity}] ${context.component}:${context.action} - ${message}`
-  );
+  if (severity === 'low') {
+    log.info(
+      {
+        component: context.component ?? 'unknown',
+        action: context.action ?? 'unknown',
+        severity,
+        ...context.extra,
+      },
+      `[${severity}] ${context.component}:${context.action} - ${message}`
+    );
+  } else {
+    log.warn(
+      {
+        component: context.component ?? 'unknown',
+        action: context.action ?? 'unknown',
+        severity,
+        ...context.extra,
+      },
+      `[${severity}] ${context.component}:${context.action} - ${message}`
+    );
+  }
 
   // Send to Sentry (disabled in development)
   Sentry.captureMessage(message, {
