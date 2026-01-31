@@ -1,0 +1,68 @@
+schema: spec-driven
+
+context: |
+  Real-time planning poker application with multi-service architecture.
+  OpenSpec is for MAJOR features only (not bugfixes/small changes).
+
+  ## Architecture
+  - Next.js (port 3001): UI, tRPC API, database operations
+  - Bun WebSocket Server (port 3003): Real-time room state, in-memory
+  - FastAPI Analytics (port 5100): Read-only analytics calculations
+
+  ## State Model (Three-Copy Architecture)
+  Room state exists in THREE places:
+  1. MySQL database (persistent, historical) - Next.js writes via Drizzle
+  2. Bun server memory (authoritative, real-time) - Map<roomId, RoomServer>
+  3. Client Zustand store (local, synced via WebSocket)
+
+  Rule: Always update authoritative source first, then propagate.
+
+  ## Communication Protocols
+  - Client -> Next.js: tRPC (room creation, joining, name changes)
+  - Client -> fpp-server: WebSocket (votes, flip, reset)
+  - fpp-server -> Next.js: HTTP (persist vote after flip)
+
+  ## Key Technical Decisions
+  - Anonymous identity via nanoid(21) in localStorage
+  - Action queue for WebSocket resilience (src/hooks/useWebSocketRoom.ts)
+  - Dual heartbeat (5min client, 30min server cleanup)
+  - Pages Router (NOT App Router)
+  - TypeBox in fpp-server (NOT Zod)
+  - Polars in fpp-analytics (NOT pandas)
+
+  ## Error Handling
+  - Next.js: CustomTRPCError + captureError() - see CLAUDE.md
+  - fpp-server: Sentry captureException() - see fpp-server/CLAUDE.md
+  - fpp-analytics: Sentry capture_exception() - see fpp-analytics/CLAUDE.md
+
+  ## Documentation Sources
+  - CLAUDE.md: AI development guide, error handling patterns, coding standards
+  - ARCHITECTURE.md: Detailed system architecture, data flows, deployment
+
+  ## Validation: npm run validate (format + lint + type-check + build)
+
+rules:
+  proposal:
+    - Reference ticket (JK-XX) when applicable
+    - Mark breaking changes with **BREAKING**
+    - Identify affected services (Next.js, fpp-server, fpp-analytics)
+    - Consider cross-service state synchronization impact
+    - Consult ARCHITECTURE.md for system context
+  specs:
+    - Use templates from openspec/specs/templates/
+    - Specify which service(s) are affected
+    - Document WebSocket action changes if applicable
+    - Include error handling strategy per CLAUDE.md patterns
+    - Follow Sentry error handling standards in CLAUDE.md
+  design:
+    - Identify cross-service communication changes
+    - Document new database schema if needed
+    - Consider action queue implications
+    - Note if analytics tracking needed
+    - Consult ARCHITECTURE.md for deployment constraints
+  tasks:
+    - Organize by logical feature, not by service
+    - Include validation step (npm run validate)
+    - Note if database migration needed (dev generates/runs)
+    - Follow error handling patterns in CLAUDE.md
+    - NEVER start dev server in tasks

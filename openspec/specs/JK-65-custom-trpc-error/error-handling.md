@@ -349,7 +349,7 @@ export const exampleRouter = createTRPCRouter({
 
 ## Related Documentation
 
-- Implementation details: `.openspec/changes/archive/JK-65-custom-trpc-error/IMPLEMENTATION.md`
+- Implementation details: `openspec/archive/JK-65-custom-trpc-error/IMPLEMENTATION.md`
 - CLAUDE.md: Error Handling Implementation Guide (comprehensive patterns)
 - Source: `src/server/api/custom-error.ts`
 - Central handler: `src/pages/api/trpc/[trpc].ts`
