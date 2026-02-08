@@ -37,11 +37,53 @@ const RoomWrapper = () => {
 
   // Retry logic for joinRoom mutation
   const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
   const maxRetries = 5;
   const getRetryDelay = (attempt: number) =>
     Math.min(Math.pow(2, attempt) * 1000, 10000);
 
   const joinRoomMutation = api.room.joinRoom.useMutation({
+    onSuccess: ({ userId, roomId, roomName }) => {
+      // Clear any pending retry timer on success
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+
+      // Reset retry counter on success
+      const hadRetries = retryCountRef.current > 0;
+      retryCountRef.current = 0;
+
+      setUserIdLocalStorage(userId);
+      setUserIdRoomState(userId);
+      setRoomId(roomId);
+      setRoomName(roomName);
+      setRecentRoom(roomName);
+
+      const currentQueryRoom = router.query.room as string;
+      if (currentQueryRoom !== roomName) {
+        router
+          .push(`/room/${roomName}`)
+          .then(() => ({}))
+          .catch(() => ({}));
+      }
+
+      sendTrackPageView({
+        userId,
+        route: RouteType.ROOM,
+        roomId,
+        source: null,
+        setUserIdLocalStorage,
+        setUserIdRoomState,
+      });
+
+      addBreadcrumb('Successfully joined room', 'room', {
+        roomId,
+        roomName,
+        userId,
+        retriesNeeded: hadRetries,
+      });
+    },
     onError: (error) => {
       const currentRetry = retryCountRef.current;
 
@@ -61,8 +103,9 @@ const RoomWrapper = () => {
         });
 
         // Retry after exponential backoff
-        setTimeout(() => {
+        retryTimerRef.current = setTimeout(() => {
           const queryRoom = router.query.room as string;
+          const userId = useLocalstorageStore.getState().userId!;
           const roomEvent = useLocalstorageStore.getState().roomEvent;
           joinRoomMutation.mutate({ queryRoom, userId, roomEvent });
         }, delay);
@@ -150,6 +193,12 @@ const RoomWrapper = () => {
 
     return () => {
       try {
+        // Clear any pending retry timer on unmount
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+        }
+
         document.documentElement.classList.remove('overflow-hidden');
         document.documentElement.classList.remove('max-h-screen');
         document.documentElement.classList.remove('scrollbar-hide');
@@ -221,45 +270,7 @@ const RoomWrapper = () => {
         return;
       }
 
-      joinRoomMutation.mutate(
-        { queryRoom, userId, roomEvent },
-        {
-          onSuccess: ({ userId, roomId, roomName }) => {
-            // Reset retry counter on success
-            const hadRetries = retryCountRef.current > 0;
-            retryCountRef.current = 0;
-
-            setUserIdLocalStorage(userId);
-            setUserIdRoomState(userId);
-            setRoomId(roomId);
-            setRoomName(roomName);
-            setRecentRoom(roomName);
-
-            if (queryRoom !== roomName) {
-              router
-                .push(`/room/${roomName}`)
-                .then(() => ({}))
-                .catch(() => ({}));
-            }
-
-            sendTrackPageView({
-              userId,
-              route: RouteType.ROOM,
-              roomId,
-              source: null,
-              setUserIdLocalStorage,
-              setUserIdRoomState,
-            });
-
-            addBreadcrumb('Successfully joined room', 'room', {
-              roomId,
-              roomName,
-              userId,
-              retriesNeeded: hadRetries,
-            });
-          },
-        },
-      );
+      joinRoomMutation.mutate({ queryRoom, userId, roomEvent });
     }
 
     if (typeof window !== 'undefined') {

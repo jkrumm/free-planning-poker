@@ -4,8 +4,8 @@ import { USERNAME_RULES } from './shared/username.validator';
 
 export const BaseActionSchema = t.Object({
   userId: t.String({
-    min: 21,
-    max: 21,
+    minLength: 21,
+    maxLength: 21,
   }),
   roomId: t.Number({
     minimum: 1,
@@ -42,8 +42,8 @@ export const SetSpectatorActionSchema = t.Intersect([
     action: t.Literal('setSpectator'),
     isSpectator: t.Boolean(),
     targetUserId: t.String({
-      min: 21,
-      max: 21,
+      minLength: 21,
+      maxLength: 21,
     }),
   }),
 ]);
@@ -246,8 +246,8 @@ export const KickActionSchema = t.Intersect([
   t.Object({
     action: t.Literal('kick'),
     targetUserId: t.String({
-      min: 21,
-      max: 21,
+      minLength: 21,
+      maxLength: 21,
     }),
   }),
 ]);
