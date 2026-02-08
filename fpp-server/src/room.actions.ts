@@ -1,5 +1,6 @@
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { t, type Static } from 'elysia';
+import { USERNAME_RULES } from './shared/username.validator';
 
 export const BaseActionSchema = t.Object({
   userId: t.String({
@@ -139,7 +140,11 @@ export const ChangeUsernameActionSchema = t.Intersect([
   BaseActionSchema,
   t.Object({
     action: t.Literal('changeUsername'),
-    username: t.String(),
+    username: t.String({
+      minLength: USERNAME_RULES.MIN_LENGTH,
+      maxLength: USERNAME_RULES.MAX_LENGTH,
+      pattern: USERNAME_RULES.PATTERN.source,
+    }),
   }),
 ]);
 export type ChangeUsernameAction = Static<typeof ChangeUsernameActionSchema>;
@@ -160,7 +165,7 @@ export const ChangeRoomNameActionSchema = t.Intersect([
   BaseActionSchema,
   t.Object({
     action: t.Literal('changeRoomName'),
-    roomName: t.String(),
+    roomName: t.String({ minLength: 1, maxLength: 50 }),
   }),
 ]);
 export type ChangeRoomNameAction = Static<typeof ChangeRoomNameActionSchema>;
@@ -199,7 +204,11 @@ export const RejoinActionSchema = t.Intersect([
   BaseActionSchema,
   t.Object({
     action: t.Literal('rejoin'),
-    username: t.String(),
+    username: t.String({
+      minLength: USERNAME_RULES.MIN_LENGTH,
+      maxLength: USERNAME_RULES.MAX_LENGTH,
+      pattern: USERNAME_RULES.PATTERN.source,
+    }),
   }),
 ]);
 export type RejoinAction = Static<typeof RejoinActionSchema>;

@@ -6,6 +6,7 @@ import { MessageHandler } from './message.handler';
 import { ActionSchema, CActionSchema } from './room.actions';
 import { User } from './room.entity';
 import { RoomState } from './room.state';
+import { USERNAME_RULES, validateUsername } from './shared/username.validator';
 import { type Analytics } from './types';
 import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
@@ -159,7 +160,10 @@ app.ws('/ws', {
   query: t.Object({
     roomId: t.Number(),
     userId: t.String(),
-    username: t.String(),
+    username: t.String({
+      minLength: USERNAME_RULES.MIN_LENGTH,
+      maxLength: USERNAME_RULES.MAX_LENGTH,
+    }),
   }),
   open(ws) {
     const { roomId, userId, username } = ws.data.query;
@@ -185,6 +189,26 @@ app.ws('/ws', {
         'medium'
       );
       ws.close(1008, 'Missing parameters');
+      return;
+    }
+
+    // Validate username with shared validation logic (strict mode)
+    const usernameValidation = validateUsername(username, { strict: true });
+    if (!usernameValidation.isValid) {
+      captureMessage(
+        'WebSocket connection with invalid username',
+        {
+          component: 'websocketOpen',
+          action: 'validateUsername',
+          extra: {
+            wsId: ws.id,
+            username: username.slice(0, 20),
+            error: usernameValidation.error ?? 'Unknown validation error',
+          },
+        },
+        'medium'
+      );
+      ws.close(1008, usernameValidation.error ?? 'Invalid username');
       return;
     }
 
@@ -259,6 +283,12 @@ app.ws('/ws', {
 
     try {
       if (!CActionSchema.Check(data)) {
+        // Safe serialization to avoid protocol violations
+        const safeData =
+          typeof data === 'object'
+            ? JSON.stringify(data).slice(0, 200)
+            : String(data).slice(0, 200);
+
         captureMessage(
           'Invalid WebSocket message format',
           {
@@ -266,7 +296,7 @@ app.ws('/ws', {
             action: 'validateMessage',
             extra: {
               wsId: ws.id,
-              receivedData: String(data),
+              receivedData: safeData,
             },
           },
           'medium'
@@ -275,7 +305,6 @@ app.ws('/ws', {
           JSON.stringify({
             error: 'Invalid message format',
             wsId: ws.id,
-            data: String(data),
           })
         );
         return;

@@ -1,4 +1,5 @@
 import { setUser } from '@sentry/nextjs';
+import { validateUsername } from 'fpp-server/src/shared/username.validator';
 import { create } from 'zustand';
 
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
@@ -40,6 +41,7 @@ function getIntFromLocalstorage(key: string): number | null {
 
 interface LocalstorageStore {
   username: string | null;
+  clearUsername: () => void;
   isPlaySound: boolean;
   isNotificationsEnabled: boolean;
   isSpectator: boolean;
@@ -98,17 +100,19 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     return time ? parseInt(time, 10) : null;
   })(),
   setUsername: (username: string) => {
-    username = username.replace(/[^A-Za-z]/g, '');
+    const result = validateUsername(username, { strict: false });
 
-    if (username.length < 3) {
-      throw new Error('username too short');
+    if (!result.isValid) {
+      throw new Error(result.error ?? 'Invalid username');
     }
 
-    username =
-      username.slice(0, 15).charAt(0).toUpperCase() + username.slice(1);
-
-    saveToLocalstorage('username', username);
-    set({ username });
+    // Use cleaned username (preserves user's chosen case - no capitalization)
+    saveToLocalstorage('username', result.cleaned);
+    set({ username: result.cleaned });
+  },
+  clearUsername: () => {
+    removeFromLocalstorage('username');
+    set({ username: null });
   },
   setIsPlaySound: (isPlaySound: boolean) => {
     saveToLocalstorage('isPlaySound', isPlaySound.toString());

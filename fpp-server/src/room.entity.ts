@@ -5,6 +5,7 @@ import {
   User as UserBase,
   type CreateUserDto as CreateUserDtoBase,
 } from './room.types';
+import { validateUsername } from './shared/username.validator';
 import { preciseTimeout } from './utils';
 import { captureError } from './utils/app-error';
 
@@ -70,9 +71,15 @@ export class RoomServer extends RoomBase {
   }
 
   changeUsername(userId: string, name: string) {
+    // Validate username with shared validation logic (strict mode)
+    const validation = validateUsername(name, { strict: true });
+    if (!validation.isValid) {
+      throw new Error(validation.error ?? 'Invalid username');
+    }
+
     this.users = this.users.map((user) => {
       if (user.id === userId) {
-        user.name = name;
+        user.name = validation.cleaned;
         this.hasChanged = true;
       }
       return user;
