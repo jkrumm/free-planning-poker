@@ -4,6 +4,7 @@ import { Button, FocusTrap, Modal, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 import { IconUser } from '@tabler/icons-react';
+import { validateUsername } from 'fpp-server/src/shared/username.validator';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 
@@ -22,16 +23,8 @@ export const UsernameModel = ({
     initialValues: { username: '' },
     validate: {
       username: (value) => {
-        const cleanValue = (value ? value : '')
-          .replace(/[^A-Za-z]/g, '')
-          .trim();
-        if (cleanValue.length < 3) {
-          return 'Username must be at least 3 characters';
-        }
-        if (cleanValue.length > 15) {
-          return 'Username must be at most 15 characters';
-        }
-        return null;
+        const result = validateUsername(value || '');
+        return result.isValid ? null : result.error;
       },
     },
     validateInputOnChange: true,
@@ -43,9 +36,13 @@ export const UsernameModel = ({
       return;
     }
 
-    const cleanUsername = form.values.username.replace(/[^A-Za-z]/g, '').trim();
+    const result = validateUsername(form.values.username);
+    if (!result.isValid) {
+      return; // Should never happen due to form validation
+    }
 
-    setUsername(cleanUsername);
+    // Use cleaned username (preserves user's chosen case)
+    setUsername(result.cleaned);
     setModelOpen(false);
   };
 

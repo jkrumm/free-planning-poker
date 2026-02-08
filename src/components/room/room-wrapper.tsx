@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { useRouter } from 'next/router';
 
 import { Loader } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 
 import { api } from 'fpp/utils/api';
 import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
@@ -31,18 +32,67 @@ const RoomWrapper = () => {
   const setUserIdLocalStorage = useLocalstorageStore(
     (state) => state.setUserId,
   );
+  const clearUsername = useLocalstorageStore((state) => state.clearUsername);
   const setUserIdRoomState = useRoomStore((state) => state.setUserId);
+
+  // Retry logic for joinRoom mutation
+  const retryCountRef = useRef(0);
+  const maxRetries = 5;
+  const getRetryDelay = (attempt: number) =>
+    Math.min(Math.pow(2, attempt) * 1000, 10000);
 
   const joinRoomMutation = api.room.joinRoom.useMutation({
     onError: (error) => {
-      captureError(
-        error,
-        {
-          component: 'RoomWrapper',
-          action: 'joinRoom',
-        },
-        'high',
-      );
+      const currentRetry = retryCountRef.current;
+
+      addBreadcrumb('joinRoom mutation failed', 'mutation', {
+        retryAttempt: currentRetry,
+        maxRetries,
+        errorMessage: error.message,
+      });
+
+      if (currentRetry < maxRetries) {
+        const delay = getRetryDelay(currentRetry);
+        retryCountRef.current += 1;
+
+        addBreadcrumb('Scheduling joinRoom retry', 'mutation', {
+          nextRetryAttempt: retryCountRef.current,
+          delayMs: delay,
+        });
+
+        // Retry after exponential backoff
+        setTimeout(() => {
+          const queryRoom = router.query.room as string;
+          const roomEvent = useLocalstorageStore.getState().roomEvent;
+          joinRoomMutation.mutate({ queryRoom, userId, roomEvent });
+        }, delay);
+      } else {
+        // Final failure - capture error and show notification
+        captureError(
+          error,
+          {
+            component: 'RoomWrapper',
+            action: 'joinRoom',
+            extra: {
+              totalRetries: maxRetries,
+              finalError: error.message,
+            },
+          },
+          'high',
+        );
+
+        notifications.show({
+          title: 'Connection Error',
+          message:
+            'Unable to join the room. Please check your connection and try refreshing the page.',
+          color: 'red',
+          autoClose: 10000,
+          withCloseButton: true,
+        });
+
+        // Reset retry counter for next attempt
+        retryCountRef.current = 0;
+      }
     },
   });
 
@@ -56,6 +106,17 @@ const RoomWrapper = () => {
 
   const [firstLoad, setFirstLoad] = React.useState(true);
   const [modelOpen, setModelOpen] = React.useState(false);
+
+  // Handle invalid username from WebSocket (code 1008)
+  const handleInvalidUsername = React.useCallback(() => {
+    addBreadcrumb('Invalid username detected - clearing localStorage', 'auth');
+
+    // Clear invalid username from localStorage
+    clearUsername();
+
+    // Show username modal for user to enter valid username
+    setModelOpen(true);
+  }, [clearUsername]);
 
   // Sync userId to room state when it changes
   useEffect(() => {
@@ -164,6 +225,10 @@ const RoomWrapper = () => {
         { queryRoom, userId, roomEvent },
         {
           onSuccess: ({ userId, roomId, roomName }) => {
+            // Reset retry counter on success
+            const hadRetries = retryCountRef.current > 0;
+            retryCountRef.current = 0;
+
             setUserIdLocalStorage(userId);
             setUserIdRoomState(userId);
             setRoomId(roomId);
@@ -190,6 +255,7 @@ const RoomWrapper = () => {
               roomId,
               roomName,
               userId,
+              retriesNeeded: hadRetries,
             });
           },
         },
@@ -234,6 +300,7 @@ const RoomWrapper = () => {
                     roomName={roomName}
                     userId={userId}
                     username={username}
+                    onInvalidUsername={handleInvalidUsername}
                   />
                 </ErrorBoundary>
               );

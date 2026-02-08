@@ -27,6 +27,7 @@ export interface WebSocketRoomConfig {
   roomId: number;
   userId: string;
   username: string;
+  onInvalidUsername?: () => void;
 }
 
 export interface WebSocketRoomResult {
@@ -49,6 +50,7 @@ export const useWebSocketRoom = ({
   roomId,
   userId,
   username,
+  onInvalidUsername,
 }: WebSocketRoomConfig): WebSocketRoomResult => {
   const router = useRouter();
   const updateRoomState = useRoomStore((store) => store.update);
@@ -189,11 +191,41 @@ export const useWebSocketRoom = ({
           wasClean: event.wasClean,
         });
 
-        if (!event.wasClean) {
-          if (event.code === 1006) {
-            // 1006 is very common - just log as info, not warning
+        // Handle code 1008 (policy violation) - usually invalid username
+        if (event.code === 1008) {
+          const reason = event.reason || '';
+          const isUsernameError =
+            reason.includes('username') ||
+            reason.includes('Username') ||
+            reason.includes('letters');
+
+          if (isUsernameError) {
             addBreadcrumb(
-              'WebSocket closed abnormally (network/timeout)',
+              'WebSocket closed: Invalid username detected',
+              'websocket',
+              {
+                code: event.code,
+                reason,
+                message: 'Username validation failed - clearing localStorage',
+              },
+            );
+
+            // Notify parent component to clear username and show modal
+            if (onInvalidUsername) {
+              onInvalidUsername();
+            }
+
+            // Don't capture to Sentry - this is expected for users with old usernames
+            return;
+          }
+        }
+
+        if (!event.wasClean) {
+          if (event.code === 1006 || event.code === 1001) {
+            // 1006 (abnormal closure) and 1001 (going away) are very common
+            // 1001 occurs during CloudFlare proxy restarts - expected behavior
+            addBreadcrumb(
+              'WebSocket closed abnormally (network/timeout/proxy restart)',
               'websocket',
               {
                 code: event.code,

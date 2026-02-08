@@ -13,6 +13,7 @@ import { useForm } from '@mantine/form';
 
 import { IconBell, IconCards, IconVolume } from '@tabler/icons-react';
 import type { Action } from 'fpp-server/src/room.actions';
+import { validateUsername } from 'fpp-server/src/shared/username.validator';
 
 import { api } from 'fpp/utils/api';
 import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
@@ -77,18 +78,16 @@ const UserSettings = ({
     initialValues: { username: username ?? '' },
     validate: {
       username: (value) => {
-        const cleanValue = (value ? value : '')
-          .replace(/[^A-Za-z]/g, '')
-          .trim();
-        if (cleanValue.length < 3) {
-          return 'Username must be at least 3 characters';
+        const result = validateUsername(value || '');
+        if (!result.isValid) {
+          return result.error;
         }
-        if (cleanValue.length > 15) {
-          return 'Username must be at most 15 characters';
-        }
-        if (cleanValue === username) {
+
+        // Check if unchanged (after cleaning)
+        if (result.cleaned === username) {
           return 'Username did not change';
         }
+
         return null;
       },
     },
@@ -101,22 +100,26 @@ const UserSettings = ({
       return;
     }
 
-    const cleanUsername = form.values.username.replace(/[^A-Za-z]/g, '').trim();
+    const result = validateUsername(form.values.username);
+    if (!result.isValid) {
+      return; // Should never happen due to form validation
+    }
 
-    if (cleanUsername === username) {
+    if (result.cleaned === username) {
       form.setFieldError('username', 'Username did not change');
       return;
     }
 
+    // Use cleaned username (preserves user's chosen case)
     triggerAction({
       action: 'changeUsername',
       userId,
       roomId,
-      username: cleanUsername,
+      username: result.cleaned,
     });
 
-    setUsername(cleanUsername);
-    form.setFieldValue('username', cleanUsername);
+    setUsername(result.cleaned);
+    form.setFieldValue('username', result.cleaned);
     form.setFieldError('username', null);
   };
 

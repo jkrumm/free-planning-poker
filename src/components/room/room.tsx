@@ -19,14 +19,22 @@ export interface RoomProps {
   roomName: string;
   userId: string;
   username: string;
+  onInvalidUsername?: () => void;
 }
 
-export const Room = ({ roomId, roomName, userId, username }: RoomProps) => {
+export const Room = ({
+  roomId,
+  roomName,
+  userId,
+  username,
+  onInvalidUsername,
+}: RoomProps) => {
   // Main WebSocket connection & state
   const { triggerAction, connectedAt, sendMessage } = useWebSocketRoom({
     roomId,
     userId,
     username,
+    onInvalidUsername,
   });
 
   // Send WebSocket heartbeats

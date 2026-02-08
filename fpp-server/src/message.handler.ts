@@ -124,7 +124,6 @@ export class MessageHandler {
         JSON.stringify({
           error: 'Unknown action',
           wsId: ws.id,
-          data: String(data),
         })
       );
     } catch (error: unknown) {
