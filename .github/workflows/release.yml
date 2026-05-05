@@ -1,0 +1,56 @@
+name: Release
+
+# Bumps version, generates CHANGELOG, creates a tag + GitHub release. The chore
+# commit it pushes to master triggers deploy.yml automatically (the redeploy is
+# idempotent — same source, same image digest, no rollout). Vercel picks up the
+# same commit through its GitHub integration and deploys NextJS.
+#
+# Run via `make release` in the repo root.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Dry run (analyze version without publishing)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: release-it
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # PAT required to push the chore commit when master is branch-protected.
+          # Falls back to GITHUB_TOKEN if RELEASE_TOKEN secret isn't set.
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --quiet
+
+      - name: Configure git author
+        run: |
+          git config user.name "Johannes Krumm"
+          git config user.email "jkrumm@users.noreply.github.com"
+
+      - name: Run release-it
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npx release-it --ci --dry-run
+          else
+            npx release-it --ci
+          fi

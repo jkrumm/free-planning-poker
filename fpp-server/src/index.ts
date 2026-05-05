@@ -53,6 +53,10 @@ Sentry.init({
 const roomState = new RoomState();
 const messageHandler = new MessageHandler(roomState);
 
+// Flipped on SIGTERM so /health returns 503 and the proxy stops routing here
+// before we close listening sockets. See SIGTERM handler at the bottom.
+let isShuttingDown = false;
+
 const app = new Elysia({
   websocket: {
     idleTimeout: 180,
@@ -102,7 +106,11 @@ app.get('/', () => {
   return { status: 'ok', service: 'fpp-server' };
 });
 
-app.get('/health', () => {
+app.get('/health', ({ set }) => {
+  if (isShuttingDown) {
+    set.status = 503;
+    return { status: 'shutting_down' };
+  }
   return { status: 'ok' };
 });
 
@@ -393,3 +401,22 @@ app.ws('/ws', {
 app.listen(3003);
 
 log.info(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+
+// Graceful shutdown for RollHook zero-downtime rollouts: flip /health to 503,
+// give Traefik ~3s to deregister, then close the server and exit.
+async function shutdown(signal: string): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  log.info({ signal }, 'Shutdown initiated, draining for 3s');
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  try {
+    await app.stop();
+  } catch (error) {
+    log.error({ err: error }, 'Error stopping server');
+  }
+  await Sentry.flush(2000).catch(() => undefined);
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));

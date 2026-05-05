@@ -1,0 +1,57 @@
+name: Deploy
+
+# Continuous deployment of fpp-server and fpp-analytics to the VPS via RollHook.
+# NextJS frontend deploys automatically through Vercel's GitHub integration —
+# this workflow only handles the two backend services.
+#
+# Auth: GitHub OIDC → RollHook exchanges for short-lived registry creds.
+# No secrets in CI. RollHook authorizes by reading the rollhook.allowed_repos
+# label off the running container (see vps/apps/fpp/compose.yml).
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Which service to deploy
+        type: choice
+        default: both
+        options: [both, fpp-server, fpp-analytics]
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fpp-server:
+    name: Deploy fpp-server
+    if: ${{ github.event_name == 'push' || inputs.service == 'both' || inputs.service == 'fpp-server' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jkrumm/rollhook-action@v1
+        with:
+          url: https://rollhook.jkrumm.com
+          image_name: fpp-server
+          dockerfile: fpp-server/Dockerfile
+          context: fpp-server
+
+  fpp-analytics:
+    name: Deploy fpp-analytics
+    if: ${{ github.event_name == 'push' || inputs.service == 'both' || inputs.service == 'fpp-analytics' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jkrumm/rollhook-action@v1
+        with:
+          url: https://rollhook.jkrumm.com
+          image_name: fpp-analytics
+          dockerfile: fpp-analytics/Dockerfile
+          context: fpp-analytics

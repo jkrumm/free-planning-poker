@@ -40,8 +40,15 @@ if SENTRY_DSN:
 DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
 UPTIMEKUMA_PUSH_URL = os.getenv("UPTIMEKUMA_PUSH_URL")
 
-# DB config (same docker network)
-DB_CONFIG = {
+# DB config (same docker network on prod, public DNS in dev).
+#
+# DB_SSL=true forces a TLS handshake — required when MariaDB is started with
+# --require-secure-transport=ON, which is the case on the VPS. DB_SSL_VERIFY=false
+# skips cert+hostname verification, which is what we want when connecting to
+# the internal `mariadb` hostname (the wildcard cert's CN is *.jkrumm.com and
+# won't match). For external connections through fpp-db.jkrumm.com we'd flip
+# DB_SSL_VERIFY back to true.
+DB_CONFIG: dict[str, Any] = {
     "host": os.getenv("DB_HOST", "mariadb"),
     "port": int(os.getenv("DB_PORT", "3306")),
     "user": os.getenv("DB_USERNAME", "fpp"),
@@ -49,6 +56,12 @@ DB_CONFIG = {
     "database": "free-planning-poker",
     "charset": "utf8mb4",
 }
+
+if os.getenv("DB_SSL", "false").lower() == "true":
+    DB_CONFIG["ssl"] = {}  # truthy enables TLS in pymysql
+    if os.getenv("DB_SSL_VERIFY", "true").lower() == "false":
+        DB_CONFIG["ssl_verify_cert"] = False
+        DB_CONFIG["ssl_verify_identity"] = False
 
 # Table definitions: {table_name: sync_column}
 # 5 tables sync by id, users syncs by created_at (no auto-increment PK)
