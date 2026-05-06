@@ -58,10 +58,13 @@ DB_CONFIG: dict[str, Any] = {
 }
 
 if os.getenv("DB_SSL", "false").lower() == "true":
-    DB_CONFIG["ssl"] = {}  # truthy enables TLS in pymysql
+    import ssl as ssl_module  # noqa: E402
+
+    ctx = ssl_module.create_default_context()
     if os.getenv("DB_SSL_VERIFY", "true").lower() == "false":
-        DB_CONFIG["ssl_verify_cert"] = False
-        DB_CONFIG["ssl_verify_identity"] = False
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl_module.CERT_NONE
+    DB_CONFIG["ssl"] = ctx
 
 # Table definitions: {table_name: sync_column}
 # 5 tables sync by id, users syncs by created_at (no auto-increment PK)

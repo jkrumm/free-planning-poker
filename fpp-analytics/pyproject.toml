@@ -2,7 +2,7 @@
 name = "fpp-analytics"
 version = "2.0.0"
 description = "Free Planning Poker Analytics - FastAPI + Polars"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     # Web framework
     "fastapi>=0.128.0",
@@ -36,7 +36,7 @@ include = ["main.py", "config.py", "update_readmodel.py"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -63,7 +63,7 @@ indent-style = "space"
 known-first-party = ["calculations", "routers", "util"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
