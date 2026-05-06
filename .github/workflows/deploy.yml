@@ -16,8 +16,8 @@ on:
       service:
         description: Which service to deploy
         type: choice
-        default: both
-        options: [both, fpp-server, fpp-analytics]
+        default: all
+        options: [all, fpp-server, fpp-analytics, fpp-analytics-updater]
 
 permissions:
   id-token: write
@@ -30,7 +30,7 @@ concurrency:
 jobs:
   fpp-server:
     name: Deploy fpp-server
-    if: ${{ github.event_name == 'push' || inputs.service == 'both' || inputs.service == 'fpp-server' }}
+    if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'fpp-server' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -44,7 +44,7 @@ jobs:
 
   fpp-analytics:
     name: Deploy fpp-analytics
-    if: ${{ github.event_name == 'push' || inputs.service == 'both' || inputs.service == 'fpp-analytics' }}
+    if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'fpp-analytics' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -53,5 +53,19 @@ jobs:
         with:
           url: https://rollhook.jkrumm.com
           image_name: fpp-analytics
+          dockerfile: fpp-analytics/Dockerfile
+          context: fpp-analytics
+
+  fpp-analytics-updater:
+    name: Deploy fpp-analytics-updater
+    if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'fpp-analytics-updater' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jkrumm/rollhook-action@v1
+        with:
+          url: https://rollhook.jkrumm.com
+          image_name: fpp-analytics-updater
           dockerfile: fpp-analytics/Dockerfile
           context: fpp-analytics

@@ -107,7 +107,12 @@ def fetch_new_rows(
 def sync_table(conn: Any, table: str, sync_col: str) -> int:
     """Sync a single table from MySQL to Parquet (atomic write)."""
     parquet_path = DATA_DIR / f"{table}.parquet"
-    temp_path = DATA_DIR / f".{table}.parquet.tmp"
+    # PID in temp filename so two updater replicas during a RollHook 1→2→1
+    # rolling deploy don't write to the same path. The atomic rename still
+    # picks one consistent winner; the loser's snapshot is just dropped (the
+    # DB query is idempotent — next iteration picks up from whichever
+    # last_value lands in parquet).
+    temp_path = DATA_DIR / f".{table}.parquet.{os.getpid()}.tmp"
 
     last_value = get_last_sync_value(parquet_path, sync_col)
     rows = fetch_new_rows(conn, table, sync_col, last_value)
