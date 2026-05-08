@@ -39,8 +39,8 @@ uv run python update_readmodel.py
 |--------|-------------|
 | `ANALYTICS_SECRET_TOKEN` | Bearer token for API authentication |
 | `FPP_ANALYTICS_SENTRY_DSN` | Sentry DSN (optional) |
-| `BEA_BASE_URL` | Email service base URL (optional) |
-| `BEA_SECRET_KEY` | Email service auth key (optional) |
+| `BEA_BASE_URL` | Email service base URL — full URL with scheme, no trailing slash (e.g. `https://bun-email-api.example.com`). Optional. |
+| `BEA_SECRET_KEY` | Email service bearer token (optional) |
 
 ### Required Secrets for `fpp-analytics-updater`
 

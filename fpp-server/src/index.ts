@@ -408,7 +408,7 @@ async function shutdown(signal: string): Promise<void> {
   if (isShuttingDown) return;
   isShuttingDown = true;
   log.info({ signal }, 'Shutdown initiated, draining for 3s');
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 3000));
   try {
     await app.stop();
   } catch (error) {
