@@ -173,7 +173,9 @@ export class RoomServer extends RoomBase {
         }
       })
       .catch((error) => {
-        // Only capture analytics failures - these are non-critical
+        // Persistence path for vote + estimation rows. Failure is silent to
+        // the user (WebSocket flip already succeeded) but means data loss —
+        // surface as warning so it shows in the Sentry issues view.
         captureError(
           error as Error,
           {
@@ -184,7 +186,7 @@ export class RoomServer extends RoomBase {
               trackingUrl,
             },
           },
-          'low'
+          'medium'
         );
       });
   }
