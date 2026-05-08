@@ -24,7 +24,7 @@ async def send_daily_email(daily_analytics: dict[str, Any]) -> None:
         print("BEA service not configured, skipping email")
         return
 
-    url = f"http://{BEA_BASE_URL}:3010/fpp-daily-analytics"
+    url = f"{BEA_BASE_URL.rstrip('/')}/fpp-daily-analytics"
 
     try:
         async with httpx.AsyncClient() as client:

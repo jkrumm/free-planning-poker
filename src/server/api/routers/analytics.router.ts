@@ -117,9 +117,12 @@ export const analyticsRouter = createTRPCRouter({
     };
   }),
   getServerAnalytics: publicProcedure.query(async () => {
-    const response = await fetch(`https://${env.NEXT_PUBLIC_FPP_SERVER_URL}/analytics`, {
-      cache: 'no-store',
-    }).catch((error) => {
+    const response = await fetch(
+      `https://${env.NEXT_PUBLIC_FPP_SERVER_URL}/analytics`,
+      {
+        cache: 'no-store',
+      },
+    ).catch((error) => {
       throw toCustomTRPCError(error, 'Failed to fetch server analytics API', {
         component: 'analyticsRouter',
         action: 'getServerAnalytics',
