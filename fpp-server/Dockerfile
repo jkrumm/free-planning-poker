@@ -4,6 +4,10 @@ WORKDIR /app
 COPY package.json bun.lock tsconfig.json ./
 RUN bun install --frozen-lockfile --production --ignore-scripts
 
+# Bun inlines process.env.NODE_ENV at compile time — must be set before `bun build`
+# or production conditionals (tracking URL, log level, Sentry env) bake to dev defaults.
+ENV NODE_ENV=production
+
 COPY src ./src
 RUN bun build \
     --compile \
