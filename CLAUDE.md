@@ -19,7 +19,7 @@ This project inherits skills from `/Users/johannes.krumm/SourceRoot/.claude/skil
 
 | Skill | Context | Purpose |
 |-------|---------|---------|
-| `/commit [ticket]` | main | Smart conventional commits with OpenSpec awareness |
+| `/commit [ticket]` | main | Smart conventional commits |
 | `/pr [action]` | main | GitHub PR workflow (create, status, merge) |
 | `/code-quality` | **fork** | Format, lint, typecheck, test (~70% token savings) |
 | `/research <query>` | **fork** | Deep technical research (~80% token savings) |
@@ -69,7 +69,7 @@ Free Planning Poker runs on three independent services:
 3. **FastAPI Analytics** (port 5100) - Analytics calculations, read-only
 4. **Logdy** (port 8080) - Unified log viewer (local development only)
 
-📖 **For detailed architecture**, see `ARCHITECTURE.md` and `openspec/config.yaml`
+📖 **For detailed architecture**, see `ARCHITECTURE.md`
 
 ### When to Modify Which Service
 
@@ -952,4 +952,4 @@ Runs on a fresh runner using `RELEASE_TOKEN` (PAT) to push past branch protectio
 ---
 
 **Last Updated**: 2026-05-10
-**For detailed architecture explanation**: See `ARCHITECTURE.md` and `openspec/config.yaml`
+**For detailed architecture explanation**: See `ARCHITECTURE.md`
