@@ -3,6 +3,43 @@
 All notable changes to this project will be documented in this file.
 
 
+## [8.4.0](https://github.com/jkrumm/free-planning-poker/compare/8.3.0...8.4.0) (2026-05-10)
+
+### Features
+
+* **deploy:** add Dockerfiles, RollHook deploy, and release flow ([1add832](https://github.com/jkrumm/free-planning-poker/commit/1add832f5a06668d1f907f1ef3418c3d18e652f1))
+* **deploy:** include fpp-analytics-updater in RollHook rolling deploys ([8dc7a7b](https://github.com/jkrumm/free-planning-poker/commit/8dc7a7bbce7bd7713eccee3332f8e51e1ae1edff))
+
+### Bug Fixes
+
+* accept full URL in BEA_BASE_URL for email service ([0a85dd7](https://github.com/jkrumm/free-planning-poker/commit/0a85dd7c78caf35706b52f22a5a317e43332558d))
+* **analytics:** unhardcode fpp-server URL after VPS migration ([5e4a46e](https://github.com/jkrumm/free-planning-poker/commit/5e4a46ebfb5d65ddf9f11bf75a53f6a51cf9e2f9))
+* **analytics:** use SSLContext for pymysql instead of empty-dict ([adcd2e7](https://github.com/jkrumm/free-planning-poker/commit/adcd2e77d71dc396114d30e49851e28b95a815ac))
+* **fpp-server:** bump trackFlipAnalytics severity from low to medium ([34451a0](https://github.com/jkrumm/free-planning-poker/commit/34451a0b1673e13eb08dff31cef027625a6e3fb9))
+* **fpp-server:** set NODE_ENV=production before bun build ([6ffe452](https://github.com/jkrumm/free-planning-poker/commit/6ffe452fac3b32a3bcde9190d8379e3ba80f13c0))
+* **JK-27:** resolve SonarCloud quick fixes ([de8e330](https://github.com/jkrumm/free-planning-poker/commit/de8e330cd686ad844b8f2a53ccfb2d0ecfb3d5ca))
+* reduce Sentry noise from expected browser and network behaviors ([f0bc38e](https://github.com/jkrumm/free-planning-poker/commit/f0bc38ed52636e707a5d1b074b123f6f5efe2e26))
+* resolve CodeRabbit critical issues from PR review ([3d3fa4c](https://github.com/jkrumm/free-planning-poker/commit/3d3fa4cd1c66a843931c286e41c0ea0e5d8f3531))
+* resolve Pino logger context loss in error handling ([203dab8](https://github.com/jkrumm/free-planning-poker/commit/203dab8a067e31c9d44545889e665d58a73e0c14))
+* resolve Sentry issues and implement shared username validation ([8389c42](https://github.com/jkrumm/free-planning-poker/commit/8389c422dc9392b16437dba34f1e50ec16c0ed4e))
+
+### Refactoring
+
+* **JK-27:** extract error detection helpers in trpc middleware ([7df1cc9](https://github.com/jkrumm/free-planning-poker/commit/7df1cc9a8f593962cac756ed31a7e7c26e1c91cc))
+* **JK-27:** reduce cognitive complexity in error handling and UI ([3ab2aa8](https://github.com/jkrumm/free-planning-poker/commit/3ab2aa87ffbcb524325cbfe45e0515ead5ced63c))
+* **JK-68:** standardize localStorage API usage ([9519bc7](https://github.com/jkrumm/free-planning-poker/commit/9519bc745d56c101809c60c8d31a59cd2c3baf95))
+
+### Documentation
+
+* document shipping, CI, and release workflow ([852f29d](https://github.com/jkrumm/free-planning-poker/commit/852f29d926fc41d0bd87533b255dca570da4913c))
+* update release-fpp command with working configuration ([55783da](https://github.com/jkrumm/free-planning-poker/commit/55783dacbc53615ca3f7859aefe4c9ca97ec64ad))
+
+### CI/CD
+
+* **JK-27:** configure SonarCloud multi-service code quality scanning ([ecedec5](https://github.com/jkrumm/free-planning-poker/commit/ecedec56c854918b5eabcc521f2e4b15db299445))
+* trigger new workflow run ([0e732cc](https://github.com/jkrumm/free-planning-poker/commit/0e732cc9cf4fbb7ce8300419764228bf4c3c3d41))
+* use npm ci with built-in caching, drop node_modules cache ([cf535de](https://github.com/jkrumm/free-planning-poker/commit/cf535de84eb718226a061d5716d02604dc623f38))
+
 ## [8.3.0](https://github.com/jkrumm/free-planning-poker/compare/8.2.0...8.3.0) (2026-01-04)
 
 ### Features
