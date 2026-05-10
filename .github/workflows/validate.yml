@@ -27,7 +27,7 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lock') }}
       - name: Install Next.js dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci --quiet
+        run: npm install --quiet
       - name: Install fpp-server dependencies
         if: steps.bun-cache.outputs.cache-hit != 'true'
         run: cd fpp-server && bun install
@@ -51,7 +51,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci --quiet
+        run: npm install --quiet
       - name: Run formatting check
         run: npm run format:check
 
@@ -70,7 +70,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci --quiet
+        run: npm install --quiet
       - name: Run linting
         run: npm run lint
         env:
@@ -91,7 +91,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci --quiet
+        run: npm install --quiet
       - name: Build
         run: npm run build
         env:
