@@ -566,5 +566,5 @@ Use Context7 MCP as a reference for documentation:
 ---
 
 **Last Updated**: 2025-12-27
-**For architecture overview**: See `/ARCHITECTURE.md` and `/openspec/config.yaml`
+**For architecture overview**: See `/ARCHITECTURE.md`
 **For client integration**: See `/CLAUDE.md` (root)
