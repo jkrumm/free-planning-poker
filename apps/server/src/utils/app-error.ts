@@ -1,5 +1,5 @@
-import * as Sentry from "@sentry/bun";
-import { log } from "../index";
+import * as Sentry from '@sentry/bun';
+import { log } from '../index';
 
 interface ErrorContext {
   component?: string;
@@ -7,7 +7,7 @@ interface ErrorContext {
   extra?: Record<string, string | number | boolean | null>;
 }
 
-type ErrorSeverity = "low" | "medium" | "high" | "critical";
+type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * Captures an error with enriched context and standardized severity mapping.
@@ -28,24 +28,24 @@ type ErrorSeverity = "low" | "medium" | "high" | "critical";
 export function captureError(
   error: Error | string,
   context: ErrorContext = {},
-  severity: ErrorSeverity = "medium",
+  severity: ErrorSeverity = 'medium',
 ): void {
-  const err = typeof error === "string" ? new Error(error) : error;
+  const err = typeof error === 'string' ? new Error(error) : error;
 
   // Map severity to Sentry level
   const levelMap = {
-    critical: "fatal",
-    high: "error",
-    medium: "warning",
-    low: "info",
+    critical: 'fatal',
+    high: 'error',
+    medium: 'warning',
+    low: 'info',
   } as const;
 
   // Log to Pino with structured data
   log.error(
     {
       error: err,
-      component: context.component ?? "unknown",
-      action: context.action ?? "unknown",
+      component: context.component ?? 'unknown',
+      action: context.action ?? 'unknown',
       severity,
       ...context.extra,
     },
@@ -56,8 +56,8 @@ export function captureError(
   Sentry.captureException(err, {
     level: levelMap[severity],
     tags: {
-      component: context.component ?? "unknown",
-      action: context.action ?? "unknown",
+      component: context.component ?? 'unknown',
+      action: context.action ?? 'unknown',
       severity,
     },
     extra: context.extra ?? {},
@@ -83,21 +83,21 @@ export function captureError(
 export function captureMessage(
   message: string,
   context: ErrorContext = {},
-  severity: ErrorSeverity = "medium",
+  severity: ErrorSeverity = 'medium',
 ): void {
   const levelMap = {
-    critical: "fatal",
-    high: "error",
-    medium: "warning",
-    low: "info",
+    critical: 'fatal',
+    high: 'error',
+    medium: 'warning',
+    low: 'info',
   } as const;
 
   // Log to Pino with structured data (use warn for medium/high, info for low)
-  if (severity === "low") {
+  if (severity === 'low') {
     log.info(
       {
-        component: context.component ?? "unknown",
-        action: context.action ?? "unknown",
+        component: context.component ?? 'unknown',
+        action: context.action ?? 'unknown',
         severity,
         ...context.extra,
       },
@@ -106,8 +106,8 @@ export function captureMessage(
   } else {
     log.warn(
       {
-        component: context.component ?? "unknown",
-        action: context.action ?? "unknown",
+        component: context.component ?? 'unknown',
+        action: context.action ?? 'unknown',
         severity,
         ...context.extra,
       },
@@ -119,8 +119,8 @@ export function captureMessage(
   Sentry.captureMessage(message, {
     level: levelMap[severity],
     tags: {
-      component: context.component ?? "unknown",
-      action: context.action ?? "unknown",
+      component: context.component ?? 'unknown',
+      action: context.action ?? 'unknown',
       severity,
     },
     extra: context.extra ?? {},
@@ -143,13 +143,13 @@ export function captureMessage(
  */
 export function addBreadcrumb(
   message: string,
-  category = "user",
+  category = 'user',
   data?: Record<string, string | number | boolean | null>,
 ): void {
   Sentry.addBreadcrumb({
     message,
     category,
-    level: "info",
+    level: 'info',
     data: data ?? {},
     timestamp: Date.now() / 1000,
   });

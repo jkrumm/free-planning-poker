@@ -1,13 +1,13 @@
-import { type ElysiaWS } from "elysia/ws";
+import { type ElysiaWS } from 'elysia/ws';
 // Import base classes to extend
 import {
   RoomBase,
   User as UserBase,
   type CreateUserDto as CreateUserDtoBase,
-} from "@fpp/shared";
-import { validateUsername } from "@fpp/shared";
-import { preciseTimeout } from "./utils";
-import { captureError } from "./utils/app-error";
+} from '@fpp/shared';
+import { validateUsername } from '@fpp/shared';
+import { preciseTimeout } from './utils';
+import { captureError } from './utils/app-error';
 
 // Re-export shared types from room.types for backward compatibility
 export {
@@ -16,8 +16,8 @@ export {
   RoomStateStatus,
   type RoomDto,
   type CreateUserDto as CreateUserDtoBase,
-} from "@fpp/shared";
-export { User as UserBase } from "@fpp/shared";
+} from '@fpp/shared';
+export { User as UserBase } from '@fpp/shared';
 
 /**
  * Server-specific extensions that require Bun/Elysia dependencies
@@ -74,7 +74,7 @@ export class RoomServer extends RoomBase {
     // Validate username with shared validation logic (strict mode)
     const validation = validateUsername(name, { strict: true });
     if (!validation.isValid) {
-      throw new Error(validation.error ?? "Invalid username");
+      throw new Error(validation.error ?? 'Invalid username');
     }
 
     this.users = this.users.map((user) => {
@@ -126,36 +126,36 @@ export class RoomServer extends RoomBase {
     const fppServerSecret = process.env.FPP_SERVER_SECRET;
 
     if (!fppServerSecret) {
-      const error = new Error("FPP_SERVER_SECRET not set");
+      const error = new Error('FPP_SERVER_SECRET not set');
       captureError(
         error,
         {
-          component: "roomEntity",
-          action: "flip",
+          component: 'roomEntity',
+          action: 'flip',
           extra: {
             roomId: String(this.id),
           },
         },
-        "critical",
+        'critical',
       );
       throw error;
     }
 
     // Track flip analytics - fire and forget with error handling
     const trackingUrl = `${
-      process.env.NODE_ENV === "production"
-        ? "https://free-planning-poker.com/"
-        : "http://localhost:3001"
+      process.env.NODE_ENV === 'production'
+        ? 'https://free-planning-poker.com/'
+        : 'http://localhost:3001'
     }/api/trpc/room.trackFlip?batch=1`;
 
     fetch(trackingUrl, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(
         JSON.stringify({
-          "0": {
+          '0': {
             json: {
               roomId: this.id,
               fppServerSecret,
@@ -179,14 +179,14 @@ export class RoomServer extends RoomBase {
         captureError(
           error as Error,
           {
-            component: "roomEntity",
-            action: "trackFlipAnalytics",
+            component: 'roomEntity',
+            action: 'trackFlipAnalytics',
             extra: {
               roomId: String(this.id),
               trackingUrl,
             },
           },
-          "medium",
+          'medium',
         );
       });
   }

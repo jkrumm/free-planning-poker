@@ -7,14 +7,20 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema.ts",
+    "./client": "./src/client.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
     "check": "drizzle-kit check",
-    "type-check": "tsc --noEmit"
+    "format": "prettier --write \"src/**/*.{ts,json}\" drizzle.config.ts",
+    "format:check": "prettier --check \"src/**/*.{ts,json}\" drizzle.config.ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "type-check": "tsc --noEmit",
+    "validate": "bun run format:check && bun run lint && bun run type-check"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -22,8 +28,12 @@
     "nanoid": "^5.1.11"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
-    "typescript": "^6.0.3"
+    "eslint": "^9.39.4",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.2"
   }
 }

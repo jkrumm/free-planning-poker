@@ -18,6 +18,10 @@ free-planning-poker/
 
 The web app and the WebSocket server consume `@fpp/db` and `@fpp/shared` directly via workspace symlinks — no cross-service relative imports. TypeBox runtime compilation lives in `apps/server` (server-only) so the web bundle stays clean of Elysia/TypeBox internals.
 
+`@fpp/db` splits its surface across two entry points: the default export (`@fpp/db`) is schema + types only — safe to import from any code, server or client. The Drizzle/mysql2 client factory lives behind a separate subpath (`@fpp/db/client`) so the mysql2 driver never enters the browser bundle when a client component touches a schema type.
+
+Tooling is centralised at the repo root: `tsconfig.base.json` defines shared compiler options, `prettier.config.cjs` defines code style, `.prettierignore` defines exclusions. Each workspace `extends` the base tsconfig and inherits prettier via Prettier's config discovery, with per-workspace `format / lint / type-check / validate` scripts. CI runs all four workspaces' validation in parallel (17 jobs total when including `fpp-analytics`).
+
 ## The Problem
 
 Planning poker sessions need to be instant, collaborative, and dead-simple. Users should be able to create a room by just typing a name in the URL - no sign-ups, no friction, just planning. But under the hood, this simplicity requires solving some interesting challenges:

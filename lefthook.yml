@@ -27,6 +27,28 @@ pre-commit:
       root: apps/server
       run: bun run type-check
 
+    # @fpp/db (packages/db)
+    db-format:
+      root: packages/db
+      run: bun run format:check
+    db-lint:
+      root: packages/db
+      run: bun run lint
+    db-typecheck:
+      root: packages/db
+      run: bun run type-check
+
+    # @fpp/shared (packages/shared)
+    shared-format:
+      root: packages/shared
+      run: bun run format:check
+    shared-lint:
+      root: packages/shared
+      run: bun run lint
+    shared-typecheck:
+      root: packages/shared
+      run: bun run type-check
+
     # fpp-analytics
     fpp-analytics-format:
       root: fpp-analytics

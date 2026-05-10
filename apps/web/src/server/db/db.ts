@@ -1,18 +1,13 @@
 import { env } from 'fpp/env';
 
-import * as schema from '@fpp/db';
-import { drizzle } from 'drizzle-orm/mysql2';
-import { type Pool, createPool } from 'mysql2/promise';
+import { type Db, createClient } from '@fpp/db/client';
 
-/**
- * Cache the database connection in development. This avoids creating a new connection on every HMR
- * update.
- */
+// Cache the connection in development to avoid HMR recreating pools on every reload.
 const globalForDb = globalThis as unknown as {
-  conn: Pool | undefined;
+  db: Db | undefined;
 };
 
-const conn = globalForDb.conn ?? createPool({ uri: env.DATABASE_URL });
-if (env.NEXT_PUBLIC_NODE_ENV !== 'production') globalForDb.conn = conn;
+const db = globalForDb.db ?? createClient(env.DATABASE_URL);
+if (env.NEXT_PUBLIC_NODE_ENV !== 'production') globalForDb.db = db;
 
-export default drizzle(conn, { schema, mode: 'default' });
+export default db;

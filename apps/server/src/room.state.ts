@@ -1,9 +1,9 @@
-import { type ElysiaWS } from "elysia/ws";
-import { log } from "./index";
-import { RoomServer, type User } from "./room.entity";
-import { type Analytics, type AnalyticsUser } from "./types";
-import { captureError, captureMessage } from "./utils/app-error";
-import { WEBSOCKET_CONSTANTS } from "./websocket.constants";
+import { type ElysiaWS } from 'elysia/ws';
+import { log } from './index';
+import { RoomServer, type User } from './room.entity';
+import { type Analytics, type AnalyticsUser } from './types';
+import { captureError, captureMessage } from './utils/app-error';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class RoomState {
   private rooms = new Map<number, RoomServer>();
@@ -18,7 +18,7 @@ export class RoomState {
     if (!room) {
       room = new RoomServer(roomId);
       this.rooms.set(roomId, room);
-      log.debug({ roomId }, "Created new room");
+      log.debug({ roomId }, 'Created new room');
     }
     return room;
   }
@@ -52,14 +52,14 @@ export class RoomState {
           name: user.name,
           isPresent: currentPresenceState,
         },
-        "Updated existing user connection - preserved presence state",
+        'Updated existing user connection - preserved presence state',
       );
     } else {
       // Add new user
       room.addUser(user);
       log.debug(
         { userId: user.id, roomId, userCount: room.users.length },
-        "Added new user to room",
+        'Added new user to room',
       );
     }
   }
@@ -71,7 +71,7 @@ export class RoomState {
         this.userConnections.delete(wsId);
         log.debug(
           { userId, roomId, wsId },
-          "Cleaned up previous connection for user",
+          'Cleaned up previous connection for user',
         );
       }
     }
@@ -95,7 +95,7 @@ export class RoomState {
 
     log.debug(
       { userId, roomId, userCount: room.users.length },
-      "User removed from room",
+      'User removed from room',
     );
 
     // Send update to remaining users
@@ -104,7 +104,7 @@ export class RoomState {
     // Clean up empty room
     if (room.users.length === 0) {
       this.rooms.delete(roomId);
-      log.debug({ roomId }, "Removed empty room");
+      log.debug({ roomId }, 'Removed empty room');
     }
   }
 
@@ -128,7 +128,7 @@ export class RoomState {
 
     log.debug(
       { userId, roomId, wsId },
-      "WebSocket connection removed - user stays in room until heartbeat timeout",
+      'WebSocket connection removed - user stays in room until heartbeat timeout',
     );
 
     return { userId, roomId };
@@ -156,12 +156,12 @@ export class RoomState {
           successCount++;
           log.debug(
             { userId: user.id, roomId: room.id, wsId: user.ws.id },
-            "Successfully sent room data to user",
+            'Successfully sent room data to user',
           );
         } else {
           log.debug(
             { userId: user.id, roomId: room.id },
-            "User has no active connection - skipping message send",
+            'User has no active connection - skipping message send',
           );
         }
       } catch (error: unknown) {
@@ -169,15 +169,15 @@ export class RoomState {
         captureError(
           error as Error,
           {
-            component: "roomState",
-            action: "broadcastToUser",
+            component: 'roomState',
+            action: 'broadcastToUser',
             extra: {
               roomId: String(roomId),
               userId: user.id,
               totalUsers: room.users.length,
             },
           },
-          "medium",
+          'medium',
         );
       }
     }
@@ -185,10 +185,10 @@ export class RoomState {
     // Track if there were excessive failures
     if (failureCount > 0 && failureCount >= room.users.length / 2) {
       captureMessage(
-        "High WebSocket send failure rate in room",
+        'High WebSocket send failure rate in room',
         {
-          component: "roomState",
-          action: "broadcastAll",
+          component: 'roomState',
+          action: 'broadcastAll',
           extra: {
             roomId: String(roomId),
             totalUsers: room.users.length,
@@ -199,7 +199,7 @@ export class RoomState {
             ),
           },
         },
-        "high",
+        'high',
       );
     }
 
@@ -214,7 +214,7 @@ export class RoomState {
     }
 
     const roomNameChangeMessage = JSON.stringify({
-      type: "roomNameChanged",
+      type: 'roomNameChanged',
       roomId,
       roomName,
       timestamp: Date.now(),
@@ -231,27 +231,27 @@ export class RoomState {
           user.ws.send(roomNameChangeMessage);
           log.debug(
             { userId: user.id, roomId: room.id, roomName, wsId: user.ws.id },
-            "Successfully sent room name change notification to user",
+            'Successfully sent room name change notification to user',
           );
         } else {
           log.debug(
             { userId: user.id, roomId: room.id },
-            "User has no active connection - skipping room name change notification",
+            'User has no active connection - skipping room name change notification',
           );
         }
       } catch (error: unknown) {
         captureError(
           error as Error,
           {
-            component: "roomState",
-            action: "sendRoomNameChange",
+            component: 'roomState',
+            action: 'sendRoomNameChange',
             extra: {
               roomId: String(roomId),
               userId: user.id,
               roomName,
             },
           },
-          "medium",
+          'medium',
         );
       }
     }
@@ -297,7 +297,7 @@ export class RoomState {
               timeSinceLastHeartbeat,
               wsId: user.ws.id,
             },
-            "Removing user due to 30-minute heartbeat timeout",
+            'Removing user due to 30-minute heartbeat timeout',
           );
           usersToRemove.push(user.id);
         }
@@ -317,7 +317,7 @@ export class RoomState {
       // Clean up empty rooms
       if (room.users.length === 0) {
         this.rooms.delete(room.id);
-        log.debug({ roomId: room.id }, "Removed empty room during cleanup");
+        log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
       }
     }
 
