@@ -22,13 +22,13 @@ This service is part of the **free-planning-poker** monorepo. Use global SourceR
 
 | Component | Technology |
 |-----------|------------|
-| Web Framework | FastAPI 0.115+ |
-| Data Processing | Polars 1.34+ |
-| Database | MySQL/MariaDB (via mysql-connector-python) |
+| Web Framework | FastAPI 0.136+ (Starlette 1.0) |
+| Data Processing | Polars 1.40+ |
+| Database | MySQL/MariaDB (via pymysql) |
 | HTTP Client | httpx (async) |
 | Monitoring | Sentry SDK |
 | Package Manager | uv |
-| Runtime | Python 3.12+ |
+| Runtime | Python 3.14+ |
 
 ### Architecture Summary
 
@@ -44,7 +44,7 @@ Data flows: `MySQL → Updater → Parquet files → FastAPI → Client`
 
 ### Python Style
 
-- **Python 3.12+** features allowed (type hints, match statements, etc.)
+- **Python 3.14+** features allowed (type hints, match statements, etc.)
 - Use **type hints** for all function signatures
 - Prefer **f-strings** over format()
 - Use **pathlib.Path** for file operations
@@ -238,12 +238,14 @@ except Exception as e:
 
 #### Global Exception Handler
 
-All unhandled exceptions are automatically captured by the global handler in `main.py`:
+All unhandled exceptions are automatically captured by the global handler in `main.py`. Starlette 1.0 removed the `@app.exception_handler` decorator — handlers are passed via the `FastAPI(exception_handlers=...)` constructor argument:
+
 ```python
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     capture_error(exc, ErrorContext("global_handler", ...), "critical")
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+app = FastAPI(..., exception_handlers={Exception: global_exception_handler})
 ```
 
 Note: `HTTPException` bypasses this handler (business logic errors are not captured).
@@ -281,7 +283,7 @@ uv run mypy .               # Type checking
 
 ### Ruff Configuration
 
-- **Python 3.12**
+- **Python 3.14**
 - **Line length**: 88 (Black compatible)
 - **Rules**: E, W, F, I, B, C4, UP, ARG, SIM
 - **Ignores**: E501 (line length), B008 (FastAPI Depends)
