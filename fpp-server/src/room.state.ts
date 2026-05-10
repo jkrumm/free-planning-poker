@@ -1,4 +1,4 @@
-import { type ElysiaWS } from 'elysia/dist/ws';
+import { type ElysiaWS } from 'elysia/ws';
 import { log } from './index';
 import { RoomServer, type User } from './room.entity';
 import { type Analytics, type AnalyticsUser } from './types';

@@ -1,4 +1,4 @@
-import { type ElysiaWS } from 'elysia/dist/ws';
+import { type ElysiaWS } from 'elysia/ws';
 // Import base classes to extend
 import {
   RoomBase,
