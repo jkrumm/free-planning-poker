@@ -33,7 +33,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: fpp-server
+          projectBaseDir: apps/server
 
   sonarcloud-analytics:
     name: SonarCloud - FPP Analytics

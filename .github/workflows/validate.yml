@@ -3,145 +3,149 @@ name: Validate
 on: [pull_request]
 
 # Caching strategy:
-# - npm: setup-node's built-in `cache: 'npm'` caches ~/.npm (the tarball store)
-#   keyed by package-lock.json. `npm ci` then resolves locally without network.
-#   Never cache node_modules — it's tied to OS/Node ABI and defeats `npm ci`.
 # - bun: setup-bun has no built-in package cache, so we manually cache
-#   ~/.bun/install/cache keyed by bun.lock. `bun install --frozen-lockfile`
-#   resolves from the cache.
+#   ~/.bun/install/cache keyed by root bun.lock. Bun resolves the entire
+#   workspace (apps/* + packages/*) from this lockfile.
 # - uv: setup-uv's built-in `enable-cache` caches the uv tarball store.
 
 jobs:
-  # Next.js Validation (4 jobs)
-  validate-nextjs-typecheck:
-    name: Next.js - Type Checking
+  # Web (apps/web) — 4 jobs
+  validate-web-typecheck:
+    name: Web - Type Checking
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: npm
       - uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: npm ci
-      - run: cd fpp-server && bun install --frozen-lockfile
-      - run: npm run type-check
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/web type-check
         env:
           SKIP_ENV_VALIDATION: '1'
 
-  validate-nextjs-formatting:
-    name: Next.js - Formatting
+  validate-web-formatting:
+    name: Web - Formatting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/cache@v5
         with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/web format:check
 
-  validate-nextjs-linting:
-    name: Next.js - Linting
+  validate-web-linting:
+    name: Web - Linting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/cache@v5
         with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/web lint
         env:
           SKIP_ENV_VALIDATION: '1'
 
-  validate-nextjs-build:
-    name: Next.js - Build
+  validate-web-build:
+    name: Web - Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/cache@v5
         with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/web build
         env:
           SKIP_ENV_VALIDATION: '1'
 
-  # fpp-server Validation (4 jobs)
-  validate-fpp-server-formatting:
-    name: fpp-server - Formatting
+  # Server (apps/server) — 4 jobs
+  validate-server-formatting:
+    name: Server - Formatting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: cd fpp-server && bun install --frozen-lockfile
-      - run: cd fpp-server && bun run format:check
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/server format:check
 
-  validate-fpp-server-linting:
-    name: fpp-server - Linting
+  validate-server-linting:
+    name: Server - Linting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: cd fpp-server && bun install --frozen-lockfile
-      - run: cd fpp-server && bun run lint
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/server lint
 
-  validate-fpp-server-typecheck:
-    name: fpp-server - Type Checking
+  validate-server-typecheck:
+    name: Server - Type Checking
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: cd fpp-server && bun install --frozen-lockfile
-      - run: cd fpp-server && bun run type-check
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/server type-check
 
-  validate-fpp-server-build:
-    name: fpp-server - Build
+  validate-server-build:
+    name: Server - Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('fpp-server/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: cd fpp-server && bun install --frozen-lockfile
-      - run: cd fpp-server && bun run build
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter=@fpp/server build
 
-  # fpp-analytics Validation (3 jobs)
+  # fpp-analytics — 3 jobs
   validate-fpp-analytics-formatting:
     name: fpp-analytics - Formatting
     runs-on: ubuntu-latest

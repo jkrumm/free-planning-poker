@@ -39,8 +39,8 @@ jobs:
         with:
           url: https://rollhook.jkrumm.com
           image_name: fpp-server
-          dockerfile: fpp-server/Dockerfile
-          context: fpp-server
+          dockerfile: apps/server/Dockerfile
+          context: .
 
   fpp-analytics:
     name: Deploy fpp-analytics

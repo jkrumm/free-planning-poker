@@ -33,12 +33,17 @@ jobs:
           # Falls back to GITHUB_TOKEN if RELEASE_TOKEN secret isn't set.
           token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/cache@v5
         with:
-          node-version: 24
-          cache: npm
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
 
-      - run: npm ci --quiet
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
 
       - name: Configure git author
         run: |
@@ -50,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            npx release-it --ci --dry-run
+            bunx release-it --ci --dry-run
           else
-            npx release-it --ci
+            bunx release-it --ci
           fi

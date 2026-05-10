@@ -18,7 +18,7 @@ comment:
 
     - id: fpp-server-changed
       files:
-        - 'fpp-server/**'
+        - 'apps/server/**'
       body: |
         <h3> :rocket: fpp-server has been modified </h3>
         Remember to manually redeploy the WebSocket server after merging.

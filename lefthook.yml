@@ -1,23 +1,30 @@
 pre-commit:
   parallel: true
   commands:
-    # Next.js
-    nextjs-format:
-      run: npm run format:check
-    nextjs-lint:
-      run: SKIP_ENV_VALIDATION=1 npm run lint
-    nextjs-typecheck:
-      run: SKIP_ENV_VALIDATION=1 npm run type-check
-
-    # fpp-server
-    fpp-server-format:
-      root: fpp-server
+    # Next.js (apps/web)
+    web-format:
+      root: apps/web
       run: bun run format:check
-    fpp-server-lint:
-      root: fpp-server
+    web-lint:
+      root: apps/web
+      env:
+        SKIP_ENV_VALIDATION: '1'
       run: bun run lint
-    fpp-server-typecheck:
-      root: fpp-server
+    web-typecheck:
+      root: apps/web
+      env:
+        SKIP_ENV_VALIDATION: '1'
+      run: bun run type-check
+
+    # fpp-server (apps/server)
+    server-format:
+      root: apps/server
+      run: bun run format:check
+    server-lint:
+      root: apps/server
+      run: bun run lint
+    server-typecheck:
+      root: apps/server
       run: bun run type-check
 
     # fpp-analytics
@@ -34,5 +41,4 @@ pre-commit:
 commit-msg:
   commands:
     commitlint:
-      run: npx commitlint --edit {1}
-
+      run: bunx commitlint --edit {1}
