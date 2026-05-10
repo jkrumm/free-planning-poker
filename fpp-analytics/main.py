@@ -156,21 +156,14 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         sentry_sdk.flush(timeout=2.0)
 
 
-app = FastAPI(
-    title="FPP Analytics API",
-    version="2.0.0",
-    lifespan=lifespan,
-)
-
-
-# Global exception handler for unhandled system errors
-@app.exception_handler(Exception)
+# Global exception handler for unhandled system errors.
+# starlette 1.0 removed the @app.exception_handler decorator — handlers must
+# be passed via the FastAPI(exception_handlers=...) constructor argument.
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Capture unexpected system errors in Sentry.
 
     Note: HTTPException bypasses this handler (business logic errors are not captured).
     """
-    # Capture in Sentry with request context
     capture_error(
         exc,
         ErrorContext(
@@ -185,11 +178,18 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         severity="critical",
     )
 
-    # Return safe error response
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal server error"},
     )
+
+
+app = FastAPI(
+    title="FPP Analytics API",
+    version="2.0.0",
+    lifespan=lifespan,
+    exception_handlers={Exception: global_exception_handler},
+)
 
 
 # Custom request logging (replaces uvicorn access log)
