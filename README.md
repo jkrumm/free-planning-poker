@@ -31,9 +31,9 @@ Free Planning Poker runs on three services. Start all at once with `npm run dev:
 
 | Service | Runtime | Port | Command | Config |
 |---------|---------|------|---------|--------|
-| **Next.js App** | Node 22 | 3001 | `doppler run -- npm run dev` | Doppler |
+| **Next.js App** | Node 24 | 3001 | `doppler run -- npm run dev` | Doppler |
 | **WebSocket Server** | Bun | 3003 | `cd fpp-server && bun dev` | .env file |
-| **Analytics API** | Python 3.12 (uv) | 5100 | `cd fpp-analytics && uv run uvicorn main:app --reload --port 5100` | .env file |
+| **Analytics API** | Python 3.14 (uv) | 5100 | `cd fpp-analytics && uv run uvicorn main:app --reload --port 5100` | .env file |
 
 **For detailed architecture**, see `ARCHITECTURE.md` and `fpp-server/CLAUDE.md`, `fpp-analytics/CLAUDE.md`
 
