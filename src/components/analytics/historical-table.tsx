@@ -39,7 +39,7 @@ export const HistoricalTable = ({
 
   return (
     <>
-      <Collapse in={historicalTableOpen}>
+      <Collapse expanded={historicalTableOpen}>
         <Card withBorder radius="md" padding="0" className="mb-12">
           <div className="overflow-y-scroll max-h-[400px]">
             <Table
