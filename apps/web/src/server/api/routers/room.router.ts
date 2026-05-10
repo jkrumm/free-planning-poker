@@ -12,8 +12,8 @@ import {
   users,
   votes,
 } from '@fpp/db';
+import { type Db } from '@fpp/db/client';
 import { RoomBase, type RoomDto } from '@fpp/shared';
-import { type MySql2Database } from 'drizzle-orm/mysql2/driver';
 import { eq, or } from 'drizzle-orm/sql/expressions/conditions';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
@@ -30,10 +30,7 @@ import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 
 import { getUserPayload } from 'fpp/pages/api/track-page-view';
 
-const findOpenRoomNumber = async (
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  db: MySql2Database<typeof import('@fpp/db')>,
-) => {
+const findOpenRoomNumber = async (db: Db) => {
   let retries = 0;
   while (true) {
     const number = generateRoomNumber();

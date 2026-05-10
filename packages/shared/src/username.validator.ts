@@ -53,7 +53,7 @@ export function validateUsername(
   options: {
     allowEmpty?: boolean;
     strict?: boolean;
-  } = {}
+  } = {},
 ): UsernameValidationResult {
   const { allowEmpty = false, strict = false } = options;
 

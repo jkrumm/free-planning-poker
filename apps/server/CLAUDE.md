@@ -141,14 +141,14 @@ The action schemas are exported as TypeBox `t.Object` definitions; `TypeCompiler
 
 ```typescript
 export interface NewActionAction {
-  action: "newAction";
+  action: 'newAction';
   userId: string;
   roomId: number;
   param: string;
 }
 
 export const CNewActionActionSchema = Type.Object({
-  action: Type.Literal("newAction"),
+  action: Type.Literal('newAction'),
   userId: Type.String({ minLength: 21, maxLength: 21 }),
   roomId: Type.Integer({ minimum: 1 }),
   param: Type.String({ maxLength: 100 }),
@@ -195,10 +195,10 @@ case 'newAction': {
 
 ```typescript
 triggerAction({
-  action: "newAction",
+  action: 'newAction',
   userId,
   roomId,
-  param: "value",
+  param: 'value',
 });
 ```
 
@@ -221,8 +221,8 @@ roomState.sendToEverySocketInRoom(roomId);
 // For persistence, it calls back to Next.js tRPC:
 
 await fetch(`${process.env.TRPC_URL}/room.trackFlip`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     fppServerSecret: process.env.FPP_SERVER_SECRET,
     roomId,
@@ -242,7 +242,7 @@ fpp-server uses @sentry/bun with centralized error capture matching the Next.js 
 **Import:**
 
 ```typescript
-import { addBreadcrumb, captureError, captureMessage } from "./utils/app-error";
+import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
 ```
 
 **Usage:**
@@ -252,26 +252,26 @@ import { addBreadcrumb, captureError, captureMessage } from "./utils/app-error";
 captureError(
   error as Error,
   {
-    component: "messageHandler",
-    action: "selectEstimation",
+    component: 'messageHandler',
+    action: 'selectEstimation',
     extra: { roomId, userId },
   },
-  "high",
+  'high',
 );
 
 // Informational messages
 captureMessage(
-  "Unknown action received",
+  'Unknown action received',
   {
-    component: "messageHandler",
-    action: "routeAction",
+    component: 'messageHandler',
+    action: 'routeAction',
     extra: { action: message.action },
   },
-  "medium",
+  'medium',
 );
 
 // Breadcrumbs (lifecycle events)
-addBreadcrumb("WebSocket connection opened", "websocket", {
+addBreadcrumb('WebSocket connection opened', 'websocket', {
   roomId,
   userId,
 });
@@ -421,13 +421,13 @@ bun run format
 ❌ **Wrong** (Zod syntax):
 
 ```typescript
-z.object({ action: z.literal("vote") });
+z.object({ action: z.literal('vote') });
 ```
 
 ✅ **Correct** (TypeBox syntax):
 
 ```typescript
-Type.Object({ action: Type.Literal("vote") });
+Type.Object({ action: Type.Literal('vote') });
 ```
 
 **Why TypeBox?** Faster validation, better for WebSocket hot path.
@@ -462,7 +462,7 @@ Gap is intentional:
 ### 4. Cron Job Schedule
 
 ```typescript
-pattern: "0 */30 * * * *"; // Runs at 0 and 30 minutes past every hour
+pattern: '0 */30 * * * *'; // Runs at 0 and 30 minutes past every hour
 ```
 
 NOT "every 30 minutes from server start" - runs on the clock (0:00, 0:30, 1:00, 1:30, etc.).
@@ -507,8 +507,8 @@ NODE_ENV=development
 
 ```typescript
 // Use pino logger
-log.info({ roomId, userId }, "User joined room");
-log.error({ error, roomId }, "Failed to broadcast");
+log.info({ roomId, userId }, 'User joined room');
+log.error({ error, roomId }, 'Failed to broadcast');
 ```
 
 **Production logs:** Structured JSON (for log aggregation)

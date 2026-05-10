@@ -180,10 +180,12 @@ bun run dev:all                          # All services + Logdy UI (3001 / 3003 
 SKIP_ENV_VALIDATION=1 bun run build      # Next.js production build
 bun run --filter=@fpp/server build       # Server: bun build --target bun --outdir ./dist
 
-# Validation (all three services in parallel)
+# Validation (all workspaces in parallel)
 bun run validate                         # Validate everything
 bun run validate:web                     # @fpp/web only
 bun run validate:server                  # @fpp/server only
+bun run validate:db                      # @fpp/db only
+bun run validate:shared                  # @fpp/shared only
 bun run validate:analytics               # fpp-analytics only
 
 # Per-service shortcuts
@@ -441,6 +443,8 @@ free-planning-poker/
 
 ### Database
 - `packages/db/src/schema.ts` - Drizzle schema (rooms, users, votes, estimations)
+- `packages/db/src/client.ts` - Drizzle/mysql2 client factory (`createClient`, `Db` type) — exposed as `@fpp/db/client` subpath so client code never bundles mysql2
+- `apps/web/src/server/db/db.ts` - Singleton `db` instance built from `createClient(env.DATABASE_URL)`, dev-mode HMR caching
 - `apps/web/src/server/api/routers/room.router.ts` - Room tRPC endpoints
 
 ## Code Style Guidelines
@@ -909,7 +913,7 @@ Every commit runs `format:check + lint + type-check` for all three services in p
 
 | Workflow | Trigger | Purpose |
 |-|-|-|
-| `validate.yml` | `pull_request` | 11 parallel jobs — Next.js (typecheck/format/lint/build), fpp-server (same 4), fpp-analytics (format/lint/typecheck) |
+| `validate.yml` | `pull_request` | 17 parallel jobs — Next.js (typecheck/format/lint/build), fpp-server (same 4), @fpp/db (format/lint/typecheck), @fpp/shared (format/lint/typecheck), fpp-analytics (format/lint/typecheck) |
 | `sonarcloud.yml` | `push` master + `pull_request` | SonarCloud scan for all three services |
 | `comment.yml` | `pull_request` (path-filtered) | Auto-posts notes when `**/schema.ts`, `apps/server/**`, or `fpp-analytics/**` change |
 | `deploy.yml` | `push` master + `workflow_dispatch` | Builds + ships Docker images via RollHook (`https://rollhook.jkrumm.com`) |

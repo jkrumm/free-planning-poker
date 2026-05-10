@@ -1,20 +1,20 @@
-import { createPinoLogger } from "@bogeychan/elysia-logger";
-import cron from "@elysiajs/cron";
-import * as Sentry from "@sentry/bun";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
-import { Elysia, t } from "elysia";
-import { ActionSchema, USERNAME_RULES, validateUsername } from "@fpp/shared";
-import { MessageHandler } from "./message.handler";
-import { User } from "./room.entity";
-import { RoomState } from "./room.state";
-import { type Analytics } from "./types";
-import { addBreadcrumb, captureError, captureMessage } from "./utils/app-error";
-import { WEBSOCKET_CONSTANTS } from "./websocket.constants";
+import { createPinoLogger } from '@bogeychan/elysia-logger';
+import cron from '@elysiajs/cron';
+import * as Sentry from '@sentry/bun';
+import { TypeCompiler } from '@sinclair/typebox/compiler';
+import { Elysia, t } from 'elysia';
+import { ActionSchema, USERNAME_RULES, validateUsername } from '@fpp/shared';
+import { MessageHandler } from './message.handler';
+import { User } from './room.entity';
+import { RoomState } from './room.state';
+import { type Analytics } from './types';
+import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
-  level: process.env.NODE_ENV === "production" ? "info" : "debug",
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   base: {
-    service: "fpp-server",
+    service: 'fpp-server',
   },
 });
 
@@ -25,11 +25,11 @@ const CActionSchema = TypeCompiler.Compile(ActionSchema);
 // Initialize Sentry before Elysia app
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV ?? "development",
-  enabled: process.env.NODE_ENV !== "development",
+  environment: process.env.NODE_ENV ?? 'development',
+  enabled: process.env.NODE_ENV !== 'development',
 
   // Performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
 
   // Privacy filtering (match Next.js beforeSend)
   beforeSend(event) {
@@ -46,7 +46,7 @@ Sentry.init({
     }
 
     // Sample high-frequency connection errors (10%)
-    if (event.tags?.errorType === "connection") {
+    if (event.tags?.errorType === 'connection') {
       return Math.random() < 0.1 ? event : null; //NOSONAR - sampling rate, not crypto
     }
 
@@ -68,8 +68,8 @@ const app = new Elysia({
 })
   .use(
     cron({
-      name: "cleanupInactiveState",
-      pattern: "0 */30 * * * *", // Every 30 seconds
+      name: 'cleanupInactiveState',
+      pattern: '0 */30 * * * *', // Every 30 seconds
       run() {
         roomState.cleanupInactiveState();
       },
@@ -80,45 +80,45 @@ const app = new Elysia({
     const url = new URL(request.url);
 
     // NOT_FOUND is expected (favicon.ico, robots.txt, etc.) - don't capture
-    if (code === "NOT_FOUND") {
+    if (code === 'NOT_FOUND') {
       set.status = 404;
-      return { error: "Not found", timestamp: Date.now() };
+      return { error: 'Not found', timestamp: Date.now() };
     }
 
     captureError(
       error as Error,
       {
-        component: "elysiaOnError",
+        component: 'elysiaOnError',
         action: url.pathname,
         extra: {
           errorCode: code,
           method: request.method,
         },
       },
-      "high",
+      'high',
     );
 
-    set.status = code === "VALIDATION" ? 400 : 500;
+    set.status = code === 'VALIDATION' ? 400 : 500;
     return {
       error:
-        code === "VALIDATION" ? "Invalid request" : "Internal server error",
+        code === 'VALIDATION' ? 'Invalid request' : 'Internal server error',
       timestamp: Date.now(),
     };
   });
 
-app.get("/", () => {
-  return { status: "ok", service: "fpp-server" };
+app.get('/', () => {
+  return { status: 'ok', service: 'fpp-server' };
 });
 
-app.get("/health", ({ set }) => {
+app.get('/health', ({ set }) => {
   if (isShuttingDown) {
     set.status = 503;
-    return { status: "shutting_down" };
+    return { status: 'shutting_down' };
   }
-  return { status: "ok" };
+  return { status: 'ok' };
 });
 
-app.get("/analytics", (): Analytics => {
+app.get('/analytics', (): Analytics => {
   try {
     roomState.cleanupInactiveState();
     return roomState.toAnalytics();
@@ -126,19 +126,19 @@ app.get("/analytics", (): Analytics => {
     captureError(
       error as Error,
       {
-        component: "httpEndpoint",
-        action: "analytics",
+        component: 'httpEndpoint',
+        action: 'analytics',
       },
-      "high",
+      'high',
     );
     throw error;
   }
 });
 
 app.post(
-  "/leave",
+  '/leave',
   ({ body: { roomId, userId } }) => {
-    log.debug({ roomId, userId }, "Leave request via beacon");
+    log.debug({ roomId, userId }, 'Leave request via beacon');
 
     try {
       roomState.removeUserFromRoom(roomId, userId);
@@ -147,14 +147,14 @@ app.post(
       captureError(
         error as Error,
         {
-          component: "httpEndpoint",
-          action: "leave",
+          component: 'httpEndpoint',
+          action: 'leave',
           extra: {
             roomId: String(roomId),
             userId,
           },
         },
-        "high",
+        'high',
       );
       throw error;
     }
@@ -167,7 +167,7 @@ app.post(
   },
 );
 
-app.ws("/ws", {
+app.ws('/ws', {
   body: ActionSchema,
   query: t.Object({
     roomId: t.Number(),
@@ -180,17 +180,17 @@ app.ws("/ws", {
   open(ws) {
     const { roomId, userId, username } = ws.data.query;
 
-    addBreadcrumb("WebSocket connection opened", "websocket", {
-      roomId: roomId ? String(roomId) : "unknown",
-      userId: userId ?? "unknown",
+    addBreadcrumb('WebSocket connection opened', 'websocket', {
+      roomId: roomId ? String(roomId) : 'unknown',
+      userId: userId ?? 'unknown',
     });
 
     if (!roomId || !userId || !username) {
       captureMessage(
-        "WebSocket connection missing query parameters",
+        'WebSocket connection missing query parameters',
         {
-          component: "websocketOpen",
-          action: "validateParams",
+          component: 'websocketOpen',
+          action: 'validateParams',
           extra: {
             wsId: ws.id,
             hasRoomId: !!roomId,
@@ -198,9 +198,9 @@ app.ws("/ws", {
             hasUsername: !!username,
           },
         },
-        "medium",
+        'medium',
       );
-      ws.close(1008, "Missing parameters");
+      ws.close(1008, 'Missing parameters');
       return;
     }
 
@@ -208,25 +208,25 @@ app.ws("/ws", {
     const usernameValidation = validateUsername(username, { strict: true });
     if (!usernameValidation.isValid) {
       captureMessage(
-        "WebSocket connection with invalid username",
+        'WebSocket connection with invalid username',
         {
-          component: "websocketOpen",
-          action: "validateUsername",
+          component: 'websocketOpen',
+          action: 'validateUsername',
           extra: {
             wsId: ws.id,
             username: username.slice(0, 20),
-            error: usernameValidation.error ?? "Unknown validation error",
+            error: usernameValidation.error ?? 'Unknown validation error',
           },
         },
-        "medium",
+        'medium',
       );
-      ws.close(1008, usernameValidation.error ?? "Invalid username");
+      ws.close(1008, usernameValidation.error ?? 'Invalid username');
       return;
     }
 
     log.debug(
       { roomId, userId, username, wsId: ws.id },
-      "User connecting to room",
+      'User connecting to room',
     );
 
     try {
@@ -251,43 +251,43 @@ app.ws("/ws", {
       captureError(
         error as Error,
         {
-          component: "websocketOpen",
-          action: "setupConnection",
+          component: 'websocketOpen',
+          action: 'setupConnection',
           extra: {
             roomId: String(roomId),
             userId,
             wsId: ws.id,
           },
         },
-        "high",
+        'high',
       );
-      ws.close(1011, "Setup failed");
+      ws.close(1011, 'Setup failed');
     }
   },
   message(ws, data) {
     const actionData =
-      typeof data === "object" && data !== null
+      typeof data === 'object' && data !== null
         ? (data as Record<string, unknown>)
         : {};
 
     // Extract action info for breadcrumb
     const actionStr =
-      typeof actionData.action === "string" ||
-      typeof actionData.action === "number"
+      typeof actionData.action === 'string' ||
+      typeof actionData.action === 'number'
         ? String(actionData.action)
-        : "unknown";
+        : 'unknown';
     const roomIdStr =
-      typeof actionData.roomId === "string" ||
-      typeof actionData.roomId === "number"
+      typeof actionData.roomId === 'string' ||
+      typeof actionData.roomId === 'number'
         ? String(actionData.roomId)
-        : "unknown";
+        : 'unknown';
     const userIdStr =
-      typeof actionData.userId === "string" ||
-      typeof actionData.userId === "number"
+      typeof actionData.userId === 'string' ||
+      typeof actionData.userId === 'number'
         ? String(actionData.userId)
-        : "unknown";
+        : 'unknown';
 
-    addBreadcrumb(`WebSocket action: ${actionStr}`, "websocket.action", {
+    addBreadcrumb(`WebSocket action: ${actionStr}`, 'websocket.action', {
       roomId: roomIdStr,
       userId: userIdStr,
       action: actionStr,
@@ -297,25 +297,25 @@ app.ws("/ws", {
       if (!CActionSchema.Check(data)) {
         // Safe serialization to avoid protocol violations
         const safeData =
-          typeof data === "object"
+          typeof data === 'object'
             ? JSON.stringify(data).slice(0, 200)
             : String(data).slice(0, 200);
 
         captureMessage(
-          "Invalid WebSocket message format",
+          'Invalid WebSocket message format',
           {
-            component: "websocketMessage",
-            action: "validateMessage",
+            component: 'websocketMessage',
+            action: 'validateMessage',
             extra: {
               wsId: ws.id,
               receivedData: safeData,
             },
           },
-          "medium",
+          'medium',
         );
         ws.send(
           JSON.stringify({
-            error: "Invalid message format",
+            error: 'Invalid message format',
             wsId: ws.id,
           }),
         );
@@ -327,7 +327,7 @@ app.ws("/ws", {
       captureError(
         error as Error,
         {
-          component: "websocketMessage",
+          component: 'websocketMessage',
           action: actionStr,
           extra: {
             wsId: ws.id,
@@ -335,7 +335,7 @@ app.ws("/ws", {
             userId: userIdStr,
           },
         },
-        "high",
+        'high',
       );
 
       if (error instanceof Error) {
@@ -352,7 +352,7 @@ app.ws("/ws", {
   close(ws, code, reason) {
     log.debug(
       { wsId: ws.id, code, reason: reason?.toString() },
-      "WebSocket connection closed",
+      'WebSocket connection closed',
     );
 
     const connection = roomState.getUserConnection(ws.id);
@@ -364,27 +364,27 @@ app.ws("/ws", {
     // 1006 = Abnormal closure (no close frame - very common for tab closes, network issues)
     const expectedCloseCodes = [1000, 1001, 1005, 1006];
     if (!expectedCloseCodes.includes(code)) {
-      addBreadcrumb("WebSocket abnormal close", "websocket", {
+      addBreadcrumb('WebSocket abnormal close', 'websocket', {
         closeCode: String(code),
-        reason: reason?.toString() ?? "unknown",
-        roomId: connection?.roomId ? String(connection.roomId) : "unknown",
-        userId: connection?.userId ?? "unknown",
+        reason: reason?.toString() ?? 'unknown',
+        roomId: connection?.roomId ? String(connection.roomId) : 'unknown',
+        userId: connection?.userId ?? 'unknown',
       });
 
       captureMessage(
         `WebSocket closed with abnormal code: ${code}`,
         {
-          component: "websocketClose",
-          action: "handleClose",
+          component: 'websocketClose',
+          action: 'handleClose',
           extra: {
             closeCode: code,
-            reason: reason?.toString() ?? "none",
+            reason: reason?.toString() ?? 'none',
             wsId: ws.id,
-            roomId: connection?.roomId ? String(connection.roomId) : "unknown",
-            userId: connection?.userId ?? "unknown",
+            roomId: connection?.roomId ? String(connection.roomId) : 'unknown',
+            userId: connection?.userId ?? 'unknown',
           },
         },
-        "low",
+        'low',
       );
     }
 
@@ -396,7 +396,7 @@ app.ws("/ws", {
       roomState.removeConnection(ws.id);
       log.debug(
         { userId: connection.userId, roomId: connection.roomId, wsId: ws.id },
-        "WebSocket closed - user will be removed by heartbeat timeout if not reconnected",
+        'WebSocket closed - user will be removed by heartbeat timeout if not reconnected',
       );
     }
   },
@@ -411,16 +411,16 @@ log.info(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 async function shutdown(signal: string): Promise<void> {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  log.info({ signal }, "Shutdown initiated, draining for 3s");
+  log.info({ signal }, 'Shutdown initiated, draining for 3s');
   await new Promise((resolve) => setTimeout(resolve, 3000));
   try {
     await app.stop();
   } catch (error) {
-    log.error({ err: error }, "Error stopping server");
+    log.error({ err: error }, 'Error stopping server');
   }
   await Sentry.flush(2000).catch(() => undefined);
   process.exit(0);
 }
 
-process.on("SIGTERM", () => void shutdown("SIGTERM"));
-process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));

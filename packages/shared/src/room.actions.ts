@@ -49,7 +49,7 @@ export const SetSpectatorActionSchema = t.Intersect([
 export type SetSpectatorAction = Static<typeof SetSpectatorActionSchema>;
 
 export function isSetSpectatorAction(
-  action: unknown
+  action: unknown,
 ): action is SetSpectatorAction {
   return (
     typeof action === 'object' &&
@@ -88,7 +88,7 @@ export const SetAutoFlipActionSchema = t.Intersect([
 export type SetAutoFlipAction = Static<typeof SetAutoFlipActionSchema>;
 
 export function isSetAutoFlipAction(
-  action: unknown
+  action: unknown,
 ): action is SetAutoFlipAction {
   return (
     typeof action === 'object' &&
@@ -149,7 +149,7 @@ export const ChangeUsernameActionSchema = t.Intersect([
 export type ChangeUsernameAction = Static<typeof ChangeUsernameActionSchema>;
 
 export function isChangeUsernameAction(
-  action: unknown
+  action: unknown,
 ): action is ChangeUsernameAction {
   return (
     typeof action === 'object' &&
@@ -170,7 +170,7 @@ export const ChangeRoomNameActionSchema = t.Intersect([
 export type ChangeRoomNameAction = Static<typeof ChangeRoomNameActionSchema>;
 
 export function isChangeRoomNameAction(
-  action: unknown
+  action: unknown,
 ): action is ChangeRoomNameAction {
   return (
     typeof action === 'object' &&

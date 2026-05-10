@@ -38,7 +38,9 @@ free-planning-poker/
 └── bun.lock
 ```
 
-Workspace packages resolve via Bun symlinks; `@fpp/db` and `@fpp/shared` are imported directly by both web and server.
+Workspace packages resolve via Bun symlinks; `@fpp/db` and `@fpp/shared` are imported directly by both web and server. `@fpp/db` exposes schema + types from the default entry and the drizzle/mysql2 client wrapper from a `@fpp/db/client` subpath, so client code never bundles `mysql2`.
+
+Tooling is centralised: `tsconfig.base.json` + `prettier.config.cjs` + `.prettierignore` at repo root; each workspace `extends` (tsconfig) or inherits via discovery (prettier). All four workspaces have `format / lint / type-check / validate` scripts; CI and lefthook run them in parallel.
 
 ### Services
 
@@ -73,12 +75,14 @@ cd fpp-analytics && uv run uvicorn main:app --reload --port 5100   # Analytics o
 ## Validation
 
 ```bash
-# All three services in parallel (fastest)
+# All workspaces in parallel (fastest)
 bun run validate
 
-# Per-service
+# Per-workspace
 bun run validate:web         # @fpp/web: format, lint, type-check, build
 bun run validate:server      # @fpp/server: format, lint, type-check, build
+bun run validate:db          # @fpp/db: format, lint, type-check
+bun run validate:shared      # @fpp/shared: format, lint, type-check
 bun run validate:analytics   # fpp-analytics: format, lint, type-check
 ```
 
@@ -115,10 +119,12 @@ bun run fpp-analytics:validate     # all combined
 
 ### CI
 
-GitHub Actions runs 11 jobs in parallel on every PR:
+GitHub Actions runs 17 jobs in parallel on every PR:
 
 - Next.js: format, lint, type-check, build
 - WebSocket server: format, lint, type-check, build
+- DB package: format, lint, type-check
+- Shared package: format, lint, type-check
 - Analytics: format, lint, type-check
 
 ---

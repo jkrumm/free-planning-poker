@@ -1,5 +1,5 @@
-import { type ElysiaWS } from "elysia/ws";
-import { log } from "./index";
+import { type ElysiaWS } from 'elysia/ws';
+import { log } from './index';
 import {
   isChangeRoomNameAction,
   isChangeUsernameAction,
@@ -14,11 +14,11 @@ import {
   isSetPresenceAction,
   isSetSpectatorAction,
   type Action,
-} from "@fpp/shared";
-import { User } from "./room.entity";
-import { type RoomState } from "./room.state";
-import { captureError, captureMessage } from "./utils/app-error";
-import { WEBSOCKET_CONSTANTS } from "./websocket.constants";
+} from '@fpp/shared';
+import { User } from './room.entity';
+import { type RoomState } from './room.state';
+import { captureError, captureMessage } from './utils/app-error';
+import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class MessageHandler {
   constructor(private roomState: RoomState) {}
@@ -28,7 +28,7 @@ export class MessageHandler {
    */
   handleMessage(ws: ElysiaWS, data: Action): void {
     const room = this.roomState.getOrCreateRoom(data.roomId);
-    log.debug({ ...data, wsId: ws.id }, "Received message");
+    log.debug({ ...data, wsId: ws.id }, 'Received message');
 
     try {
       if (isHeartbeatAction(data)) {
@@ -105,24 +105,24 @@ export class MessageHandler {
       // If we get here, it's an unknown action
       const unknownAction = (data as { action?: unknown }).action;
       captureMessage(
-        "Unknown WebSocket action received",
+        'Unknown WebSocket action received',
         {
-          component: "messageHandler",
-          action: "routeAction",
+          component: 'messageHandler',
+          action: 'routeAction',
           extra: {
             wsId: ws.id,
             receivedAction:
-              typeof unknownAction === "string" ||
-              typeof unknownAction === "number"
+              typeof unknownAction === 'string' ||
+              typeof unknownAction === 'number'
                 ? String(unknownAction)
                 : JSON.stringify(unknownAction),
           },
         },
-        "medium",
+        'medium',
       );
       ws.send(
         JSON.stringify({
-          error: "Unknown action",
+          error: 'Unknown action',
           wsId: ws.id,
         }),
       );
@@ -130,14 +130,14 @@ export class MessageHandler {
       captureError(
         error as Error,
         {
-          component: "messageHandler",
+          component: 'messageHandler',
           action: data.action,
           extra: {
             roomId: String(data.roomId),
             userId: data.userId,
           },
         },
-        "high",
+        'high',
       );
       throw error;
     }
@@ -151,12 +151,12 @@ export class MessageHandler {
     if (!heartbeatUpdated) {
       log.debug(
         { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-        "Heartbeat received for unknown user - user needs to reconnect",
+        'Heartbeat received for unknown user - user needs to reconnect',
       );
-      ws.send(JSON.stringify({ error: "User not found - userId not found" }));
+      ws.send(JSON.stringify({ error: 'User not found - userId not found' }));
       return;
     }
-    ws.send("pong");
+    ws.send('pong');
   }
 
   /**
@@ -165,7 +165,7 @@ export class MessageHandler {
   private handleLeave(ws: ElysiaWS, data: Action): void {
     log.debug(
       { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-      "User leaving room",
+      'User leaving room',
     );
     this.roomState.removeUserFromRoom(data.roomId, data.userId);
   }
@@ -178,7 +178,7 @@ export class MessageHandler {
 
     log.debug(
       { userId: data.userId, roomId: data.roomId, wsId: ws.id },
-      "User rejoining room",
+      'User rejoining room',
     );
 
     try {
@@ -202,15 +202,15 @@ export class MessageHandler {
       captureError(
         error as Error,
         {
-          component: "handleRejoin",
-          action: "reconnectUser",
+          component: 'handleRejoin',
+          action: 'reconnectUser',
           extra: {
             roomId: String(data.roomId),
             userId: data.userId,
             wsId: ws.id,
           },
         },
-        "high",
+        'high',
       );
       throw error;
     }
@@ -229,7 +229,7 @@ export class MessageHandler {
         roomName: data.roomName,
         wsId: ws.id,
       },
-      "Room name changed - propagating to all users",
+      'Room name changed - propagating to all users',
     );
 
     // Send the room name change notification to all users in the room
@@ -249,7 +249,7 @@ export class MessageHandler {
         targetUserId: data.targetUserId,
         wsId: ws.id,
       },
-      "User kicking another user from room",
+      'User kicking another user from room',
     );
 
     // Find the kicked user's WebSocket connection
@@ -261,22 +261,22 @@ export class MessageHandler {
       try {
         kickedUser.ws.send(
           JSON.stringify({
-            type: "kicked",
-            message: "You have been removed from the room",
+            type: 'kicked',
+            message: 'You have been removed from the room',
           }),
         );
       } catch (error: unknown) {
         captureError(
           error as Error,
           {
-            component: "handleKick",
-            action: "sendKickNotification",
+            component: 'handleKick',
+            action: 'sendKickNotification',
             extra: {
               roomId: String(data.roomId),
               targetUserId: data.targetUserId,
             },
           },
-          "medium",
+          'medium',
         );
       }
 
@@ -287,14 +287,14 @@ export class MessageHandler {
         captureError(
           error as Error,
           {
-            component: "handleKick",
-            action: "closeWebSocket",
+            component: 'handleKick',
+            action: 'closeWebSocket',
             extra: {
               roomId: String(data.roomId),
               targetUserId: data.targetUserId,
             },
           },
-          "medium",
+          'medium',
         );
       }
     }
