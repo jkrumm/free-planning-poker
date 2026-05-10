@@ -120,6 +120,7 @@
     "initVersion": "7.30.2"
   },
   "overrides": {
-    "conventional-changelog-conventionalcommits": "^8.0.0"
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "eslint-plugin-react-hooks": "7.0.1"
   }
 }
