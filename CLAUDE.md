@@ -843,45 +843,188 @@ Use Context7 MCP as a reference for documentation:
 - **Drizzle ORM**: https://orm.drizzle.team
 - **Elysia**: https://elysiajs.com
 
-## Version Control
+## Shipping & Release
 
-### Branch Strategy
-- `master` - Main branch (production)
-- Feature branches - Descriptive names e.g. `feat/JK-60-add-analytics`
-- Small stuff and so on usually can go directly to `master`
+How we get code into production. Read this before pushing to master, opening a PR, or cutting a release.
 
-### Commit Messages
-Follow conventional commits sometimes there might be a JK ticket number but not always:
-```plaintext
-feat(JK-60): add new feature
-fix(JK-60): resolve bug
-docs(JK-60): update documentation
-style(JK-60): formatting changes
-refactor(JK-60): code restructuring
-test(JK-60): add tests
-chore: maintenance tasks
+### Branch Protection (master)
+
+| Rule | State | What it means |
+|-|-|-|
+| `required_pull_request_reviews` | enabled, 0 approvals | A PR must exist structurally, but no approval needed |
+| `required_linear_history` | true | No merge commits — squash or rebase only |
+| `dismiss_stale_reviews` | true | Push invalidates prior approvals |
+| `required_conversation_resolution` | true | Open PR threads block merge |
+| `allow_force_pushes` | false | Never force-push master |
+| `enforce_admins` | false | Repo owner can push directly to master |
+
+**Practical consequence:** as the owner, Johannes can bypass the PR requirement for trivial changes. Everything else goes through a PR.
+
+### When to push direct-to-master vs PR
+
+**Direct-to-master (admin bypass) — only when ALL apply:**
+- Single-concern, small diff (dependency bump, typo, comment, docs, config tweak)
+- All three local validations pass via lefthook (no skipped hooks)
+- No schema changes, no public API changes, no behavior changes
+- You're confident enough to skip CI's full multi-service validation matrix
+
+Examples that fit: `chore: upgrade dependencies (patch + minor)`, `docs: clarify X`, `fix: typo in error message`, `chore(deploy): bump rollhook-action version`.
+
+**PR required for:**
+- Any feature work (`feat:`)
+- Any non-trivial bug fix (`fix:` that touches logic)
+- Any cross-service change (Next.js + fpp-server + fpp-analytics together)
+- Anything touching `src/server/db/schema.ts`, `fpp-server/src/room.actions.ts`, or shared types
+- Anything you want CodeRabbit to look at
+
+When in doubt: open a PR. The CI matrix is more thorough than lefthook (it runs `build` for Next.js + fpp-server, lefthook doesn't).
+
+### Branch & Commit Conventions
+
+**Branch naming:** `<type>/<short-description>` (e.g., `feat/multi-vote-rounds`, `fix/websocket-reconnect-loop`). Optional `JK-XX` ticket: `feat/JK-60-add-analytics`.
+
+**Commit format** (enforced by `commitlint` via `lefthook` commit-msg hook — see `commitlint.config.ts`):
 ```
+<type>(<scope>): <subject>
+```
+
+- **Allowed types:** `feat`, `fix`, `perf`, `refactor`, `docs`, `ci`, `chore`, `test`, `style`, `build`
+- **Scope:** optional; if present, must be `JK-<number>` (Linear token) — anything else is rejected
+- **Subject:** lowercase / sentence-case, no trailing period, header ≤ 80 chars
+- **Body:** wrap at 300 chars/line, leading blank line required
+
+Changelog visibility is governed by `.release-it.json`:
+
+| Type | Section in CHANGELOG |
+|-|-|
+| `feat` | Features |
+| `fix` | Bug Fixes |
+| `perf` | Performance |
+| `refactor` | Refactoring |
+| `docs` | Documentation |
+| `ci` | CI/CD |
+| `chore`, `test`, `style`, `build` | hidden |
+
+So a `chore: upgrade deps` commit is real and tracked, but won't appear in the release notes — which is what we want.
+
+### Local pre-commit (`lefthook.yml`)
+
+Every commit triggers parallel checks:
+- Next.js: `format:check`, `lint`, `type-check`
+- fpp-server: `format:check`, `lint`, `type-check`
+- fpp-analytics: `ruff format --check`, `ruff check`, `mypy .`
+- commit-msg: `commitlint`
+
+**Never `--no-verify`.** If a hook fails, fix the cause. CI will fail the same way.
+
+### CI Workflows (`.github/workflows/`)
+
+| Workflow | Trigger | Purpose |
+|-|-|-|
+| `validate.yml` | `pull_request` | 11 parallel jobs — Next.js (typecheck, format, lint, build), fpp-server (same 4), fpp-analytics (format, lint, typecheck) |
+| `sonarcloud.yml` | `push` to master + `pull_request` | SonarCloud scan for all three services |
+| `comment.yml` | `pull_request` (path-filtered) | Auto-posts review notes when `schema.ts`, `fpp-server/**`, or `fpp-analytics/**` change |
+| `deploy.yml` | `push` to master + `workflow_dispatch` | Builds + ships Docker images for fpp-server, fpp-analytics, fpp-analytics-updater via RollHook (`https://rollhook.jkrumm.com`) |
+| `release.yml` | `workflow_dispatch` only | Runs `release-it --ci` on a fresh runner; pushes the chore commit + tag back to master |
+
+`deploy.yml` uses `concurrency.cancel-in-progress: false` — deploys queue, never cancel each other (important: a release commit landing during an in-flight deploy will run after, not abort it).
+
+### Deployment Topology
+
+| Service | Where it runs | How it deploys |
+|-|-|-|
+| Next.js (frontend) | Vercel | Vercel's GitHub integration auto-deploys every master push |
+| fpp-server | VPS (Docker) | `deploy.yml` → RollHook (rolling, zero-downtime) |
+| fpp-analytics | VPS (Docker) | `deploy.yml` → RollHook |
+| fpp-analytics-updater | VPS (Docker) | `deploy.yml` → RollHook |
+
+**Auth:** GitHub OIDC → RollHook exchanges for short-lived registry creds. No long-lived secrets in CI. RollHook authorizes by reading the `rollhook.allowed_repos` label off the running container (see `vps/apps/fpp/compose.yml`).
+
+**Manual redeploy:** `gh workflow run deploy.yml -f service=<all|fpp-server|fpp-analytics|fpp-analytics-updater>`. (Note: `Makefile` currently has `make deploy` passing `service=both`, which is invalid — use `service=all` or call `gh` directly until that's fixed.)
+
+### PR workflow
+
+1. **Create the branch + PR**
+   ```bash
+   git checkout -b <type>/<desc>
+   # work, commit (lefthook validates locally)
+   git push -u origin HEAD
+   gh pr create --base master --fill
+   ```
+   Or use the `/pr create` skill — it runs `/check`, proposes a branch rename if you're on master, and offers `/git-cleanup` if you have ≥3 noisy commits.
+
+2. **CI runs**
+   - `validate.yml` (11 jobs) and `sonarcloud.yml` start immediately
+   - `comment.yml` posts heads-up notes if you touched schema/fpp-server/fpp-analytics
+   - **CodeRabbit** (GitHub App, no repo config — it's enabled at the account level) posts a review with file-level comments + a summary
+
+3. **Iterate on feedback**
+   - Address CodeRabbit comments by amending or pushing follow-ups
+   - If you're using `/ship`, it will pull CodeRabbit feedback via `gh pr view --comments` and offer to implement fixes
+   - Per global commit-conventions rule: fold trivial fix-ups into the originating commit with `/commit --amend` then `git push --force-with-lease` — don't litter the PR with one-line "fix lint" commits
+
+4. **Merge**
+   - Wait for all CI checks green + CodeRabbit conversations resolved
+   - Squash-merge (linear history is required)
+   - The squash commit on master triggers `deploy.yml` + Vercel
+
+### Direct-to-master workflow (small/safe only)
+
+```bash
+# work on master
+git status                    # must be clean before starting
+# make change
+npm run validate              # full local matrix
+git add <specific files>      # never `git add .`
+git commit -m "chore: ..."    # lefthook will re-run validation
+git push                      # admin bypass; sonarcloud + deploy.yml fire
+```
+
+**No PR, no CodeRabbit, no validate.yml.** You are the only check between code and production. Reserve this for changes where the local lefthook + sonarcloud + your own eyes are sufficient.
 
 ### Releases
 
-Use the `/release-fpp` skill to create releases with AI-enhanced GitHub release notes:
+Two paths, same outcome:
 
+**Canonical (CI-based) — `make release`:**
 ```bash
-/release-fpp [version]  # version: patch/minor/major (optional)
+make release         # triggers release.yml workflow_dispatch
+make release-dry     # same, but with --dry-run
 ```
+Runs on a fresh GitHub Actions runner using `RELEASE_TOKEN` (PAT) to push the chore commit + tag past branch protection. Falls back to `GITHUB_TOKEN` if `RELEASE_TOKEN` isn't set.
 
-**Workflow:**
-1. Pre-flight checks (branch, clean state)
-2. Analyzes commits since last tag
-3. Generates AI summary (title, highlights, description)
-4. Runs `npm run release` (version selection)
-5. Enhances GitHub release with AI summary
+**Local (skill-based) — `/release-fpp [version]`:**
+- Use when you want AI-enhanced release notes prepended to the auto-generated changelog
+- Runs `release-it --ci` locally with `GITHUB_TOKEN=$(gh auth token)`
+- Phases: pre-flight → analyze commits → AI summary → execute release-it → `gh release edit` to enrich notes
+- See `.claude/skills/release-fpp/SKILL.md` for the full prompt template
 
-**Note:** CHANGELOG.md stays clean with conventional changelog only. AI content appears only in GitHub release notes.
+**What release-it does** (config in `.release-it.json`):
+1. Bumps version per conventional commits (or explicit `patch|minor|major|<version>`)
+2. Updates `CHANGELOG.md` (sections per the type table above; `chore`/`test`/`style`/`build` hidden)
+3. Commits as `chore: release v<version>` and tags `<version>`
+4. Pushes to master
+5. Creates GitHub release named `Release <version>` with the changelog as body
 
-See `.claude/skills/release-fpp/SKILL.md` for full documentation.
+**Side effect:** the release chore commit re-triggers `deploy.yml` — but the build is idempotent (same source = same image digest), so RollHook detects no rollout is needed. Vercel rebuilds Next.js with the bumped version.
+
+**Rules:**
+- Must be on `master` with a clean working dir (release-it enforces both)
+- `CHANGELOG.md` is auto-managed — never edit by hand
+- AI summary lives only in GitHub release notes; CHANGELOG stays mechanical
+
+### Quick decision tree
+
+```
+Did I just change one file with a chore: / docs: / trivial fix: scope?
+├── Yes → npm run validate → commit → push to master directly
+└── No  → branch + PR → wait for CI green + CodeRabbit → squash-merge
+
+Is it time to publish (enough feat:/fix: commits accumulated, want a tagged version)?
+└── make release    (or /release-fpp for AI-enhanced notes)
+```
 
 ---
 
-**Last Updated**: 2026-01-03
+**Last Updated**: 2026-05-10
 **For detailed architecture explanation**: See `ARCHITECTURE.md` and `openspec/config.yaml`
