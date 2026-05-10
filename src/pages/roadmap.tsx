@@ -294,7 +294,7 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
               <Text>{title}</Text>
             </Group>
           </Card.Section>
-          <Collapse in={opened} transitionDuration={300}>
+          <Collapse expanded={opened} transitionDuration={300}>
             <Card.Section className="p-6 py-4">
               {subtasks.length > 0 && (
                 <div className="my-2">
