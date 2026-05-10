@@ -1,12 +1,16 @@
-# FPP WebSocket Server
+# FPP WebSocket Server (`@fpp/server`)
 
-Real-time planning poker room state management via Bun + Elysia + WebSocket.
+Real-time planning poker room state management via Bun + Elysia + WebSocket. Workspace member of the [free-planning-poker monorepo](../../README.md).
 
 ## Quick Start
 
 ```bash
-bun install
-bun dev  # Runs on port 3003
+# From repo root
+bun install                            # install workspace deps
+bun run --filter=@fpp/server dev       # run on port 3003
+
+# Or from this dir
+cd apps/server && bun dev
 ```
 
 ## Architecture
@@ -51,65 +55,60 @@ bun dev       # Start dev server (port 3003)
 ## Project Structure
 
 ```
-src/
-├── index.ts           # Elysia app + WebSocket route
-├── room.state.ts      # In-memory room state manager
-├── room.entity.ts     # RoomServer & UserServer classes
-├── message.handler.ts # Action handler switch
-├── room.actions.ts    # TypeBox schemas
-├── room.types.ts      # DTOs for client serialization
-└── utils.ts           # Helper functions
+apps/server/
+├── src/
+│   ├── index.ts           # Elysia app + WebSocket route + Sentry + SIGTERM drain
+│   ├── room.state.ts      # In-memory room state manager
+│   ├── room.entity.ts     # RoomServer & UserServer classes
+│   ├── message.handler.ts # Action handler switch
+│   ├── types.ts           # Local utility types (Analytics)
+│   ├── utils.ts           # Helper functions
+│   ├── utils/app-error.ts # Sentry wrapper (captureError, addBreadcrumb)
+│   └── websocket.constants.ts
+├── Dockerfile             # Bun monorepo build → self-contained binary
+├── tsconfig.json
+└── package.json
+
+# Shared with the web app:
+packages/shared/src/
+├── room.actions.ts        # TypeBox schemas + Action union (imported as @fpp/shared)
+├── room.types.ts          # Room/User DTOs for client serialization
+└── username.validator.ts
 ```
+
+`TypeBox` schemas live in `@fpp/shared` as type definitions only; `TypeCompiler.Compile(ActionSchema)` happens once at server boot in `apps/server/src/index.ts` to keep TypeBox internals out of the web bundle.
 
 ---
 
 ## Deployment
 
-### Production Build
+### Production Build (local validation)
 
 ```bash
-bun run build   # Outputs to dist/
-bun run start   # Runs production build
+bun run build           # bun build --target bun --outdir ./dist
+bun run start           # NODE_ENV=production bun dist/index.js
 ```
 
-### VPS Deployment (Systemd)
+### VPS — Docker via RollHook
 
-**Service file:** `/etc/systemd/system/fpp-server.service`
+Production runs from `apps/server/Dockerfile` built from the **repo root** as build context. The Dockerfile:
 
-```ini
-[Unit]
-Description=FPP WebSocket Server
-After=network.target
+1. Copies `package.json`, `bun.lock`, and every workspace manifest (`apps/web`, `apps/server`, `packages/db`, `packages/shared`).
+2. Runs `bun install --frozen-lockfile` at the workspace root so symlinks resolve.
+3. Compiles `bun build --compile` against `src/index.ts`, producing a single self-contained binary at `/app/server` in a fresh `oven/bun:1.3-alpine` runner.
 
-[Service]
-Type=simple
-User=fpp
-WorkingDirectory=/app/fpp-server
-ExecStart=/usr/local/bin/bun run dist/index.js
-Restart=always
-RestartSec=10
+CI (`deploy.yml`) builds and ships the image via [RollHook](https://rollhook.jkrumm.com) on every master push. Rollouts are zero-downtime: the container's `SIGTERM` handler flips `/health` to 503, sleeps 3s so Traefik deregisters, then closes listening sockets.
 
-Environment=NODE_ENV=production
-Environment=TRPC_URL=https://your-domain.com/api/trpc
-EnvironmentFile=/app/fpp-server/.env
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Commands:**
+**Manual redeploy** (no code change — e.g., env var rotated):
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable fpp-server
-sudo systemctl start fpp-server
-sudo systemctl status fpp-server
+gh workflow run deploy.yml -f service=fpp-server
 ```
 
-**Logs:**
+**Logs (on VPS):**
 
 ```bash
-sudo journalctl -u fpp-server -f
+docker logs -f fpp-server
 ```
 
 ---
@@ -126,12 +125,14 @@ sudo journalctl -u fpp-server -f
 
 - Production: JSON format (structured logging via pino)
 - Development: Pretty-printed with colors
-- Check with: `sudo journalctl -u fpp-server -n 100`
+- Check with: `docker logs --tail 100 fpp-server`
 
 ### Health Checks
 
-- WebSocket endpoint: `ws://localhost:3003/ws`
-- Analytics endpoint: `GET http://localhost:3003/analytics`
+- Health: `GET http://localhost:3003/health` (returns 503 during SIGTERM drain)
+- Analytics: `GET http://localhost:3003/analytics` (room/user counts + DTOs)
+- WebSocket: `ws://localhost:3003/ws?roomId=…&userId=…&username=…`
+- Production: `GET https://server.free-planning-poker.com/health`
 
 ---
 

@@ -6,7 +6,7 @@ This service is part of the **free-planning-poker** monorepo. Use global SourceR
 
 | Skill | Use For |
 |-------|---------|
-| `/code-quality` | Validation (runs `npm run fpp-analytics:validate` in forked context) |
+| `/code-quality` | Validation (runs `bun run fpp-analytics:validate` in forked context) |
 | `/commit` | Commits with conventional format |
 | `/research` | FastAPI, Polars, Python docs via Context7 |
 
@@ -261,14 +261,14 @@ Note: `HTTPException` bypasses this handler (business logic errors are not captu
 
 ### Commands
 
-**Via root npm:**
+**Via root bun (workspace runs):**
 ```bash
-npm run fpp-analytics:format:check   # Check formatting
-npm run fpp-analytics:format         # Auto-fix formatting
-npm run fpp-analytics:lint           # Check linting
-npm run fpp-analytics:lint:fix       # Auto-fix linting
-npm run fpp-analytics:type-check     # Type checking
-npm run fpp-analytics:validate       # All checks combined
+bun run fpp-analytics:format:check   # Check formatting
+bun run fpp-analytics:format         # Auto-fix formatting
+bun run fpp-analytics:lint           # Check linting
+bun run fpp-analytics:lint:fix       # Auto-fix linting
+bun run fpp-analytics:type-check     # Type checking
+bun run fpp-analytics:validate       # All checks combined
 ```
 
 **Direct uv:**

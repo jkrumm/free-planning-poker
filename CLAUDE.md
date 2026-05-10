@@ -93,7 +93,7 @@ Free Planning Poker runs on three independent services:
 ### Cross-Service Change Patterns
 
 #### Pattern 1: Add New Room Action
-1. Define Action type in `apps/server/src/room.actions.ts`
+1. Define Action type in `packages/shared/src/room.actions.ts`
 2. Add handler in `apps/server/src/message.handler.ts`
 3. Update client to send action via `triggerAction()`
 4. Update Zustand store to reflect state changes (if new state needed)
@@ -140,16 +140,16 @@ Room state exists in THREE places:
 ### Development Workflow Commands
 
 ```bash
-# Start all services simultaneously
-bun run dev:all                           # Next.js + WebSocket + Analytics
+# Start all services simultaneously (Next.js + server + analytics + Logdy UI)
+bun run dev:all
 
-# Or start individually:
-bun run dev                               # Next.js (port 3001)
-cd apps/server && bun dev                  # WebSocket (port 3003)
-cd fpp-analytics && uv run uvicorn main:app --reload  # Analytics (port 3002)
+# Or start individually
+bun run dev                                                              # Next.js (3001)
+bun run --filter=@fpp/server dev                                         # Server (3003)
+cd fpp-analytics && uv run uvicorn main:app --reload --port 5100         # Analytics
 
-# Code quality (run from root)
-bun run pre                               # Format, lint, type-check, build
+# Code quality (root)
+bun run validate                                                         # All three in parallel
 ```
 
 ---
@@ -167,43 +167,35 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 
 ## Build & Development Commands
 
-**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for builds to avoid environment validation failures.
+**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars come from Doppler at runtime, not at build time.
+
+All scripts run from the workspace root unless noted. The root `package.json` delegates to workspace members via `bun run --filter=@fpp/<pkg>`.
 
 ```bash
-# Development
-bun run dev                              # Start dev server on port 3001 - Only suggest to user
-bun run dev:all                          # Start all services (Next.js, fpp-server, analytics) - Only suggest to user
+# Development (suggest to user — don't run yourself)
+bun run dev                              # Next.js only (port 3001)
+bun run dev:all                          # All services + Logdy UI (3001 / 3003 / 5100 / 8080)
 
-# Building (REQUIRED env var)
-SKIP_ENV_VALIDATION=1 bun run build
+# Building
+SKIP_ENV_VALIDATION=1 bun run build      # Next.js production build
+bun run --filter=@fpp/server build       # Server: bun build --target bun --outdir ./dist
 
-# Code Quality & Validation
-bun run validate                         # Validate all services in parallel
-bun run validate:web                  # Validate Next.js only
-bun run validate:server              # Validate fpp-server only
-bun run validate:analytics           # Validate fpp-analytics only
+# Validation (all three services in parallel)
+bun run validate                         # Validate everything
+bun run validate:web                     # @fpp/web only
+bun run validate:server                  # @fpp/server only
+bun run validate:analytics               # fpp-analytics only
 
-# Next.js specific
-bun run lint                             # Run ESLint
-bun run lint:fix                         # Auto-fix ESLint issues
-bun run type-check                       # TypeScript type checking
-bun run format                           # Format with Prettier
-bun run pre                              # Run all checks (format, lint, type-check, build)
+# Per-service shortcuts
+bun run --filter=@fpp/web format         # / lint / lint:fix / type-check / pre
+bun run --filter=@fpp/server format      # / lint / lint:fix / type-check / validate
+bun run fpp-analytics:format             # / :lint / :lint:fix / :type-check / :validate
 
-# fpp-server specific
-cd apps/server && bun run validate        # All checks for fpp-server
-cd apps/server && bun run lint            # ESLint for fpp-server
-cd apps/server && bun run type-check      # TypeScript for fpp-server
-
-# fpp-analytics specific
-bun run fpp-analytics:validate           # All checks for fpp-analytics
-bun run fpp-analytics:lint               # Ruff lint
-bun run fpp-analytics:type-check         # mypy type check
-
-# Database
-bun run db:generate                      # Generate Drizzle migrations - Only suggest to user
-bun run db:migrate                       # Run migrations - Only suggest to user
-bun run db:studio                        # Open Drizzle Studio - Only suggest to user
+# Database (@fpp/db package — drizzle-kit lives here)
+bun run db:generate                      # Generate migration from schema changes - suggest to user
+bun run db:migrate                       # Apply pending migrations - suggest to user
+bun run db:studio                        # Drizzle Studio - suggest to user
+bun run db:check                         # Verify schema/db are in sync
 ```
 
 ## Logdy Integration
@@ -244,9 +236,9 @@ bun run dev:all
 # - http://localhost:8080 (Logdy UI)
 
 # Start individual services without Logdy (simpler for single-service work)
-bun run dev              # Next.js only
-cd apps/server && bun dev # fpp-server only
-cd fpp-analytics && uv run uvicorn main:app --reload --port 5100 # Analytics only
+bun run dev                                                          # Next.js only
+bun run --filter=@fpp/server dev                                     # fpp-server only
+cd fpp-analytics && uv run uvicorn main:app --reload --port 5100     # Analytics only
 ```
 
 ### Logging Architecture
@@ -317,7 +309,7 @@ This project uses Next.js **Pages Router**. Do not use App Router patterns:
 - ❌ No Server Components
 - ❌ No `async` components
 - ❌ No `export const metadata`
-- ✅ Use `/src/pages` directory
+- ✅ Use `apps/web/src/pages` directory
 - ✅ Use `getStaticProps`, `getServerSideProps`
 - ✅ Import from `next/router` not `next/navigation`
 - ✅ Use tRPC for API routes
@@ -398,7 +390,7 @@ free-planning-poker/
 │   │   ├── next.config.js
 │   │   ├── eslint.config.mjs
 │   │   └── package.json           # @fpp/web
-│   └── server/                    # Bun WebSocket server (was fpp-server/)
+│   └── server/                    # Bun WebSocket server                @fpp/server
 │       ├── src/
 │       │   ├── index.ts           # Elysia server entry
 │       │   ├── room.state.ts      # In-memory room state
@@ -420,7 +412,7 @@ free-planning-poker/
 │       │   ├── room.types.ts      # Shared room/user DTOs
 │       │   └── username.validator.ts
 │       └── package.json
-├── fpp-analytics/                 # Python FastAPI analytics service (deferred)
+├── fpp-analytics/                 # Python FastAPI analytics service (live on VPS)
 ├── package.json                   # Workspace root (Bun)
 ├── bun.lock
 └── lefthook.yml
@@ -649,7 +641,7 @@ Free Planning Poker uses **CustomTRPCError** for centralized error capture. All 
 
 ### Next.js API Routes (Pages Router)
 
-All Next.js API route handlers (`/src/pages/api/*.ts`) must wrap their logic in try-catch blocks:
+All Next.js API route handlers (`apps/web/src/pages/api/*.ts`) must wrap their logic in try-catch blocks:
 
 ```typescript
 import { type NextApiRequest, type NextApiResponse } from '@trpc/server/adapters/next';
@@ -884,7 +876,7 @@ Use Context7 MCP as a reference for documentation:
 - No schema changes, no shared-type changes, no behavior changes
 - Examples: `chore: upgrade dependencies`, `docs: clarify X`, `fix: typo in error message`
 
-**PR required for** any `feat:`, non-trivial `fix:`, cross-service change, anything touching `packages/db/src/schema.ts` or `apps/server/src/room.actions.ts`, or anything you want CodeRabbit to review. CI is more thorough than lefthook (it runs `build`, lefthook doesn't) — when in doubt, open a PR.
+**PR required for** any `feat:`, non-trivial `fix:`, cross-service change, anything touching `packages/db/src/schema.ts` or `packages/shared/src/room.actions.ts`, or anything you want CodeRabbit to review. CI is more thorough than lefthook (it runs `build`, lefthook doesn't) — when in doubt, open a PR.
 
 ### Commits
 
@@ -919,7 +911,7 @@ Every commit runs `format:check + lint + type-check` for all three services in p
 |-|-|-|
 | `validate.yml` | `pull_request` | 11 parallel jobs — Next.js (typecheck/format/lint/build), fpp-server (same 4), fpp-analytics (format/lint/typecheck) |
 | `sonarcloud.yml` | `push` master + `pull_request` | SonarCloud scan for all three services |
-| `comment.yml` | `pull_request` (path-filtered) | Auto-posts notes when `schema.ts`, `fpp-server/**`, or `fpp-analytics/**` change |
+| `comment.yml` | `pull_request` (path-filtered) | Auto-posts notes when `**/schema.ts`, `apps/server/**`, or `fpp-analytics/**` change |
 | `deploy.yml` | `push` master + `workflow_dispatch` | Builds + ships Docker images via RollHook (`https://rollhook.jkrumm.com`) |
 | `release.yml` | `workflow_dispatch` only | Runs `release-it --ci` on a fresh runner; pushes chore commit + tag back to master |
 
@@ -944,7 +936,7 @@ gh workflow run deploy.yml -f service=<all|fpp-server|fpp-analytics|fpp-analytic
 ### PR workflow
 
 1. **Branch + PR:** `git checkout -b <type>/<desc>` → commit (lefthook validates) → `git push -u origin HEAD` → `gh pr create --base master --fill`. Or use `/pr create` (runs `/check`, offers `/git-cleanup` for ≥3 commits).
-2. **CI runs:** `validate.yml` (11 jobs) + `sonarcloud.yml` immediately; `comment.yml` posts heads-up if you touched schema/fpp-server/fpp-analytics; **CodeRabbit** (account-level GitHub App, no repo config) posts file-level comments + summary.
+2. **CI runs:** `validate.yml` (11 jobs) + `sonarcloud.yml` immediately; `comment.yml` posts heads-up when `**/schema.ts`, `apps/server/**`, `packages/shared/**`, `packages/db/**`, or `fpp-analytics/**` change; **CodeRabbit** (account-level GitHub App, no repo config) posts file-level comments + summary.
 3. **Iterate on CodeRabbit feedback:** fold fix-ups into the originating commit with `/commit --amend` + `git push --force-with-lease` — don't litter with one-line "fix lint" commits. `/ship` automates pulling CodeRabbit comments and offering fixes.
 4. **Merge:** wait for green CI + resolved conversations → squash-merge (linear history required) → squash commit on master triggers `deploy.yml` + Vercel.
 

@@ -1,6 +1,22 @@
 # How I Built Free Planning Poker
 
-An architectural deep-dive into a real-time planning poker application built with Next.js, React 19, and Bun.
+An architectural deep-dive into a real-time planning poker application built with Next.js, React 19, and Bun — organised as a Bun-managed monorepo.
+
+## Repository Layout
+
+```
+free-planning-poker/
+├── apps/
+│   ├── web/         # Next.js 16 (Pages Router) — Vercel        → @fpp/web
+│   └── server/      # Bun + Elysia WebSocket server — VPS       → @fpp/server
+├── packages/
+│   ├── db/          # Drizzle schema + migrations (MySQL)        → @fpp/db
+│   └── shared/      # Action schemas, room DTOs, validators      → @fpp/shared
+├── fpp-analytics/   # Python FastAPI service (Polars + Parquet) — VPS
+└── package.json     # Bun workspace root (text bun.lock)
+```
+
+The web app and the WebSocket server consume `@fpp/db` and `@fpp/shared` directly via workspace symlinks — no cross-service relative imports. TypeBox runtime compilation lives in `apps/server` (server-only) so the web bundle stays clean of Elysia/TypeBox internals.
 
 ## The Problem
 
@@ -54,7 +70,7 @@ The **Next.js server** handles the boring-but-necessary stuff:
 
 **Why tRPC?** Because writing API routes in 2024 without end-to-end type safety feels like coding with your eyes closed. When the client calls `api.room.joinRoom.useMutation()`, TypeScript knows exactly what parameters it needs and what it returns. No manual type definitions, no API documentation drift.
 
-Check out `src/server/api/routers/room.router.ts:102` for the room joining logic - it's a beautiful example of type-safe async mutations with Zod validation.
+Check out `apps/web/src/server/api/routers/room.router.ts:102` for the room joining logic - it's a beautiful example of type-safe async mutations with Zod validation.
 
 ### Server 2: Bun WebSocket Server (Port 3003)
 
@@ -66,7 +82,7 @@ This is where the magic happens. The **Bun server** is a lightweight, blazing-fa
 
 **Why Bun?** Because WebSocket servers are I/O-bound, and Bun's event loop is ridiculously fast. Plus, the built-in WebSocket support with Elysia makes the code clean and simple.
 
-The entire server is just ~100 lines in `fpp-server/src/index.ts:1` - no bloated frameworks, just pure WebSocket handling.
+The entire server is just ~100 lines in `apps/server/src/index.ts:1` - no bloated frameworks, just pure WebSocket handling.
 
 ## The Data Flow: From Click to Update
 
@@ -75,7 +91,7 @@ Let's trace what happens when a user votes:
 ### 1. User Clicks a Card (Client)
 
 ```tsx
-// src/components/room/room.tsx:456
+// apps/web/src/components/room/room.tsx:456
 const selectEstimation = (newEstimation: string) => {
   triggerAction({
     action: 'selectEstimation',
@@ -91,7 +107,7 @@ const selectEstimation = (newEstimation: string) => {
 Here's something cool: the app doesn't just fire-and-forget WebSocket messages. It has an **action queue** that handles network failures gracefully.
 
 ```tsx
-// src/hooks/useWebSocketRoom.ts:89
+// apps/web/src/hooks/useWebSocketRoom.ts:89
 const triggerAction = useCallback((action: Action) => {
   if (readyState === ReadyState.OPEN) {
     sendMessage(JSON.stringify(action));
@@ -107,7 +123,7 @@ If the WebSocket is disconnected, actions get queued. When the connection is res
 ### 3. Server Receives and Validates (Bun Server)
 
 ```typescript
-// fpp-server/src/index.ts:46
+// apps/server/src/index.ts:46
 .ws('/ws', {
   message(ws, data) {
     if (!CActionSchema.Check(data)) return; // TypeBox validation
@@ -121,7 +137,7 @@ If the WebSocket is disconnected, actions get queued. When the connection is res
 ### 4. State Update (Room State Manager)
 
 ```typescript
-// fpp-server/src/message.handler.ts:45
+// apps/server/src/message.handler.ts:45
 case 'selectEstimation': {
   const user = room.getUser(userId);
   if (!user) return;
@@ -137,7 +153,7 @@ The in-memory room state is updated, then **broadcast to every connected user in
 ### 5. Client Receives Update (Zustand Store)
 
 ```typescript
-// src/hooks/useWebSocketRoom.ts:150
+// apps/web/src/hooks/useWebSocketRoom.ts:150
 onMessage: (event) => {
   const roomDto = JSON.parse(event.data);
   const room = RoomClient.fromJson(roomDto);
@@ -145,12 +161,12 @@ onMessage: (event) => {
 }
 ```
 
-The Zustand store (`src/store/room.store.ts:82`) receives the updated room state and triggers React re-renders **only for components that subscribe to changed state**.
+The Zustand store (`apps/web/src/store/room.store.ts:82`) receives the updated room state and triggers React re-renders **only for components that subscribe to changed state**.
 
 ### 6. UI Re-renders (Selective Subscriptions)
 
 ```tsx
-// src/components/room/room.tsx:68
+// apps/web/src/components/room/room.tsx:68
 const users = useRoomStore((state) => state.users);
 const isFlipped = useRoomStore((state) => state.isFlipped);
 ```
@@ -167,14 +183,14 @@ React's built-in state is great for local component state, but for a real-time a
 
 ### The Two Stores
 
-**Room Store** (`src/store/room.store.ts:1`)
+**Room Store** (`apps/web/src/store/room.store.ts:1`)
 Manages real-time room state: users, votes, estimations, connection status. This is the "hot" data that changes constantly.
 
-**LocalStorage Store** (`src/store/local-storage.store.ts:1`)
+**LocalStorage Store** (`apps/web/src/store/local-storage.store.ts:1`)
 Manages persistent client data: userId, username, recent rooms. Automatically syncs to localStorage using Zustand's `persist` middleware.
 
 ```typescript
-// src/store/local-storage.store.ts:24
+// apps/web/src/store/local-storage.store.ts:24
 export const useLocalstorageStore = create<LocalStorageStore>()(
   persist(
     (set) => ({
@@ -195,7 +211,7 @@ This means users can refresh the page and keep their identity without any backen
 
 ## The Room Component: Where It All Comes Together
 
-`src/components/room/room.tsx:1` is the heart of the application. It's a 900-line orchestration of:
+`apps/web/src/components/room/room.tsx:1` is the heart of the application. It's a 900-line orchestration of:
 
 - WebSocket connection management
 - Real-time state synchronization
@@ -208,7 +224,7 @@ This means users can refresh the page and keep their identity without any backen
 ### The Connection Lifecycle
 
 ```tsx
-// src/components/room/room.tsx:124
+// apps/web/src/components/room/room.tsx:124
 const { triggerAction, connectionStatus } = useWebSocketRoom({
   roomId,
   userId,
@@ -216,7 +232,7 @@ const { triggerAction, connectionStatus } = useWebSocketRoom({
 });
 ```
 
-The `useWebSocketRoom` hook (`src/hooks/useWebSocketRoom.ts:1`) manages the entire WebSocket lifecycle:
+The `useWebSocketRoom` hook (`apps/web/src/hooks/useWebSocketRoom.ts:1`) manages the entire WebSocket lifecycle:
 
 1. **Connect** - Opens WebSocket to Bun server
 2. **Join** - Sends join action with userId, roomId, username
@@ -229,7 +245,7 @@ The `useWebSocketRoom` hook (`src/hooks/useWebSocketRoom.ts:1`) manages the enti
 
 WebSocket connections are fragile. Networks drop, browsers throttle background tabs, mobile devices switch networks. To combat this, I implemented a **dual heartbeat system**:
 
-**Client-side** (`src/hooks/useHeartbeat.ts:66`):
+**Client-side** (`apps/web/src/hooks/useHeartbeat.ts:66`):
 ```typescript
 heartbeatTimeoutRef.current = setTimeout(() => {
   sendHeartbeat();
@@ -237,7 +253,7 @@ heartbeatTimeoutRef.current = setTimeout(() => {
 }, 5 * 60 * 1000); // 5 minutes
 ```
 
-**Server-side** (`fpp-server/src/room.state.ts:142`):
+**Server-side** (`apps/server/src/room.state.ts:142`):
 ```typescript
 cleanupInactiveState(): void {
   const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
@@ -259,7 +275,7 @@ Clients send heartbeats every 5 minutes. The server runs a cron job every 30 min
 Here's something subtle but important: **tab visibility tracking**.
 
 ```typescript
-// src/hooks/usePresenceTracking.ts:42
+// apps/web/src/hooks/usePresenceTracking.ts:42
 useEffect(() => {
   const handleVisibilityChange = () => {
     if (document.hidden) {
@@ -280,7 +296,7 @@ When users switch tabs or minimize the browser, the app detects it. When they re
 
 ## Database Design: Persistent vs Ephemeral State
 
-The database schema (`src/server/db/schema.ts:1`) is deliberately minimal. Real-time state lives in memory; only these things are persisted:
+The database schema (`packages/db/src/schema.ts:1`) is deliberately minimal. Real-time state lives in memory; only these things are persisted:
 
 ### Core Tables
 
@@ -297,7 +313,7 @@ Notice what's **NOT** in the database:
 - WebSocket connection status
 - Active user list
 
-All of that lives in the Bun server's memory (`fpp-server/src/room.state.ts:11`):
+All of that lives in the Bun server's memory (`apps/server/src/room.state.ts:11`):
 
 ```typescript
 export class RoomState {
@@ -324,7 +340,7 @@ When a vote is flipped, the server sends a tRPC call back to the Next.js server 
 Users don't create accounts. Instead, each client generates a **nanoid** (21-character random string) on first visit and stores it in localStorage.
 
 ```typescript
-// src/server/api/routers/room.router.ts:122
+// apps/web/src/server/api/routers/room.router.ts:122
 if (!validateNanoId(userId)) {
   userId = nanoid(); // Generate new ID
   await db.insert(users).values({
@@ -344,7 +360,7 @@ The collision probability of nanoid(21) is effectively zero - you'd need to gene
 
 ## Room Joining: The Validation Dance
 
-When a user visits `/room/mycoolroom`, a complex validation flow kicks off in `src/components/room/room-wrapper.tsx:110`:
+When a user visits `/room/mycoolroom`, a complex validation flow kicks off in `apps/web/src/components/room/room-wrapper.tsx:110`:
 
 ```typescript
 useEffect(() => {
@@ -393,7 +409,7 @@ WebSocket messages could be a wild-west of JSON blobs, but I enforced structure 
 Every WebSocket message is an `Action` with a `action` type discriminator:
 
 ```typescript
-// fpp-server/src/room.actions.ts:1
+// packages/shared/src/room.actions.ts:1
 export type Action =
   | JoinAction
   | LeaveAction
@@ -416,7 +432,7 @@ export interface SelectEstimationAction {
 The server validates every incoming message against a TypeBox schema:
 
 ```typescript
-// fpp-server/src/room.actions.ts:156
+// packages/shared/src/room.actions.ts:156
 export const CActionSchema = Type.Union([
   CJoinActionSchema,
   CLeaveActionSchema,
@@ -437,7 +453,7 @@ This catches malformed messages before they hit the message handler, preventing 
 Every critical operation is wrapped in error handling that captures context to Sentry:
 
 ```typescript
-// src/utils/app-error.ts:35
+// apps/web/src/utils/app-error.ts:35
 export const captureError = (
   error: Error,
   context: ErrorContext,
@@ -457,7 +473,7 @@ export const captureError = (
 Before errors occur, breadcrumbs are dropped:
 
 ```typescript
-// src/hooks/useWebSocketRoom.ts:140
+// apps/web/src/hooks/useWebSocketRoom.ts:140
 addBreadcrumb('WebSocket connected', 'websocket', { roomId, userId });
 ```
 
@@ -495,7 +511,7 @@ const users = useRoomStore((state) => state.users);
 Expensive calculations are memoized:
 
 ```typescript
-// src/components/room/room.tsx:200
+// apps/web/src/components/room/room.tsx:200
 const statistics = useMemo(() => {
   return calculateStatistics(users, isFlipped);
 }, [users, isFlipped]);
@@ -514,7 +530,7 @@ const Confetti = dynamic(() => import('react-confetti'), { ssr: false });
 Username changes are debounced to avoid spamming the server:
 
 ```typescript
-// src/components/room/username-input.tsx:45
+// apps/web/src/components/room/username-input.tsx:45
 const debouncedUpdateUsername = useDebouncedCallback(
   (newUsername: string) => {
     triggerAction({ action: 'changeUsername', userId, roomId, username: newUsername });
@@ -530,7 +546,7 @@ const debouncedUpdateUsername = useDebouncedCallback(
 Every tRPC endpoint validates inputs with Zod:
 
 ```typescript
-// src/server/api/routers/room.router.ts:104
+// apps/web/src/server/api/routers/room.router.ts:104
 .input(
   z.object({
     queryRoom: z
@@ -546,7 +562,7 @@ Every tRPC endpoint validates inputs with Zod:
 Every WebSocket action validates with TypeBox:
 
 ```typescript
-// fpp-server/src/room.actions.ts:85
+// packages/shared/src/room.actions.ts:85
 export const CSelectEstimationActionSchema = Type.Object({
   action: Type.Literal('selectEstimation'),
   userId: Type.String({ minLength: 21, maxLength: 21 }),
@@ -560,7 +576,7 @@ export const CSelectEstimationActionSchema = Type.Object({
 Drizzle ORM uses parameterized queries automatically:
 
 ```typescript
-// src/server/api/routers/room.router.ts:250
+// apps/web/src/server/api/routers/room.router.ts:250
 const existingRoom = await db.query.rooms.findFirst({
   where: eq(rooms.id, roomId), // Parameterized, safe
 });
@@ -568,38 +584,26 @@ const existingRoom = await db.query.rooms.findFirst({
 
 ### Rate Limiting
 
-The Next.js proxy (`src/proxy.ts:1`) implements rate limiting for API routes using Upstash Redis.
+The Next.js proxy (`apps/web/src/proxy.ts:1`) implements rate limiting for API routes using Upstash Redis.
 
 ### CORS Protection
 
 The Bun WebSocket server only accepts connections from the same origin. Cross-origin requests are rejected at the transport level.
 
-## Deployment: Vercel + Bun in Production
+## Deployment: Vercel + Docker on VPS
 
-**Next.js Server**: Deployed to Vercel (serverless functions)
-**Bun WebSocket Server**: Deployed to a dedicated VPS (needs persistent connections)
-**Database**: PlanetScale MySQL (serverless, auto-scaling)
-**Redis**: Upstash (serverless, for rate limiting)
+| Component | Where | How |
+|-|-|-|
+| Next.js | Vercel | Vercel GitHub integration, builds from `apps/web` on every master push |
+| WebSocket server | VPS Docker | `deploy.yml` builds `apps/server/Dockerfile` from repo root, ships via RollHook |
+| Analytics API | VPS Docker | `deploy.yml` → RollHook |
+| Analytics updater | VPS Docker | `deploy.yml` → RollHook |
+| Database | Self-hosted MariaDB | `sideproject-docker-stack` |
+| Redis | Upstash | rate limiting |
 
-The WebSocket server runs as a systemd service:
+The WebSocket server ships as a single self-contained binary produced by `bun build --compile` inside the Docker build — no runtime `node_modules`, no `package.json` in the image. The Dockerfile copies all workspace manifests (`apps/web`, `apps/server`, `packages/db`, `packages/shared`) plus `bun.lock` so `bun install --frozen-lockfile` can resolve the entire workspace graph; only `apps/server` and `packages/shared` sources are actually compiled in.
 
-```bash
-[Unit]
-Description=FPP WebSocket Server
-After=network.target
-
-[Service]
-Type=simple
-User=fpp
-WorkingDirectory=/home/fpp/fpp-server
-ExecStart=/usr/local/bin/bun run src/index.ts
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-This gives automatic restarts and log management via journalctl.
+Zero-downtime rollouts are handled by RollHook: GitHub OIDC → RollHook exchanges for short-lived registry creds, runs a rolling restart, the container's `SIGTERM` handler flips `/health` to 503 for a 3-second drain window before closing sockets.
 
 ## React 19 Strict Linting: Fighting the Rules (Wisely)
 
@@ -608,7 +612,7 @@ React 19 introduced stricter ESLint rules that flag patterns like `setState` in 
 I documented every ESLint suppression in `CLAUDE.md` with detailed explanations:
 
 ```tsx
-// src/hooks/use-has-mounted.hook.ts:8
+// apps/web/src/hooks/use-has-mounted.hook.ts:8
 useEffect(() => {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: One-time initialization flag on mount
   setHasMounted(true);
@@ -645,19 +649,19 @@ No authentication, no passwords, no OAuth flows. Just generate a nanoid and stor
 
 Want to dive deeper? Check out these files:
 
-- `src/components/room/room-wrapper.tsx:110` - Room joining validation flow
-- `src/hooks/useWebSocketRoom.ts:89` - Action queue system for resilient connections
-- `src/store/room.store.ts:82` - Room state update with kick detection
-- `fpp-server/src/room.state.ts:60` - In-memory room state broadcast logic
-- `fpp-server/src/message.handler.ts:23` - WebSocket action handling switch
-- `src/components/room/room.tsx:456` - User interaction to WebSocket action
-- `src/hooks/usePresenceTracking.ts:42` - Tab visibility tracking
-- `src/server/api/routers/room.router.ts:172` - Recursive room creation with collision handling
-- `src/utils/app-error.ts:35` - Sentry error capturing with breadcrumbs
+- `apps/web/src/components/room/room-wrapper.tsx:110` - Room joining validation flow
+- `apps/web/src/hooks/useWebSocketRoom.ts:89` - Action queue system for resilient connections
+- `apps/web/src/store/room.store.ts:82` - Room state update with kick detection
+- `apps/server/src/room.state.ts:60` - In-memory room state broadcast logic
+- `apps/server/src/message.handler.ts:23` - WebSocket action handling switch
+- `apps/web/src/components/room/room.tsx:456` - User interaction to WebSocket action
+- `apps/web/src/hooks/usePresenceTracking.ts:42` - Tab visibility tracking
+- `apps/web/src/server/api/routers/room.router.ts:172` - Recursive room creation with collision handling
+- `apps/web/src/utils/app-error.ts:35` - Sentry error capturing with breadcrumbs
 
 ---
 
 **Built with**: Next.js 16, React 19, Bun, tRPC 11, Zustand, Drizzle ORM, Elysia, TypeBox, Zod, Tailwind 4, Mantine 8
 
-**Repository**: [Free Planning Poker](https://github.com/yourusername/free-planning-poker)
+**Repository**: [Free Planning Poker](https://github.com/jkrumm/free-planning-poker)
 **Live Demo**: [https://free-planning-poker.com](https://free-planning-poker.com)

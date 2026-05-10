@@ -14,18 +14,32 @@ comment:
         - '**/schema.ts'
       body: |
         <h3> :warning: Drizzle schema file has been modified :warning: </h3>
-        Please make sure to review and deploy it using `npm run db:push` before merging the PR.
+        Please review the generated SQL in `packages/db/drizzle/` and apply with `bun run db:migrate` before merging.
 
     - id: fpp-server-changed
       files:
         - 'apps/server/**'
       body: |
         <h3> :rocket: fpp-server has been modified </h3>
-        Remember to manually redeploy the WebSocket server after merging.
+        Auto-deploys via RollHook on master push. Watch `deploy.yml` after merging.
 
     - id: fpp-analytics-changed
       files:
         - 'fpp-analytics/**'
       body: |
         <h3> :bar_chart: fpp-analytics has been modified </h3>
-        Remember to manually redeploy the analytics service after merging.
+        Auto-deploys via RollHook on master push. Watch `deploy.yml` after merging.
+
+    - id: shared-package-changed
+      files:
+        - 'packages/shared/**'
+      body: |
+        <h3> :link: @fpp/shared has been modified </h3>
+        Touches both `@fpp/web` and `@fpp/server` — verify both build cleanly in CI before merging.
+
+    - id: db-package-changed
+      files:
+        - 'packages/db/**'
+      body: |
+        <h3> :floppy_disk: @fpp/db has been modified </h3>
+        Schema or migrations changed. Review SQL in `packages/db/drizzle/` and run `bun run db:migrate` against prod after merge.

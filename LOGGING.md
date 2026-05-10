@@ -33,7 +33,7 @@ All services use structured JSON logging with consistent fields:
 
 ### Next.js (free-planning-poker)
 
-**Location:** `src/utils/app-error.ts`
+**Location:** `apps/web/src/utils/app-error.ts`
 
 **Error format:**
 ```json
@@ -79,7 +79,7 @@ try {
 
 ### fpp-server (WebSocket)
 
-**Location:** `fpp-server/src/utils/app-error.ts`
+**Location:** `apps/server/src/utils/app-error.ts`
 
 **Error format:**
 ```json
@@ -310,7 +310,7 @@ If you see logs with empty `msg` field:
 ### Logs Not Appearing in Logdy
 1. Check Logdy socket is running: `lsof -i :8080`
 2. Check forward connections: `lsof -i :8081,8082,8083`
-3. Verify services are outputting JSON: `npm run dev` (check terminal)
+3. Verify services are outputting JSON: `bun run dev` (check terminal)
 
 ### Log Parsing Issues
 - Ensure all logs are valid JSON (no multiline strings)

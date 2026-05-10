@@ -70,21 +70,23 @@ This service is the **AUTHORITATIVE source for real-time room state**. All room 
 
 ```
 apps/server/src/
-├── index.ts               # Elysia app, WebSocket route, cron jobs
+├── index.ts               # Elysia app, WebSocket route, cron jobs, SIGTERM drain
 ├── message.handler.ts     # Action handler switch
 ├── room.state.ts          # In-memory Map<roomId, RoomServer>
 ├── room.entity.ts         # RoomServer & UserServer classes
 ├── types.ts               # Local utility types (Analytics)
 ├── utils.ts               # Helper functions
-├── utils/
-│   └── app-error.ts       # Sentry error handling wrappers
+├── websocket.constants.ts # Reconnect delay, idle timeout
+└── utils/
+    └── app-error.ts       # Sentry wrappers (captureError, addBreadcrumb)
 
 packages/shared/src/       # imported as `@fpp/shared`
-├── room.actions.ts        # TypeBox schemas & Action types
-├── room.types.ts          # DTOs for client serialization
-└── username.validator.ts
-└── websocket.constants.ts # Cron schedule
+├── room.actions.ts        # TypeBox action schemas + Action union (types only)
+├── room.types.ts          # Room/User DTOs for client serialization
+└── username.validator.ts  # USERNAME_RULES + validateUsername
 ```
+
+The action schemas are exported as TypeBox `t.Object` definitions; `TypeCompiler.Compile(ActionSchema)` runs once at server boot in `index.ts` so the TypeBox runtime never reaches the web bundle.
 
 ---
 
@@ -121,12 +123,13 @@ packages/shared/src/       # imported as `@fpp/shared`
 - Methods like `flip()`, `reset()`, `selectEstimation()`
 - Auto-flip logic with 1-second delay
 
-### room.actions.ts
+### `@fpp/shared` — `packages/shared/src/room.actions.ts`
 
 - TypeBox schemas for every action type
 - Union type `Action` as discriminated union
-- Validation happens before message.handler receives
+- Validation happens before `message.handler` receives (via the compiled schema in `index.ts`)
 - Type guards: `isEstimateAction()`, `isFlipAction()`, etc.
+- Compilation lives in `apps/server/src/index.ts` (not in the shared package) so the web bundle stays free of TypeBox runtime
 
 ---
 
@@ -134,7 +137,7 @@ packages/shared/src/       # imported as `@fpp/shared`
 
 ### Adding a New WebSocket Action
 
-**Step 1: Define Action Type** (`room.actions.ts`):
+**Step 1: Define Action Type** (`packages/shared/src/room.actions.ts`):
 
 ```typescript
 export interface NewActionAction {
@@ -152,7 +155,7 @@ export const CNewActionActionSchema = Type.Object({
 });
 ```
 
-**Step 2: Add to Union** (`room.actions.ts`):
+**Step 2: Add to Union** (`packages/shared/src/room.actions.ts`):
 
 ```typescript
 export type Action =

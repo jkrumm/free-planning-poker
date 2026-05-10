@@ -15,143 +15,179 @@ Straightforward planning poker. Create a room, share the link, vote instantly. N
 
 **[Start Planning](https://free-planning-poker.com/?source=github)**
 
-![demo](https://raw.githubusercontent.com/jkrumm/planning-poker/master/public/recording.gif)
+![demo](https://raw.githubusercontent.com/jkrumm/planning-poker/master/apps/web/public/recording.gif)
 
 ---
 
 ## Technical Overview
 
-Based on Next.js, tRPC, Drizzle and Mantine UI components.
+Bun-managed monorepo. Next.js + tRPC + Drizzle + Mantine on the web side, Elysia + TypeBox on the WebSocket server, FastAPI + Polars for analytics. Self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
 
-Uses a three-service architecture: Next.js app (port 3001), Bun WebSocket server (port 3003) for real-time features, and FastAPI analytics (port 5100). Self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
+### Monorepo Layout
+
+```
+free-planning-poker/
+├── apps/
+│   ├── web/         # Next.js 16 (Pages Router) — deployed to Vercel        → @fpp/web
+│   └── server/      # Bun + Elysia WebSocket server — deployed to VPS       → @fpp/server
+├── packages/
+│   ├── db/          # Drizzle schema + migrations (MySQL)                   → @fpp/db
+│   └── shared/      # WebSocket action schemas, room DTOs, validators       → @fpp/shared
+├── fpp-analytics/   # Python 3.14 FastAPI service (Polars + Parquet) — VPS
+├── package.json     # Bun workspace root
+└── bun.lock
+```
+
+Workspace packages resolve via Bun symlinks; `@fpp/db` and `@fpp/shared` are imported directly by both web and server.
+
+### Services
+
+| Service          | Runtime          | Port | Workspace     | Entry           |
+| ---------------- | ---------------- | ---- | ------------- | --------------- |
+| Next.js App      | Node 24          | 3001 | `@fpp/web`    | `apps/web`      |
+| WebSocket Server | Bun              | 3003 | `@fpp/server` | `apps/server`   |
+| Analytics API    | Python 3.14 (uv) | 5100 | n/a           | `fpp-analytics` |
+
+**For detailed architecture**, see `ARCHITECTURE.md`, `apps/server/CLAUDE.md`, and `fpp-analytics/CLAUDE.md`.
+
+---
 
 ## Quick Start
 
-Free Planning Poker runs on three services. Start all at once with `npm run dev:all` or individually:
+```bash
+bun install                        # workspace root — populates all packages
 
-| Service | Runtime | Port | Command | Config |
-|---------|---------|------|---------|--------|
-| **Next.js App** | Node 24 | 3001 | `doppler run -- npm run dev` | Doppler |
-| **WebSocket Server** | Bun | 3003 | `cd fpp-server && bun dev` | .env file |
-| **Analytics API** | Python 3.14 (uv) | 5100 | `cd fpp-analytics && uv run uvicorn main:app --reload --port 5100` | .env file |
+# Start everything (Next.js + server + analytics + Logdy UI)
+bun run dev:all
 
-**For detailed architecture**, see `ARCHITECTURE.md` and `fpp-server/CLAUDE.md`, `fpp-analytics/CLAUDE.md`
+# Or individually
+bun run dev                        # Next.js only (port 3001)
+bun run --filter=@fpp/server dev   # WebSocket server only (port 3003)
+cd fpp-analytics && uv run uvicorn main:app --reload --port 5100   # Analytics only
+```
 
-**Note:** Run `cd fpp-analytics && uv run python update_readmodel.py` once before first start to generate Parquet files.
+**First-time analytics setup:** `cd fpp-analytics && uv run python update_readmodel.py` once to generate the Parquet files.
 
 ---
 
 ## Validation
 
-The project uses comprehensive validation across all three services.
-
-### Local Development
-
 ```bash
-# Validate all services in parallel (fastest)
-npm run validate
+# All three services in parallel (fastest)
+bun run validate
 
-# Validate individual services
-npm run validate:nextjs       # Next.js: format, lint, type-check, build
-npm run validate:fpp-server   # fpp-server: format, lint, type-check, build
-npm run validate:fpp-analytics # fpp-analytics: format, lint, type-check
+# Per-service
+bun run validate:web         # @fpp/web: format, lint, type-check, build
+bun run validate:server      # @fpp/server: format, lint, type-check, build
+bun run validate:analytics   # fpp-analytics: format, lint, type-check
 ```
 
-### Service-Specific Commands
+### Service-specific commands
 
-**Next.js:**
+**Next.js (`apps/web`):**
+
 ```bash
-npm run format        # Auto-fix formatting
-npm run lint:fix      # Auto-fix linting
-npm run type-check    # TypeScript check
-npm run build         # Next.js build
-npm run pre           # All checks combined
+bun run --filter=@fpp/web format
+bun run --filter=@fpp/web lint:fix
+bun run --filter=@fpp/web type-check
+bun run --filter=@fpp/web build
+bun run --filter=@fpp/web pre      # all combined
 ```
 
-**fpp-server:**
+**WebSocket server (`apps/server`):**
+
 ```bash
-cd fpp-server
-bun run format        # Auto-fix formatting
-bun run lint:fix      # Auto-fix linting
-bun run type-check    # TypeScript check
-bun run build         # Bun build
-bun run validate      # All checks combined
+bun run --filter=@fpp/server format
+bun run --filter=@fpp/server lint:fix
+bun run --filter=@fpp/server type-check
+bun run --filter=@fpp/server build
+bun run --filter=@fpp/server validate   # all combined
 ```
 
-**fpp-analytics:**
-```bash
-npm run fpp-analytics:format       # Auto-fix formatting
-npm run fpp-analytics:lint:fix     # Auto-fix linting
-npm run fpp-analytics:type-check   # mypy check
-npm run fpp-analytics:validate     # All checks combined
+**Analytics (`fpp-analytics`):**
 
-# Or directly:
-cd fpp-analytics
-uv run ruff format .       # Auto-fix formatting
-uv run ruff check --fix .  # Auto-fix linting
-uv run mypy .              # Type checking
+```bash
+bun run fpp-analytics:format       # ruff format
+bun run fpp-analytics:lint:fix     # ruff check --fix
+bun run fpp-analytics:type-check   # mypy
+bun run fpp-analytics:validate     # all combined
 ```
 
-### CI Validation
+### CI
 
-GitHub Actions validates all services in parallel on every PR:
-- **Next.js**: 4 jobs (formatting, linting, type-checking, build)
-- **fpp-server**: 4 jobs (formatting, linting, type-checking, build)
-- **fpp-analytics**: 3 jobs (formatting, linting, type-checking)
+GitHub Actions runs 11 jobs in parallel on every PR:
 
-**Total: 11 parallel jobs**
+- Next.js: format, lint, type-check, build
+- WebSocket server: format, lint, type-check, build
+- Analytics: format, lint, type-check
 
 ---
 
-### Run locally
+## Run Locally
 
-1. Install any Node 20 version (exact 20.11.1) and Docker and Docker Compose and Doppler CLI
-2. Clone [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack)
-3. Request access to the Doppler Dev projects `sideproject-docker-stack` and `free-planning-poker`
-4. Run `sideproject-docker-stack` by following the instructions in the README
-5. Set up the `free-planning-poker` Doppler project by running `doppler setup`
-6. Install dependencies with `npm ci`
-7. Run `doppler run -- npm run dev`
+1. Install Node 24 (`nvm install`), Bun (`curl -fsSL https://bun.sh/install | bash`), Docker + Compose, Doppler CLI, and uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
+2. Clone [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack) and bring it up — it provides the MariaDB this project talks to.
+3. Request access to the Doppler projects `sideproject-docker-stack` and `free-planning-poker`.
+4. `doppler setup` in this repo root.
+5. `bun install`
+6. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:8080)
 
-### Database Migrations
+### WebSocket server (standalone)
 
-The project uses Drizzle Kit for database migrations. Available commands:
+```bash
+bun run --filter=@fpp/server dev   # port 3003
+```
 
-- `npm run db:generate` - Generate migration files from schema changes
-- `npm run db:migrate` - Apply pending migrations to database
-- `npm run db:studio` - Open Drizzle Studio database GUI
-- `npm run db:check` - Check if schema and database are in sync
+Env vars (root Doppler project covers these; for standalone runs, create `apps/server/.env`):
 
-**Important**: Before running any migration commands, verify that your `.env` file contains the correct `DATABASE_URL` - ensure it points to your local development database, not production!
+```bash
+TRPC_URL=http://localhost:3001/api/trpc   # callback for vote persistence
+FPP_SERVER_SECRET=dev-secret              # shared with Next.js
+SENTRY_DSN=                               # optional
+NODE_ENV=development
+```
+
+### Analytics service (standalone)
+
+```bash
+cd fpp-analytics
+uv sync
+cp .env.example .env                       # populate from 1Password / Doppler
+uv run python update_readmodel.py          # first-time only — builds Parquet
+uv run uvicorn main:app --reload --port 5100
+```
+
+---
+
+## Database Migrations
+
+Drizzle Kit, scoped to the `@fpp/db` package:
+
+```bash
+bun run db:generate   # generate migrations from schema changes
+bun run db:migrate    # apply pending migrations
+bun run db:studio     # open Drizzle Studio
+bun run db:check      # verify schema/db are in sync
+```
 
 **Migration workflow:**
-1. Make changes to `src/server/db/schema.ts`
-2. Run `npm run db:generate` to create migration files
-3. Review the generated SQL in `drizzle/` folder
-4. Switch the `.env` URL to use local database
-5. Run `npm run db:migrate` to apply changes to local database
-6. Validate locally if nothing breaks (functionality and data)
-7. Switch the `.env` URL to use prod database
-8. Run `npm run db:migrate` to apply changes to prod database
 
-### Run fpp-server locally
-1. [Install Bun](https://bun.sh/docs/installation) if not already installed
-2. Create `.env` file in `fpp-server/` directory (see `fpp-server/.env.example`):
-   ```bash
-   TRPC_URL=http://localhost:3001/api/trpc
-   FPP_SERVER_SECRET=dev-secret  # Or from Doppler: doppler secrets get FPP_SERVER_SECRET --plain
-   SENTRY_DSN=  # Optional
-   NODE_ENV=development
-   ```
-3. Run `cd fpp-server && bun dev`
+1. Edit `packages/db/src/schema.ts`
+2. `bun run db:generate` — SQL lands in `packages/db/drizzle/`
+3. Review the generated SQL
+4. Point `DATABASE_URL` at your local DB and `bun run db:migrate`
+5. Validate locally
+6. Switch `DATABASE_URL` to prod and `bun run db:migrate` again
 
-### Run fpp-analytics locally
-1. Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-2. Install dependencies: `cd fpp-analytics && uv sync`
-3. Copy `.env.example` to `.env` and populate variables (see `fpp-analytics/.env.example`)
-4. Generate Parquet files (first time only): `uv run python update_readmodel.py`
-5. Run the API: `uv run uvicorn main:app --reload --port 5100`
+⚠️ Verify `DATABASE_URL` before every migrate.
 
-### Releases
+---
 
-Releases are created via `npm run release` (release-it) or `/release-fpp` Claude Code command for AI-enhanced release notes.
+## Releases
+
+```bash
+bun run release              # release-it locally
+gh workflow run release.yml  # release-it via CI (canonical)
+```
+
+For AI-generated release notes use `/release-fpp` (see `.claude/skills/release-fpp/SKILL.md`).

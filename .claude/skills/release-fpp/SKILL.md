@@ -72,7 +72,7 @@ Create a summary with:
 
 ```bash
 # Get GitHub token and run release
-GITHUB_TOKEN=$(gh auth token) npm run release -- <version> --ci
+GITHUB_TOKEN=$(gh auth token) bun run release -- <version> --ci
 ```
 
 Where `<version>` is:
