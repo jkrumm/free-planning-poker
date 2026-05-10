@@ -26,16 +26,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           # PAT required to push the chore commit when master is branch-protected.
           # Falls back to GITHUB_TOKEN if RELEASE_TOKEN secret isn't set.
           token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - run: npm ci --quiet

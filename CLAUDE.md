@@ -4,9 +4,9 @@
 
 | Service | Runtime | Framework | Port | CLAUDE.md |
 |---------|---------|-----------|------|-----------|
-| **Next.js App** | Node 22 | Next.js 16 (Pages Router) | 3001 | This file |
+| **Next.js App** | Node 24 | Next.js 16 (Pages Router) | 3001 | This file |
 | **WebSocket Server** | Bun | Elysia 1.4 | 3003 | `fpp-server/CLAUDE.md` |
-| **Analytics API** | Python 3.12 | FastAPI | 5100 | `fpp-analytics/CLAUDE.md` |
+| **Analytics API** | Python 3.14 | FastAPI | 5100 | `fpp-analytics/CLAUDE.md` |
 | **Logdy (Logs UI)** | Go | Logdy | 8080 | - |
 
 ---
