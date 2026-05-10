@@ -1,4 +1,4 @@
-import type { SyncRule, UserConfig } from '@commitlint/types';
+import type { UserConfig } from '@commitlint/types';
 
 const Configuration: UserConfig = {
   extends: ['@commitlint/config-conventional'],
@@ -56,7 +56,7 @@ const Configuration: UserConfig = {
             false,
             `scope must be a Linear token (JK-[number]) or omitted entirely`,
           ];
-        }) as SyncRule,
+        }),
       },
     },
   ],

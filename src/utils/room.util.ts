@@ -157,9 +157,9 @@ export function getICreateVoteFromRoomState(roomState: RoomBase): ICreateVote {
     return {
       roomId: roomState.id,
       avgEstimation: '0',
-      maxEstimation: 1 as unknown as number,
-      minEstimation: 21 as unknown as number,
-      amountOfEstimations: 0 as unknown as number,
+      maxEstimation: 1,
+      minEstimation: 21,
+      amountOfEstimations: 0,
       amountOfSpectators: 0,
       duration: 0,
       wasAutoFlip: false,
