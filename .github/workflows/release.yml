@@ -5,7 +5,7 @@ name: Release
 # idempotent — same source, same image digest, no rollout). Vercel picks up the
 # same commit through its GitHub integration and deploys NextJS.
 #
-# Run via `make release` in the repo root.
+# Run via `gh workflow run release.yml` (or `/release-fpp` for AI-enhanced notes).
 
 on:
   workflow_dispatch:
