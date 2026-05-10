@@ -1,0 +1,167 @@
+import { userAgentFromString } from 'next/dist/server/web/spec-extension/user-agent';
+
+import type {
+  NextApiRequest,
+  NextApiResponse,
+} from '@trpc/server/adapters/next';
+
+import { RouteType, pageViews, users } from '@fpp/db';
+import { eq } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+
+import {
+  BadRequestError,
+  MethodNotAllowedError,
+} from 'fpp/constants/error.constant';
+
+import { captureError } from 'fpp/utils/app-error';
+import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
+
+import db from 'fpp/server/db/db';
+
+export const preferredRegion = 'fra1';
+
+const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    if (req.method !== 'POST') {
+      throw new MethodNotAllowedError(
+        'TRACK_PAGE_VIEW only accepts POST requests',
+      );
+    }
+
+    // eslint-disable-next-line prefer-const
+    let { userId, route, roomId, source } = (
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    ) as {
+      userId: string | null;
+      route: keyof typeof RouteType;
+      roomId?: number;
+      source: string | null;
+    };
+
+    userId = (!validateNanoId(userId) ? nanoid() : userId)!;
+
+    if (userAgentFromString(req.headers['user-agent']).isBot) {
+      return res.status(200).json({ userId });
+    }
+
+    if (RouteType[route] === undefined) {
+      throw new BadRequestError('invalid route');
+    }
+
+    const userExists = !!(
+      await db.select().from(users).where(eq(users.id, userId))
+    )[0];
+
+    if (!userExists) {
+      const userPayload = await getUserPayload(req);
+      await db.insert(users).values({
+        id: userId,
+        ...userPayload,
+      });
+    }
+
+    await db.insert(pageViews).values({
+      userId,
+      route,
+      roomId,
+      source,
+    });
+
+    return res.status(200).json({ userId });
+  } catch (error) {
+    // Capture error with context
+    captureError(
+      error instanceof Error ? error : new Error('Failed to track page view'),
+      {
+        component: 'track-page-view',
+        action: 'TrackPageView',
+        extra: {
+          method: req.method ?? 'unknown',
+          hasBody: !!req.body,
+          userAgent: req.headers['user-agent']?.substring(0, 100) ?? 'unknown',
+        },
+      },
+      'high',
+    );
+
+    // Return error response
+    return res.status(500).json({
+      error: 'Internal server error',
+      userId: null,
+    });
+  }
+};
+
+export const getUserPayload = async (req: NextApiRequest) => {
+  const ua = userAgentFromString(req.headers['user-agent']);
+
+  const geo: {
+    country: string | null;
+    region: string | null;
+    city: string | null;
+  } = {
+    country: null,
+    region: null,
+    city: null,
+  };
+
+  let ip =
+    req?.headers['x-forwarded-for'] ??
+    req?.headers['X-Forwarded-For'] ??
+    req?.headers['x-real-ip'] ??
+    req.socket.remoteAddress ??
+    '::1';
+
+  if (ip instanceof Array && ip.length > 0) {
+    ip = ip[0]!;
+  }
+
+  if (ip.includes(',') && ip instanceof String) {
+    ip = ip.split(',')[0]!;
+  }
+
+  if (ip !== '::1') {
+    try {
+      const geoResponse = await fetch(`http://ip-api.com/json/${ip as string}`);
+
+      if (!geoResponse.ok) {
+        throw new Error(`Geo API responded with status: ${geoResponse.status}`);
+      }
+
+      const geoData = (await geoResponse.json()) as {
+        countryCode: string;
+        region: string;
+        city: string;
+      };
+      console.log('geoData', geoData);
+      geo.country = geoData.countryCode;
+      geo.region = geoData.region;
+      geo.city = geoData.city;
+    } catch (error) {
+      // Geo fetch failure is non-critical, but we should track it
+      captureError(
+        error instanceof Error ? error : new Error('Failed to fetch geo data'),
+        {
+          component: 'getUserPayload',
+          action: 'fetchGeoData',
+          extra: {
+            ip: typeof ip === 'string' ? ip.substring(0, 20) : 'unknown',
+          },
+        },
+        'low',
+      );
+    }
+  }
+
+  return {
+    browser: ua?.browser?.name ?? null,
+    device: ua.isBot ? 'bot' : (ua?.device?.type ?? 'desktop'),
+    os: ua?.os?.name ?? null,
+    city: geo.city ?? null,
+    country: geo.country ?? null,
+    region: geo.region ?? null,
+  };
+};
+
+export default TrackPageView;

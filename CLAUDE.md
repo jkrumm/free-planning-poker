@@ -5,7 +5,7 @@
 | Service | Runtime | Framework | Port | CLAUDE.md |
 |---------|---------|-----------|------|-----------|
 | **Next.js App** | Node 24 | Next.js 16 (Pages Router) | 3001 | This file |
-| **WebSocket Server** | Bun | Elysia 1.4 | 3003 | `fpp-server/CLAUDE.md` |
+| **WebSocket Server** | Bun | Elysia 1.4 | 3003 | `apps/server/CLAUDE.md` |
 | **Analytics API** | Python 3.14 | FastAPI | 5100 | `fpp-analytics/CLAUDE.md` |
 | **Logdy (Logs UI)** | Go | Logdy | 8080 | - |
 
@@ -35,7 +35,7 @@ This project inherits skills from `/Users/johannes.krumm/SourceRoot/.claude/skil
 ### Token Efficiency Rules
 
 **ALWAYS use forked skills for:**
-- Validation → `/code-quality` (not `npm run validate` inline)
+- Validation → `/code-quality` (not `bun run validate` inline)
 - Research → `/research` (not inline web search)
 - Code review → `/review` (not reading multiple files)
 
@@ -93,14 +93,14 @@ Free Planning Poker runs on three independent services:
 ### Cross-Service Change Patterns
 
 #### Pattern 1: Add New Room Action
-1. Define Action type in `fpp-server/src/room.actions.ts`
-2. Add handler in `fpp-server/src/message.handler.ts`
+1. Define Action type in `apps/server/src/room.actions.ts`
+2. Add handler in `apps/server/src/message.handler.ts`
 3. Update client to send action via `triggerAction()`
 4. Update Zustand store to reflect state changes (if new state needed)
 
 #### Pattern 2: Add Database Tracking
-1. Add column/table in `src/server/db/schema.ts`
-2. Generate migration !HumanInTheLoop!: `npm run db:generate`
+1. Add column/table in `packages/db/src/schema.ts`
+2. Generate migration !HumanInTheLoop!: `bun run db:generate`
 3. Update tRPC router to persist data
 4. Update analytics if needed (`fpp-analytics/calculations/`)
 
@@ -141,15 +141,15 @@ Room state exists in THREE places:
 
 ```bash
 # Start all services simultaneously
-npm run dev:all                           # Next.js + WebSocket + Analytics
+bun run dev:all                           # Next.js + WebSocket + Analytics
 
 # Or start individually:
-npm run dev                               # Next.js (port 3001)
-cd fpp-server && bun dev                  # WebSocket (port 3003)
+bun run dev                               # Next.js (port 3001)
+cd apps/server && bun dev                  # WebSocket (port 3003)
 cd fpp-analytics && uv run uvicorn main:app --reload  # Analytics (port 3002)
 
 # Code quality (run from root)
-npm run pre                               # Format, lint, type-check, build
+bun run pre                               # Format, lint, type-check, build
 ```
 
 ---
@@ -171,39 +171,39 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 
 ```bash
 # Development
-npm run dev                              # Start dev server on port 3001 - Only suggest to user
-npm run dev:all                          # Start all services (Next.js, fpp-server, analytics) - Only suggest to user
+bun run dev                              # Start dev server on port 3001 - Only suggest to user
+bun run dev:all                          # Start all services (Next.js, fpp-server, analytics) - Only suggest to user
 
 # Building (REQUIRED env var)
-SKIP_ENV_VALIDATION=1 npm run build
+SKIP_ENV_VALIDATION=1 bun run build
 
 # Code Quality & Validation
-npm run validate                         # Validate all services in parallel
-npm run validate:nextjs                  # Validate Next.js only
-npm run validate:fpp-server              # Validate fpp-server only
-npm run validate:fpp-analytics           # Validate fpp-analytics only
+bun run validate                         # Validate all services in parallel
+bun run validate:web                  # Validate Next.js only
+bun run validate:server              # Validate fpp-server only
+bun run validate:analytics           # Validate fpp-analytics only
 
 # Next.js specific
-npm run lint                             # Run ESLint
-npm run lint:fix                         # Auto-fix ESLint issues
-npm run type-check                       # TypeScript type checking
-npm run format                           # Format with Prettier
-npm run pre                              # Run all checks (format, lint, type-check, build)
+bun run lint                             # Run ESLint
+bun run lint:fix                         # Auto-fix ESLint issues
+bun run type-check                       # TypeScript type checking
+bun run format                           # Format with Prettier
+bun run pre                              # Run all checks (format, lint, type-check, build)
 
 # fpp-server specific
-cd fpp-server && bun run validate        # All checks for fpp-server
-cd fpp-server && bun run lint            # ESLint for fpp-server
-cd fpp-server && bun run type-check      # TypeScript for fpp-server
+cd apps/server && bun run validate        # All checks for fpp-server
+cd apps/server && bun run lint            # ESLint for fpp-server
+cd apps/server && bun run type-check      # TypeScript for fpp-server
 
 # fpp-analytics specific
-npm run fpp-analytics:validate           # All checks for fpp-analytics
-npm run fpp-analytics:lint               # Ruff lint
-npm run fpp-analytics:type-check         # mypy type check
+bun run fpp-analytics:validate           # All checks for fpp-analytics
+bun run fpp-analytics:lint               # Ruff lint
+bun run fpp-analytics:type-check         # mypy type check
 
 # Database
-npm run db:generate                      # Generate Drizzle migrations - Only suggest to user
-npm run db:migrate                       # Run migrations - Only suggest to user
-npm run db:studio                        # Open Drizzle Studio - Only suggest to user
+bun run db:generate                      # Generate Drizzle migrations - Only suggest to user
+bun run db:migrate                       # Run migrations - Only suggest to user
+bun run db:studio                        # Open Drizzle Studio - Only suggest to user
 ```
 
 ## Logdy Integration
@@ -236,7 +236,7 @@ logdy --version
 
 ```bash
 # Start all services with Logdy (recommended for multi-service development)
-npm run dev:all
+bun run dev:all
 # Opens:
 # - http://localhost:3001 (Next.js)
 # - http://localhost:3003 (fpp-server)
@@ -244,8 +244,8 @@ npm run dev:all
 # - http://localhost:8080 (Logdy UI)
 
 # Start individual services without Logdy (simpler for single-service work)
-npm run dev              # Next.js only
-cd fpp-server && bun dev # fpp-server only
+bun run dev              # Next.js only
+cd apps/server && bun dev # fpp-server only
 cd fpp-analytics && uv run uvicorn main:app --reload --port 5100 # Analytics only
 ```
 
@@ -336,7 +336,7 @@ import { useRoomStore } from '../store/room.store';
 
 ### 🚨 Environment Variables
 - **Client vars**: Must be prefixed with `NEXT_PUBLIC_`
-- **Build command**: Always use `SKIP_ENV_VALIDATION=1 npm run build`
+- **Build command**: Always use `SKIP_ENV_VALIDATION=1 bun run build`
 - **Environment file**: Use Doppler (not .env) for local development
 
 ## ESLint & React 19 Linting
@@ -378,57 +378,78 @@ useEffect(() => {
 
 ```plaintext
 free-planning-poker/
-├── src/
-│   ├── components/         # React components
-│   │   └── room/          # Room-related components (main app)
-│   ├── hooks/             # Custom React hooks
-│   ├── pages/             # Next.js Pages Router
-│   │   ├── _app.tsx       # App wrapper
-│   │   ├── _document.tsx  # HTML document
-│   │   ├── api/           # tRPC API routes
-│   │   └── room/          # Room pages
-│   ├── server/            # Server-side code
-│   │   ├── api/           # tRPC routers
-│   │   └── db/            # Database schema
-│   ├── store/             # Zustand stores
-│   ├── utils/             # Utility functions
-│   ├── env.ts             # Environment validation
-│   └── proxy.ts           # Next.js proxy (rate limiting)
-├── fpp-server/            # Bun WebSocket server
-│   └── src/
-│       ├── index.ts       # Elysia server entry
-│       ├── room.state.ts  # In-memory room state
-│       ├── room.entity.ts # Room/User classes
-│       ├── room.types.ts  # Shared types
-│       ├── room.actions.ts # WebSocket action types
-│       └── message.handler.ts # Action handler
-└── public/                # Static assets
+├── apps/
+│   ├── web/                       # Next.js 16 (Pages Router) — deployed to Vercel
+│   │   ├── src/
+│   │   │   ├── components/        # React components
+│   │   │   │   └── room/          # Room-related components (main app)
+│   │   │   ├── hooks/             # Custom React hooks
+│   │   │   ├── pages/             # Next.js Pages Router
+│   │   │   │   ├── _app.tsx       # App wrapper
+│   │   │   │   ├── _document.tsx  # HTML document
+│   │   │   │   ├── api/           # tRPC API routes
+│   │   │   │   └── room/          # Room pages
+│   │   │   ├── server/            # Server-side code (tRPC routers, db connection)
+│   │   │   ├── store/             # Zustand stores
+│   │   │   ├── utils/             # Utility functions
+│   │   │   ├── env.ts             # Environment validation
+│   │   │   └── proxy.ts           # Next.js proxy (rate limiting)
+│   │   ├── public/                # Static assets
+│   │   ├── next.config.js
+│   │   ├── eslint.config.mjs
+│   │   └── package.json           # @fpp/web
+│   └── server/                    # Bun WebSocket server (was fpp-server/)
+│       ├── src/
+│       │   ├── index.ts           # Elysia server entry
+│       │   ├── room.state.ts      # In-memory room state
+│       │   ├── room.entity.ts     # Room/User classes
+│       │   └── message.handler.ts # Action handler
+│       ├── Dockerfile
+│       └── package.json           # @fpp/server
+├── packages/
+│   ├── db/                        # @fpp/db — Drizzle schema + migrations
+│   │   ├── src/
+│   │   │   ├── index.ts           # Re-exports schema
+│   │   │   └── schema.ts          # Drizzle schema (rooms, users, votes, …)
+│   │   ├── drizzle/               # Generated migrations
+│   │   ├── drizzle.config.ts
+│   │   └── package.json
+│   └── shared/                    # @fpp/shared — types/validators used by web + server
+│       ├── src/
+│       │   ├── room.actions.ts    # WebSocket action types + TypeBox schemas
+│       │   ├── room.types.ts      # Shared room/user DTOs
+│       │   └── username.validator.ts
+│       └── package.json
+├── fpp-analytics/                 # Python FastAPI analytics service (deferred)
+├── package.json                   # Workspace root (Bun)
+├── bun.lock
+└── lefthook.yml
 ```
 
 ## Key Files & Their Purpose
 
 ### State Management
-- `src/store/room.store.ts` - Real-time room state (users, votes, connection status)
-- `src/store/local-storage.store.ts` - Persistent client data (userId, username)
+- `apps/web/src/store/room.store.ts` - Real-time room state (users, votes, connection status)
+- `apps/web/src/store/local-storage.store.ts` - Persistent client data (userId, username)
 
 ### Core Hooks
-- `src/hooks/useWebSocketRoom.ts` - WebSocket connection + action queue system
-- `src/hooks/useHeartbeat.ts` - Dual heartbeat (5min client, 30min server)
-- `src/hooks/usePresenceTracking.ts` - Tab visibility tracking
-- `src/hooks/use-has-mounted.hook.ts` - SSR hydration safety
+- `apps/web/src/hooks/useWebSocketRoom.ts` - WebSocket connection + action queue system
+- `apps/web/src/hooks/useHeartbeat.ts` - Dual heartbeat (5min client, 30min server)
+- `apps/web/src/hooks/usePresenceTracking.ts` - Tab visibility tracking
+- `apps/web/src/hooks/use-has-mounted.hook.ts` - SSR hydration safety
 
 ### Room Components
-- `src/components/room/room-wrapper.tsx` - Room initialization & validation
-- `src/components/room/room.tsx` - Main room component (900 lines)
+- `apps/web/src/components/room/room-wrapper.tsx` - Room initialization & validation
+- `apps/web/src/components/room/room.tsx` - Main room component (900 lines)
 
 ### WebSocket Server
-- `fpp-server/src/index.ts` - Elysia WebSocket server
-- `fpp-server/src/room.state.ts` - In-memory Map<roomId, RoomServer>
-- `fpp-server/src/message.handler.ts` - Handle WebSocket actions
+- `apps/server/src/index.ts` - Elysia WebSocket server
+- `apps/server/src/room.state.ts` - In-memory Map<roomId, RoomServer>
+- `apps/server/src/message.handler.ts` - Handle WebSocket actions
 
 ### Database
-- `src/server/db/schema.ts` - Drizzle schema (rooms, users, votes, estimations)
-- `src/server/api/routers/room.router.ts` - Room tRPC endpoints
+- `packages/db/src/schema.ts` - Drizzle schema (rooms, users, votes, estimations)
+- `apps/web/src/server/api/routers/room.router.ts` - Room tRPC endpoints
 
 ## Code Style Guidelines
 
@@ -495,7 +516,7 @@ captureError(error, { component: 'ComponentName', action: 'actionName' }, 'high'
 
 Before committing:
 ```bash
-npm run pre  # Runs format, lint, type-check, and build
+bun run pre  # Runs format, lint, type-check, and build
 ```
 
 ## Common Gotchas
@@ -619,12 +640,12 @@ This section provides comprehensive patterns for implementing error handling acr
 
 ### Overview
 
-Free Planning Poker uses **CustomTRPCError** for centralized error capture. All system errors flow through a single capture point in `src/pages/api/trpc/[trpc].ts`, eliminating double-capture bugs and reducing boilerplate.
+Free Planning Poker uses **CustomTRPCError** for centralized error capture. All system errors flow through a single capture point in `apps/web/src/pages/api/trpc/[trpc].ts`, eliminating double-capture bugs and reducing boilerplate.
 
 **Key Files:**
-- `src/server/api/custom-error.ts` - CustomTRPCError class and helpers
-- `src/pages/api/trpc/[trpc].ts` - Central error handler
-- `src/utils/app-error.ts` - Sentry wrapper (used by API routes and frontend)
+- `apps/web/src/server/api/custom-error.ts` - CustomTRPCError class and helpers
+- `apps/web/src/pages/api/trpc/[trpc].ts` - Central error handler
+- `apps/web/src/utils/app-error.ts` - Sentry wrapper (used by API routes and frontend)
 
 ### Next.js API Routes (Pages Router)
 
@@ -863,7 +884,7 @@ Use Context7 MCP as a reference for documentation:
 - No schema changes, no shared-type changes, no behavior changes
 - Examples: `chore: upgrade dependencies`, `docs: clarify X`, `fix: typo in error message`
 
-**PR required for** any `feat:`, non-trivial `fix:`, cross-service change, anything touching `src/server/db/schema.ts` or `fpp-server/src/room.actions.ts`, or anything you want CodeRabbit to review. CI is more thorough than lefthook (it runs `build`, lefthook doesn't) — when in doubt, open a PR.
+**PR required for** any `feat:`, non-trivial `fix:`, cross-service change, anything touching `packages/db/src/schema.ts` or `apps/server/src/room.actions.ts`, or anything you want CodeRabbit to review. CI is more thorough than lefthook (it runs `build`, lefthook doesn't) — when in doubt, open a PR.
 
 ### Commits
 
