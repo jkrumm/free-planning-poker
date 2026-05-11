@@ -515,10 +515,10 @@ Expected: 100-500ms per request (on-demand computation). This is acceptable for 
 ### Docker Configuration
 
 Docker configuration is **NOT in this repository**. It lives in:
-- **Location:** `/Users/johannes.krumm/SourceRoot/sideproject-docker-stack/fpp_analytics/`
-- **Dockerfile:** `Dockerfile` (FastAPI server)
-- **Dockerfile.updater:** `Dockerfile.updater` (sync script)
-- **docker-compose.yml:** In parent `sideproject-docker-stack/` directory
+- **Location:** `/Users/johannes.krumm/SourceRoot/vps/apps/fpp/`
+- **Dockerfile:** built from this repo by `deploy.yml` (FastAPI server)
+- **Dockerfile.updater:** built from this repo by `deploy.yml` (sync script)
+- **compose.yml:** In `vps/apps/fpp/compose.yml`
 
 Local development runs directly via `uv run uvicorn`. Production runs containerized on CPS.
 

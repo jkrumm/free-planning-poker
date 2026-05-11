@@ -21,7 +21,7 @@ Straightforward planning poker. Create a room, share the link, vote instantly. N
 
 ## Technical Overview
 
-Bun-managed monorepo. Next.js + tRPC + Drizzle + Mantine on the web side, Elysia + TypeBox on the WebSocket server, FastAPI + Polars for analytics. Self-hosted MariaDB using my [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack).
+Bun-managed monorepo. Next.js + tRPC + Drizzle + Mantine on the web side, Elysia + TypeBox on the WebSocket server, FastAPI + Polars for analytics. Self-hosted MariaDB on my [vps](https://github.com/jkrumm/vps) stack.
 
 ### Monorepo Layout
 
@@ -132,8 +132,8 @@ GitHub Actions runs 17 jobs in parallel on every PR:
 ## Run Locally
 
 1. Install Node 24 (`nvm install`), Bun (`curl -fsSL https://bun.sh/install | bash`), Docker + Compose, Doppler CLI, and uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
-2. Clone [sideproject-docker-stack](https://github.com/jkrumm/sideproject-docker-stack) and bring it up — it provides the MariaDB this project talks to.
-3. Request access to the Doppler projects `sideproject-docker-stack` and `free-planning-poker`.
+2. Clone [vps](https://github.com/jkrumm/vps) and bring up the FPP stack — it provides the MariaDB this project talks to.
+3. Request access to the Doppler project `free-planning-poker` (DB secrets live in 1Password on the VPS).
 4. `doppler setup` in this repo root.
 5. `bun install`
 6. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:8080)

@@ -602,7 +602,7 @@ The Bun WebSocket server only accepts connections from the same origin. Cross-or
 | WebSocket server | VPS Docker | `deploy.yml` builds `apps/server/Dockerfile` from repo root, ships via RollHook |
 | Analytics API | VPS Docker | `deploy.yml` → RollHook |
 | Analytics updater | VPS Docker | `deploy.yml` → RollHook |
-| Database | Self-hosted MariaDB | `sideproject-docker-stack` |
+| Database | Self-hosted MariaDB | `vps` |
 | Redis | Upstash | rate limiting |
 
 The WebSocket server ships as a single self-contained binary produced by `bun build --compile` inside the Docker build — no runtime `node_modules`, no `package.json` in the image. The Dockerfile copies all workspace manifests (`apps/web`, `apps/server`, `packages/db`, `packages/shared`) plus `bun.lock` so `bun install --frozen-lockfile` can resolve the entire workspace graph; only `apps/server` and `packages/shared` sources are actually compiled in.

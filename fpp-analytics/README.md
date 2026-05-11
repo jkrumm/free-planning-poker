@@ -54,17 +54,17 @@ uv run python update_readmodel.py
 
 ## Production Deployment
 
-### Deploy to sideproject-docker-stack
+### Deploy to the VPS
 
-1. **Ensure secrets are in Doppler:**
-   ```bash
-   doppler secrets get ANALYTICS_SECRET_TOKEN DB_FPP_PW FPP_ANALYTICS_SENTRY_DSN
-   ```
+Deploys run via the `deploy.yml` GitHub Actions workflow → RollHook (zero-downtime rolling deploy). For manual operations on the VPS:
 
-2. **Build containers:**
+1. **Ensure secrets are in 1Password** (`vps` + `common` vaults — see `vps/apps/fpp/`).
+
+2. **Build/restart containers:**
    ```bash
-   cd ~/SourceRoot/sideproject-docker-stack
-   doppler run -- docker compose build --no-cache fpp-analytics fpp-analytics-updater
+   ssh vps
+   cd ~/vps
+   make fpp-down && make fpp-up
    ```
 
 3. **Start updater first:**
