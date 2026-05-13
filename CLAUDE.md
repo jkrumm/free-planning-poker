@@ -15,7 +15,7 @@
 
 ### Global Skills (from SourceRoot)
 
-This project inherits skills from `/Users/johannes.krumm/SourceRoot/.claude/skills/`:
+This project inherits global skills from `~/.claude/skills/`:
 
 | Skill | Context | Purpose |
 |-------|---------|---------|
