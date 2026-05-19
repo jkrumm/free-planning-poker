@@ -7,6 +7,7 @@ import { env } from 'fpp/env';
 
 import { type Action } from '@fpp/shared';
 import { RoomClient, type RoomDto } from '@fpp/shared';
+import { context, propagation } from '@opentelemetry/api';
 
 import {
   addBreadcrumb,
@@ -22,6 +23,18 @@ interface QueuedAction {
   action: Action;
   timestamp: number;
 }
+
+// Serialize an Action with the current W3C trace context inlined as a
+// `_traceparent` field. WebSocket frames have no headers, so we ride the
+// trace context inside the payload. The server extracts it and starts a
+// child span — that's what gives us "browser click → server WS handler"
+// in a single HyperDX trace. No active span = no field added.
+const serializeWithTraceContext = (action: Action): string => {
+  const carrier: Record<string, string> = {};
+  propagation.inject(context.active(), carrier);
+  if (!carrier.traceparent) return JSON.stringify(action);
+  return JSON.stringify({ ...action, _traceparent: carrier.traceparent });
+};
 
 export interface WebSocketRoomConfig {
   roomId: number;
@@ -291,7 +304,7 @@ export const useWebSocketRoom = ({
     (action: Action) => {
       try {
         if (readyState === ReadyState.OPEN) {
-          const message = JSON.stringify(action);
+          const message = serializeWithTraceContext(action);
           sendMessage(message);
           addBreadcrumb('WebSocket action sent', 'websocket', {
             action: action.action,
@@ -399,7 +412,11 @@ export const useWebSocketRoom = ({
 
       validActions.forEach(({ action }) => {
         try {
-          const message = JSON.stringify(action);
+          // Use the current active context — by the time a queued action
+          // flushes, the user is on a fresh interaction, so injecting *now*
+          // attaches the message to that new browser span. Better than a
+          // stale traceparent captured at queue time.
+          const message = serializeWithTraceContext(action);
           sendMessage(message);
           addBreadcrumb('Queued WebSocket action sent', 'websocket', {
             action: action.action,

@@ -9,6 +9,18 @@ export const BaseActionSchema = t.Object({
   roomId: t.Number({
     minimum: 1,
   }),
+  // W3C traceparent for cross-boundary distributed tracing over WebSocket.
+  // WS frames have no headers, so we ride the trace context inside the
+  // payload itself. Browser injects via propagation.inject(); server
+  // extracts via propagation.extract() and starts a child span. Optional
+  // so older clients (or messages emitted with no active span) still pass
+  // validation. Max length covers the W3C format
+  // `00-{32-hex-trace-id}-{16-hex-span-id}-{2-hex-flags}` plus margin.
+  _traceparent: t.Optional(
+    t.String({
+      maxLength: 64,
+    }),
+  ),
 });
 
 /**

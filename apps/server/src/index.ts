@@ -5,6 +5,12 @@ import { shutdownTelemetry, telemetryConfig } from './telemetry';
 import { createPinoLogger } from '@bogeychan/elysia-logger';
 import cron from '@elysiajs/cron';
 import { opentelemetry } from '@elysiajs/opentelemetry';
+import {
+  context,
+  propagation,
+  SpanStatusCode,
+  trace,
+} from '@opentelemetry/api';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { Elysia, t } from 'elysia';
 import { ActionSchema, USERNAME_RULES, validateUsername } from '@fpp/shared';
@@ -26,6 +32,13 @@ export const log = createPinoLogger({
 // Compile the action schema once at server boot. Lives here (not in
 // @fpp/shared) so the TypeBox compiler stays out of the web bundle.
 const CActionSchema = TypeCompiler.Compile(ActionSchema);
+
+// Tracer for WebSocket message handling. @elysiajs/opentelemetry only traces
+// HTTP routes — WS message handlers run outside any active span by default,
+// so breadcrumbs + captured errors from inside them land with empty TraceId
+// in HyperDX. Wrapping each message in an active span fixes log-trace
+// correlation for the bulk of fpp-server's work.
+const wsTracer = trace.getTracer('fpp-server.ws');
 
 // Initialize Redis/Valkey snapshot store. Optional — when REDIS_URL is unset
 // the store is a no-op and the server behaves exactly as before (in-memory
@@ -255,67 +268,107 @@ app.ws('/ws', {
         ? String(actionData.userId)
         : 'unknown';
 
-    addBreadcrumb(`WebSocket action: ${actionStr}`, 'websocket.action', {
-      roomId: roomIdStr,
-      userId: userIdStr,
-      action: actionStr,
-    });
+    // Extract the W3C traceparent the browser inlined into the payload.
+    // WebSocket frames carry no headers, so the trace context rides inside
+    // the message itself (see `serializeWithTraceContext` in useWebSocketRoom).
+    // When present, the WS span becomes a child of the browser's active
+    // span — single HyperDX trace from click → handler. When absent (older
+    // clients, internal messages), we start a fresh root trace.
+    const traceparent =
+      typeof actionData._traceparent === 'string'
+        ? actionData._traceparent
+        : undefined;
+    const parentCtx = traceparent
+      ? propagation.extract(context.active(), { traceparent })
+      : context.active();
 
-    try {
-      if (!CActionSchema.Check(data)) {
-        // Safe serialization to avoid protocol violations
-        const safeData =
-          typeof data === 'object'
-            ? JSON.stringify(data).slice(0, 200)
-            : String(data).slice(0, 200);
+    context.with(parentCtx, () => {
+      // Wrap the whole message in an active span so breadcrumb + captureError
+      // calls inside the handler inherit a TraceId. Heartbeats are noise but
+      // proper actions (vote/flip/leave/etc.) now get fully correlated logs.
+      wsTracer.startActiveSpan(`ws.${actionStr}`, (span) => {
+        span.setAttributes({
+          'ws.action': actionStr,
+          'ws.roomId': roomIdStr,
+          'ws.userId': userIdStr,
+          'ws.id': ws.id,
+        });
 
-        captureMessage(
-          'Invalid WebSocket message format',
-          {
-            component: 'websocketMessage',
-            action: 'validateMessage',
-            extra: {
-              wsId: ws.id,
-              receivedData: safeData,
-            },
-          },
-          'medium',
-        );
-        ws.send(
-          JSON.stringify({
-            error: 'Invalid message format',
-            wsId: ws.id,
-          }),
-        );
-        return;
-      }
-
-      messageHandler.handleMessage(ws, data);
-    } catch (error: unknown) {
-      captureError(
-        error as Error,
-        {
-          component: 'websocketMessage',
+        addBreadcrumb(`WebSocket action: ${actionStr}`, 'websocket.action', {
+          roomId: roomIdStr,
+          userId: userIdStr,
           action: actionStr,
-          extra: {
-            wsId: ws.id,
-            roomId: roomIdStr,
-            userId: userIdStr,
-          },
-        },
-        'high',
-      );
+        });
 
-      if (error instanceof Error) {
-        ws.send(
-          JSON.stringify({
-            error: error.message,
-            timestamp: Date.now(),
-            wsId: ws.id,
-          }),
-        );
-      }
-    }
+        try {
+          if (!CActionSchema.Check(data)) {
+            // Safe serialization to avoid protocol violations
+            const safeData =
+              typeof data === 'object'
+                ? JSON.stringify(data).slice(0, 200)
+                : String(data).slice(0, 200);
+
+            captureMessage(
+              'Invalid WebSocket message format',
+              {
+                component: 'websocketMessage',
+                action: 'validateMessage',
+                extra: {
+                  wsId: ws.id,
+                  receivedData: safeData,
+                },
+              },
+              'medium',
+            );
+            ws.send(
+              JSON.stringify({
+                error: 'Invalid message format',
+                wsId: ws.id,
+              }),
+            );
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: 'invalid format',
+            });
+            return;
+          }
+
+          messageHandler.handleMessage(ws, data);
+        } catch (error: unknown) {
+          if (error instanceof Error) span.recordException(error);
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error instanceof Error ? error.message : String(error),
+          });
+
+          captureError(
+            error as Error,
+            {
+              component: 'websocketMessage',
+              action: actionStr,
+              extra: {
+                wsId: ws.id,
+                roomId: roomIdStr,
+                userId: userIdStr,
+              },
+            },
+            'high',
+          );
+
+          if (error instanceof Error) {
+            ws.send(
+              JSON.stringify({
+                error: error.message,
+                timestamp: Date.now(),
+                wsId: ws.id,
+              }),
+            );
+          }
+        } finally {
+          span.end();
+        }
+      });
+    });
   },
   close(ws, code, reason) {
     log.debug(
