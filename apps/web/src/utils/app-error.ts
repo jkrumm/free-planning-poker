@@ -83,6 +83,26 @@ const flattenExtra = (
   );
 };
 
+// Browser-only mutable user context. HyperDX.setGlobalAttributes attaches
+// these at the RUM-session layer (for the UI's session view), not the OTLP
+// exporter — so spans/logs leaving the browser don't carry them by default.
+// We mirror the same values here and auto-merge into every captureError /
+// captureMessage / addBreadcrumb call so the data is queryable in
+// ClickHouse without callers having to thread userId/roomId everywhere.
+let userContext: {
+  userId?: string;
+  roomId?: string;
+  username?: string;
+} = {};
+
+const userContextAttrs = (): Record<string, string> => {
+  const out: Record<string, string> = {};
+  if (userContext.userId) out['fpp.userId'] = userContext.userId;
+  if (userContext.roomId) out['fpp.roomId'] = userContext.roomId;
+  if (userContext.username) out['fpp.username'] = userContext.username;
+  return out;
+};
+
 export const captureError = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: Error | string | TRPCClientErrorLike<any>,
@@ -132,6 +152,7 @@ export const captureError = (
       'fpp.severity': severity,
       ...(context.component && { 'fpp.component': context.component }),
       ...(context.action && { 'fpp.action': context.action }),
+      ...userContextAttrs(),
       ...trpcAttrs,
       ...flatExtra,
     },
@@ -172,6 +193,7 @@ export const captureMessage = (
       'fpp.severity': severity,
       ...(context.component && { 'fpp.component': context.component }),
       ...(context.action && { 'fpp.action': context.action }),
+      ...userContextAttrs(),
       ...flattenExtra(context.extra),
     },
   });
@@ -193,6 +215,13 @@ export const setUserContext = (ctx: {
     ...(ctx.roomId && { roomId: String(ctx.roomId) }),
     ...(ctx.username && { username: ctx.username }),
   });
+  // Mirror into the wrapper's own state so captureError / addBreadcrumb
+  // pick it up automatically.
+  userContext = {
+    ...(ctx.userId && { userId: ctx.userId }),
+    ...(ctx.roomId && { roomId: String(ctx.roomId) }),
+    ...(ctx.username && { username: ctx.username }),
+  };
 };
 
 export const addBreadcrumb = (
@@ -208,6 +237,7 @@ export const addBreadcrumb = (
     attributes: {
       'fpp.breadcrumb': 'true',
       'fpp.category': category,
+      ...userContextAttrs(),
       ...flattenExtra(data),
     },
   });
