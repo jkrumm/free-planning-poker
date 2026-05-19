@@ -41,7 +41,17 @@ const buildWebSocketUrl = (
   userId: string,
   username: string,
 ): string => {
-  const protocol = env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'wss' : 'ws';
+  // Match the page's protocol: an https page (prod or local-via-Caddy) must
+  // upgrade to wss, otherwise the browser blocks the ws:// as mixed content.
+  // Falls back to NODE_ENV for SSR where window is undefined.
+  const protocol =
+    typeof window !== 'undefined'
+      ? window.location.protocol === 'https:'
+        ? 'wss'
+        : 'ws'
+      : env.NEXT_PUBLIC_NODE_ENV === 'production'
+        ? 'wss'
+        : 'ws';
   const encodedUsername = encodeURIComponent(username);
   return `${protocol}://${env.NEXT_PUBLIC_FPP_SERVER_URL}/ws?roomId=${roomId}&userId=${userId}&username=${encodedUsername}`;
 };

@@ -2,12 +2,15 @@
 
 ## Quick Reference
 
-| Service | Runtime | Framework | Port | CLAUDE.md |
-|---------|---------|-----------|------|-----------|
-| **Next.js App** | Node 24 | Next.js 16 (Pages Router) | 3001 | This file |
-| **WebSocket Server** | Bun | Elysia 1.4 | 3003 | `apps/server/CLAUDE.md` |
-| **Analytics API** | Python 3.14 | FastAPI | 5100 | `fpp-analytics/CLAUDE.md` |
-| **Logdy (Logs UI)** | Go | Logdy | 8080 | - |
+| Service | Runtime | Framework | Local Port | `.test` host | CLAUDE.md |
+|-|-|-|-|-|-|
+| **Next.js App** | Node 24 | Next.js 16 (Pages Router) | 7720 | `fpp.test` | This file |
+| **WebSocket Server** | Bun | Elysia 1.4 | 7721 | `fpp-server.test` | `apps/server/CLAUDE.md` |
+| **Analytics API** | Python 3.14 | FastAPI | 7722 | `fpp-analytics.test` | `fpp-analytics/CLAUDE.md` |
+| **Logdy (Logs UI)** | Go | Logdy | 7723 | `fpp-logdy.test` | - |
+| Logdy ingest (web / server / analytics) | - | - | 7724 / 7725 / 7726 | - | - |
+
+Container ports stay 3003 (server) and 5100 (analytics) — `PORT` env var overrides locally. Web is Vercel in prod, no container port. Every dev script wraps `kill-port` so the port is guaranteed free; nothing silently falls back to a different number.
 
 ---
 
@@ -64,10 +67,10 @@ ToolSearch("select:mcp__context7__query-docs")   # Load Context7 tool
 
 Free Planning Poker runs on three independent services:
 
-1. **Next.js App** (port 3001) - UI, tRPC API, database operations
-2. **Bun WebSocket Server** (port 3003) - Real-time room state, in-memory
-3. **FastAPI Analytics** (port 5100) - Analytics calculations, read-only
-4. **Logdy** (port 8080) - Unified log viewer (local development only)
+1. **Next.js App** (port 7720) - UI, tRPC API, database operations
+2. **Bun WebSocket Server** (port 7721) - Real-time room state, in-memory
+3. **FastAPI Analytics** (port 7722) - Analytics calculations, read-only
+4. **Logdy** (port 7723) - Unified log viewer (local development only)
 
 📖 **For detailed architecture**, see `ARCHITECTURE.md`
 
@@ -144,9 +147,9 @@ Room state exists in THREE places:
 bun run dev:all
 
 # Or start individually
-bun run dev                                                              # Next.js (3001)
-bun run --filter=@fpp/server dev                                         # Server (3003)
-cd fpp-analytics && uv run uvicorn main:app --reload --port 5100         # Analytics
+bun run dev                                                              # Next.js (7720)
+bun run --filter=@fpp/server dev                                         # Server (7721)
+cd fpp-analytics && uv run uvicorn main:app --reload --port 7722         # Analytics
 
 # Code quality (root)
 bun run validate                                                         # All three in parallel
@@ -167,14 +170,14 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 
 ## Build & Development Commands
 
-**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars come from Doppler at runtime, not at build time.
+**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars come from 1Password (`op run --env-file=apps/web/.env.tpl`) at runtime, not at build time.
 
 All scripts run from the workspace root unless noted. The root `package.json` delegates to workspace members via `bun run --filter=@fpp/<pkg>`.
 
 ```bash
 # Development (suggest to user — don't run yourself)
-bun run dev                              # Next.js only (port 3001)
-bun run dev:all                          # All services + Logdy UI (3001 / 3003 / 5100 / 8080)
+bun run dev                              # Next.js only (port 7720)
+bun run dev:all                          # All services + Logdy UI (7720 / 7721 / 7722 / 7723)
 
 # Building
 SKIP_ENV_VALIDATION=1 bun run build      # Next.js production build
@@ -198,20 +201,33 @@ bun run db:generate                      # Generate migration from schema change
 bun run db:migrate                       # Apply pending migrations - suggest to user
 bun run db:studio                        # Drizzle Studio - suggest to user
 bun run db:check                         # Verify schema/db are in sync
+
+# Local rehydrate from prod data (in order — db-sync drops + recreates schema)
+make db-sync-from-prod                   # MariaDB sync via SSH from VPS
+make db-setup-local                      # Re-grant fpp user (no SSL — local has no TLS)
+make analytics-update-local              # Regenerate parquet files for /analytics
 ```
+
+### Local env via 1Password (no Doppler)
+
+Each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkrumm --env-file=.env.tpl --`. Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (Sentry, Upstash, email) are hardcoded dummies. Vercel manages prod env directly.
+
+### Local URLs
+
+Browser hits Caddy at `https://fpp.test` / `fpp-server.test` / `fpp-analytics.test` / `fpp-logdy.test`. Node server-side fetches bypass Caddy and use `http://localhost:7721|7722` directly (Node doesn't trust Caddy's local CA).
 
 ## Logdy Integration
 
 Logdy provides a unified web UI for viewing logs from all services in real-time during local development.
 
-**Web UI:** http://localhost:8080
+**Web UI:** http://localhost:7723 (or https://fpp-logdy.test via Caddy)
 
 ### Features
 
 - Real-time log streaming from all services (Next.js, fpp-server, fpp-analytics)
 - Automatic JSON log parsing (Pino structured logs)
 - Filter by service name (`service:free-planning-poker`, `service:fpp-server`, `service:fpp-analytics`)
-- Filter by origin port (8081=Next.js, 8082=fpp-server, 8083=fpp-analytics)
+- Filter by origin port (7724=Next.js, 7725=fpp-server, 7726=fpp-analytics)
 - Search across all logs (field-based: e.g., `userId:abc123`, `level:error`, `component:auth`)
 - Color-coded log levels (20=debug, 30=info, 40=warn, 50=error, 60=fatal)
 - Timeline view with timestamps
@@ -232,15 +248,15 @@ logdy --version
 # Start all services with Logdy (recommended for multi-service development)
 bun run dev:all
 # Opens:
-# - http://localhost:3001 (Next.js)
-# - http://localhost:3003 (fpp-server)
-# - http://localhost:5100 (fpp-analytics)
-# - http://localhost:8080 (Logdy UI)
+# - http://localhost:7720 (Next.js)         or https://fpp.test
+# - http://localhost:7721 (fpp-server)       or https://fpp-server.test
+# - http://localhost:7722 (fpp-analytics)    or https://fpp-analytics.test
+# - http://localhost:7723 (Logdy UI)         or https://fpp-logdy.test
 
 # Start individual services without Logdy (simpler for single-service work)
 bun run dev                                                          # Next.js only
 bun run --filter=@fpp/server dev                                     # fpp-server only
-cd fpp-analytics && uv run uvicorn main:app --reload --port 5100     # Analytics only
+cd fpp-analytics && uv run uvicorn main:app --reload --port 7722     # Analytics only
 ```
 
 ### Logging Architecture
@@ -273,10 +289,10 @@ All services use structured JSON logging (Pino format):
 - Error logs automatically sent to Sentry
 
 **How it works:**
-- Logdy runs in **socket mode** listening on ports 8081, 8082, 8083
+- Logdy runs in **socket mode** listening on ports 7724, 7725, 7726
 - Each service pipes logs to its dedicated port via `logdy forward`
-- Logs are tagged with `origin.port` for filtering (8081=Next.js, 8082=fpp-server, 8083=fpp-analytics)
-- Web UI (port 8080) aggregates and displays all streams in real-time
+- Logs are tagged with `origin.port` for filtering (7724=Next.js, 7725=fpp-server, 7726=fpp-analytics)
+- Web UI (port 7723) aggregates and displays all streams in real-time
 
 **Note:** Next.js dev server outputs some plain text logs (e.g., "GET /api/... 200 in 632ms (compile: 4ms)") that cannot be suppressed. These are development-only and won't appear in production (`next start`).
 
@@ -331,7 +347,7 @@ import { useRoomStore } from '../store/room.store';
 ### 🚨 Environment Variables
 - **Client vars**: Must be prefixed with `NEXT_PUBLIC_`
 - **Build command**: Always use `SKIP_ENV_VALIDATION=1 bun run build`
-- **Environment file**: Use Doppler (not .env) for local development
+- **Environment file**: 1Password via `op run --env-file=apps/web/.env.tpl` (see `apps/web/.env.tpl`). Production secrets live in Vercel and the VPS 1Password vault.
 
 ## ESLint & React 19 Linting
 
@@ -534,7 +550,7 @@ Users are anonymous. Each client generates a 21-character nanoid stored in local
 The app has an **action queue** in `useWebSocketRoom.ts` - actions sent while disconnected are queued and sent on reconnect.
 
 ### 5. Build Environment
-Local builds require `SKIP_ENV_VALIDATION=1` - environment variables are managed via Doppler.
+Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injected at runtime by `op run --env-file=apps/web/.env.tpl` (1Password).
 
 ## Sentry Error Handling Standards
 

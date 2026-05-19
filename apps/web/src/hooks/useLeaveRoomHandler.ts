@@ -26,7 +26,10 @@ export const useLeaveRoomHandler = (): void => {
         const blob = new Blob([JSON.stringify({ roomId, userId })], {
           type: 'application/json',
         });
-        const url = `${env.NEXT_PUBLIC_NODE_ENV === 'production' ? 'https' : 'http'}://${env.NEXT_PUBLIC_FPP_SERVER_URL}/leave`;
+        // Match page protocol so https-served local dev (via Caddy) uses
+        // https://fpp-server.test/leave instead of mixed-content http://.
+        const scheme = window.location.protocol === 'https:' ? 'https' : 'http';
+        const url = `${scheme}://${env.NEXT_PUBLIC_FPP_SERVER_URL}/leave`;
         navigator.sendBeacon(url, blob);
       }
     };
