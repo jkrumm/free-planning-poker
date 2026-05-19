@@ -3,18 +3,17 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
-import sentry_sdk
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from pythonjsonlogger import jsonlogger
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from config import ANALYTICS_SECRET_TOKEN, SENTRY_DSN, SENTRY_ENVIRONMENT
+from config import ANALYTICS_SECRET_TOKEN
 from routers import analytics, health, room
-from util.sentry_wrapper import ErrorContext, capture_error
+from util.error_capture import ErrorContext, capture_error
+from util.telemetry import init_telemetry, shutdown_telemetry
 
 
 # Custom JSON formatter to match Pino structure
@@ -129,38 +128,26 @@ def verify_auth(authorization: str = Header(None)) -> bool:
     return True
 
 
+# Telemetry providers — captured at startup so we can flush on shutdown.
+_tracer_provider = None
+_logger_provider = None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    # Startup: Initialize Sentry
-    if SENTRY_DSN:
-        sentry_sdk.init(
-            dsn=SENTRY_DSN,
-            environment=SENTRY_ENVIRONMENT,
-            traces_sample_rate=0.1,
-            profiles_sample_rate=0.1,
-            integrations=[
-                FastApiIntegration(
-                    transaction_style="endpoint",
-                    failed_request_status_codes=[500, 599],
-                ),
-                StarletteIntegration(),
-            ],
-            # Filter out health check transactions
-            before_send_transaction=lambda event, _hint: (
-                None if event.get("transaction") == "/health" else event
-            ),
-        )
+    """Bootstrap OTEL providers and FastAPI instrumentation."""
+    global _tracer_provider, _logger_provider
+    _tracer_provider, _logger_provider = init_telemetry()
+    FastAPIInstrumentor.instrument_app(_app, excluded_urls="health,metrics")
     yield
-    # Shutdown: Flush Sentry events
-    if SENTRY_DSN:
-        sentry_sdk.flush(timeout=2.0)
+    shutdown_telemetry(_tracer_provider, _logger_provider)
 
 
 # Global exception handler for unhandled system errors.
 # starlette 1.0 removed the @app.exception_handler decorator — handlers must
 # be passed via the FastAPI(exception_handlers=...) constructor argument.
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Capture unexpected system errors in Sentry.
+    """Capture unexpected system errors via OTEL.
 
     Note: HTTPException bypasses this handler (business logic errors are not captured).
     """

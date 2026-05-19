@@ -225,7 +225,7 @@ export const useWebSocketRoom = ({
               onInvalidUsername();
             }
 
-            // Don't capture to Sentry - this is expected for users with old usernames
+            // Don't capture as an error - this is expected for users with old usernames
             return;
           }
         }
@@ -268,7 +268,7 @@ export const useWebSocketRoom = ({
       },
 
       onReconnectStop: (numAttempts) => {
-        // Don't capture to Sentry - this is expected after 20 retries (~190 seconds)
+        // Don't capture as an error - this is expected after 20 retries (~190 seconds)
         // User likely closed laptop, lost network, or intentionally left
         addBreadcrumb('WebSocket reconnection exhausted', 'websocket', {
           attempts: numAttempts,

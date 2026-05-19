@@ -1,6 +1,8 @@
 import { TRPCClientError, type TRPCClientErrorLike } from '@trpc/client';
 
-import * as Sentry from '@sentry/nextjs';
+import HyperDX from '@hyperdx/browser';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
+import { SeverityNumber, logs } from '@opentelemetry/api-logs';
 
 import { logger } from './logger';
 
@@ -12,80 +14,73 @@ export interface ErrorContext {
 
 type Severity = 'low' | 'medium' | 'high' | 'critical';
 
-/**
- * Map severity level to Sentry level
- */
-const mapSeverityToSentryLevel = (
-  severity: Severity,
-): 'fatal' | 'error' | 'warning' | 'info' => {
-  const levelMap: Record<Severity, 'fatal' | 'error' | 'warning' | 'info'> = {
-    critical: 'fatal',
-    high: 'error',
-    medium: 'warning',
-    low: 'info',
-  };
-  return levelMap[severity];
+const SEVERITY_NUMBER: Record<Severity, SeverityNumber> = {
+  critical: SeverityNumber.FATAL,
+  high: SeverityNumber.ERROR,
+  medium: SeverityNumber.WARN,
+  low: SeverityNumber.INFO,
 };
 
-/**
- * Set TRPC-specific tags on Sentry scope
- */
-const setTRPCErrorTags = (
-  scope: Sentry.Scope,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: TRPCClientError<any>,
-  context: ErrorContext,
-): void => {
-  scope.setTag('errorType', 'TRPCClientError');
-
-  if ('input' in context) scope.setExtra('trpcInput', context.input);
-  if ('output' in context) scope.setExtra('trpcOutput', context.output);
-
-  if (!error.data || typeof error.data !== 'object') return;
-
-  const data = error.data as Record<string, unknown>;
-
-  // Set tags for known TRPC data fields
-  const tagMappings: Array<{ key: string; tag: string }> = [
-    { key: 'code', tag: 'trpcCode' },
-    { key: 'httpStatus', tag: 'httpStatus' },
-    { key: 'path', tag: 'trpcPath' },
-  ];
-
-  for (const { key, tag } of tagMappings) {
-    const value = data[key];
-    if (value && (typeof value === 'string' || typeof value === 'number')) {
-      scope.setTag(tag, String(value));
-    }
-  }
-
-  if (data.zodError) {
-    scope.setTag('hasZodError', 'true');
-    scope.setExtra('zodError', data.zodError);
-  }
-
-  scope.setExtra('trpcErrorData', data);
+const SEVERITY_TEXT: Record<Severity, string> = {
+  critical: 'FATAL',
+  high: 'ERROR',
+  medium: 'WARN',
+  low: 'INFO',
 };
 
-/**
- * Create an Error object from various input types
- */
+// Lazy lookup — instrumentation.register() (server) and instrumentation-client
+// (browser) both run before the first request handler, but module load order
+// of app-error.ts vs the registration call isn't guaranteed. Calling
+// logs.getLogger() at module load can capture a NoopLogger reference that
+// never refreshes. Fetching per-call respects the current global provider.
+const getOtelLogger = () => logs.getLogger('fpp-web');
+
 const normalizeError = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: Error | string | TRPCClientErrorLike<any>,
 ): Error => {
-  if (typeof error === 'string') {
-    return new Error(error);
-  }
-
+  if (typeof error === 'string') return new Error(error);
   if (error instanceof TRPCClientError) {
-    const errorObj = new Error(error.message);
-    errorObj.name = 'TRPCClientError';
-    errorObj.stack = error.stack;
-    return errorObj;
+    const errObj = new Error(error.message);
+    errObj.name = 'TRPCClientError';
+    errObj.stack = error.stack;
+    return errObj;
   }
-
   return error as Error;
+};
+
+const trpcAttributes = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: TRPCClientError<any>,
+): Record<string, string> => {
+  const attrs: Record<string, string> = { 'error.type': 'TRPCClientError' };
+  if (!error.data || typeof error.data !== 'object') return attrs;
+  const data = error.data as Record<string, unknown>;
+  for (const [key, attr] of [
+    ['code', 'trpc.code'],
+    ['httpStatus', 'http.status_code'],
+    ['path', 'trpc.path'],
+  ] as const) {
+    const value = data[key];
+    if (value && (typeof value === 'string' || typeof value === 'number')) {
+      attrs[attr] = String(value);
+    }
+  }
+  if (data.zodError) attrs['trpc.has_zod_error'] = 'true';
+  return attrs;
+};
+
+const flattenExtra = (
+  extra: Record<string, string | number | boolean | null> | undefined,
+): Record<string, string | number | boolean> => {
+  if (!extra) return {};
+  // Preserve native types — OTEL AnyValue spec supports primitives; numbers
+  // and booleans stay queryable as their actual types in HyperDX.
+  return Object.fromEntries(
+    Object.entries(extra)
+      .filter(([, v]) => v !== null)
+      .map(([k, v]) => [`fpp.${k}`, v!]),
+  );
 };
 
 export const captureError = (
@@ -94,19 +89,9 @@ export const captureError = (
   context: ErrorContext = {},
   severity: Severity = 'medium',
 ): void => {
-  const extra = context.extra
-    ? Object.fromEntries(
-        Object.entries(context.extra).map(([key, value]) => [
-          key,
-          String(value),
-        ]),
-      )
-    : {};
-  context.extra = extra;
-
   const errorObj = normalizeError(error);
+  const flatExtra = flattenExtra(context.extra);
 
-  // Log to Pino before sending to Sentry
   logger.error(
     {
       component: context.component,
@@ -117,32 +102,39 @@ export const captureError = (
         message: errorObj.message,
         stack: errorObj.stack,
       },
-      ...extra,
+      ...context.extra,
     },
     `[${severity}] ${context.component ?? 'Unknown'}:${context.action ?? 'Unknown'} - ${errorObj.message}`,
   );
 
-  Sentry.withScope((scope) => {
-    scope.setLevel(mapSeverityToSentryLevel(severity));
+  // Attach to active span (server-side: tRPC span, browser: HyperDX-managed)
+  const span = trace.getActiveSpan();
+  if (span) {
+    span.recordException(errorObj);
+    span.setStatus({ code: SpanStatusCode.ERROR, message: errorObj.message });
+    Object.entries(flatExtra).forEach(([k, v]) => span.setAttribute(k, v));
+    if (context.component)
+      span.setAttribute('fpp.component', context.component);
+    if (context.action) span.setAttribute('fpp.action', context.action);
+  }
 
-    if (context.component) scope.setTag('component', context.component);
-    if (context.action) scope.setTag('action', context.action);
+  const trpcAttrs =
+    error instanceof TRPCClientError ? trpcAttributes(error) : {};
 
-    if (error instanceof TRPCClientError) {
-      setTRPCErrorTags(scope, error, context);
-    }
-
-    Object.entries(extra).forEach(([key, value]) => {
-      scope.setExtra(key, value);
-    });
-
-    scope.addBreadcrumb({
-      message: `Error in ${context.component ?? 'Unknown'}: ${context.action ?? 'Unknown action'}`,
-      level: 'error',
-      data: extra,
-    });
-
-    Sentry.captureException(errorObj);
+  getOtelLogger().emit({
+    severityNumber: SEVERITY_NUMBER[severity],
+    severityText: SEVERITY_TEXT[severity],
+    body: errorObj.message,
+    attributes: {
+      'exception.type': errorObj.name,
+      'exception.message': errorObj.message,
+      'exception.stacktrace': errorObj.stack ?? '',
+      'fpp.severity': severity,
+      ...(context.component && { 'fpp.component': context.component }),
+      ...(context.action && { 'fpp.action': context.action }),
+      ...trpcAttrs,
+      ...flatExtra,
+    },
   });
 };
 
@@ -151,13 +143,13 @@ export const captureMessage = (
   context: ErrorContext = {},
   level: 'debug' | 'info' | 'warning' | 'error' = 'info',
 ): void => {
-  // Log to Pino before sending to Sentry
+  const severity: Severity =
+    level === 'error' ? 'high' : level === 'warning' ? 'medium' : 'low';
   const logData = {
     component: context.component,
     action: context.action,
     ...context.extra,
   };
-
   switch (level) {
     case 'debug':
       logger.debug(logData, message);
@@ -172,18 +164,34 @@ export const captureMessage = (
       logger.error(logData, message);
       break;
   }
+  getOtelLogger().emit({
+    severityNumber: SEVERITY_NUMBER[severity],
+    severityText: SEVERITY_TEXT[severity],
+    body: message,
+    attributes: {
+      'fpp.severity': severity,
+      ...(context.component && { 'fpp.component': context.component }),
+      ...(context.action && { 'fpp.action': context.action }),
+      ...flattenExtra(context.extra),
+    },
+  });
+};
 
-  Sentry.withScope((scope) => {
-    if (context.component) scope.setTag('component', context.component);
-    if (context.action) scope.setTag('action', context.action);
-
-    if (context.extra) {
-      Object.entries(context.extra).forEach(([key, value]) => {
-        scope.setExtra(key, value);
-      });
-    }
-
-    Sentry.captureMessage(message, level);
+/**
+ * Tag every subsequent browser span/log with user + room context so
+ * HyperDX can filter sessions and group traces by room. Server-side no-op.
+ * Replaces the sentry-context-provider's `setUser` + `setTag` calls.
+ */
+export const setUserContext = (ctx: {
+  userId?: string | null;
+  roomId?: number | null;
+  username?: string | null;
+}): void => {
+  if (typeof window === 'undefined') return;
+  HyperDX.setGlobalAttributes({
+    ...(ctx.userId && { userId: ctx.userId }),
+    ...(ctx.roomId && { roomId: String(ctx.roomId) }),
+    ...(ctx.username && { username: ctx.username }),
   });
 };
 
@@ -192,16 +200,15 @@ export const addBreadcrumb = (
   category = 'user',
   data?: Record<string, string | number | null | boolean>,
 ): void => {
-  data = data
-    ? Object.fromEntries(
-        Object.entries(data).map(([key, value]) => [key, String(value)]),
-      )
-    : {};
-
-  Sentry.addBreadcrumb({
-    message,
-    category,
-    level: 'info',
-    data,
+  // Breadcrumbs become INFO-level log records correlated to the active trace.
+  getOtelLogger().emit({
+    severityNumber: SeverityNumber.INFO,
+    severityText: 'INFO',
+    body: message,
+    attributes: {
+      'fpp.breadcrumb': 'true',
+      'fpp.category': category,
+      ...flattenExtra(data),
+    },
   });
 };

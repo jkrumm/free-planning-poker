@@ -26,8 +26,6 @@ BEA_BASE_URL = os.getenv("BEA_BASE_URL")
 BEA_SECRET_KEY = os.getenv("BEA_SECRET_KEY")
 
 # Monitoring
-SENTRY_DSN = os.getenv("FPP_ANALYTICS_SENTRY_DSN")
-SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "production")
 UPTIMEKUMA_PUSH_URL = os.getenv("UPTIMEKUMA_PUSH_URL")
 
 # Analytics constants

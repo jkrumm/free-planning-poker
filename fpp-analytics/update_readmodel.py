@@ -20,22 +20,17 @@ from typing import Any  # noqa: E402
 import httpx  # noqa: E402
 import polars as pl  # noqa: E402
 import pymysql  # noqa: E402
-import sentry_sdk  # noqa: E402
 
-from util.sentry_wrapper import (  # noqa: E402
+from util.error_capture import (  # noqa: E402
     ErrorContext,
     add_error_breadcrumb,
     capture_error,
 )
+from util.telemetry import init_telemetry, shutdown_telemetry  # noqa: E402
 
-# Initialize Sentry for error tracking
-SENTRY_DSN = os.getenv("FPP_ANALYTICS_SENTRY_DSN")
-if SENTRY_DSN:
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
-        traces_sample_rate=0.1,
-    )
+# Bootstrap OTEL providers — same endpoint as the FastAPI server. The sleep
+# loop in the sidecar means init runs once per python invocation.
+_tracer_provider, _logger_provider = init_telemetry()
 
 DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
 UPTIMEKUMA_PUSH_URL = os.getenv("UPTIMEKUMA_PUSH_URL")
@@ -244,9 +239,8 @@ def main() -> None:
         push_uptimekuma("down", str(e))
         sys.exit(1)
     finally:
-        # Ensure Sentry events are sent before exit
-        if SENTRY_DSN:
-            sentry_sdk.flush(timeout=5.0)
+        # Ensure OTEL spans/logs flush before exit.
+        shutdown_telemetry(_tracer_provider, _logger_provider)
 
 
 if __name__ == "__main__":

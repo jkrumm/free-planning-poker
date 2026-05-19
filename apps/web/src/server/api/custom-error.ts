@@ -1,7 +1,7 @@
 import { TRPCError, type TRPC_ERROR_CODE_KEY } from '@trpc/server';
 
 /**
- * Metadata attached to CustomTRPCError for Sentry capture
+ * Metadata attached to CustomTRPCError for OTEL capture
  */
 export interface ErrorMetadata {
   /** Router or component name (e.g., 'roomRouter', 'analyticsRouter') */
@@ -13,15 +13,15 @@ export interface ErrorMetadata {
   /** Additional context for debugging (must be JSON-serializable) */
   extra?: Record<string, string | number | boolean | null>;
 
-  /** Sentry severity level */
+  /** OTEL severity level */
   severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 /**
- * Custom TRPCError that carries Sentry metadata for centralized error capture.
+ * Custom TRPCError that carries OTEL metadata for centralized error capture.
  *
  * Use this when catching system errors (database failures, external API errors, etc.)
- * that should be reported to Sentry.
+ * that should be reported to OTEL.
  *
  * @example
  * ```typescript
@@ -167,7 +167,7 @@ export function fromError(
 }
 
 /**
- * Helper to check if an error is a business logic error (shouldn't be captured in Sentry).
+ * Helper to check if an error is a business logic error (shouldn't be captured in OTEL).
  *
  * Business logic errors are expected errors that indicate user input issues
  * or resource states, not system failures.

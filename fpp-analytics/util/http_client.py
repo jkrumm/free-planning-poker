@@ -5,7 +5,7 @@ from typing import Any
 import httpx
 
 from config import BEA_BASE_URL, BEA_SECRET_KEY
-from util.sentry_wrapper import ErrorContext, capture_error
+from util.error_capture import ErrorContext, capture_error
 
 
 class EmailServiceError(Exception):

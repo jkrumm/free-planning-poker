@@ -26,7 +26,7 @@ This service is part of the **free-planning-poker** monorepo. Use global SourceR
 | Data Processing | Polars 1.40+ |
 | Database | MySQL/MariaDB (via pymysql) |
 | HTTP Client | httpx (async) |
-| Monitoring | Sentry SDK |
+| Monitoring | OpenTelemetry (ClickStack/HyperDX) |
 | Package Manager | uv |
 | Runtime | Python 3.14+ |
 
@@ -106,30 +106,29 @@ app.include_router(router, dependencies=[Depends(verify_auth)])
 
 ### Error Handling
 
-**Pattern:** Always log via Python logging, only send to Sentry in production.
+**Pattern:** Always log via Python logging; OTEL log records emit in parallel to ClickStack/HyperDX.
 
 **Import:**
 ```python
-from util.sentry_wrapper import ErrorContext, capture_error, add_error_breadcrumb
+from util.error_capture import ErrorContext, capture_error, add_error_breadcrumb
 ```
 
 **Behavior:**
-| Environment | Python logging | Sentry |
-|-------------|---------------|--------|
-| development | ✅ Console logs | ❌ No Sentry |
-| production  | ✅ Console logs | ✅ Sends to Sentry |
 
-**Environment Detection:**
-```python
-SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "development")
-SEND_TO_SENTRY = SENTRY_ENVIRONMENT == "production"
-```
+| Environment | Python logging | OTEL (ClickStack) |
+|-------------|---------------|-------------------|
+| development | ✅ Console logs | ✅ → localhost:4317 (local ClickStack) |
+| production  | ✅ Console logs | ✅ → clickstack:4317 (docker bridge) |
+
+OTEL endpoint and service name come from `OTEL_EXPORTER_OTLP_ENDPOINT` and
+`OTEL_SERVICE_NAME`. No environment gate — telemetry always emits; pointing
+at a missing collector just silently drops batches.
 
 #### FastAPI Endpoints
 
 ```python
 from fastapi import APIRouter, HTTPException
-from util.sentry_wrapper import ErrorContext, capture_error, add_error_breadcrumb
+from util.error_capture import ErrorContext, capture_error, add_error_breadcrumb
 
 @router.get("/analytics")
 async def get_analytics():
@@ -159,7 +158,7 @@ async def get_analytics():
 #### Standalone Scripts (update_readmodel.py)
 
 ```python
-from util.sentry_wrapper import ErrorContext, capture_error, add_error_breadcrumb
+from util.error_capture import ErrorContext, capture_error, add_error_breadcrumb
 
 def main():
     add_error_breadcrumb("Starting sync", "sync", {"tables": ["fpp_votes"]})
@@ -178,15 +177,14 @@ def main():
         )
         sys.exit(1)
     finally:
-        # Ensure Sentry events are sent before exit
-        if SENTRY_DSN:
-            sentry_sdk.flush(timeout=5.0)
+        # Ensure OTEL spans + logs flush before exit
+        shutdown_telemetry(_tracer_provider, _logger_provider)
 ```
 
 #### HTTP Client Errors
 
 ```python
-from util.sentry_wrapper import ErrorContext, capture_error
+from util.error_capture import ErrorContext, capture_error
 
 try:
     response = await client.post(url, json=data, timeout=30.0)
@@ -210,12 +208,12 @@ except httpx.TimeoutException as e:
 
 #### Severity Guidelines
 
-| Severity | Use Case | Python Logging | Sentry (prod) |
-|----------|----------|----------------|---------------|
-| `critical` | Fatal errors, app crash | CRITICAL | fatal |
-| `high` | User action blocked (DB error, API failure) | ERROR | error |
-| `medium` | Degraded experience (email service down) | WARNING | warning |
-| `low` | Informational (cache miss) | INFO | info |
+| Severity | Use Case | Python Logging | OTEL SeverityNumber |
+|----------|----------|----------------|---------------------|
+| `critical` | Fatal errors, app crash | CRITICAL | FATAL (21) |
+| `high` | User action blocked (DB error, API failure) | ERROR | ERROR (17) |
+| `medium` | Degraded experience (email service down) | WARNING | WARN (13) |
+| `low` | Informational (cache miss) | INFO | INFO (9) |
 
 #### What NOT to Capture
 
@@ -357,7 +355,7 @@ fpp-analytics/
 
 ### `main.py`
 - FastAPI app with lifespan context manager
-- Sentry initialization on startup
+- OTEL TracerProvider + LoggerProvider + FastAPI instrumentation on startup
 - Bearer token authentication dependency
 - Router mounting with auth dependencies
 
@@ -536,7 +534,7 @@ See `config.py` for all variables. Critical ones:
 
 ### Monitoring
 
-- **Sentry**: Error tracking for both containers
+- **OpenTelemetry → ClickStack/HyperDX**: Traces, logs, exception capture for both containers
 - **UptimeKuma**: Push-based heartbeat from updater (every 10 min)
 - **Health endpoint**: `/health` for container health checks
 

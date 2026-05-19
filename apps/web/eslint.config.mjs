@@ -32,6 +32,7 @@ export default defineConfig([
     'next.config.js',
     'tailwind.config.js',
     'prettier.config.cjs',
+    'scripts/**',
     'next-env.d.ts',
     'eslint.config.mjs',
     'src/hooks/useWebSocketRoom.ts',
@@ -97,16 +98,21 @@ export default defineConfig([
         },
       ],
 
-      // Sentry: Enforce captureError wrapper instead of direct Sentry calls
+      // OTEL: Enforce captureError wrapper instead of direct OTEL/HyperDX calls
       'no-restricted-imports': [
         'error',
         {
           paths: [
             {
-              name: '@sentry/nextjs',
-              importNames: ['captureException', 'captureMessage', 'addBreadcrumb'],
+              name: '@opentelemetry/api-logs',
+              importNames: ['logs'],
               message:
-                'Use captureError(), captureMessage(), or addBreadcrumb() from fpp/utils/app-error instead of direct Sentry calls for consistent context and severity handling.',
+                'Use captureError(), captureMessage(), or addBreadcrumb() from fpp/utils/app-error instead of emitting OTEL logs directly.',
+            },
+            {
+              name: '@hyperdx/browser',
+              message:
+                'Use captureError() from fpp/utils/app-error instead of @hyperdx/browser directly. Init lives in instrumentation-client.ts.',
             },
           ],
         },
@@ -114,14 +120,13 @@ export default defineConfig([
     },
   },
 
-  // Exception: Files that legitimately need direct Sentry access
+  // Exception: telemetry init + the wrapper itself need direct access.
   {
-    name: 'sentry-exceptions',
+    name: 'otel-exceptions',
     files: [
       'src/utils/app-error.ts',
       'instrumentation.ts',
       'instrumentation-client.ts',
-      'sentry.*.config.ts',
     ],
     rules: {
       'no-restricted-imports': 'off',

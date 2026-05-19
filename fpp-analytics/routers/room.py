@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from calculations.room_stats import calc_room_stats
-from util.sentry_wrapper import ErrorContext, add_error_breadcrumb, capture_error
+from util.error_capture import ErrorContext, add_error_breadcrumb, capture_error
 
 router = APIRouter()
 

@@ -1,5 +1,8 @@
-import * as Sentry from '@sentry/bun';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+
 import { log } from '../index';
+import { otelLogger } from '../telemetry';
 
 interface ErrorContext {
   component?: string;
@@ -9,21 +12,36 @@ interface ErrorContext {
 
 type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
+const SEVERITY_NUMBER: Record<ErrorSeverity, SeverityNumber> = {
+  critical: SeverityNumber.FATAL,
+  high: SeverityNumber.ERROR,
+  medium: SeverityNumber.WARN,
+  low: SeverityNumber.INFO,
+};
+
+const SEVERITY_TEXT: Record<ErrorSeverity, string> = {
+  critical: 'FATAL',
+  high: 'ERROR',
+  medium: 'WARN',
+  low: 'INFO',
+};
+
+const flattenExtra = (
+  extra: ErrorContext['extra'],
+): Record<string, string | number | boolean> => {
+  if (!extra) return {};
+  // Preserve native types — OTEL AnyValue spec supports primitives; numbers
+  // and booleans stay queryable as their actual types in HyperDX.
+  return Object.fromEntries(
+    Object.entries(extra)
+      .filter(([, v]) => v !== null)
+      .map(([k, v]) => [`fpp.${k}`, v!]),
+  );
+};
+
 /**
- * Captures an error with enriched context and standardized severity mapping.
- * Matches Next.js captureError() API for consistency across services.
- * Automatically logs to Pino (replaces manual log.error calls).
- *
- * @param error - Error object or string message
- * @param context - Context metadata (component, action, extra fields)
- * @param severity - Error severity level (defaults to 'medium')
- *
- * @example
- * captureError(error, {
- *   component: 'messageHandler',
- *   action: 'selectEstimation',
- *   extra: { roomId, userId },
- * }, 'high');
+ * Capture an exception. Records on the active span (if any), emits an OTEL
+ * log record correlated by trace_id, and logs to Pino for terminal output.
  */
 export function captureError(
   error: Error | string,
@@ -31,16 +49,8 @@ export function captureError(
   severity: ErrorSeverity = 'medium',
 ): void {
   const err = typeof error === 'string' ? new Error(error) : error;
+  const flatExtra = flattenExtra(context.extra);
 
-  // Map severity to Sentry level
-  const levelMap = {
-    critical: 'fatal',
-    high: 'error',
-    medium: 'warning',
-    low: 'info',
-  } as const;
-
-  // Log to Pino with structured data
   log.error(
     {
       error: err,
@@ -52,105 +62,88 @@ export function captureError(
     `[${severity}] ${context.component}:${context.action} - ${err.message}`,
   );
 
-  // Send to Sentry (disabled in development)
-  Sentry.captureException(err, {
-    level: levelMap[severity],
-    tags: {
-      component: context.component ?? 'unknown',
-      action: context.action ?? 'unknown',
-      severity,
+  const span = trace.getActiveSpan();
+  if (span) {
+    span.recordException(err);
+    span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+    if (context.component)
+      span.setAttribute('fpp.component', context.component);
+    if (context.action) span.setAttribute('fpp.action', context.action);
+    Object.entries(flatExtra).forEach(([k, v]) => span.setAttribute(k, v));
+  }
+
+  otelLogger.emit({
+    severityNumber: SEVERITY_NUMBER[severity],
+    severityText: SEVERITY_TEXT[severity],
+    body: err.message,
+    attributes: {
+      'exception.type': err.name,
+      'exception.message': err.message,
+      'exception.stacktrace': err.stack ?? '',
+      'fpp.severity': severity,
+      ...(context.component && { 'fpp.component': context.component }),
+      ...(context.action && { 'fpp.action': context.action }),
+      ...flatExtra,
     },
-    extra: context.extra ?? {},
   });
 }
 
 /**
- * Captures a message (non-error) with context and severity.
- * Use for informational messages, warnings, or expected errors.
- * Automatically logs to Pino (replaces manual log calls).
- *
- * @param message - Message string
- * @param context - Context metadata (component, action, extra fields)
- * @param severity - Message severity level (defaults to 'medium')
- *
- * @example
- * captureMessage('Unknown action received', {
- *   component: 'messageHandler',
- *   action: 'routeAction',
- *   extra: { action: message.action },
- * }, 'medium');
+ * Capture a non-exception message. Use for informational or
+ * warning-level events that aren't errors.
  */
 export function captureMessage(
   message: string,
   context: ErrorContext = {},
   severity: ErrorSeverity = 'medium',
 ): void {
-  const levelMap = {
-    critical: 'fatal',
-    high: 'error',
-    medium: 'warning',
-    low: 'info',
-  } as const;
-
-  // Log to Pino with structured data (use warn for medium/high, info for low)
+  const logData = {
+    component: context.component ?? 'unknown',
+    action: context.action ?? 'unknown',
+    severity,
+    ...context.extra,
+  };
   if (severity === 'low') {
     log.info(
-      {
-        component: context.component ?? 'unknown',
-        action: context.action ?? 'unknown',
-        severity,
-        ...context.extra,
-      },
+      logData,
       `[${severity}] ${context.component}:${context.action} - ${message}`,
     );
   } else {
     log.warn(
-      {
-        component: context.component ?? 'unknown',
-        action: context.action ?? 'unknown',
-        severity,
-        ...context.extra,
-      },
+      logData,
       `[${severity}] ${context.component}:${context.action} - ${message}`,
     );
   }
-
-  // Send to Sentry (disabled in development)
-  Sentry.captureMessage(message, {
-    level: levelMap[severity],
-    tags: {
-      component: context.component ?? 'unknown',
-      action: context.action ?? 'unknown',
-      severity,
+  otelLogger.emit({
+    severityNumber: SEVERITY_NUMBER[severity],
+    severityText: SEVERITY_TEXT[severity],
+    body: message,
+    attributes: {
+      'fpp.severity': severity,
+      ...(context.component && { 'fpp.component': context.component }),
+      ...(context.action && { 'fpp.action': context.action }),
+      ...flattenExtra(context.extra),
     },
-    extra: context.extra ?? {},
   });
 }
 
 /**
- * Adds a breadcrumb for debugging trail.
- * Use for lifecycle events, critical actions, and state transitions.
- *
- * @param message - Breadcrumb message
- * @param category - Breadcrumb category (e.g., 'websocket', 'message.handler')
- * @param data - Additional structured data
- *
- * @example
- * addBreadcrumb('WebSocket connection opened', 'websocket', {
- *   roomId,
- *   userId,
- * });
+ * Breadcrumb-equivalent: emit an INFO log record correlated to the active
+ * trace. Query in HyperDX by trace_id to reconstruct the event timeline.
  */
 export function addBreadcrumb(
   message: string,
   category = 'user',
   data?: Record<string, string | number | boolean | null>,
 ): void {
-  Sentry.addBreadcrumb({
-    message,
-    category,
-    level: 'info',
-    data: data ?? {},
-    timestamp: Date.now() / 1000,
+  otelLogger.emit({
+    severityNumber: SeverityNumber.INFO,
+    severityText: 'INFO',
+    body: message,
+    attributes: {
+      'fpp.breadcrumb': 'true',
+      'fpp.category': category,
+      ...flattenExtra(data),
+    },
   });
 }

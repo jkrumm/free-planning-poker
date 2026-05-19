@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
           hasComponentStack: !!errorInfo.componentStack,
         },
       },
-      'critical', // Maps to 'fatal' level in Sentry
+      'critical', // Maps to SeverityNumber.FATAL in OTEL
     );
   }
 

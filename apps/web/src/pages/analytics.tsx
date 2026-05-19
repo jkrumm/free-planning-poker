@@ -21,18 +21,13 @@ import { RouteType } from '@fpp/db';
 // AG Charts module registration (only needed for analytics page)
 import 'fpp/utils/ag-charts-init';
 import { api } from 'fpp/utils/api';
-import {
-  addBreadcrumb,
-  captureError,
-  captureMessage,
-} from 'fpp/utils/app-error';
+import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { AnalyticsCard } from 'fpp/components/analytics/analytics-card';
 import { HistoricalTable } from 'fpp/components/analytics/historical-table';
 import { ReoccurringChart } from 'fpp/components/analytics/reoccurring-chart';
-import { SentryIssuesTable } from 'fpp/components/analytics/sentry-issues-table';
 import { StatsCard } from 'fpp/components/analytics/stats-card';
 import Footer from 'fpp/components/layout/footer';
 import { Hero } from 'fpp/components/layout/hero';
@@ -118,34 +113,6 @@ function useServerAnalyticsQuery() {
           action: 'fetchServerAnalytics',
         },
         'medium',
-      );
-    }
-  }, [query.error]);
-
-  return query;
-}
-
-function useSentryIssuesQuery() {
-  const query = api.sentry.getIssues.useQuery(undefined, {
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
-
-  React.useEffect(() => {
-    if (query.error) {
-      captureError(
-        query.error instanceof Error
-          ? query.error
-          : new Error('Failed to fetch Sentry issues'),
-        {
-          component: 'Analytics',
-          action: 'fetchSentryIssues',
-        },
-        'low',
       );
     }
   }, [query.error]);
@@ -278,19 +245,10 @@ const Analytics = () => {
     isLoading: serverAnalyticsIsLoading,
   } = useServerAnalyticsQuery();
 
-  const {
-    data: sentryIssues,
-    refetch: refetchGetIssues,
-    error: sentryError,
-    isError: sentryIsError,
-    isLoading: sentryIsLoading,
-  } = useSentryIssuesQuery();
-
   const refetch = () => {
     addBreadcrumb('Analytics manual refresh triggered', 'interaction');
     void refetchAnalytics();
     void refetchServerAnalytics();
-    void refetchGetIssues();
   };
 
   // Handle countdown display for 30-second refresh interval and data age
@@ -350,14 +308,12 @@ const Analytics = () => {
     addBreadcrumb('Analytics page initialized', 'page', {
       hasAnalytics: !!analytics,
       hasServerAnalytics: !!serverAnalytics,
-      hasSentryIssues: !!sentryIssues,
     });
     setHasInitialized(true);
   }
 
   // Handle loading states
-  const isLoading =
-    analyticsIsLoading || serverAnalyticsIsLoading || sentryIsLoading;
+  const isLoading = analyticsIsLoading || serverAnalyticsIsLoading;
 
   if (isLoading) {
     return (
@@ -411,19 +367,6 @@ const Analytics = () => {
         </main>
         <Footer />
       </div>
-    );
-  }
-
-  // Warn about Sentry issues but continue
-  if (sentryIsError) {
-    captureMessage(
-      'Sentry issues failed to load, continuing without them',
-      {
-        component: 'Analytics',
-        action: 'loadSentryIssues',
-        extra: { error: sentryError?.message },
-      },
-      'warning',
     );
   }
 
@@ -770,13 +713,6 @@ const Analytics = () => {
             historicalTableOpen={historicalTableOpen}
           />
           <HistoricalChart historical={historical} />
-
-          {!sentryIsError && sentryIssues && (
-            <>
-              <h2 className="pt-8">Sentry Issues</h2>
-              <SentryIssuesTable issues={sentryIssues} />
-            </>
-          )}
 
           <h2 className="pt-8">Behaviour</h2>
           <SimpleGrid

@@ -1,11 +1,8 @@
 /**
- * tRPC API Handler for Next.js Pages Router
- * This is the main entry point for all tRPC requests
+ * tRPC API Handler for Next.js Pages Router.
  *
- * v11 best practices:
- * - Type-safe error handling with proper Sentry integration
- * - Proper logging distinction between business logic and system errors
- * - Vercel deployment configuration
+ * Errors flow through captureError → OTEL log records correlated by trace_id
+ * with the active tRPC span. See docs/otel-migration/.
  *
  * @see https://trpc.io/docs/v11/server/adapters/nextjs
  */
@@ -31,13 +28,9 @@ export const config = {
 };
 
 /**
- * Custom error handler for tRPC
- * v11 best practice: Distinguish between business logic errors and system errors
- *
- * Business logic errors (BAD_REQUEST, NOT_FOUND, etc.) are expected and logged as warnings
- * System errors (INTERNAL_SERVER_ERROR, etc.) are unexpected and reported to Sentry
- *
- * CustomTRPCError carries metadata from routers for enhanced error tracking
+ * tRPC error handler. CustomTRPCError carries metadata (component, action,
+ * extra, severity) from routers. captureError records the exception on the
+ * active span and emits an OTEL log record with the same trace_id.
  */
 const trpcErrorHandler = ({
   error,
@@ -50,21 +43,8 @@ const trpcErrorHandler = ({
   path: string | undefined;
   input: unknown;
 }) => {
-  // NOTE: Below is for now disabled to start with strict monitoring and later on allow isBusinessLogicError to not go to Sentry
-  // Business logic errors are expected - log but don't capture in Sentry
-  // NOTE: Starting with strict monitoring via logger.warn to ensure correct error classification.
-  // These errors (NOT_FOUND, BAD_REQUEST, etc.) are NOT captured in Sentry (as intended).
-  // if (isBusinessLogicError(error)) {
-  //   logger.warn({
-  //     component: 'trpcErrorHandler',
-  //     action: path ?? 'unknown',
-  //     type,
-  //     errorName: error.name,
-  //     errorCode: error.code,
-  //   }, 'tRPC Business Logic Error');
-  //   // Skip Sentry capture for expected business logic errors
-  //   return;
-  // }
+  // NOTE: strict monitoring — all errors flow through captureError. Switch to
+  // isBusinessLogicError(error) gating once we've validated the classification.
 
   logger.error(
     {

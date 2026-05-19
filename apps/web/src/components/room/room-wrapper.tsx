@@ -10,7 +10,11 @@ import { notifications } from '@mantine/notifications';
 import { RouteType } from '@fpp/db';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import {
+  addBreadcrumb,
+  captureError,
+  setUserContext,
+} from 'fpp/utils/app-error';
 import { initializeAudioContext } from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
@@ -21,7 +25,6 @@ import { sendTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
 import { ErrorBoundary } from 'fpp/components/room/error-boundry';
 import { Room } from 'fpp/components/room/room';
-import { SentryContextProvider } from 'fpp/components/room/sentry-context-provider';
 import { UsernameModel } from 'fpp/components/room/username-model';
 
 const RoomWrapper = () => {
@@ -168,6 +171,13 @@ const RoomWrapper = () => {
     }
   }, [userId, setUserIdRoomState]);
 
+  // Tag every browser span/log with userId+roomId+username so HyperDX can
+  // filter sessions and group traces by room. Replaces what
+  // sentry-context-provider's setUser/setTag did pre-migration.
+  useEffect(() => {
+    setUserContext({ userId, roomId, username });
+  }, [userId, roomId, username]);
+
   useEffect(() => {
     try {
       // Add overflow-hidden to body when the component mounts
@@ -287,43 +297,37 @@ const RoomWrapper = () => {
 
   return (
     <ErrorBoundary componentName="RoomWrapper">
-      <SentryContextProvider
-        userId={userId ?? undefined}
-        roomId={roomId ?? undefined}
-        username={username ?? undefined}
-      >
-        <div className="flex flex-col items-center justify-center relative">
-          {(() => {
-            if (!username || modelOpen) {
-              return (
-                <UsernameModel
-                  modelOpen={modelOpen}
-                  setModelOpen={setModelOpen}
-                  room={queryRoom}
-                />
-              );
-            }
-            if (roomId && userId && roomName) {
-              return (
-                <ErrorBoundary componentName="Room">
-                  <Room
-                    roomId={roomId}
-                    roomName={roomName}
-                    userId={userId}
-                    username={username}
-                    onInvalidUsername={handleInvalidUsername}
-                  />
-                </ErrorBoundary>
-              );
-            }
+      <div className="flex flex-col items-center justify-center relative">
+        {(() => {
+          if (!username || modelOpen) {
             return (
-              <div className="fixed top-0 left-0 flex items-center justify-center z-50 h-screen w-screen">
-                <Loader variant="bars" size="xl" />
-              </div>
+              <UsernameModel
+                modelOpen={modelOpen}
+                setModelOpen={setModelOpen}
+                room={queryRoom}
+              />
             );
-          })()}
-        </div>
-      </SentryContextProvider>
+          }
+          if (roomId && userId && roomName) {
+            return (
+              <ErrorBoundary componentName="Room">
+                <Room
+                  roomId={roomId}
+                  roomName={roomName}
+                  userId={userId}
+                  username={username}
+                  onInvalidUsername={handleInvalidUsername}
+                />
+              </ErrorBoundary>
+            );
+          }
+          return (
+            <div className="fixed top-0 left-0 flex items-center justify-center z-50 h-screen w-screen">
+              <Loader variant="bars" size="xl" />
+            </div>
+          );
+        })()}
+      </div>
     </ErrorBoundary>
   );
 };
