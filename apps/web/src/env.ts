@@ -2,7 +2,6 @@ import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
 export const env = createEnv({
-  // Server-only environment variables (NOT available on client)
   server: {
     DATABASE_URL: z.string().min(1, { error: 'Database URL is required' }),
     VERCEL_GIT_COMMIT_SHA: z.string(),
@@ -19,10 +18,7 @@ export const env = createEnv({
     SEND_EMAIL_PASSWORD: z.string().min(1),
     TODOIST_SECRET: z.string().min(1),
     FPP_SERVER_SECRET: z.string().min(1),
-    SENTRY_API_KEY: z.string().min(1),
   },
-  // Client variables - available on BOTH client AND server
-  // Must be prefixed with NEXT_PUBLIC_
   client: {
     NEXT_PUBLIC_NODE_ENV: z.enum(['development', 'test', 'production']),
     NEXT_PUBLIC_API_ROOT: z.enum([
@@ -30,16 +26,13 @@ export const env = createEnv({
       'https://fpp.test/',
       'https://free-planning-poker.com/',
     ]),
-    NEXT_PUBLIC_SENTRY_DSN: z.string().url({ error: 'Invalid Sentry DSN URL' }),
     NEXT_PUBLIC_FPP_SERVER_URL: z.string().min(1),
+    NEXT_PUBLIC_HYPERDX_API_KEY: z.string().min(1),
   },
-  // You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
-  // middlewares) or client-side, so we need to destruct manually.
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_API_ROOT: process.env.NEXT_PUBLIC_API_ROOT,
     ANALYTICS_SECRET_TOKEN: process.env.ANALYTICS_SECRET_TOKEN,
     ANALYTICS_URL: process.env.ANALYTICS_URL,
@@ -52,12 +45,9 @@ export const env = createEnv({
     SEND_EMAIL_PASSWORD: process.env.SEND_EMAIL_PASSWORD,
     TODOIST_SECRET: process.env.TODOIST_SECRET,
     FPP_SERVER_SECRET: process.env.FPP_SERVER_SECRET,
-    SENTRY_API_KEY: process.env.SENTRY_API_KEY,
     NEXT_PUBLIC_FPP_SERVER_URL: process.env.NEXT_PUBLIC_FPP_SERVER_URL,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    NEXT_PUBLIC_HYPERDX_API_KEY: process.env.NEXT_PUBLIC_HYPERDX_API_KEY,
   },
-  // Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
-  // This is especially useful for Docker builds and CI/CD.
   skipValidation:
     !!process.env.SKIP_ENV_VALIDATION ||
     process.env.npm_lifecycle_event === 'lint',

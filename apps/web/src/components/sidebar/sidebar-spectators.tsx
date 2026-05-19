@@ -66,7 +66,7 @@ const SpectatorsList = ({
   triggerAction: (action: Action) => void;
 }) => {
   /* eslint-disable react-hooks/error-boundaries */
-  // Try/catch used for Sentry breadcrumb logging, not JSX error handling
+  // Try/catch used for breadcrumb logging, not JSX error handling
   try {
     if (spectators.length === 0) {
       addBreadcrumb('No spectators in room', 'spectators');

@@ -20,13 +20,13 @@ Bun-powered WebSocket server managing real-time planning poker room state. Runs 
 
 ### Tech Stack
 
-| Component  | Technology                      | Version             |
-| ---------- | ------------------------------- | ------------------- |
-| Runtime    | Bun                             | latest              |
-| Framework  | Elysia                          | 1.4.18              |
-| Validation | TypeBox                         | latest              |
-| Monitoring | Sentry                          | @sentry/bun 10.30.0 |
-| Logging    | @bogeychan/elysia-logger (pino) | latest              |
+| Component  | Technology                         | Version                                       |
+| ---------- | ---------------------------------- | --------------------------------------------- |
+| Runtime    | Bun                                | latest                                        |
+| Framework  | Elysia                             | 1.4.18                                        |
+| Validation | TypeBox                            | latest                                        |
+| Monitoring | OpenTelemetry (ClickStack/HyperDX) | @elysiajs/opentelemetry 1.4.12 + OTEL SDK 2.x |
+| Logging    | @bogeychan/elysia-logger (pino)    | latest                                        |
 
 ### Architecture Role
 
@@ -78,7 +78,7 @@ apps/server/src/
 ├── utils.ts               # Helper functions
 ├── websocket.constants.ts # Reconnect delay, idle timeout
 └── utils/
-    └── app-error.ts       # Sentry wrappers (captureError, addBreadcrumb)
+    └── app-error.ts       # OTEL wrappers (captureError, addBreadcrumb)
 
 packages/shared/src/       # imported as `@fpp/shared`
 ├── room.actions.ts        # TypeBox action schemas + Action union (types only)
@@ -98,7 +98,7 @@ The action schemas are exported as TypeBox `t.Object` definitions; `TypeCompiler
 - TypeBox validation on incoming messages
 - Connection tracking (open, close, error)
 - Cron job for 30-minute cleanup
-- Sentry initialization
+- OpenTelemetry initialization (telemetry.ts + Elysia opentelemetry plugin)
 - CORS handled by Elysia (same-origin only)
 
 ### message.handler.ts
@@ -235,7 +235,7 @@ await fetch(`${process.env.TRPC_URL}/room.trackFlip`, {
 
 ## Error Handling
 
-fpp-server uses @sentry/bun with centralized error capture matching the Next.js service architecture.
+fpp-server emits OpenTelemetry traces and log records to ClickStack/HyperDX. The `app-error.ts` wrapper records exceptions on the active span and emits correlated log records — same public API across all three services.
 
 ### Error Capture Helpers
 
@@ -304,7 +304,7 @@ addBreadcrumb('WebSocket connection opened', 'websocket', {
 - **PII removed:** email, IP, geo, headers (beforeSend)
 - **Sampling:** Connection errors sampled at 10%
 - **Performance tracing:** 10% in production
-- **Development:** Sentry disabled, console.error fallback
+- **Development:** OTEL ships to local ClickStack on `http://localhost:4319` (unauthed)
 
 ### Graceful Degradation
 
@@ -470,10 +470,10 @@ NOT "every 30 minutes from server start" - runs on the clock (0:00, 0:30, 1:00, 
 ### 5. WebSocket Close Codes
 
 ```typescript
-// Normal closures (NOT tracked in Sentry)
+// Normal closures (NOT captured as errors)
 1000, 1001, 1005, 1006
 
-// Abnormal closures (tracked in Sentry)
+// Abnormal closures (captured as warn-level OTEL events)
 Any other code
 ```
 
@@ -556,7 +556,7 @@ log.error({ error, roomId }, 'Failed to broadcast');
 2. **Event Sourcing (Implicit)** - Actions are events, state mutations are pure, broadcast is side effect
 3. **Functional Core, Imperative Shell** - `RoomBase` is pure domain logic, `RoomServer` is imperative mutations
 4. **Minimal Surface Area** - 11 actions, 2 data structures, 3 classes, no inheritance complexity
-5. **Observable** - Every action logged, Sentry for errors, analytics endpoint for introspection
+5. **Observable** - Every action logged, OTEL traces + log records to HyperDX, analytics endpoint for introspection
 
 ---
 
@@ -567,7 +567,8 @@ Use Context7 MCP as a reference for documentation:
 - **Elysia Docs**: https://elysiajs.com
 - **TypeBox Docs**: https://github.com/sinclairzx81/typebox
 - **Bun WebSocket**: https://bun.sh/docs/api/websockets
-- **Sentry Bun SDK**: https://docs.sentry.io/platforms/javascript/guides/bun/
+- **Elysia OpenTelemetry Plugin**: https://elysiajs.com/patterns/opentelemetry
+- **HyperDX Docs**: https://hyperdx.io/docs
 
 ---
 

@@ -127,6 +127,10 @@ export class MessageHandler {
         }),
       );
     } catch (error: unknown) {
+      // Single capture point — richer context than the outer try-catch in
+      // index.ts (action name from the typed Action, plus roomId/userId).
+      // Send the error reply to the client here so the outer handler
+      // doesn't fire and double-emit OTEL records.
       captureError(
         error as Error,
         {
@@ -139,7 +143,15 @@ export class MessageHandler {
         },
         'high',
       );
-      throw error;
+      if (error instanceof Error) {
+        ws.send(
+          JSON.stringify({
+            error: error.message,
+            timestamp: Date.now(),
+            wsId: ws.id,
+          }),
+        );
+      }
     }
   }
 

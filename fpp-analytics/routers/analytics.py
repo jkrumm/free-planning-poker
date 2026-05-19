@@ -10,8 +10,8 @@ from calculations.reoccurring import calc_reoccurring
 from calculations.traffic import calc_traffic
 from calculations.votes import calc_votes
 from util.cache import get_cached_response, set_cached_response
+from util.error_capture import ErrorContext, add_error_breadcrumb, capture_error
 from util.http_client import send_daily_email
-from util.sentry_wrapper import ErrorContext, add_error_breadcrumb, capture_error
 
 router = APIRouter()
 

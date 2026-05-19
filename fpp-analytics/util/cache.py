@@ -3,9 +3,8 @@
 from pathlib import Path
 from typing import Any
 
-import sentry_sdk
-
 from config import DATA_DIR
+from util.error_capture import ErrorContext, capture_error
 
 _cache: dict[str, Any] = {
     "response": None,
@@ -20,7 +19,11 @@ def get_current_timestamp() -> str | None:
         if cache_file.exists():
             return cache_file.read_text().strip()
     except (OSError, UnicodeDecodeError) as e:  # PermissionError derives from OSError
-        sentry_sdk.capture_exception(e)
+        capture_error(
+            e,
+            ErrorContext(component="cache", action="get_current_timestamp"),
+            severity="medium",
+        )
     return None
 
 

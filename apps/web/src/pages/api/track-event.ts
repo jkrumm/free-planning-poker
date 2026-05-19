@@ -51,7 +51,7 @@ const TrackEvent = async (req: NextApiRequest, res: NextApiResponse) => {
 
     return res.status(200).end();
   } catch (error) {
-    // Check if this is a client error (4xx) - don't capture to Sentry
+    // Check if this is a client error (4xx) - don't capture as an error
     if (
       error instanceof BaseError &&
       error.httpCode >= HttpStatusCode.BAD_REQUEST &&
@@ -62,7 +62,7 @@ const TrackEvent = async (req: NextApiRequest, res: NextApiResponse) => {
       });
     }
 
-    // System error (5xx) - capture to Sentry
+    // System error (5xx) - capture via OTEL
     captureError(
       error instanceof Error ? error : new Error('Failed to track event'),
       {

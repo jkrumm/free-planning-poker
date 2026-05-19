@@ -113,28 +113,13 @@ const Imprint: NextPage = () => {
             . It is running on a Hetzner VPS located in Nuremberg, Germany.
             <br />
             <br />
-            We utilize <strong>Sentry</strong> for error tracking to improve our
-            services.{' '}
-            <a
-              href="https://sentry.io/trust/privacy/gdpr-best-practices/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              We configured Sentry
-            </a>{' '}
-            to be fully GDPR compliant and ensuring the security and privacy of
-            data. You can read more about their privacy practices here:{' '}
-            <a
-              href="https://sentry.io/trust/privacy/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Sentry Privacy Policy
-            </a>
-            . In our implementation, we ensure that no PII is sent to Sentry.
-            Our configuration and implementation removes user details (request
-            headers, user context and ip address) before sending an error event
-            to Sentry to maintain our commitment to GDPR compliance.
+            We utilize a <strong>self-hosted OpenTelemetry stack</strong>{' '}
+            (ClickStack / HyperDX) for error tracking and distributed tracing to
+            improve our services. All telemetry data stays on our Hetzner VPS in
+            Nuremberg, Germany — no third-party processors are involved. Our
+            instrumentation does not send personally identifiable information:
+            request headers, IP addresses, and email addresses are excluded from
+            spans and log records to maintain our commitment to GDPR compliance.
             <br />
             <br />
             Personal details offered through our <strong>

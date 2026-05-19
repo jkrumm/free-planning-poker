@@ -134,11 +134,11 @@ Room state exists in THREE places:
 
 #### Error Handling Responsibilities
 
-| Service | Error Handling | Sentry Context |
-|---------|----------------|----------------|
-| Next.js | Sentry breadcrumbs + `captureError()` | component, action, userId, roomId |
-| fpp-server | Sentry `captureException()` | roomId, userId, action type |
-| fpp-analytics | Sentry `capture_exception()` | endpoint, calculation type |
+| Service | Error Handling | Context attributes |
+|---------|----------------|--------------------|
+| Next.js | `captureError()` → OTEL span exception + log record | component, action, userId, roomId |
+| fpp-server | `captureError()` → OTEL span exception + log record | roomId, userId, action |
+| fpp-analytics | `capture_error()` → OTEL span exception + log record | endpoint, calculation |
 
 ### Development Workflow Commands
 
@@ -210,7 +210,7 @@ make analytics-update-local              # Regenerate parquet files for /analyti
 
 ### Local env via 1Password (no Doppler)
 
-Each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkrumm --env-file=.env.tpl --`. Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (Sentry, Upstash, email) are hardcoded dummies. Vercel manages prod env directly.
+Each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkrumm --env-file=.env.tpl --`. Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (HyperDX, Upstash, email) are hardcoded dummies. Vercel manages prod env directly.
 
 ### Local URLs
 
@@ -286,7 +286,7 @@ All services use structured JSON logging (Pino format):
 - Unified log viewing across all three services
 - JSON structure makes logs searchable and filterable
 - Production-ready (structured logs work with log aggregation tools)
-- Error logs automatically sent to Sentry
+- Error logs automatically sent to HyperDX as OTEL log records
 
 **How it works:**
 - Logdy runs in **socket mode** listening on ports 7724, 7725, 7726
@@ -370,7 +370,7 @@ useEffect(() => {
 ```
 
 #### 2. `react-hooks/error-boundaries` - Valid for:
-- Sentry breadcrumb logging (not error handling)
+- Breadcrumb-equivalent log emission (not error handling)
 - Component-level logging
 
 #### 3. `react-hooks/purity` - Valid for:
@@ -518,7 +518,7 @@ triggerAction({
 ```
 
 ### Error Handling
-Use Sentry with breadcrumbs:
+Use the wrapper with breadcrumbs (emits OTEL log records correlated by trace_id):
 ```typescript
 addBreadcrumb('User action', 'component', { userId, roomId });
 captureError(error, { component: 'ComponentName', action: 'actionName' }, 'high');
@@ -552,15 +552,22 @@ The app has an **action queue** in `useWebSocketRoom.ts` - actions sent while di
 ### 5. Build Environment
 Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injected at runtime by `op run --env-file=apps/web/.env.tpl` (1Password).
 
-## Sentry Error Handling Standards
+## Error Handling Standards (OpenTelemetry → HyperDX)
+
+Sentry has been replaced by a self-hosted OTEL stack (ClickStack + HyperDX on the
+VPS). The wrapper API in `apps/web/src/utils/app-error.ts` is unchanged — only the
+internals swapped to OTEL span exception recording + log records. See
+`docs/otel-migration/` for the full migration record.
 
 ### Import Rule (Enforced by ESLint)
 ```typescript
 // ✅ Correct - use the wrapper
 import { captureError, captureMessage, addBreadcrumb } from 'fpp/utils/app-error';
 
-// ❌ BANNED - direct Sentry imports
-import { captureException, captureMessage } from '@sentry/nextjs';
+// ❌ BANNED - direct OTEL log emission outside the wrapper
+import { logs } from '@opentelemetry/api-logs';
+// ❌ BANNED - direct HyperDX SDK calls (init lives in instrumentation-client.ts)
+import HyperDX from '@hyperdx/browser';
 ```
 
 ### When to Use captureError
@@ -657,7 +664,7 @@ Free Planning Poker uses **CustomTRPCError** for centralized error capture. All 
 **Key Files:**
 - `apps/web/src/server/api/custom-error.ts` - CustomTRPCError class and helpers
 - `apps/web/src/pages/api/trpc/[trpc].ts` - Central error handler
-- `apps/web/src/utils/app-error.ts` - Sentry wrapper (used by API routes and frontend)
+- `apps/web/src/utils/app-error.ts` - OTEL wrapper (used by API routes and frontend)
 
 ### Next.js API Routes (Pages Router)
 
@@ -827,7 +834,7 @@ if (!data) {
   });
 }
 ```
-These are NOT captured in Sentry (expected user-facing errors).
+These are NOT captured as errors in HyperDX (expected user-facing errors).
 
 **System Errors (use CustomTRPCError via toCustomTRPCError):**
 ```typescript
@@ -841,7 +848,7 @@ await db.query().catch((error) => {
   });
 });
 ```
-These ARE captured in Sentry (unexpected system failures).
+These ARE captured as errors in HyperDX (unexpected system failures).
 
 ### Error Severity Guidelines
 

@@ -1,6 +1,10 @@
+// telemetry import MUST be first — registers TracerProvider + LoggerProvider
+// before anything else can call into @opentelemetry/api.
+import { shutdownTelemetry, telemetryConfig } from './telemetry';
+
 import { createPinoLogger } from '@bogeychan/elysia-logger';
 import cron from '@elysiajs/cron';
-import * as Sentry from '@sentry/bun';
+import { opentelemetry } from '@elysiajs/opentelemetry';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { Elysia, t } from 'elysia';
 import { ActionSchema, USERNAME_RULES, validateUsername } from '@fpp/shared';
@@ -23,38 +27,6 @@ export const log = createPinoLogger({
 // @fpp/shared) so the TypeBox compiler stays out of the web bundle.
 const CActionSchema = TypeCompiler.Compile(ActionSchema);
 
-// Initialize Sentry before Elysia app
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV ?? 'development',
-  enabled: process.env.NODE_ENV !== 'development',
-
-  // Performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
-
-  // Privacy filtering (match Next.js beforeSend)
-  beforeSend(event) {
-    // Remove PII
-    if (event.user) {
-      delete event.user.email;
-      delete event.user.ip_address;
-      delete event.user.geo;
-    }
-
-    // Remove sensitive headers
-    if (event.request?.headers) {
-      delete event.request.headers;
-    }
-
-    // Sample high-frequency connection errors (10%)
-    if (event.tags?.errorType === 'connection') {
-      return Math.random() < 0.1 ? event : null; //NOSONAR - sampling rate, not crypto
-    }
-
-    return event;
-  },
-});
-
 // Initialize Redis/Valkey snapshot store. Optional — when REDIS_URL is unset
 // the store is a no-op and the server behaves exactly as before (in-memory
 // state lost on restart). This keeps Redis off the critical path.
@@ -72,6 +44,17 @@ const app = new Elysia({
     idleTimeout: 180,
   },
 })
+  // Mount OTEL first so trace context exists for every downstream middleware.
+  // Skip tracing for liveness probes and the discovery root to reduce noise.
+  .use(
+    opentelemetry({
+      ...telemetryConfig,
+      checkIfShouldTrace: (req) => {
+        const u = new URL(req.url);
+        return u.pathname !== '/' && u.pathname !== '/health';
+      },
+    }),
+  )
   .use(
     cron({
       name: 'cleanupInactiveState',
@@ -125,45 +108,19 @@ app.get('/health', ({ set }) => {
 });
 
 app.get('/analytics', (): Analytics => {
-  try {
-    roomState.cleanupInactiveState();
-    return roomState.toAnalytics();
-  } catch (error) {
-    captureError(
-      error as Error,
-      {
-        component: 'httpEndpoint',
-        action: 'analytics',
-      },
-      'high',
-    );
-    throw error;
-  }
+  // Exceptions propagate to .onError (single capture point) — no inner
+  // try-catch needed.
+  roomState.cleanupInactiveState();
+  return roomState.toAnalytics();
 });
 
 app.post(
   '/leave',
   ({ body: { roomId, userId } }) => {
     log.debug({ roomId, userId }, 'Leave request via beacon');
-
-    try {
-      roomState.removeUserFromRoom(roomId, userId);
-      return { success: true };
-    } catch (error) {
-      captureError(
-        error as Error,
-        {
-          component: 'httpEndpoint',
-          action: 'leave',
-          extra: {
-            roomId: String(roomId),
-            userId,
-          },
-        },
-        'high',
-      );
-      throw error;
-    }
+    // Exceptions propagate to .onError (single capture point).
+    roomState.removeUserFromRoom(roomId, userId);
+    return { success: true };
   },
   {
     body: t.Object({
@@ -442,7 +399,7 @@ async function shutdown(signal: string): Promise<void> {
   } catch (error) {
     log.error({ err: error }, 'Error stopping server');
   }
-  await Sentry.flush(2000).catch(() => undefined);
+  await shutdownTelemetry(2000);
   process.exit(0);
 }
 

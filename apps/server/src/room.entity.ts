@@ -8,6 +8,7 @@ import {
 import { validateUsername } from '@fpp/shared';
 import { preciseTimeout } from './utils';
 import { captureError } from './utils/app-error';
+import { tracedFetch } from './utils/traced-fetch';
 
 // Re-export shared types from room.types for backward compatibility
 export {
@@ -195,7 +196,9 @@ export class RoomServer extends RoomBase {
         : 'http://localhost:7720/api/trpc')
     }/room.trackFlip?batch=1`;
 
-    fetch(trackingUrl, {
+    // tracedFetch injects W3C traceparent so the Next.js handler joins
+    // the same trace as the WebSocket flip action.
+    tracedFetch(trackingUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -222,7 +225,7 @@ export class RoomServer extends RoomBase {
       .catch((error) => {
         // Persistence path for vote + estimation rows. Failure is silent to
         // the user (WebSocket flip already succeeded) but means data loss —
-        // surface as warning so it shows in the Sentry issues view.
+        // surface as warning so it shows in HyperDX.
         captureError(
           error as Error,
           {

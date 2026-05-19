@@ -1,6 +1,5 @@
 import { RoomEvent } from '@fpp/db';
 import { validateUsername } from '@fpp/shared';
-import { setUser } from '@sentry/nextjs';
 import { create } from 'zustand';
 
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
@@ -87,9 +86,6 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
       removeFromLocalstorage('userId');
       set({ userId: null });
       return null;
-    }
-    if (userId !== null) {
-      setUser({ id: userId });
     }
     return userId;
   })(),
@@ -186,7 +182,6 @@ export const useLocalstorageStore = create<LocalstorageStore>((set, get) => ({
     if (get().userId === userId || !validateNanoId(userId)) {
       return;
     }
-    setUser({ id: userId });
     saveToLocalstorage('userId', userId);
     set({ userId });
   },
