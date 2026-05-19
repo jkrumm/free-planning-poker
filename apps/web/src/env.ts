@@ -28,6 +28,7 @@ export const env = createEnv({
     ]),
     NEXT_PUBLIC_FPP_SERVER_URL: z.string().min(1),
     NEXT_PUBLIC_HYPERDX_API_KEY: z.string().min(1),
+    NEXT_PUBLIC_HYPERDX_URL: z.string().url({ error: 'Invalid HyperDX URL' }),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -47,6 +48,7 @@ export const env = createEnv({
     FPP_SERVER_SECRET: process.env.FPP_SERVER_SECRET,
     NEXT_PUBLIC_FPP_SERVER_URL: process.env.NEXT_PUBLIC_FPP_SERVER_URL,
     NEXT_PUBLIC_HYPERDX_API_KEY: process.env.NEXT_PUBLIC_HYPERDX_API_KEY,
+    NEXT_PUBLIC_HYPERDX_URL: process.env.NEXT_PUBLIC_HYPERDX_URL,
   },
   skipValidation:
     !!process.env.SKIP_ENV_VALIDATION ||
