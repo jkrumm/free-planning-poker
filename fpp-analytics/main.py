@@ -128,17 +128,18 @@ def verify_auth(authorization: str = Header(None)) -> bool:
     return True
 
 
-# Telemetry providers — captured at startup so we can flush on shutdown.
-_tracer_provider = None
-_logger_provider = None
+# Telemetry providers — initialized at module import (BEFORE the first
+# request arrives) because FastAPIInstrumentor.instrument_app() injects
+# middleware via Starlette's stack, which is built once per app and must
+# be populated before the app starts handling requests. Doing this inside
+# `lifespan` is too late — the middleware stack has already been frozen
+# and the instrumentor's middleware silently never runs.
+_tracer_provider, _logger_provider = init_telemetry()
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Bootstrap OTEL providers and FastAPI instrumentation."""
-    global _tracer_provider, _logger_provider
-    _tracer_provider, _logger_provider = init_telemetry()
-    FastAPIInstrumentor.instrument_app(_app, excluded_urls="health,metrics")
+    """Flush OTEL batches on shutdown. Provider init happens at import time."""
     yield
     shutdown_telemetry(_tracer_provider, _logger_provider)
 
@@ -179,8 +180,16 @@ app = FastAPI(
 )
 
 
-# Custom request logging (replaces uvicorn access log)
+# Custom request logging (replaces uvicorn access log). Added FIRST so OTel's
+# middleware ends up outermost — our log records emit inside the active span
+# and get correlated by trace_id automatically.
 app.add_middleware(RequestLoggingMiddleware)
+
+# FastAPI auto-instrumentation. Adds the OTel middleware to the app stack
+# at import time so it's in place before the first request. excluded_urls
+# is a comma-separated substring match — skips /health and any future
+# /metrics endpoint from creating spans (high-frequency probes only).
+FastAPIInstrumentor.instrument_app(app, excluded_urls="health,metrics")
 
 # Public health check (no auth)
 app.include_router(health.router)
