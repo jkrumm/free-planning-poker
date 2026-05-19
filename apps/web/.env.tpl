@@ -14,6 +14,14 @@ VERCEL_GIT_COMMIT_SHA=local-dev
 # Browser SDK ingests the API key into the bundle at build time —
 # treat it like a Sentry DSN (public-by-design).
 NEXT_PUBLIC_HYPERDX_API_KEY=local-dev-noop
+# Browser SDK ingest origin. Locally it points at the Next.js dev server,
+# which rewrites /v1/traces and /v1/logs to the unauthed :4319 receiver
+# (see next.config.js rewrites). Prod (Vercel): https://otel.jkrumm.com.
+NEXT_PUBLIC_HYPERDX_URL=https://fpp.test
+# Server-side OTLP ingest (Next.js instrumentation.ts). Same unauthed
+# receiver — runs on the host so it can hit localhost:4319 directly,
+# no proxy needed. Prod: clickstack:4319 via Docker monitoring-net.
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 
 # --- Disabled-in-local dummies (satisfy zod, no real connection) ---
 UPSTASH_REDIS_REST_URL=https://dev-disabled.local
