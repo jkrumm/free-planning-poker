@@ -28,13 +28,19 @@ export interface CreateUserDto extends CreateUserDtoBase {
   ws: ElysiaWS<any, any>;
 }
 
-export class User extends UserBase {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ws: ElysiaWS<any, any>;
+interface CreateGhostUserDto extends CreateUserDtoBase {
+  ws?: null;
+}
 
-  constructor(params: CreateUserDto) {
+export class User extends UserBase {
+  // ws is null for "ghost" users restored from a Redis snapshot before any
+  // client has reconnected. The first reconnect populates it via addUserToRoom.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ws: ElysiaWS<any, any> | null;
+
+  constructor(params: CreateUserDto | CreateGhostUserDto) {
     super(params);
-    this.ws = params.ws;
+    this.ws = params.ws ?? null;
   }
 }
 
@@ -51,12 +57,50 @@ export class RoomServer extends RoomBase {
   isFlipAction = false;
 
   /**
+   * Rehydrate a room from a Redis snapshot. Users come back without a live
+   * WebSocket (`ws = null`); they get a real one back the moment they
+   * reconnect (`addUserToRoom` updates the existing entry in-place).
+   * Heartbeats reset to now, so the 30-minute sweep gives every restored
+   * user a fresh grace period to come back.
+   */
+  static fromSnapshot(dto: {
+    id: number;
+    startedAt: number;
+    lastUpdated: number;
+    isFlipped: boolean;
+    isAutoFlip: boolean;
+    users: Array<{
+      id: string;
+      name: string;
+      estimation: number | null;
+      isSpectator: boolean;
+    }>;
+  }): RoomServer {
+    const room = new RoomServer(dto.id);
+    room.startedAt = dto.startedAt;
+    room.lastUpdated = dto.lastUpdated;
+    room.isFlipped = dto.isFlipped;
+    room.isAutoFlip = dto.isAutoFlip;
+    room.users = dto.users.map(
+      (u) =>
+        new User({
+          id: u.id,
+          name: u.name,
+          estimation: u.estimation,
+          isSpectator: u.isSpectator,
+          isPresent: false,
+        }),
+    );
+    return room;
+  }
+
+  /**
    * USER MANAGEMENT
    */
 
-  addUser(user: CreateUserDto) {
+  addUser(user: User) {
     if (!this.users.some((u) => u.id === user.id)) {
-      this.users.push(new User(user));
+      this.users.push(user);
     }
     // NOTE: we always set hasChanged to repair out of sync for users
     this.hasChanged = true;
@@ -141,12 +185,15 @@ export class RoomServer extends RoomBase {
       throw error;
     }
 
-    // Track flip analytics - fire and forget with error handling
+    // Track flip analytics - fire and forget with error handling. TRPC_URL
+    // is the canonical override in prod (set in compose.yml); in dev it
+    // points to the local Next.js port. Defaults match each env.
     const trackingUrl = `${
-      process.env.NODE_ENV === 'production'
-        ? 'https://free-planning-poker.com/'
-        : 'http://localhost:3001'
-    }/api/trpc/room.trackFlip?batch=1`;
+      process.env.TRPC_URL ??
+      (process.env.NODE_ENV === 'production'
+        ? 'https://free-planning-poker.com/api/trpc'
+        : 'http://localhost:7720/api/trpc')
+    }/room.trackFlip?batch=1`;
 
     fetch(trackingUrl, {
       method: 'POST',

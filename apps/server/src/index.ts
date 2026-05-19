@@ -6,6 +6,7 @@ import { Elysia, t } from 'elysia';
 import { ActionSchema, USERNAME_RULES, validateUsername } from '@fpp/shared';
 import { MessageHandler } from './message.handler';
 import { User } from './room.entity';
+import { roomSnapshot } from './room.snapshot';
 import { RoomState } from './room.state';
 import { type Analytics } from './types';
 import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
@@ -53,6 +54,11 @@ Sentry.init({
     return event;
   },
 });
+
+// Initialize Redis/Valkey snapshot store. Optional — when REDIS_URL is unset
+// the store is a no-op and the server behaves exactly as before (in-memory
+// state lost on restart). This keeps Redis off the critical path.
+roomSnapshot.init(process.env.REDIS_URL);
 
 const roomState = new RoomState();
 const messageHandler = new MessageHandler(roomState);
@@ -177,7 +183,7 @@ app.ws('/ws', {
       maxLength: USERNAME_RULES.MAX_LENGTH,
     }),
   }),
-  open(ws) {
+  async open(ws) {
     const { roomId, userId, username } = ws.data.query;
 
     addBreadcrumb('WebSocket connection opened', 'websocket', {
@@ -230,6 +236,11 @@ app.ws('/ws', {
     );
 
     try {
+      // Rehydrate room from Redis snapshot if we don't have it in memory yet
+      // (typically: this server instance just started). No-op if room is
+      // already loaded, Redis is unreachable, or no snapshot exists.
+      await roomState.ensureHydrated(roomId);
+
       // Add user but don't send immediately - wait for WebSocket to be fully ready
       roomState.addUserToRoom(
         roomId,
@@ -402,7 +413,9 @@ app.ws('/ws', {
   },
 });
 
-app.listen(3003);
+// Container/prod default is 3003 (Dockerfile EXPOSE + Traefik target both pin
+// to that). Local dev sets PORT=7721 to fit the personal-apps 7720-range.
+app.listen(Number(process.env.PORT ?? 3003));
 
 log.info(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 
@@ -412,7 +425,18 @@ async function shutdown(signal: string): Promise<void> {
   if (isShuttingDown) return;
   isShuttingDown = true;
   log.info({ signal }, 'Shutdown initiated, draining for 3s');
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  // Flush pending room snapshots concurrently with the Traefik drain — both
+  // need to finish before we stop accepting connections, and they don't
+  // contend for resources.
+  const snapshotFlush = roomState
+    .flushSnapshots()
+    .catch((err: Error) =>
+      log.error({ err }, 'Snapshot flush failed during shutdown'),
+    );
+  await Promise.all([
+    snapshotFlush,
+    new Promise((resolve) => setTimeout(resolve, 3000)),
+  ]);
   try {
     await app.stop();
   } catch (error) {
