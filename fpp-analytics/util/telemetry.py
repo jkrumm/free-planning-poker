@@ -1,8 +1,8 @@
 """OpenTelemetry bootstrap for fpp-analytics.
 
-Mirrors the Argo / fpp-server pattern: pure OTEL SDK, OTLP gRPC exporter
-pointed at the unauthed :4319 receiver on the ClickStack monitoring-net
-bridge in prod and at localhost:4319 in dev.
+Mirrors the Argo / fpp-server pattern: pure OTEL SDK, OTLP HTTP/protobuf
+exporter pointed at the unauthed :4319 receiver on the ClickStack
+monitoring-net bridge in prod and at localhost:4319 in dev.
 """
 
 import contextlib
@@ -11,8 +11,8 @@ import os
 
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
     OTLPSpanExporter,
 )
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
@@ -27,9 +27,10 @@ ENVIRONMENT = os.getenv(
     "OTEL_DEPLOYMENT_ENVIRONMENT", os.getenv("NODE_ENV", "development")
 )
 
-# gRPC endpoint — OTLP receivers on ClickStack accept gRPC on the same base
-# host without the /v1/* suffix (that's HTTP). Default to localhost for dev.
-OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+# OTLP HTTP base — exporter appends /v1/traces and /v1/logs at request time.
+# The gRPC port :4317 is authed in prod; we use the unauthed HTTP :4319
+# receiver to stay consistent with fpp-server and Argo.
+OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4319")
 
 _resource = Resource.create(
     {
@@ -51,15 +52,18 @@ def init_telemetry() -> tuple[TracerProvider, LoggerProvider]:
     if _initialized is not None:
         return _initialized
 
+    # HTTP exporter takes the full per-signal URL (no `insecure` flag — that
+    # was a gRPC-only kwarg). Base URL comes from env; the /v1/* suffix is
+    # OTLP-spec-mandated.
     tracer_provider = TracerProvider(resource=_resource)
     tracer_provider.add_span_processor(
-        BatchSpanProcessor(OTLPSpanExporter(endpoint=OTLP_ENDPOINT, insecure=True))
+        BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{OTLP_ENDPOINT}/v1/traces"))
     )
     trace.set_tracer_provider(tracer_provider)
 
     logger_provider = LoggerProvider(resource=_resource)
     logger_provider.add_log_record_processor(
-        BatchLogRecordProcessor(OTLPLogExporter(endpoint=OTLP_ENDPOINT, insecure=True))
+        BatchLogRecordProcessor(OTLPLogExporter(endpoint=f"{OTLP_ENDPOINT}/v1/logs"))
     )
     set_logger_provider(logger_provider)
 

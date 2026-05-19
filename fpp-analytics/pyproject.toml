@@ -16,7 +16,11 @@ dependencies = [
     # Observability — OpenTelemetry → ClickStack/HyperDX
     "opentelemetry-api>=1.42.0",
     "opentelemetry-sdk>=1.42.0",
-    "opentelemetry-exporter-otlp-proto-grpc>=1.42.0",
+    # HTTP/protobuf exporter — matches the rest of the FPP stack (Argo, fpp-server,
+    # browser SDK) which all target the unauthed ClickStack :4319 receiver. The
+    # gRPC ports (:4317) are authed in prod; switching to HTTP avoids needing an
+    # auth header in the OTLP exporter config.
+    "opentelemetry-exporter-otlp-proto-http>=1.42.0",
     "opentelemetry-instrumentation-fastapi>=0.63b0",
     "opentelemetry-instrumentation-logging>=0.63b0",
     # Environment

@@ -7,7 +7,6 @@
 # Pulling both from op://vps/fpp/ANALYTICS_SECRET_TOKEN keeps them in lockstep.
 
 DATA_DIR=./data
-SENTRY_ENVIRONMENT=development
 
 # Shared with fpp-web (must match — same source of truth)
 ANALYTICS_SECRET_TOKEN=op://vps/fpp/ANALYTICS_SECRET_TOKEN
