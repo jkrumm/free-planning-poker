@@ -8,5 +8,9 @@
 # automatic on the local side.
 set -eu
 : "${MARIADB_FPP_PASSWORD:?op run did not resolve MARIADB_FPP_PASSWORD — check 1Password access}"
-export DATABASE_URL="mysql://fpp:${MARIADB_FPP_PASSWORD}@localhost:13306/free-planning-poker"
+# URL-encode the password — if it contains ':', '@', '/', '?', '#' etc., the
+# driver's URI parser will mis-split the connection string. python3 is already
+# available locally (uv-managed fpp-analytics) so we lean on urllib.
+ENCODED_DB_PASSWORD="$(python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["MARIADB_FPP_PASSWORD"], safe=""))')"
+export DATABASE_URL="mysql://fpp:${ENCODED_DB_PASSWORD}@localhost:13306/free-planning-poker"
 exec next dev -p 7720

@@ -17,12 +17,16 @@ set -euo pipefail
 
 echo "==> Provisioning fpp user on local mariadb (db: $MARIADB_DB)..."
 
+# Escape ' in the password for SQL string literals. MariaDB doubles single
+# quotes inside single-quoted strings.
+SQL_FPP_PASSWORD=${MARIADB_FPP_PASSWORD//\'/\'\'}
+
 docker exec -i -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb \
   mariadb -u root <<SQL
 CREATE DATABASE IF NOT EXISTS \`${MARIADB_DB}\`
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'fpp'@'%' IDENTIFIED BY '${MARIADB_FPP_PASSWORD}';
-ALTER USER 'fpp'@'%' IDENTIFIED BY '${MARIADB_FPP_PASSWORD}';
+CREATE USER IF NOT EXISTS 'fpp'@'%' IDENTIFIED BY '${SQL_FPP_PASSWORD}';
+ALTER USER 'fpp'@'%' IDENTIFIED BY '${SQL_FPP_PASSWORD}';
 GRANT ALL PRIVILEGES ON \`${MARIADB_DB}\`.* TO 'fpp'@'%';
 FLUSH PRIVILEGES;
 SQL
@@ -30,8 +34,10 @@ SQL
 echo "==> Done. fpp user has full grants on $MARIADB_DB (no SSL requirement)."
 
 # Smoke test: connect as fpp from inside the container (same TCP path Next.js
-# uses, just from inside the docker bridge) and run a representative query.
-echo "==> Smoke test (SELECT COUNT(*) FROM fpp_rooms as fpp@%)..."
+# uses, just from inside the docker bridge). A plain SELECT 1 confirms auth +
+# grants without requiring any table to exist yet — important when this runs
+# before db-sync-from-prod against a freshly created empty schema.
+echo "==> Smoke test (auth + grants)..."
 docker exec -i -e MYSQL_PWD="$MARIADB_FPP_PASSWORD" mariadb \
   mariadb -u fpp -h 127.0.0.1 "$MARIADB_DB" \
-  -e "SELECT COUNT(*) AS rooms FROM fpp_rooms;"
+  -e "SELECT 1 AS ok;"

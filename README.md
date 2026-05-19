@@ -44,11 +44,14 @@ Tooling is centralised: `tsconfig.base.json` + `prettier.config.cjs` + `.prettie
 
 ### Services
 
-| Service          | Runtime          | Port | Workspace     | Entry           |
-| ---------------- | ---------------- | ---- | ------------- | --------------- |
-| Next.js App      | Node 24          | 3001 | `@fpp/web`    | `apps/web`      |
-| WebSocket Server | Bun              | 3003 | `@fpp/server` | `apps/server`   |
-| Analytics API    | Python 3.14 (uv) | 5100 | n/a           | `fpp-analytics` |
+| Service          | Runtime          | Local port | `.test` host        | Workspace     | Entry           |
+| ---------------- | ---------------- | ---------- | ------------------- | ------------- | --------------- |
+| Next.js App      | Node 24          | 7720       | `fpp.test`          | `@fpp/web`    | `apps/web`      |
+| WebSocket Server | Bun              | 7721       | `fpp-server.test`   | `@fpp/server` | `apps/server`   |
+| Analytics API    | Python 3.14 (uv) | 7722       | `fpp-analytics.test`| n/a           | `fpp-analytics` |
+| Logdy (logs UI)  | Go               | 7723       | `fpp-logdy.test`    | n/a           | -               |
+
+Container ports stay 3003 (server) and 5100 (analytics); the local `PORT` env override lives in each service's `.env.tpl`.
 
 **For detailed architecture**, see `ARCHITECTURE.md`, `apps/server/CLAUDE.md`, and `fpp-analytics/CLAUDE.md`.
 
@@ -63,9 +66,9 @@ bun install                        # workspace root — populates all packages
 bun run dev:all
 
 # Or individually
-bun run dev                        # Next.js only (port 3001)
-bun run --filter=@fpp/server dev   # WebSocket server only (port 3003)
-cd fpp-analytics && uv run uvicorn main:app --reload --port 5100   # Analytics only
+bun run dev                        # Next.js only (port 7720)
+bun run --filter=@fpp/server dev   # WebSocket server only (port 7721)
+cd fpp-analytics && op run --account tkrumm --env-file=.env.tpl -- uv run uvicorn main:app --reload --port 7722
 ```
 
 **First-time analytics setup:** `cd fpp-analytics && uv run python update_readmodel.py` once to generate the Parquet files.
@@ -131,27 +134,21 @@ GitHub Actions runs 17 jobs in parallel on every PR:
 
 ## Run Locally
 
-1. Install Node 24 (`nvm install`), Bun (`curl -fsSL https://bun.sh/install | bash`), Docker + Compose, Doppler CLI, and uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
+1. Install Node 24 (`nvm install`), Bun (`curl -fsSL https://bun.sh/install | bash`), Docker + Compose, [1Password CLI](https://developer.1password.com/docs/cli/get-started/) (`brew install 1password-cli`), and uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
 2. Clone [vps](https://github.com/jkrumm/vps) and bring up the FPP stack — it provides the MariaDB this project talks to.
-3. Request access to the Doppler project `free-planning-poker` (DB secrets live in 1Password on the VPS).
-4. `doppler setup` in this repo root.
-5. `bun install`
-6. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:8080)
+3. Sign in to 1Password with the personal `tkrumm` account; secrets are resolved at runtime from `op://vps/fpp/*` and `op://vps/mariadb/FPP_PASSWORD` via per-service `.env.tpl` files.
+4. `bun install`
+5. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:7723)
+
+Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`, `fpp-analytics/.env.tpl`). The `dev` scripts wrap `op run --account tkrumm --env-file=.env.tpl -- ...` so 1Password references resolve to live values without ever writing them to disk.
 
 ### WebSocket server (standalone)
 
 ```bash
-bun run --filter=@fpp/server dev   # port 3003
+bun run --filter=@fpp/server dev   # port 7721
 ```
 
-Env vars (root Doppler project covers these; for standalone runs, create `apps/server/.env`):
-
-```bash
-TRPC_URL=http://localhost:3001/api/trpc   # callback for vote persistence
-FPP_SERVER_SECRET=dev-secret              # shared with Next.js
-SENTRY_DSN=                               # optional
-NODE_ENV=development
-```
+Env vars are populated by `op run` from `apps/server/.env.tpl`. The only secret that resolves from 1Password is `FPP_SERVER_SECRET` (must match the Next.js side for flip-tracking callbacks); the rest are hardcoded local defaults.
 
 ### Analytics service (standalone)
 

@@ -514,11 +514,11 @@ Expected: 100-500ms per request (on-demand computation). This is acceptable for 
 
 ### Docker Configuration
 
-Docker configuration is **NOT in this repository**. It lives in:
-- **Location:** `/Users/johannes.krumm/SourceRoot/vps/apps/fpp/`
+Docker configuration is **NOT in this repository**. It lives in the [vps](https://github.com/jkrumm/vps) repo:
+- **Location:** `vps/apps/fpp/` (sibling repo, relative to this monorepo root)
 - **Dockerfile:** built from this repo by `deploy.yml` (FastAPI server)
 - **Dockerfile.updater:** built from this repo by `deploy.yml` (sync script)
-- **compose.yml:** In `vps/apps/fpp/compose.yml`
+- **compose.yml:** `vps/apps/fpp/compose.yml`
 
 Local development runs directly via `uv run uvicorn`. Production runs containerized on CPS.
 

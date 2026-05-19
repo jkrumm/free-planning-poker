@@ -69,17 +69,14 @@ Deploys run via the `deploy.yml` GitHub Actions workflow → RollHook (zero-down
 
 3. **Start updater first:**
    ```bash
-   doppler run -- docker compose up -d fpp-analytics-updater
+   make fpp-up   # `op run` resolves all secrets; brings up updater + API together
 
    # Wait for initial sync (check logs)
    docker logs -f fpp-analytics-updater
    # Should see "Sync complete in X.Xs"
    ```
 
-4. **Start API server:**
-   ```bash
-   doppler run -- docker compose up -d fpp-analytics
-   ```
+4. **API server starts as part of `make fpp-up`** — no separate command needed. To restart just the API container after a code change: `make fpp-rebuild` (RollHook handles zero-downtime rolling deploys in CI).
 
 5. **Verify:**
    ```bash

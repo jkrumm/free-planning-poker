@@ -8,13 +8,24 @@ const ROOM_KEY_PREFIX = 'fpp:room:';
 // has the room, Redis has it.
 const SNAPSHOT_TTL_SECONDS = 21600;
 const PERSIST_DEBOUNCE_MS = 500;
+// Hard ceiling on hydration GETs. Without it, a Redis outage at boot would
+// let every new WebSocket open() hang while Bun's offline queue retries —
+// long enough to exceed browser WS handshake timeouts and cause reconnect
+// storms. Failing open is the right move: snapshots are a warm cache.
+const HYDRATE_TIMEOUT_MS = 2000;
 
 export class RoomSnapshotStore {
   private client: RedisClient | null = null;
   private available = false;
-  private persistTimers = new Map<number, ReturnType<typeof setTimeout>>();
-  private inflightPersists = new Map<number, Promise<void>>();
-  private hydrationPromises = new Map<number, Promise<string | null>>();
+  private readonly persistTimers = new Map<
+    number,
+    ReturnType<typeof setTimeout>
+  >();
+  private readonly inflightPersists = new Map<number, Promise<void>>();
+  private readonly hydrationPromises = new Map<
+    number,
+    Promise<string | null>
+  >();
 
   init(url: string | undefined): void {
     if (!url) {
@@ -86,8 +97,17 @@ export class RoomSnapshotStore {
 
   private async doFetch(roomId: number): Promise<string | null> {
     if (!this.client) return null;
+    const client = this.client;
     try {
-      return await this.client.get(`${ROOM_KEY_PREFIX}${roomId}`);
+      // Race against a wallclock timeout — see HYDRATE_TIMEOUT_MS rationale.
+      // The GET itself stays in-flight (Bun cleans it up); we just stop
+      // blocking the caller's open() on it.
+      return await Promise.race([
+        client.get(`${ROOM_KEY_PREFIX}${roomId}`),
+        new Promise<null>((resolve) =>
+          setTimeout(() => resolve(null), HYDRATE_TIMEOUT_MS),
+        ),
+      ]);
     } catch (err) {
       // Fail open: hydration miss is recoverable (room starts empty).
       captureMessage(
@@ -121,6 +141,11 @@ export class RoomSnapshotStore {
   /**
    * Force-flush all pending writes. Used on SIGTERM before draining so the
    * next instance picks up the latest state.
+   *
+   * Ordering matters: we must await any inflight writes BEFORE issuing the
+   * fresh flush writes. Otherwise an older inflight write can land after the
+   * newer flush write and overwrite it with stale state — last-write-wins
+   * racing chronologically backwards.
    */
   async flushAll(
     serializeFor: (roomId: number) => string | null,
@@ -130,6 +155,10 @@ export class RoomSnapshotStore {
     for (const timer of this.persistTimers.values()) clearTimeout(timer);
     this.persistTimers.clear();
 
+    // 1. Drain anything already mid-write so we know our flush is the latest.
+    await Promise.all(this.inflightPersists.values());
+
+    // 2. Now issue the flush writes against post-drain state.
     await Promise.all(
       ids.map((id) => {
         const json = serializeFor(id);
@@ -137,7 +166,6 @@ export class RoomSnapshotStore {
         return this.writeRaw(id, json);
       }),
     );
-    await Promise.all(this.inflightPersists.values());
   }
 
   /**
@@ -165,22 +193,34 @@ export class RoomSnapshotStore {
 
   delete(roomId: number): void {
     if (!this.client) return;
+    const client = this.client;
     const timer = this.persistTimers.get(roomId);
     if (timer) {
       clearTimeout(timer);
       this.persistTimers.delete(roomId);
     }
-    this.client.del(`${ROOM_KEY_PREFIX}${roomId}`).catch((err: Error) => {
-      captureMessage(
-        'Redis delete failed',
-        {
-          component: 'roomSnapshot',
-          action: 'delete',
-          extra: { roomId, error: err.message },
-        },
-        'low',
-      );
-    });
+    // Wait for any inflight write to land before issuing DEL — otherwise the
+    // write can resolve after DEL and resurrect the key with stale state,
+    // which a future server restart would then rehydrate as a ghost room.
+    const inflight = this.inflightPersists.get(roomId);
+    const issueDel = (): void => {
+      client.del(`${ROOM_KEY_PREFIX}${roomId}`).catch((err: Error) => {
+        captureMessage(
+          'Redis delete failed',
+          {
+            component: 'roomSnapshot',
+            action: 'delete',
+            extra: { roomId, error: err.message },
+          },
+          'low',
+        );
+      });
+    };
+    if (inflight) {
+      inflight.then(issueDel, issueDel);
+    } else {
+      issueDel();
+    }
   }
 
   private async persistNow(

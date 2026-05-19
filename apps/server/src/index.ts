@@ -75,7 +75,7 @@ const app = new Elysia({
   .use(
     cron({
       name: 'cleanupInactiveState',
-      pattern: '0 */30 * * * *', // Every 30 seconds
+      pattern: '0 */30 * * * *', // At 0 and 30 minutes past every hour
       run() {
         roomState.cleanupInactiveState();
       },
