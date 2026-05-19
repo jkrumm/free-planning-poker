@@ -9,6 +9,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Next.js 16 dev server rejects requests whose Origin isn't the bind host.
+  // Locally we proxy through Caddy as fpp.test, so whitelist it for both the
+  // HMR WebSocket and the /__nextjs_original-stack-frames endpoint. No prod
+  // impact — this is a dev-only check.
+  allowedDevOrigins: ['fpp.test', 'localhost:7720'],
   // Next.js 16: `eslint` configuration no longer supported
   // Use `next lint --fix` or ESLint directly instead
   transpilePackages: ['@fpp/db', '@fpp/shared', 'geist'],

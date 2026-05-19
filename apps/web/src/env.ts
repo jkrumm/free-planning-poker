@@ -26,7 +26,8 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_NODE_ENV: z.enum(['development', 'test', 'production']),
     NEXT_PUBLIC_API_ROOT: z.enum([
-      'http://localhost:3001/',
+      'http://localhost:7720/',
+      'https://fpp.test/',
       'https://free-planning-poker.com/',
     ]),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url({ error: 'Invalid Sentry DSN URL' }),

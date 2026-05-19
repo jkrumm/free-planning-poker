@@ -117,21 +117,27 @@ export const analyticsRouter = createTRPCRouter({
     };
   }),
   getServerAnalytics: publicProcedure.query(async () => {
-    const response = await fetch(
-      `https://${env.NEXT_PUBLIC_FPP_SERVER_URL}/analytics`,
-      {
-        cache: 'no-store',
+    // In dev we hit fpp-server directly on localhost — Node's TLS trust store
+    // doesn't include Caddy's local CA, so going through fpp-server.test
+    // would fail the handshake. In prod, NEXT_PUBLIC_FPP_SERVER_URL is the
+    // public Cloudflare-fronted hostname with a trusted cert.
+    const serverUrl =
+      env.NEXT_PUBLIC_NODE_ENV === 'production'
+        ? `https://${env.NEXT_PUBLIC_FPP_SERVER_URL}/analytics`
+        : 'http://localhost:7721/analytics';
+
+    const response = await fetch(serverUrl, { cache: 'no-store' }).catch(
+      (error) => {
+        throw toCustomTRPCError(error, 'Failed to fetch server analytics API', {
+          component: 'analyticsRouter',
+          action: 'getServerAnalytics',
+          extra: {
+            endpoint: logEndpoint.GET_SERVER_ANALYTICS,
+            serverUrl,
+          },
+        });
       },
-    ).catch((error) => {
-      throw toCustomTRPCError(error, 'Failed to fetch server analytics API', {
-        component: 'analyticsRouter',
-        action: 'getServerAnalytics',
-        extra: {
-          endpoint: logEndpoint.GET_SERVER_ANALYTICS,
-          serverUrl: `https://${env.NEXT_PUBLIC_FPP_SERVER_URL}/analytics`,
-        },
-      });
-    });
+    );
 
     if (!response.ok) {
       throw toCustomTRPCError(
@@ -144,7 +150,7 @@ export const analyticsRouter = createTRPCRouter({
           action: 'getServerAnalytics',
           extra: {
             endpoint: logEndpoint.GET_SERVER_ANALYTICS,
-            serverUrl: `https://${env.NEXT_PUBLIC_FPP_SERVER_URL}/analytics`,
+            serverUrl,
             status: response.status,
           },
         },
