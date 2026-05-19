@@ -257,45 +257,50 @@ export class MessageHandler {
     const kickedUser = room.users.find((u) => u.id === data.targetUserId);
 
     if (kickedUser) {
-      // Send kick notification to the kicked user BEFORE removing them
-      try {
-        kickedUser.ws.send(
-          JSON.stringify({
-            type: 'kicked',
-            message: 'You have been removed from the room',
-          }),
-        );
-      } catch (error: unknown) {
-        captureError(
-          error as Error,
-          {
-            component: 'handleKick',
-            action: 'sendKickNotification',
-            extra: {
-              roomId: String(data.roomId),
-              targetUserId: data.targetUserId,
+      // Skip ws-bound steps for "ghost" users (rehydrated from snapshot,
+      // never reconnected). They have no live socket to notify or close;
+      // removeUserFromRoom below still purges them from state.
+      if (kickedUser.ws) {
+        // Send kick notification to the kicked user BEFORE removing them
+        try {
+          kickedUser.ws.send(
+            JSON.stringify({
+              type: 'kicked',
+              message: 'You have been removed from the room',
+            }),
+          );
+        } catch (error: unknown) {
+          captureError(
+            error as Error,
+            {
+              component: 'handleKick',
+              action: 'sendKickNotification',
+              extra: {
+                roomId: String(data.roomId),
+                targetUserId: data.targetUserId,
+              },
             },
-          },
-          'medium',
-        );
-      }
+            'medium',
+          );
+        }
 
-      // Close their WebSocket connection
-      try {
-        kickedUser.ws.close();
-      } catch (error: unknown) {
-        captureError(
-          error as Error,
-          {
-            component: 'handleKick',
-            action: 'closeWebSocket',
-            extra: {
-              roomId: String(data.roomId),
-              targetUserId: data.targetUserId,
+        // Close their WebSocket connection
+        try {
+          kickedUser.ws.close();
+        } catch (error: unknown) {
+          captureError(
+            error as Error,
+            {
+              component: 'handleKick',
+              action: 'closeWebSocket',
+              extra: {
+                roomId: String(data.roomId),
+                targetUserId: data.targetUserId,
+              },
             },
-          },
-          'medium',
-        );
+            'medium',
+          );
+        }
       }
     }
 

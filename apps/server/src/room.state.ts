@@ -1,6 +1,7 @@
 import { type ElysiaWS } from 'elysia/ws';
 import { log } from './index';
 import { RoomServer, type User } from './room.entity';
+import { roomSnapshot } from './room.snapshot';
 import { type Analytics, type AnalyticsUser } from './types';
 import { captureError, captureMessage } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
@@ -23,7 +24,91 @@ export class RoomState {
     return room;
   }
 
+  /**
+   * Hydrate a room from Redis if we don't already have populated in-memory
+   * state for it. Safe to call concurrently — the snapshot store deduplicates
+   * inflight fetches per room.
+   *
+   * Race handling: Bun delivers WebSocket `message` events even while an
+   * async `open` is still awaiting, so a stray message can `getOrCreateRoom`
+   * an empty in-memory room before hydration completes. We treat an empty
+   * in-memory room as "not yet hydrated" and replace it with the snapshot
+   * version when the fetch returns. Populated in-memory state always wins
+   * (it's authoritative — the snapshot is just a warm cache).
+   */
+  async ensureHydrated(roomId: number): Promise<void> {
+    const initial = this.rooms.get(roomId);
+    if (initial && initial.users.length > 0) return;
+    if (!roomSnapshot.isEnabled()) return;
+
+    const json = await roomSnapshot.fetch(roomId);
+    if (!json) return;
+
+    const current = this.rooms.get(roomId);
+    if (current && current.users.length > 0) {
+      // Real users joined while we were fetching — in-memory wins.
+      log.debug(
+        { roomId, userCount: current.users.length },
+        'Hydration skipped: in-memory state advanced during fetch',
+      );
+      return;
+    }
+
+    try {
+      const dto = JSON.parse(json) as Parameters<
+        typeof RoomServer.fromSnapshot
+      >[0];
+      const room = RoomServer.fromSnapshot(dto);
+      this.rooms.set(roomId, room);
+      log.info(
+        { roomId, userCount: room.users.length },
+        'Rehydrated room from Redis snapshot',
+      );
+    } catch (err) {
+      captureError(
+        err as Error,
+        {
+          component: 'roomState',
+          action: 'ensureHydrated',
+          extra: { roomId },
+        },
+        'medium',
+      );
+    }
+  }
+
+  /**
+   * Returns the serialized room or null. A 0-user room is treated as "gone"
+   * so we never overwrite a good snapshot with an empty placeholder created
+   * by a stray getOrCreateRoom call during the open→hydrate window.
+   */
+  serializeRoom(roomId: number): string | null {
+    const room = this.rooms.get(roomId);
+    if (!room || room.users.length === 0) return null;
+    return room.toStringifiedJson();
+  }
+
+  /** Force-write any pending snapshots. Call before draining on SIGTERM. */
+  flushSnapshots(): Promise<void> {
+    return roomSnapshot.flushAll((id) => this.serializeRoom(id));
+  }
+
   addUserToRoom(roomId: number, user: User): void {
+    if (!user.ws) {
+      // addUserToRoom only runs from the WebSocket open/rejoin paths, where
+      // ws is always live. A null here means a programming error — bail
+      // rather than crash on user.ws.id below.
+      captureMessage(
+        'addUserToRoom called with ws-less user',
+        {
+          component: 'roomState',
+          action: 'addUserToRoom',
+          extra: { roomId, userId: user.id },
+        },
+        'high',
+      );
+      return;
+    }
     const room = this.getOrCreateRoom(roomId);
 
     // Remove any existing connection for this user in this room
@@ -104,6 +189,7 @@ export class RoomState {
     // Clean up empty room
     if (room.users.length === 0) {
       this.rooms.delete(roomId);
+      roomSnapshot.delete(roomId);
       log.debug({ roomId }, 'Removed empty room');
     }
   }
@@ -151,7 +237,7 @@ export class RoomState {
           this.userConnections.values(),
         ).some((conn) => conn.userId === user.id && conn.roomId === roomId);
 
-        if (hasActiveConnection) {
+        if (hasActiveConnection && user.ws) {
           user.ws.send(roomData);
           successCount++;
           log.debug(
@@ -205,6 +291,11 @@ export class RoomState {
 
     room.lastUpdated = Date.now();
     room.hasChanged = false;
+
+    // Write-through to Redis (debounced). Cheap on a hot broadcast burst —
+    // multiple changes within PERSIST_DEBOUNCE_MS coalesce into one write.
+    // Re-resolve the room at flush time so concurrent removals are reflected.
+    roomSnapshot.schedule(roomId, () => this.serializeRoom(roomId));
   }
 
   sendRoomNameChangeToAllUsers(roomId: number, roomName: string): void {
@@ -227,7 +318,7 @@ export class RoomState {
           this.userConnections.values(),
         ).some((conn) => conn.userId === user.id && conn.roomId === roomId);
 
-        if (hasActiveConnection) {
+        if (hasActiveConnection && user.ws) {
           user.ws.send(roomNameChangeMessage);
           log.debug(
             { userId: user.id, roomId: room.id, roomName, wsId: user.ws.id },
@@ -295,7 +386,7 @@ export class RoomState {
               userId: user.id,
               roomId: room.id,
               timeSinceLastHeartbeat,
-              wsId: user.ws.id,
+              wsId: user.ws?.id ?? null,
             },
             'Removing user due to 30-minute heartbeat timeout',
           );
@@ -317,7 +408,13 @@ export class RoomState {
       // Clean up empty rooms
       if (room.users.length === 0) {
         this.rooms.delete(room.id);
+        roomSnapshot.delete(room.id);
         log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
+      } else {
+        // Room survived the sweep — refresh its Redis TTL. Heartbeats alone
+        // don't trigger writes, so without this an idle-but-occupied room
+        // could expire from Redis while in-memory state is still alive.
+        roomSnapshot.touch(room.id);
       }
     }
 
