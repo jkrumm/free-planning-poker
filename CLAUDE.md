@@ -136,8 +136,8 @@ Room state exists in THREE places:
 
 | Service | Error Handling | Context attributes |
 |---------|----------------|--------------------|
-| Next.js | `captureError()` → OTEL span exception + log record | component, action, userId, roomId |
-| fpp-server | `captureError()` → OTEL span exception + log record | roomId, userId, action |
+| Next.js | `recordError()` → OTEL span exception + log record | component, action, userId, roomId |
+| fpp-server | `recordError()` → OTEL span exception + log record | roomId, userId, action |
 | fpp-analytics | `capture_error()` → OTEL span exception + log record | endpoint, calculation |
 
 ### Development Workflow Commands
@@ -370,7 +370,7 @@ useEffect(() => {
 ```
 
 #### 2. `react-hooks/error-boundaries` - Valid for:
-- Breadcrumb-equivalent log emission (not error handling)
+- Event log emission via `recordEvent` (not error handling)
 - Component-level logging
 
 #### 3. `react-hooks/purity` - Valid for:
@@ -501,7 +501,7 @@ const roomState = useRoomStore();
 const mutation = api.room.joinRoom.useMutation({
   onSuccess: (data) => { /* handle success */ },
   onError: (error) => {
-    captureError(error, { component: 'X', action: 'Y' }, 'high');
+    recordError(error, { component: 'X', action: 'Y' }, 'high');
   },
 });
 ```
@@ -518,10 +518,10 @@ triggerAction({
 ```
 
 ### Error Handling
-Use the wrapper with breadcrumbs (emits OTEL log records correlated by trace_id):
+Use the facade verbs (emit OTEL log records correlated by trace_id):
 ```typescript
-addBreadcrumb('User action', 'component', { userId, roomId });
-captureError(error, { component: 'ComponentName', action: 'actionName' }, 'high');
+recordEvent(EVENT.WS_RECONNECTED); // typed, client-only domain event
+recordError(error, { component: 'ComponentName', action: 'actionName' }, 'high');
 ```
 
 ## Testing & Verification
@@ -555,22 +555,36 @@ Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injec
 ## Error Handling Standards (OpenTelemetry → HyperDX)
 
 Sentry has been replaced by a self-hosted OTEL stack (ClickStack + HyperDX on the
-VPS). The wrapper API in `apps/web/src/utils/app-error.ts` is unchanged — only the
-internals swapped to OTEL span exception recording + log records. See
-`docs/otel-migration/` for the full migration record.
+VPS). **Observability v2** then added metrics + log-based events + a single typed
+taxonomy — see `docs/otel-migration/05-observability-v2.md` (the source of truth)
+and `.claude/rules/observability.md`. The facade was re-founded on OTEL-native
+verbs (clean break, no Sentry-era aliases):
+
+- `recordError(err, ctx, sev)` — exceptions (span exception + correlated log).
+- `recordEvent(EVENT.X, attrs)` — log-based domain events (typed, registry-keyed).
+- `metrics.*` — typed instrument handles (fpp-server only; the browser emits
+  events, never metrics).
+- Operator narration → `log.*` (Pino, server) / `logger.*` (web), not OTEL.
+- `captureMessage` / `addBreadcrumb` are **gone**.
+
+Every attribute key / event name / metric name originates in
+`@fpp/shared/telemetry` (`ATTR` / `EVENT` / `METRIC`). No raw telemetry string
+literals elsewhere.
 
 ### Import Rule (Enforced by ESLint)
 ```typescript
-// ✅ Correct - use the wrapper
-import { captureError, captureMessage, addBreadcrumb } from 'fpp/utils/app-error';
+// ✅ Correct - use the facade
+import { recordError, recordEvent } from 'fpp/utils/app-error';
 
-// ❌ BANNED - direct OTEL log emission outside the wrapper
+// ❌ BANNED - direct OTEL log emission outside the facade
 import { logs } from '@opentelemetry/api-logs';
+// ❌ BANNED - meters are created only in telemetry.ts
+import { metrics } from '@opentelemetry/api';
 // ❌ BANNED - direct HyperDX SDK calls (init lives in instrumentation-client.ts)
 import HyperDX from '@hyperdx/browser';
 ```
 
-### When to Use captureError
+### When to Use recordError
 
 **Capture:**
 - System errors (database, server crashes)
@@ -600,7 +614,7 @@ Informational? → low
 ```typescript
 mutation.mutate(data, {
   onError: (error) => {
-      captureError(error, {
+      recordError(error, {
         component: 'ComponentName',
         action: 'actionName',
         extra: { errorCode }
@@ -612,46 +626,50 @@ mutation.mutate(data, {
 });
 ```
 
-### captureError Usage
+### recordError Usage
 
 ```typescript
 // Good: Provides context
-captureError(error, {
+recordError(error, {
   component: 'UserProfile',
   action: 'updateSettings',
   extra: { userId, settingKey }
 }, 'high');
 
 // Bad: No context
-captureError(error);
+recordError(error);
 
 // Good: Capturing user input error to fix frontend validations
 if (email.length > 100) {
-  captureError('Email too long', { component: 'Form' }, 'medium');
+  recordError('Email too long', { component: 'Form' }, 'medium');
 }
 
 // Good: Capturing validation logic bug
 try {
   return value.trim().length > 50;
 } catch (error) {
-  captureError(error, { component: 'Form', action: 'validate' }, 'low');
+  recordError(error, { component: 'Form', action: 'validate' }, 'low');
 }
 ```
 
-### Breadcrumb Guidelines
+### Event Guidelines (`recordEvent`)
 
-**Use breadcrumbs for:**
-- Navigation events (page changes, route transitions)
-- WebSocket lifecycle (connect, disconnect, reconnect)
-- Critical user actions (create room, join room, vote)
-- State transitions (connection health, heartbeat pings)
+Breadcrumbs are gone. Discrete business occurrences are now **log-based events**
+emitted via `recordEvent(EVENT.X, attrs)` — typed names from the
+`@fpp/shared/telemetry` registry, never `span.addEvent()` (OTEP 4430).
 
-**Don't use breadcrumbs for:**
-- Every render or effect
-- Repeated/frequent events (individual keystrokes, mouse moves)
-- Events that don't help debug errors
+**Signal discipline (no reflexive "log everything"):**
+- **Domain events** (`room.joined`, `vote.cast`, `round.flipped`, …) are emitted
+  by **fpp-server** at the state-mutation chokepoint (`room.entity`/`room.state`)
+  — the authoritative source. Don't mirror them from the browser.
+- The **browser emits only client-only events** the server can't observe:
+  `ws.reconnected`, `ws.reconnect_exhausted`, `ws.recovery_reload`.
+- Operator narration (invalid message, fail-open warnings) → plain logs
+  (`log.*` / `logger.*`), not events.
+- Never an event per render/effect, keystroke, or high-frequency tick.
 
-**Current usage:** 21 files use breadcrumbs - mostly in hooks (WebSocket, heartbeat, connection health) and navigation. This is appropriate for central, high-level operations.
+Add a new event/attribute/metric to the registry **first**, then emit it. See
+`.claude/rules/observability.md` for the full decision matrix.
 
 ## Error Handling Implementation Guide
 
@@ -672,7 +690,7 @@ All Next.js API route handlers (`apps/web/src/pages/api/*.ts`) must wrap their l
 
 ```typescript
 import { type NextApiRequest, type NextApiResponse } from '@trpc/server/adapters/next';
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 const ApiHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -692,7 +710,7 @@ const ApiHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(200).json({ success: true });
   } catch (error) {
     // Capture error with context
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error('Operation failed'),
       {
         component: 'api-route-name',
@@ -719,13 +737,13 @@ export default ApiHandler;
 
 **Key Points:**
 - Wrap entire handler function in try-catch
-- Capture errors with component/action context using `captureError`
+- Capture errors with component/action context using `recordError`
 - Return HTTP 500 with safe error message
 - Use 'high' severity for API failures (blocks user action)
 
 ### tRPC Router Error Handling (CustomTRPCError)
 
-**IMPORTANT:** tRPC routers use CustomTRPCError for centralized error capture. Do NOT use try-catch or captureError directly in routers.
+**IMPORTANT:** tRPC routers use CustomTRPCError for centralized error capture. Do NOT use try-catch or recordError directly in routers.
 
 #### Pattern 1: Database Query
 
@@ -863,7 +881,7 @@ Use these severity levels consistently:
 
 ❌ **Don't:**
 - Use try-catch in tRPC routers (creates double-capture)
-- Use captureError directly in tRPC routers (use toCustomTRPCError)
+- Use recordError directly in tRPC routers (use toCustomTRPCError)
 - Wrap business logic errors with CustomTRPCError (use standard TRPCError)
 - Forget to add .catch() to async operations
 
@@ -991,5 +1009,5 @@ Runs on a fresh runner using `RELEASE_TOKEN` (PAT) to push past branch protectio
 
 ---
 
-**Last Updated**: 2026-05-10
+**Last Updated**: 2026-05-20
 **For detailed architecture explanation**: See `ARCHITECTURE.md`

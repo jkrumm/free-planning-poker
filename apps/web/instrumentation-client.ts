@@ -14,6 +14,9 @@ HyperDX.init({
   apiKey: env.NEXT_PUBLIC_HYPERDX_API_KEY,
   url: env.NEXT_PUBLIC_HYPERDX_URL,
   service: 'free-planning-poker',
+  // Groups the three fpp services as one app in HyperDX (parity with the
+  // server/analytics resource attribute).
+  otelResourceAttributes: { 'service.namespace': 'free-planning-poker' },
   tracePropagationTargets: [
     /\/api\/trpc/,
     // Escape regex metacharacters from the runtime URL so e.g. dots only

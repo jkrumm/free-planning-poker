@@ -16,6 +16,8 @@ export async function register() {
 
   const resource = resourceFromAttributes({
     'service.name': process.env.OTEL_SERVICE_NAME ?? 'free-planning-poker',
+    // Groups the three fpp services as one app in HyperDX.
+    'service.namespace': 'free-planning-poker',
     'service.version': process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
     'deployment.environment': process.env.NODE_ENV ?? 'development',
   });
@@ -23,6 +25,7 @@ export async function register() {
   registerOTel({
     serviceName: process.env.OTEL_SERVICE_NAME ?? 'free-planning-poker',
     attributes: {
+      'service.namespace': 'free-planning-poker',
       'service.version': process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
       'deployment.environment': process.env.NODE_ENV ?? 'development',
     },

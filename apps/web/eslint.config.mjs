@@ -98,7 +98,7 @@ export default defineConfig([
         },
       ],
 
-      // OTEL: Enforce captureError wrapper instead of direct OTEL/HyperDX calls
+      // OTEL: Enforce the app-error facade instead of direct OTEL/HyperDX calls
       'no-restricted-imports': [
         'error',
         {
@@ -107,12 +107,18 @@ export default defineConfig([
               name: '@opentelemetry/api-logs',
               importNames: ['logs'],
               message:
-                'Use captureError(), captureMessage(), or addBreadcrumb() from fpp/utils/app-error instead of emitting OTEL logs directly.',
+                'Use recordError() or recordEvent() from fpp/utils/app-error instead of emitting OTEL logs directly.',
+            },
+            {
+              name: '@opentelemetry/api',
+              importNames: ['metrics'],
+              message:
+                'The browser emits events, not metrics — the authoritative server owns all metrics. Do not create meters here.',
             },
             {
               name: '@hyperdx/browser',
               message:
-                'Use captureError() from fpp/utils/app-error instead of @hyperdx/browser directly. Init lives in instrumentation-client.ts.',
+                'Use recordError() from fpp/utils/app-error instead of @hyperdx/browser directly. Init lives in instrumentation-client.ts.',
             },
           ],
         },
