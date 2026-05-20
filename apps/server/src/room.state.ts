@@ -1,10 +1,14 @@
 import { type ElysiaWS } from 'elysia/ws';
+import { ATTR, EVENT } from '@fpp/shared/telemetry';
 import { log } from './index';
 import { RoomServer, type User } from './room.entity';
 import { roomSnapshot } from './room.snapshot';
+import { metrics } from './telemetry';
 import { type Analytics, type AnalyticsUser } from './types';
-import { captureError, captureMessage } from './utils/app-error';
+import { captureError, captureMessage, recordEvent } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
+
+type CloseReason = 'empty' | 'timeout';
 
 export class RoomState {
   private rooms = new Map<number, RoomServer>();
@@ -14,14 +18,54 @@ export class RoomState {
     { roomId: number; userId: string; ws: ElysiaWS<any, any> }
   >();
 
+  /**
+   * Live counts for the three concurrency gauges (read each metric-collection
+   * cycle by the observable callbacks — see telemetry.registerActiveGauges).
+   * The Maps are the source of truth; the gauges just sample them.
+   */
+  get activeRoomCount(): number {
+    return this.rooms.size;
+  }
+
+  get activeConnectionCount(): number {
+    return this.userConnections.size;
+  }
+
+  get activeUserCount(): number {
+    let count = 0;
+    for (const room of this.rooms.values()) count += room.users.length;
+    return count;
+  }
+
   getOrCreateRoom(roomId: number): RoomServer {
     let room = this.rooms.get(roomId);
     if (!room) {
       room = new RoomServer(roomId);
       this.rooms.set(roomId, room);
       log.debug({ roomId }, 'Created new room');
+      // Sole chokepoint for room.created — the rooms-Map insertion site, so the
+      // count tracks fpp.room.active (rooms.size). Callers exclude heartbeat so
+      // a stray liveness ping can't conjure a room.
+      recordEvent(EVENT.ROOM_CREATED, { [ATTR.ROOM_ID]: roomId });
+      metrics.roomCreated.add(1);
     }
     return room;
+  }
+
+  /**
+   * Tear down a room: drop it from memory, delete its snapshot, and emit the
+   * room.closed signal. Single chokepoint for both close reasons (`empty` when
+   * the last user leaves, `timeout` when the 30-min sweep empties it).
+   */
+  private closeRoom(roomId: number, reason: CloseReason): void {
+    this.rooms.delete(roomId);
+    roomSnapshot.delete(roomId);
+    recordEvent(EVENT.ROOM_CLOSED, {
+      [ATTR.ROOM_ID]: roomId,
+      [ATTR.CLOSE_REASON]: reason,
+    });
+    metrics.roomClosed.add(1, { [ATTR.CLOSE_REASON]: reason });
+    log.debug({ roomId, reason }, 'Closed room');
   }
 
   /**
@@ -146,6 +190,13 @@ export class RoomState {
         { userId: user.id, roomId, userCount: room.users.length },
         'Added new user to room',
       );
+      // New user actually added → room.joined. The existing-user branch above is
+      // a reconnect (already in the room), not a join, so it stays silent.
+      recordEvent(EVENT.ROOM_JOINED, {
+        [ATTR.ROOM_ID]: roomId,
+        [ATTR.USER_ID]: user.id,
+        [ATTR.ROOM_USER_COUNT]: room.users.length,
+      });
     }
   }
 
@@ -162,7 +213,11 @@ export class RoomState {
     }
   }
 
-  removeUserFromRoom(roomId: number, userId: string): void {
+  removeUserFromRoom(
+    roomId: number,
+    userId: string,
+    departure: 'leave' | 'kick' = 'leave',
+  ): void {
     const room = this.rooms.get(roomId);
     if (!room) {
       return;
@@ -171,6 +226,16 @@ export class RoomState {
     const userExists = room.users.some((user) => user.id === userId);
     if (!userExists) {
       return;
+    }
+
+    // room.removeUser emits room.left (the departure). A kick is additionally a
+    // moderation event — emit user.kicked here, the only path that knows the
+    // departure was forced (the sweep calls room.removeUser directly with none).
+    if (departure === 'kick') {
+      recordEvent(EVENT.USER_KICKED, {
+        [ATTR.ROOM_ID]: roomId,
+        [ATTR.USER_ID]: userId,
+      });
     }
 
     room.removeUser(userId);
@@ -188,9 +253,7 @@ export class RoomState {
 
     // Clean up empty room
     if (room.users.length === 0) {
-      this.rooms.delete(roomId);
-      roomSnapshot.delete(roomId);
-      log.debug({ roomId }, 'Removed empty room');
+      this.closeRoom(roomId, 'empty');
     }
   }
 
@@ -311,6 +374,8 @@ export class RoomState {
       timestamp: Date.now(),
     });
 
+    recordEvent(EVENT.ROOM_RENAMED, { [ATTR.ROOM_ID]: roomId });
+
     for (const user of room.users) {
       try {
         // Check if this user still has an active WebSocket connection
@@ -407,9 +472,7 @@ export class RoomState {
 
       // Clean up empty rooms
       if (room.users.length === 0) {
-        this.rooms.delete(room.id);
-        roomSnapshot.delete(room.id);
-        log.debug({ roomId: room.id }, 'Removed empty room during cleanup');
+        this.closeRoom(room.id, 'timeout');
       } else {
         // Room survived the sweep — refresh its Redis TTL. Heartbeats alone
         // don't trigger writes, so without this an idle-but-occupied room
@@ -439,6 +502,11 @@ export class RoomState {
 
     user.isPresent = isPresent;
     room.hasChanged = true;
+    recordEvent(EVENT.USER_PRESENCE_CHANGED, {
+      [ATTR.ROOM_ID]: roomId,
+      [ATTR.USER_ID]: userId,
+      [ATTR.USER_IS_PRESENT]: isPresent,
+    });
     return true;
   }
 

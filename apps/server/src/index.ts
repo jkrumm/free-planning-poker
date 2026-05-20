@@ -1,25 +1,35 @@
-// telemetry import MUST be first — registers TracerProvider + LoggerProvider
+// telemetry import MUST be first — registers Tracer/Logger/Meter providers
 // before anything else can call into @opentelemetry/api.
-import { shutdownTelemetry, telemetryConfig } from './telemetry';
+import {
+  registerActiveGauges,
+  shutdownTelemetry,
+  telemetryConfig,
+} from './telemetry';
 
 import { createPinoLogger } from '@bogeychan/elysia-logger';
 import cron from '@elysiajs/cron';
 import { opentelemetry } from '@elysiajs/opentelemetry';
-import {
-  context,
-  propagation,
-  SpanStatusCode,
-  trace,
-} from '@opentelemetry/api';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { Elysia, t } from 'elysia';
-import { ActionSchema, USERNAME_RULES, validateUsername } from '@fpp/shared';
+import {
+  ActionSchema,
+  isHeartbeatAction,
+  USERNAME_RULES,
+  validateUsername,
+} from '@fpp/shared';
+import { ATTR, EVENT } from '@fpp/shared/telemetry';
 import { MessageHandler } from './message.handler';
 import { User } from './room.entity';
 import { roomSnapshot } from './room.snapshot';
 import { RoomState } from './room.state';
 import { type Analytics } from './types';
-import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
+import {
+  addBreadcrumb,
+  captureError,
+  captureMessage,
+  recordEvent,
+} from './utils/app-error';
+import { instrumentAction } from './utils/instrument-action';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export const log = createPinoLogger({
@@ -33,13 +43,6 @@ export const log = createPinoLogger({
 // @fpp/shared) so the TypeBox compiler stays out of the web bundle.
 const CActionSchema = TypeCompiler.Compile(ActionSchema);
 
-// Tracer for WebSocket message handling. @elysiajs/opentelemetry only traces
-// HTTP routes — WS message handlers run outside any active span by default,
-// so breadcrumbs + captured errors from inside them land with empty TraceId
-// in HyperDX. Wrapping each message in an active span fixes log-trace
-// correlation for the bulk of fpp-server's work.
-const wsTracer = trace.getTracer('fpp-server.ws');
-
 // Initialize Redis/Valkey snapshot store. Optional — when REDIS_URL is unset
 // the store is a no-op and the server behaves exactly as before (in-memory
 // state lost on restart). This keeps Redis off the critical path.
@@ -47,6 +50,14 @@ roomSnapshot.init(process.env.REDIS_URL);
 
 const roomState = new RoomState();
 const messageHandler = new MessageHandler(roomState);
+
+// Wire the three concurrency gauges to the live roomState Maps now that it
+// exists. The observable callbacks sample these each metric-collection cycle.
+registerActiveGauges({
+  users: () => roomState.activeUserCount,
+  rooms: () => roomState.activeRoomCount,
+  connections: () => roomState.activeConnectionCount,
+});
 
 // Flipped on SIGTERM so /health returns 503 and the proxy stops routing here
 // before we close listening sockets. See SIGTERM handler at the bottom.
@@ -228,6 +239,11 @@ app.ws('/ws', {
       setTimeout(() => {
         roomState.sendToEverySocketInRoom(roomId);
       }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
+
+      recordEvent(EVENT.WS_CONNECTED, {
+        [ATTR.ROOM_ID]: roomId,
+        [ATTR.USER_ID]: userId,
+      });
     } catch (error) {
       captureError(
         error as Error,
@@ -246,129 +262,38 @@ app.ws('/ws', {
     }
   },
   message(ws, data) {
-    const actionData =
-      typeof data === 'object' && data !== null
-        ? (data as Record<string, unknown>)
-        : {};
+    // Validate at the transport edge. Invalid frames are noise — drop them
+    // without a span (the WS route schema guards too; this is belt-and-braces
+    // and controls the error reply).
+    if (!CActionSchema.Check(data)) {
+      const safeData =
+        typeof data === 'object'
+          ? JSON.stringify(data).slice(0, 200)
+          : String(data).slice(0, 200);
+      captureMessage(
+        'Invalid WebSocket message format',
+        {
+          component: 'websocketMessage',
+          action: 'validateMessage',
+          extra: { wsId: ws.id, receivedData: safeData },
+        },
+        'medium',
+      );
+      ws.send(JSON.stringify({ error: 'Invalid message format', wsId: ws.id }));
+      return;
+    }
 
-    // Extract action info for breadcrumb
-    const actionStr =
-      typeof actionData.action === 'string' ||
-      typeof actionData.action === 'number'
-        ? String(actionData.action)
-        : 'unknown';
-    const roomIdStr =
-      typeof actionData.roomId === 'string' ||
-      typeof actionData.roomId === 'number'
-        ? String(actionData.roomId)
-        : 'unknown';
-    const userIdStr =
-      typeof actionData.userId === 'string' ||
-      typeof actionData.userId === 'number'
-        ? String(actionData.userId)
-        : 'unknown';
+    // heartbeat bypasses instrumentAction entirely — liveness only, no
+    // span/event/metric (it is the dominant message and pure noise to trace).
+    if (isHeartbeatAction(data)) {
+      messageHandler.handleMessage(ws, data);
+      return;
+    }
 
-    // Extract the W3C traceparent the browser inlined into the payload.
-    // WebSocket frames carry no headers, so the trace context rides inside
-    // the message itself (see `serializeWithTraceContext` in useWebSocketRoom).
-    // When present, the WS span becomes a child of the browser's active
-    // span — single HyperDX trace from click → handler. When absent (older
-    // clients, internal messages), we start a fresh root trace.
-    const traceparent =
-      typeof actionData._traceparent === 'string'
-        ? actionData._traceparent
-        : undefined;
-    const parentCtx = traceparent
-      ? propagation.extract(context.active(), { traceparent })
-      : context.active();
-
-    context.with(parentCtx, () => {
-      // Wrap the whole message in an active span so breadcrumb + captureError
-      // calls inside the handler inherit a TraceId. Heartbeats are noise but
-      // proper actions (vote/flip/leave/etc.) now get fully correlated logs.
-      wsTracer.startActiveSpan(`ws.${actionStr}`, (span) => {
-        span.setAttributes({
-          'ws.action': actionStr,
-          'ws.roomId': roomIdStr,
-          'ws.userId': userIdStr,
-          'ws.id': ws.id,
-        });
-
-        addBreadcrumb(`WebSocket action: ${actionStr}`, 'websocket.action', {
-          roomId: roomIdStr,
-          userId: userIdStr,
-          action: actionStr,
-        });
-
-        try {
-          if (!CActionSchema.Check(data)) {
-            // Safe serialization to avoid protocol violations
-            const safeData =
-              typeof data === 'object'
-                ? JSON.stringify(data).slice(0, 200)
-                : String(data).slice(0, 200);
-
-            captureMessage(
-              'Invalid WebSocket message format',
-              {
-                component: 'websocketMessage',
-                action: 'validateMessage',
-                extra: {
-                  wsId: ws.id,
-                  receivedData: safeData,
-                },
-              },
-              'medium',
-            );
-            ws.send(
-              JSON.stringify({
-                error: 'Invalid message format',
-                wsId: ws.id,
-              }),
-            );
-            span.setStatus({
-              code: SpanStatusCode.ERROR,
-              message: 'invalid format',
-            });
-            return;
-          }
-
-          messageHandler.handleMessage(ws, data);
-        } catch (error: unknown) {
-          if (error instanceof Error) span.recordException(error);
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: error instanceof Error ? error.message : String(error),
-          });
-
-          captureError(
-            error as Error,
-            {
-              component: 'websocketMessage',
-              action: actionStr,
-              extra: {
-                wsId: ws.id,
-                roomId: roomIdStr,
-                userId: userIdStr,
-              },
-            },
-            'high',
-          );
-
-          if (error instanceof Error) {
-            ws.send(
-              JSON.stringify({
-                error: error.message,
-                timestamp: Date.now(),
-                wsId: ws.id,
-              }),
-            );
-          }
-        } finally {
-          span.end();
-        }
-      });
-    });
+    // Transport/RED via instrumentAction: continue the browser's trace across
+    // the WS boundary, span + time + count the action. The domain event +
+    // metric fire at the entity/state chokepoint inside the handler.
+    instrumentAction(ws, data, () => messageHandler.handleMessage(ws, data));
   },
   close(ws, code, reason) {
     log.debug(
@@ -385,6 +310,14 @@ app.ws('/ws', {
     // 1006 = Abnormal closure (no close frame - very common for tab closes, network issues)
     const expectedCloseCodes = [1000, 1001, 1005, 1006];
     if (!expectedCloseCodes.includes(code)) {
+      recordEvent(EVENT.WS_DISCONNECTED, {
+        ...(connection && {
+          [ATTR.ROOM_ID]: connection.roomId,
+          [ATTR.USER_ID]: connection.userId,
+        }),
+        [ATTR.CLOSE_REASON]: String(code),
+      });
+
       addBreadcrumb('WebSocket abnormal close', 'websocket', {
         closeCode: String(code),
         reason: reason?.toString() ?? 'unknown',

@@ -1,5 +1,9 @@
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { SeverityNumber } from '@opentelemetry/api-logs';
+import {
+  type EventName,
+  type TelemetryAttributes,
+} from '@fpp/shared/telemetry';
 
 import { log } from '../index';
 import { otelLogger } from '../telemetry';
@@ -124,6 +128,24 @@ export function captureMessage(
       ...(context.action && { 'fpp.action': context.action }),
       ...flattenExtra(context.extra),
     },
+  });
+}
+
+/**
+ * Record a domain event as an OTEL log-based event: an INFO log record carrying
+ * `event.name` plus typed, registry-keyed attributes, correlated to the active
+ * trace. This is the §3 "log-based Event" signal — discrete, named occurrences
+ * we want to count, filter and drill into at full cardinality (room.id, user.id,
+ * vote.value live here, never on metrics). Never use span.addEvent (OTEP 4430).
+ */
+export function recordEvent(
+  name: EventName,
+  attributes: TelemetryAttributes = {},
+): void {
+  otelLogger.emit({
+    severityNumber: SeverityNumber.INFO,
+    severityText: 'INFO',
+    attributes: { 'event.name': name, ...attributes },
   });
 }
 
