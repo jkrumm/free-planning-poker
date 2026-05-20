@@ -15,6 +15,7 @@ import {
 } from 'fpp/constants/error.constant';
 
 import { recordError } from 'fpp/utils/app-error';
+import { logger } from 'fpp/utils/logger';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
@@ -54,7 +55,7 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
     )[0];
 
     if (!userExists) {
-      const userPayload = await getUserPayload(req);
+      const userPayload = getUserPayload(req);
       await db.insert(users).values({
         id: userId,
         ...userPayload,
@@ -93,74 +94,67 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 };
 
-export const getUserPayload = async (req: NextApiRequest) => {
+const headerValue = (req: NextApiRequest, name: string): string | null => {
+  const value = req.headers[name];
+  return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+};
+
+// decodeURIComponent throws on malformed input — fall back to the raw value.
+const safeDecode = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+export const getUserPayload = (req: NextApiRequest) => {
   const ua = userAgentFromString(req.headers['user-agent']);
 
-  const geo: {
-    country: string | null;
-    region: string | null;
-    city: string | null;
-  } = {
-    country: null,
-    region: null,
-    city: null,
-  };
+  // Approximate geolocation comes from Vercel's edge headers: the visitor's IP
+  // is resolved to a coarse location at the edge and is NOT forwarded to any
+  // third party and NOT stored. This is what the privacy policy (imprint.tsx)
+  // promises — keep them in sync.
+  const country = headerValue(req, 'x-vercel-ip-country');
+  const region = headerValue(req, 'x-vercel-ip-country-region');
+  const cityRaw = headerValue(req, 'x-vercel-ip-city'); // RFC3986-encoded
+  const city = cityRaw ? safeDecode(cityRaw) : null;
 
-  let ip =
-    req?.headers['x-forwarded-for'] ??
-    req?.headers['X-Forwarded-For'] ??
-    req?.headers['x-real-ip'] ??
-    req.socket.remoteAddress ??
-    '::1';
-
-  if (ip instanceof Array && ip.length > 0) {
-    ip = ip[0]!;
+  // Fail-open monitor: when the edge geo headers are absent we store no location
+  // rather than calling out to a third-party IP service. This warn log (no IP,
+  // no PII) is how we measure how often that happens — if it stays ~0 in
+  // production the Vercel-edge path is validated and no fallback is needed.
+  if (!country && process.env.NODE_ENV === 'production') {
+    logger.warn(
+      { component: 'getUserPayload' },
+      'geo headers absent — stored null location (no third-party fallback)',
+    );
   }
 
-  if (ip.includes(',') && ip instanceof String) {
-    ip = ip.split(',')[0]!;
-  }
-
-  if (ip !== '::1') {
-    try {
-      const geoResponse = await fetch(`http://ip-api.com/json/${ip as string}`);
-
-      if (!geoResponse.ok) {
-        throw new Error(`Geo API responded with status: ${geoResponse.status}`);
-      }
-
-      const geoData = (await geoResponse.json()) as {
-        countryCode: string;
-        region: string;
-        city: string;
-      };
-      console.log('geoData', geoData);
-      geo.country = geoData.countryCode;
-      geo.region = geoData.region;
-      geo.city = geoData.city;
-    } catch (error) {
-      // Geo fetch failure is non-critical, but we should track it
-      recordError(
-        error instanceof Error ? error : new Error('Failed to fetch geo data'),
-        {
-          component: 'getUserPayload',
-          action: 'fetchGeoData',
-          extra: {
-            ip: typeof ip === 'string' ? ip.substring(0, 20) : 'unknown',
-          },
-        },
-        'low',
-      );
-    }
-  }
+  /*
+   * FALLBACK DISABLED (2026-05-20). Geolocation previously resolved by sending
+   * the visitor's full IP to ip-api.com over plain HTTP — a third-country
+   * transfer of personal data, unencrypted in transit. Replaced by the Vercel
+   * edge headers above. Left here, commented out, until the "geo headers
+   * absent" warn log confirms the edge path covers production traffic. If a
+   * fallback is ever reintroduced it MUST use an HTTPS provider and be
+   * disclosed in the privacy policy as a processor + third-country transfer.
+   *
+   * let ip =
+   *   req?.headers['x-forwarded-for'] ??
+   *   req?.headers['x-real-ip'] ??
+   *   req.socket.remoteAddress ?? '::1';
+   * const geoResponse = await fetch(`https://<https-geo-provider>/json/${ip}`);
+   * const geoData = await geoResponse.json();
+   */
 
   return {
     browser: ua?.browser?.name ?? null,
     device: ua.isBot ? 'bot' : (ua?.device?.type ?? 'desktop'),
     os: ua?.os?.name ?? null,
-    city: geo.city ?? null,
-    country: geo.country ?? null,
-    region: geo.region ?? null,
+    city,
+    country,
+    region,
   };
 };
 

@@ -24,17 +24,21 @@ const Imprint: NextPage = () => {
         <div className="container max-w-[1200px] gap-12 px-4 pb-12 pt-8 md:flex">
           <div className="mb-20 md:mb-0 md:min-w-[250px]">
             <h2>Imprint</h2>
-            <h4>Service Provider</h4>
+            <h4>Operated by</h4>
             Johannes Krumm
             <br />
-            Based in Munich, Germany
+            Munich, Germany
             <br />
             <br />
-            <h4>Contact Information</h4>
-            For direct communication,
+            Free Planning Poker is a free, open-source, non-commercial project
+            run by a private individual.
             <br />
-            please visit our contact page <br />
-            and fill out the form provided.
+            <br />
+            <h4>Contact</h4>
+            For privacy reasons, I do not publish a private postal address or
+            email address here. Please use the contact form to reach me — it
+            goes straight to my inbox. I read every message and respond to all
+            genuine enquiries, including data-protection requests.
             <br />
             <br />
             <Link href="/contact">
@@ -46,149 +50,194 @@ const Imprint: NextPage = () => {
           <div>
             <h2>Privacy Policy</h2>
             <h4>Summary (TL;DR)</h4>
-            We are highly committed to protecting your privacy. We collect
-            anonymized website usage analytics to improve our services and
-            ensure compliance with the General Data Protection Regulation
-            (GDPR). We do not use cookies or store any personally identifiable
-            information (PII). Any data collected by us or third-party systems
-            is scrubbed, encrypted, and anonymized. Detailed policies are
-            provided below.
-            <br />
-            As an open-source project, we are transparent about our practices
-            and welcome any questions or concerns. Please use our contact form
-            to reach out. We are happy to provide further information.
-            <br />
-            <br />
-            <h4>Detailed Privacy Policy</h4>
-            We collect <strong>anonymized website usage analytics</strong> to
-            enhance our services and user experience, ensuring our full
-            compliance with the GDPR, without employing cookies or other
-            continuous tracking technologies.
-            <br />
-            The data we accumulate includes{' '}
-            <strong>generic device details</strong> (such as type, OS, browser),
-            approximate geolocation (incorporating country, city, region), and a
-            randomized unique session ID saved in your local storage. We use a
-            professional IP address API service (ip-api.com) to procure this
-            anonymized geolocation data. You may refer to{' '}
-            <a
-              href="https://ip-api.com/docs/legal"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              ip-api.com privacy policy
-            </a>
-            . This data acquisition service is entirely GDPR compliant, ensuring
-            the encryption of data in transit. Neither us nor ip-api.com process
-            or store any personally identifiable information or more specially
-            your IP address.
-            <br />
-            The <strong>unique session ID</strong> enables us to monitor your
-            page visits and certain activities on our site, such as your
-            entering a room and final vote, helping us to understand user
-            behaviors and preferences.
-            {/* eslint-disable-next-line react/no-unescaped-entities */}
-            This data collection operates under the 'legitimate interests'
-            lawful basis as per GDPR Article 6(1)(f). As we only deal with
-            anonymized data and perform no processing of personally identifiable
-            information, there is no need for prior consent. We maintain our
-            unwavering commitment to your privacy and strictly adhere to data
-            protection principles.
+            Free Planning Poker is built to be private by design.
+            <strong>
+              {' '}
+              No cookies. No third-party advertising or tracking.
+            </strong>{' '}
+            Your IP address is never sent to any third party and is never
+            stored. We run our own analytics and error monitoring on our own
+            servers in Germany — no Google Analytics, no external trackers, no
+            advertising networks. The little data we keep (coarse location,
+            browser type, anonymous usage) is tied only to a random ID generated
+            in your browser, never to your name, email, or IP address. Because
+            we set no non-essential cookies and load no third-party trackers,
+            you see no cookie banner.
             <br />
             <br />
-            Our service employs a custom-built, open-source{' '}
-            <strong>WebSocket server</strong> implemented using Bun and ElysiaJS
-            to enable real-time communication. This server, part of the
-            free-planning-poker.com project, is completely stateless and does
-            not track or store any user information. Its sole purpose is to
-            share the current state of voting among connected users. You can
-            view the code and contribute to its development on our{' '}
+            As an open-source project we are transparent about how this works.
+            The full source code is on{' '}
             <a
               href="https://github.com/jkrumm/free-planning-poker"
               target="_blank"
               rel="noopener noreferrer"
             >
-              GitHub repository
+              GitHub
             </a>
-            . It is running on a Hetzner VPS located in Nuremberg, Germany.
+            , and you are welcome to verify any of the claims below. If anything
+            is unclear, please reach out via the contact form.
             <br />
             <br />
-            We utilize a <strong>self-hosted OpenTelemetry stack</strong>{' '}
-            (ClickStack / HyperDX) for error tracking and distributed tracing to
-            improve our services. All telemetry data stays on our Hetzner VPS in
-            Nuremberg, Germany — no third-party processors are involved. Our
-            instrumentation does not send personally identifiable information:
-            request headers, IP addresses, and email addresses are excluded from
-            spans and log records to maintain our commitment to GDPR compliance.
+            <h4>Controller</h4>
+            The controller responsible for data processing on this website is
+            Johannes Krumm, Munich, Germany (see the Imprint). The fastest way
+            to contact me about privacy is the contact form.
             <br />
             <br />
-            Personal details offered through our <strong>
-              contact form
-            </strong>{' '}
-            (name and email), in agreement with GDPR definitions, are managed
-            with utmost confidentiality and used solely for responding to your
-            inquiries. We use resend.com as a third-party service to forward
-            these emails securely to our inbox. Resend.com is fully GDPR
-            compliant and does not store any personal data or the information
-            you entered into the contact form fields. You can read more about
-            their privacy practices here:{' '}
+            <h4>What we collect, and why</h4>
+            We process a deliberately small amount of data to understand how the
+            tool is used and to keep it working:
+            <br />
+            <br />
+            <strong>Usage analytics.</strong> For each visit we store generic
+            device details (device type, operating system, browser), a coarse
+            approximate location (country, region, and city), and a random,
+            anonymous ID that is generated in your browser and saved in your
+            local storage. Using that ID we record page views and certain
+            actions (for example entering a room or copying a room link) so we
+            can understand overall usage patterns. This ID is random and is not
+            linked to your name, email, or IP address.
+            <br />
+            <br />
+            <strong>Approximate location.</strong> The country, region, and city
+            are derived from Vercel edge headers at the moment your request
+            arrives. Your IP address is resolved to a coarse location at the
+            edge and is{' '}
+            <strong>
+              never forwarded to a third party and never stored by us
+            </strong>
+            . If the location cannot be determined, we simply store nothing for
+            that field — we do not fall back to any external IP lookup service.
+            <br />
+            <br />
+            <strong>Estimations (votes).</strong> When a voting round is
+            revealed, the individual estimations are saved linked to the random
+            anonymous ID and the room, together with a timestamp, so we can show
+            room history and aggregate statistics. These records are tied to the
+            anonymous ID only — your chosen username is never stored with them,
+            and the data does not identify you.
+            <br />
+            <br />
+            <strong>Contact form.</strong> If you use the contact form, we
+            process the email address you provide (and your name, if you choose
+            to add one) for the sole purpose of answering your message. This is
+            described under Recipients below.
+            <br />
+            <br />
+            <h4>Legal basis</h4>
+            Usage analytics and the operation of the service are based on our
+            legitimate interests in understanding and improving the tool and
+            keeping it secure and reliable (Art. 6(1)(f) GDPR). Because the data
+            is minimal and not directly identifying, this poses a low risk to
+            your privacy. Processing of contact-form data is based on taking
+            steps at your request and answering your enquiry (Art. 6(1)(b) and
+            (f) GDPR).
+            <br />
+            <br />
+            <h4>Cookies and storage on your device</h4>
+            We do not use cookies. We store a small amount of data in your
+            browser local storage: your chosen username and your interface
+            preferences (which are strictly necessary to provide the features
+            you request), and the random anonymous analytics ID described above.
+            We do not use any cross-site, fingerprinting, or advertising
+            technologies. Because we set no non-essential cookies and embed no
+            third-party trackers, no consent banner is required.
+            <br />
+            <br />
+            <h4>Recipients and processors</h4>
+            We keep the number of parties involved to a minimum:
+            <br />
+            <br />
+            <strong>Hosting (frontend / CDN):</strong> the website is served by
+            Vercel Inc. (USA). Vercel processes technical request data and
+            provides the edge geolocation described above, under a data
+            processing agreement and EU Standard Contractual Clauses.
+            <br />
+            <br />
+            <strong>Application servers and database:</strong> our real-time
+            WebSocket server, our database (MariaDB), and our telemetry stack
+            run on a Hetzner VPS located in Nuremberg, Germany. The WebSocket
+            server is stateless and exists only to share the current voting
+            state between connected participants; all transfers are encrypted.
+            <br />
+            <br />
+            <strong>Error monitoring and tracing:</strong> we use a self-hosted
+            OpenTelemetry stack (ClickStack / HyperDX) on the same German VPS —
+            no third-party observability provider is involved. Our
+            instrumentation is configured to exclude personal data such as IP
+            addresses, request headers, and email addresses from spans and log
+            records.
+            <br />
+            <br />
+            <strong>Contact email delivery:</strong> messages from the contact
+            form are first received by our own self-hosted email service in
+            Germany and then delivered to our inbox through Resend (Resend,
+            Inc., USA) acting as a processor under a data processing agreement
+            and EU Standard Contractual Clauses. We do not store contact-form
+            messages in our application database and we do not use them for
+            marketing.{' '}
             <a
               href="https://resend.com/legal/privacy-policy"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Resend.com Privacy Policy
+              Resend privacy policy
             </a>
-            . We will seek your consent prior to using this data for any
-            unrelated purpose.
+            .
             <br />
             <br />
-            Our website runs on a proprietary <strong>database</strong> system
-            hosted on a MariaDB in a Hetzner VPS located in Nuremberg, Germany.
-            To preserve data integrity, all transfers are encrypted. But the use
-            of the database is confined to storing the anonymized website usage
-            analytics and has no connection to specific usernames or individual
-            votes. Whatever information collected in no way contributes to
-            individual profiles.
+            <h4>International transfers</h4>
+            Most processing happens in Germany. Where a processor is located in
+            the USA (Vercel for hosting, Resend for contact email), the transfer
+            is covered by a data processing agreement and EU Standard
+            Contractual Clauses. We do not transfer your IP address abroad for
+            geolocation.
             <br />
             <br />
-            In our service, <strong>usernames</strong> are entirely fictional.
-            They are neither stored nor connected to the website usage
-            analytics. While these names and corresponding votes are accessible
-            upon entry to the room, they are not identifiable. We insist on the
-            avoidance of identifiable information as usernames to ensure GDPR
-            compliance.
+            <h4>Data retention</h4>
+            The WebSocket server is stateless and keeps no data beyond the live
+            session. Anonymous usage analytics and estimation records are kept
+            to observe long-term trends; because they are tied only to a random
+            ID and contain no directly identifying information, we do not
+            routinely delete them. We will delete data on request where feasible
+            (see your rights below). Contact-form messages are kept only as long
+            as needed to handle your enquiry.
             <br />
             <br />
-            <h2>Data Retention</h2>
-            Our Bun WebSocket server is stateless, meaning it does not store any
-            session data. All communications are ephemeral, ensuring that no
-            user information persists beyond the immediate session. Our
-            analytics are fully GDPR compliant and are anonymized in such a
-            {/* eslint-disable-next-line react/no-unescaped-entities */}
-            way that they cannot be linked back to any individual's identity, IP
-            address, email, or username. Therefore, we typically do not aim to
-            delete the analytics data since it is already anonymized and poses
-            no risk to user privacy.
+            <h4>Your rights</h4>
+            Under the GDPR you have the right to access your data, to have it
+            rectified or erased, to restrict or object to its processing, and to
+            data portability, as well as the right to withdraw any consent you
+            have given. Because we do not store directly identifying
+            information, we may be unable to locate data about a specific person
+            without additional information from you; we will nonetheless act on
+            genuine requests, including deleting anonymous data tied to your
+            local storage ID where you can identify it. To exercise any of these
+            rights, please use the contact form.
             <br />
             <br />
-            <h2>User Rights Under GDPR</h2>
-            You have the right to access, rectify, or delete any data we hold
-            about you. Since we do not store any personally identifiable
-            information, we or third-party tools do not hold any data in this
-            regard. However, we are open to deleting even the anonymized data if
-            requested. Please reach out to us using our contact form for such
-            requests.
+            <h4>Right to lodge a complaint</h4>
+            You also have the right to lodge a complaint with a data protection
+            supervisory authority. The authority responsible for us is the
+            Bavarian State Office for Data Protection Supervision (Bayerisches
+            Landesamt für Datenschutzaufsicht, BayLDA), Ansbach, Germany —{' '}
+            <a
+              href="https://www.lda.bayern.de"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              www.lda.bayern.de
+            </a>
+            . You may also contact the supervisory authority of your habitual
+            residence.
             <br />
             <br />
             <h2 id="license">Project License</h2>
             The project is licensed under the GNU Affero General Public License
-            v3.0 (AGPLv3). This license ensures that derivative work will be
-            released under the same license terms, promoting open source sharing
-            and improvements. Users can use, modify, and distribute this
-            software and its source code, provided they adhere to the license
-            terms. You can review the full license terms by clicking the link
-            below.
+            v3.0 (AGPLv3). This license ensures that derivative work is released
+            under the same license terms, promoting open-source sharing and
+            improvement. You can use, modify, and distribute this software and
+            its source code provided you adhere to the license terms.
             <br />
             <br />
             <a
@@ -203,20 +252,16 @@ const Imprint: NextPage = () => {
             <br />
             <br />
             <h2>Donations</h2>
-            The PayPal link offered for contributions is solely an option for
-            those who voluntarily choose to financially support the continued
-            upkeep and development of this tool. Any funds received are
-            acknowledged not as formal, tax-deductible donations, or as a
-            commercial transaction involving an exchange of goods or services.
-            They are considered as supportive contributions aiding in this{' '}
-            {/* eslint-disable-next-line react/no-unescaped-entities */}
-            tool's further development. As such, these arrangements are not
-            governed by German Civil Code (BGB) or Consumer Rights Directive{' '}
-            {/* eslint-disable-next-line react/no-unescaped-entities */}
-            (2011/83/EU). The use of the term "donation" herein is a common
-            terminology in online platforms, and it is important to note its
-            context is not linked with the applicable laws and regulations of
-            formal, registered charity donations.
+            The donation link is purely an option for those who voluntarily
+            choose to financially support the continued upkeep and development
+            of this tool. Any funds received are not formal, tax-deductible
+            donations, nor a commercial transaction involving an exchange of
+            goods or services. They are supportive contributions toward the
+            further development of the tool. As such, these arrangements are not
+            governed by the German Civil Code (BGB) or the Consumer Rights
+            Directive (2011/83/EU). The use of the term donation here is common
+            terminology on online platforms and is not linked to the laws and
+            regulations governing formal, registered charity donations.
             <br />
             <br />
             <a
@@ -228,6 +273,9 @@ const Imprint: NextPage = () => {
                 Donate
               </Button>
             </a>
+            <br />
+            <br />
+            <small>Last updated: 20 May 2026</small>
           </div>
         </div>
       </main>
