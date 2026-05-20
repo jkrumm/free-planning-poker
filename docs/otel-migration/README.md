@@ -17,6 +17,7 @@ Migration plan + supporting research for replacing Sentry with self-hosted OpenT
 | [02-target-stack.md](02-target-stack.md) | VPS ClickStack/HyperDX specifics: endpoints, ports, auth, 1Password paths. |
 | [03-argo-reference.md](03-argo-reference.md) | Argo's pure-OTEL implementation. Template for fpp-server (same stack). |
 | [04-research.md](04-research.md) | Latest OTEL/HyperDX state. Sentry→OTEL semantic mappings. Dual-run strategy. Versions pinned. |
+| [05-observability-v2.md](05-observability-v2.md) | **Next phase.** Metrics + log-based events + typed taxonomy. Makes the multiplayer room measurable. Supersedes the "metrics out of scope" note below. |
 
 ---
 
@@ -34,7 +35,7 @@ Migration plan + supporting research for replacing Sentry with self-hosted OpenT
 
 - **Umami web analytics** is a separate effort. Different tool (product analytics, not observability). Will be self-hosted on the VPS later. Not in this migration.
 - **Custom dashboards** beyond one "errors per service" view — see PRD §2.
-- **Metrics export.** Traces + logs only for v1.
+- **Metrics export.** Out of scope for the *migration* (v1). Now specced as the next phase — see [05-observability-v2.md](05-observability-v2.md).
 
 ---
 
