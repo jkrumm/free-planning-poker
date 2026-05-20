@@ -148,7 +148,7 @@ export const roomRouter = createTRPCRouter({
 
         if (!validateNanoId(userId)) {
           userId = nanoid();
-          const userPayload = await getUserPayload(req);
+          const userPayload = getUserPayload(req);
           await db
             .insert(users)
             .values({

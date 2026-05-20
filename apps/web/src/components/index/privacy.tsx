@@ -28,8 +28,8 @@ export const Privacy = () => {
         Protecting Your Privacy
       </Title>
       <Title order={3} className="mt-5 font-normal opacity-70">
-        Our policies are clear: no personal data stored, no cookies used, fully
-        GDPR compliant.
+        Our approach is clear: no cookies, no third-party tracking, your IP is
+        never stored — built around GDPR principles.
       </Title>
       <Group justify="center" className="mt-7">
         <Link href={'/imprint'}>
@@ -56,7 +56,7 @@ export const Privacy = () => {
         {[
           'No cookies',
           'GDPR Compliant',
-          'No Personal Data',
+          'No IP Stored',
           'Anonymized Analytics',
           'Open Source',
         ].map((feature, index) => (
