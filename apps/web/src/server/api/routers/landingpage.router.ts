@@ -3,7 +3,7 @@ import { count } from 'drizzle-orm';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 import db from 'fpp/server/db/db';
@@ -25,8 +25,8 @@ export const landingpageRouter = createTRPCRouter({
         user_count: userResult[0]?.count ?? FALLBACK_USER_COUNT,
       };
     } catch (error) {
-      // captureError already logs to console in development mode
-      captureError(
+      // recordError already logs to console in development mode
+      recordError(
         error instanceof Error
           ? error
           : new Error('Error fetching landing page analytics'),

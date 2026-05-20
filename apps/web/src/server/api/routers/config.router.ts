@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { createTRPCRouter, publicProcedure } from 'fpp/server/api/trpc';
 
@@ -55,8 +55,8 @@ export const configRouter = createTRPCRouter({
           });
         })
         .catch((e) => {
-          // captureError already logs to console in development mode
-          captureError(
+          // recordError already logs to console in development mode
+          recordError(
             e instanceof Error ? e : new Error('Failed to fetch latest tag'),
             {
               component: 'configRouter',

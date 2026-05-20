@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { type Action } from '@fpp/shared';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -36,12 +36,6 @@ export const usePresenceTracking = ({
 
       // Delay the presence update slightly to avoid race conditions during navigation
       presenceUpdateTimeoutRef.current = setTimeout(() => {
-        addBreadcrumb('Updating user presence', 'presence', {
-          isPresent,
-          userId,
-          roomId,
-        });
-
         triggerAction({
           action: 'setPresence',
           roomId,
@@ -50,7 +44,7 @@ export const usePresenceTracking = ({
         });
       }, 100); // Small delay to let WebSocket connection stabilize
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to update presence'),
         {
           component: 'usePresenceTracking',
@@ -70,10 +64,6 @@ export const usePresenceTracking = ({
     const handleVisibilityChange = () => {
       try {
         const isVisible = !document.hidden;
-        addBreadcrumb('Visibility changed', 'presence', {
-          isVisible,
-          hidden: document.hidden,
-        });
 
         updatePresence(isVisible);
 
@@ -90,7 +80,7 @@ export const usePresenceTracking = ({
               // Reset the pong timer since we're active again
               setLastPongReceived(Date.now());
             } catch (error) {
-              captureError(
+              recordError(
                 error instanceof Error
                   ? error
                   : new Error('Failed to send visibility heartbeat'),
@@ -104,7 +94,7 @@ export const usePresenceTracking = ({
           }, 100);
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to handle visibility change'),
@@ -122,11 +112,10 @@ export const usePresenceTracking = ({
 
     const handleFocus = () => {
       try {
-        addBreadcrumb('Window focused - user is active', 'presence');
         updatePresence(true);
         sendHeartbeat();
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error ? error : new Error('Failed to handle focus'),
           {
             component: 'usePresenceTracking',
@@ -139,10 +128,9 @@ export const usePresenceTracking = ({
 
     const handleBlur = () => {
       try {
-        addBreadcrumb('Window blurred - user is away', 'presence');
         updatePresence(false);
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error ? error : new Error('Failed to handle blur'),
           {
             component: 'usePresenceTracking',
@@ -156,10 +144,9 @@ export const usePresenceTracking = ({
     // Network change detection
     const handleOnline = () => {
       try {
-        addBreadcrumb('Network came online - sending heartbeat', 'presence');
         sendHeartbeat();
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error ? error : new Error('Failed to handle online'),
           {
             component: 'usePresenceTracking',
@@ -180,12 +167,8 @@ export const usePresenceTracking = ({
       window.addEventListener('focus', handleFocus);
       window.addEventListener('blur', handleBlur);
       window.addEventListener('online', handleOnline);
-
-      addBreadcrumb('Presence tracking initialized', 'presence', {
-        isCurrentlyActive,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize presence tracking'),
@@ -216,7 +199,7 @@ export const usePresenceTracking = ({
           clearTimeout(presenceUpdateTimeoutRef.current);
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to cleanup presence tracking'),

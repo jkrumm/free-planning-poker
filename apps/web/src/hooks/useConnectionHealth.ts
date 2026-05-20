@@ -2,10 +2,11 @@ import { useCallback, useEffect, useRef } from 'react';
 import { ReadyState } from 'react-use-websocket';
 
 import type { HeartbeatAction } from '@fpp/shared';
+import { EVENT } from '@fpp/shared/telemetry';
 
 import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError, recordEvent } from 'fpp/utils/app-error';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -39,10 +40,6 @@ export const useConnectionHealth = ({
 
     if (!wasVisible && isTabVisible.current) {
       // Tab became visible again - reset warnings and check connection
-      addBreadcrumb(
-        'Tab became visible - resetting connection health state',
-        'websocket',
-      );
       warningIssued.current = false;
       recoveryAttempts.current = 0;
 
@@ -69,11 +66,6 @@ export const useConnectionHealth = ({
 
     recoveryAttempts.current++;
     lastRecoveryAttempt.current = now;
-
-    addBreadcrumb('Attempting connection recovery', 'websocket', {
-      attempt: recoveryAttempts.current,
-      maxAttempts: 2, // Reduced to 2 attempts
-    });
 
     // Send heartbeat immediately and one more after 2 seconds
     sendMessage(
@@ -135,13 +127,6 @@ export const useConnectionHealth = ({
               timeSinceLastPong > WEBSOCKET_CONSTANTS.PONG_TIMEOUT_WARNING &&
               !warningIssued.current
             ) {
-              addBreadcrumb('Connection health warning', 'websocket', {
-                timeSinceLastPong,
-                userId,
-                roomId,
-                isTabVisible: isTabVisible.current,
-              });
-
               warningIssued.current = true;
               sendMessage(
                 JSON.stringify({
@@ -173,35 +158,19 @@ export const useConnectionHealth = ({
               // Skip error capture and reload if user is closing the tab
               // This prevents false positives when tab closure causes connection timeout
               if (isUnloadingRef.current) {
-                addBreadcrumb(
-                  'Connection health critical during page unload - skipping',
-                  'websocket',
-                  { timeSinceLastPong },
-                );
                 return;
               }
 
-              addBreadcrumb(
-                'Connection health critical - forcing reload',
-                'websocket',
-                {
-                  timeSinceLastPong,
-                  timeSinceLastReload,
-                  reloadAttempts: reloadAttempts.current,
-                  recoveryAttempts: recoveryAttempts.current,
-                  reason:
-                    recoveryAttempts.current >= 2
-                      ? 'recovery_failed'
-                      : 'timeout_exceeded',
-                },
-              );
+              // The client gave up on the live socket and is force-reloading
+              // itself — a recovery action the authoritative server can't see.
+              recordEvent(EVENT.WS_RECOVERY_RELOAD);
 
               reloadAttempts.current++;
               lastReloadTime.current = Date.now();
               window.location.reload();
             }
           } catch (error) {
-            captureError(
+            recordError(
               error instanceof Error
                 ? error
                 : new Error('Failed to check connection health'),
@@ -223,8 +192,6 @@ export const useConnectionHealth = ({
           checkConnectionHealth,
           WEBSOCKET_CONSTANTS.CONNECTION_HEALTH_CHECK,
         );
-
-        addBreadcrumb('Connection health monitoring started', 'websocket');
       }
 
       // Reset counters when connection is established
@@ -234,7 +201,7 @@ export const useConnectionHealth = ({
         recoveryAttempts.current = 0;
       }
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize connection health monitoring'),
@@ -253,10 +220,9 @@ export const useConnectionHealth = ({
       try {
         if (connectionHealthRef.current) {
           clearInterval(connectionHealthRef.current);
-          addBreadcrumb('Connection health monitoring stopped', 'websocket');
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to cleanup connection health monitoring'),

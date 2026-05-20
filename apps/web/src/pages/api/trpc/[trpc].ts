@@ -1,7 +1,7 @@
 /**
  * tRPC API Handler for Next.js Pages Router.
  *
- * Errors flow through captureError → OTEL log records correlated by trace_id
+ * Errors flow through recordError → OTEL log records correlated by trace_id
  * with the active tRPC span. See docs/otel-migration/.
  *
  * @see https://trpc.io/docs/v11/server/adapters/nextjs
@@ -11,7 +11,7 @@ import { type NextApiRequest, type NextApiResponse } from 'next';
 import { type TRPCError } from '@trpc/server';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { logger } from 'fpp/utils/logger';
 
 import { CustomTRPCError } from 'fpp/server/api/custom-error';
@@ -29,7 +29,7 @@ export const config = {
 
 /**
  * tRPC error handler. CustomTRPCError carries metadata (component, action,
- * extra, severity) from routers. captureError records the exception on the
+ * extra, severity) from routers. recordError records the exception on the
  * active span and emits an OTEL log record with the same trace_id.
  */
 const trpcErrorHandler = ({
@@ -43,7 +43,7 @@ const trpcErrorHandler = ({
   path: string | undefined;
   input: unknown;
 }) => {
-  // NOTE: strict monitoring — all errors flow through captureError. Switch to
+  // NOTE: strict monitoring — all errors flow through recordError. Switch to
   // isBusinessLogicError(error) gating once we've validated the classification.
 
   logger.error(
@@ -64,12 +64,12 @@ const trpcErrorHandler = ({
   // Check if error has custom metadata from router
   if (error instanceof CustomTRPCError) {
     // Use metadata provided by router (component, action, extra, severity)
-    captureError(error, error.metadata, error.metadata.severity ?? 'high');
+    recordError(error, error.metadata, error.metadata.severity ?? 'high');
   } else {
     // Fallback for errors without metadata (uncaught system errors)
     const inputObj = input != null && typeof input === 'object' ? input : {};
 
-    captureError(
+    recordError(
       error,
       {
         component: 'trpcMiddleware',

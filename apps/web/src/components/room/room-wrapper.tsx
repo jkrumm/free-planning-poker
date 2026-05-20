@@ -10,11 +10,7 @@ import { notifications } from '@mantine/notifications';
 import { RouteType } from '@fpp/db';
 
 import { api } from 'fpp/utils/api';
-import {
-  addBreadcrumb,
-  captureError,
-  setUserContext,
-} from 'fpp/utils/app-error';
+import { recordError, setUserContext } from 'fpp/utils/app-error';
 import { initializeAudioContext } from 'fpp/utils/room.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
@@ -54,7 +50,6 @@ const RoomWrapper = () => {
       }
 
       // Reset retry counter on success
-      const hadRetries = retryCountRef.current > 0;
       retryCountRef.current = 0;
 
       setUserIdLocalStorage(userId);
@@ -79,31 +74,13 @@ const RoomWrapper = () => {
         setUserIdLocalStorage,
         setUserIdRoomState,
       });
-
-      addBreadcrumb('Successfully joined room', 'room', {
-        roomId,
-        roomName,
-        userId,
-        retriesNeeded: hadRetries,
-      });
     },
     onError: (error) => {
       const currentRetry = retryCountRef.current;
 
-      addBreadcrumb('joinRoom mutation failed', 'mutation', {
-        retryAttempt: currentRetry,
-        maxRetries,
-        errorMessage: error.message,
-      });
-
       if (currentRetry < maxRetries) {
         const delay = getRetryDelay(currentRetry);
         retryCountRef.current += 1;
-
-        addBreadcrumb('Scheduling joinRoom retry', 'mutation', {
-          nextRetryAttempt: retryCountRef.current,
-          delayMs: delay,
-        });
 
         // Retry after exponential backoff
         retryTimerRef.current = setTimeout(() => {
@@ -114,7 +91,7 @@ const RoomWrapper = () => {
         }, delay);
       } else {
         // Final failure - capture error and show notification
-        captureError(
+        recordError(
           error,
           {
             component: 'RoomWrapper',
@@ -155,8 +132,6 @@ const RoomWrapper = () => {
 
   // Handle invalid username from WebSocket (code 1008)
   const handleInvalidUsername = React.useCallback(() => {
-    addBreadcrumb('Invalid username detected - clearing localStorage', 'auth');
-
     // Clear invalid username from localStorage
     clearUsername();
 
@@ -185,11 +160,9 @@ const RoomWrapper = () => {
       document.documentElement.classList.add('max-h-screen');
       document.documentElement.classList.add('scrollbar-hide');
 
-      addBreadcrumb('Room wrapper mounted', 'component');
-
       // Your existing useEffect logic here...
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize room wrapper'),
@@ -213,7 +186,7 @@ const RoomWrapper = () => {
         document.documentElement.classList.remove('max-h-screen');
         document.documentElement.classList.remove('scrollbar-hide');
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to cleanup room wrapper'),
@@ -240,12 +213,6 @@ const RoomWrapper = () => {
         correctedRoom.length < 3 ||
         correctedRoom.length > 15
       ) {
-        addBreadcrumb('No room specified', 'room', {
-          roomId,
-          roomName,
-          userId,
-        });
-
         willLeave = true;
         setRoomId(null);
         setRoomName(null);
@@ -261,12 +228,6 @@ const RoomWrapper = () => {
       }
 
       if (queryRoom !== correctedRoom) {
-        addBreadcrumb('Needs to correct room URL', 'room', {
-          roomId,
-          roomName,
-          userId,
-        });
-
         willLeave = true;
         setRoomName(correctedRoom);
         setRecentRoom(correctedRoom);

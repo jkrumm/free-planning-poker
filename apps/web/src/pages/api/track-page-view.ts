@@ -14,7 +14,7 @@ import {
   MethodNotAllowedError,
 } from 'fpp/constants/error.constant';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
@@ -71,7 +71,7 @@ const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(200).json({ userId });
   } catch (error) {
     // Capture error with context
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error('Failed to track page view'),
       {
         component: 'track-page-view',
@@ -140,7 +140,7 @@ export const getUserPayload = async (req: NextApiRequest) => {
       geo.city = geoData.city;
     } catch (error) {
       // Geo fetch failure is non-critical, but we should track it
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to fetch geo data'),
         {
           component: 'getUserPayload',

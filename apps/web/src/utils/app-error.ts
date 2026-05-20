@@ -1,5 +1,10 @@
 import { TRPCClientError, type TRPCClientErrorLike } from '@trpc/client';
 
+import {
+  ATTR,
+  type EventName,
+  type TelemetryAttributes,
+} from '@fpp/shared/telemetry';
 import HyperDX from '@hyperdx/browser';
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { SeverityNumber, logs } from '@opentelemetry/api-logs';
@@ -86,9 +91,9 @@ const flattenExtra = (
 // Browser-only mutable user context. HyperDX.setGlobalAttributes attaches
 // these at the RUM-session layer (for the UI's session view), not the OTLP
 // exporter — so spans/logs leaving the browser don't carry them by default.
-// We mirror the same values here and auto-merge into every captureError /
-// captureMessage / addBreadcrumb call so the data is queryable in
-// ClickHouse without callers having to thread userId/roomId everywhere.
+// We mirror the same values here and auto-merge into every recordError /
+// recordEvent call so the data is queryable in ClickHouse without callers
+// having to thread userId/roomId everywhere.
 let userContext: {
   userId?: string;
   roomId?: string;
@@ -97,13 +102,13 @@ let userContext: {
 
 const userContextAttrs = (): Record<string, string> => {
   const out: Record<string, string> = {};
-  if (userContext.userId) out['fpp.userId'] = userContext.userId;
-  if (userContext.roomId) out['fpp.roomId'] = userContext.roomId;
-  if (userContext.username) out['fpp.username'] = userContext.username;
+  if (userContext.userId) out[ATTR.USER_ID] = userContext.userId;
+  if (userContext.roomId) out[ATTR.ROOM_ID] = userContext.roomId;
+  if (userContext.username) out[ATTR.USER_NAME] = userContext.username;
   return out;
 };
 
-export const captureError = (
+export const recordError = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: Error | string | TRPCClientErrorLike<any>,
   context: ErrorContext = {},
@@ -130,6 +135,8 @@ export const captureError = (
   // Attach to active span (server-side: tRPC span, browser: HyperDX-managed)
   const span = trace.getActiveSpan();
   if (span) {
+    // TODO(otel): migrate to a log-based exception event per OTEP 4430 once the
+    // converting processor is wired into SDK init; recordException is shimmed.
     span.recordException(errorObj);
     span.setStatus({ code: SpanStatusCode.ERROR, message: errorObj.message });
     Object.entries(flatExtra).forEach(([k, v]) => span.setAttribute(k, v));
@@ -159,42 +166,25 @@ export const captureError = (
   });
 };
 
-export const captureMessage = (
-  message: string,
-  context: ErrorContext = {},
-  level: 'debug' | 'info' | 'warning' | 'error' = 'info',
+/**
+ * Record a client-only domain event as an OTEL log-based event: an INFO log
+ * record carrying `event.name` + the current user/room context + typed,
+ * registry-keyed attributes, correlated to the active trace. The browser only
+ * emits the few W events the authoritative server can't observe (spec §7);
+ * everything domain-level is emitted server-side. Never use span.addEvent
+ * (OTEP 4430).
+ */
+export const recordEvent = (
+  name: EventName,
+  attributes: TelemetryAttributes = {},
 ): void => {
-  const severity: Severity =
-    level === 'error' ? 'high' : level === 'warning' ? 'medium' : 'low';
-  const logData = {
-    component: context.component,
-    action: context.action,
-    ...context.extra,
-  };
-  switch (level) {
-    case 'debug':
-      logger.debug(logData, message);
-      break;
-    case 'info':
-      logger.info(logData, message);
-      break;
-    case 'warning':
-      logger.warn(logData, message);
-      break;
-    case 'error':
-      logger.error(logData, message);
-      break;
-  }
   getOtelLogger().emit({
-    severityNumber: SEVERITY_NUMBER[severity],
-    severityText: SEVERITY_TEXT[severity],
-    body: message,
+    severityNumber: SeverityNumber.INFO,
+    severityText: 'INFO',
     attributes: {
-      'fpp.severity': severity,
-      ...(context.component && { 'fpp.component': context.component }),
-      ...(context.action && { 'fpp.action': context.action }),
+      'event.name': name,
       ...userContextAttrs(),
-      ...flattenExtra(context.extra),
+      ...attributes,
     },
   });
 };
@@ -215,30 +205,11 @@ export const setUserContext = (ctx: {
     ...(ctx.roomId && { roomId: String(ctx.roomId) }),
     ...(ctx.username && { username: ctx.username }),
   });
-  // Mirror into the wrapper's own state so captureError / addBreadcrumb
+  // Mirror into the wrapper's own state so recordError / recordEvent
   // pick it up automatically.
   userContext = {
     ...(ctx.userId && { userId: ctx.userId }),
     ...(ctx.roomId && { roomId: String(ctx.roomId) }),
     ...(ctx.username && { username: ctx.username }),
   };
-};
-
-export const addBreadcrumb = (
-  message: string,
-  category = 'user',
-  data?: Record<string, string | number | null | boolean>,
-): void => {
-  // Breadcrumbs become INFO-level log records correlated to the active trace.
-  getOtelLogger().emit({
-    severityNumber: SeverityNumber.INFO,
-    severityText: 'INFO',
-    body: message,
-    attributes: {
-      'fpp.breadcrumb': 'true',
-      'fpp.category': category,
-      ...userContextAttrs(),
-      ...flattenExtra(data),
-    },
-  });
 };

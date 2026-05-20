@@ -29,7 +29,7 @@ import superjson from 'superjson';
 import { logMsg } from 'fpp/constants/logging.constant';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { appRouter } from 'fpp/server/api/root';
 import { type Todo } from 'fpp/server/api/routers/roadmap.router';
@@ -58,7 +58,7 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
     };
   } catch (error) {
     // Log the error but still return props to prevent build failure
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to prefetch roadmap data'),
@@ -68,7 +68,7 @@ export const getStaticProps = async (context: CreateNextContextOptions) => {
       },
       'high',
     );
-    // captureError already logs to console in development mode
+    // recordError already logs to console in development mode
 
     return {
       props: { trpcState: {} },
@@ -95,7 +95,6 @@ const Roadmap = () => {
 
   // Handle loading state
   if (isLoading) {
-    addBreadcrumb('Roadmap data loading', 'page');
     return (
       <>
         <Meta title="Roadmap" />
@@ -115,7 +114,7 @@ const Roadmap = () => {
   if (isError || !roadmap) {
     const errorMessage = error?.message ?? logMsg.SSG_FAILED;
 
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error(errorMessage),
       {
         component: 'Roadmap',
@@ -159,12 +158,6 @@ const Roadmap = () => {
       </>
     );
   }
-
-  addBreadcrumb('Roadmap data loaded successfully', 'page', {
-    todoCount: roadmap.todo.length,
-    inProgressCount: roadmap.inProgress.length,
-    doneCount: roadmap.done.length,
-  });
 
   return (
     <>
@@ -249,12 +242,8 @@ const RoadmapCard = ({ todo }: { todo: Todo }) => {
   const handleToggle = () => {
     try {
       toggle();
-      addBreadcrumb('Roadmap card toggled', 'interaction', {
-        title: title.substring(0, 30),
-        opened: !opened,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to toggle roadmap card'),

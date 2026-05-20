@@ -21,7 +21,7 @@ import { RouteType } from '@fpp/db';
 // AG Charts module registration (only needed for analytics page)
 import 'fpp/utils/ag-charts-init';
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useTrackPageView } from 'fpp/hooks/use-tracking.hook';
 
@@ -76,7 +76,7 @@ function useAnalyticsQuery() {
 
   React.useEffect(() => {
     if (query.error) {
-      captureError(
+      recordError(
         query.error instanceof Error
           ? query.error
           : new Error('Failed to fetch analytics data'),
@@ -104,7 +104,7 @@ function useServerAnalyticsQuery() {
 
   React.useEffect(() => {
     if (query.error) {
-      captureError(
+      recordError(
         query.error instanceof Error
           ? query.error
           : new Error('Failed to fetch server analytics data'),
@@ -246,7 +246,6 @@ const Analytics = () => {
   } = useServerAnalyticsQuery();
 
   const refetch = () => {
-    addBreadcrumb('Analytics manual refresh triggered', 'interaction');
     void refetchAnalytics();
     void refetchServerAnalytics();
   };
@@ -291,24 +290,14 @@ const Analytics = () => {
   // Handle toggle functions with error handling
   const handleHistoricalTableToggle = () => {
     setHistoricalTableOpen(!historicalTableOpen);
-    addBreadcrumb('Historical table view toggled', 'interaction', {
-      newState: !historicalTableOpen,
-    });
   };
 
   const handleReduceReoccurringToggle = () => {
     setReduceReoccurring(!reduceReoccurring);
-    addBreadcrumb('Reoccurring data reduction toggled', 'interaction', {
-      newState: !reduceReoccurring,
-    });
   };
 
   // Initialize tracking
   if (!hasInitialized) {
-    addBreadcrumb('Analytics page initialized', 'page', {
-      hasAnalytics: !!analytics,
-      hasServerAnalytics: !!serverAnalytics,
-    });
     setHasInitialized(true);
   }
 
@@ -330,7 +319,7 @@ const Analytics = () => {
     serverAnalyticsIsError ||
     !serverAnalytics
   ) {
-    captureError(
+    recordError(
       'Critical analytics data missing',
       {
         component: 'Analytics',

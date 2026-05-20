@@ -5,7 +5,7 @@ import { type HeartbeatAction } from '@fpp/shared';
 
 import { WEBSOCKET_CONSTANTS } from 'fpp/constants/websocket.constants';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useRoomStore } from 'fpp/store/room.store';
 
@@ -34,13 +34,9 @@ export const useHeartbeat = ({
         } satisfies HeartbeatAction);
 
         sendMessage(heartbeatMessage);
-        addBreadcrumb('Manual heartbeat sent', 'websocket', {
-          userId,
-          roomId,
-        });
       }
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to send heartbeat'),
         {
           component: 'useHeartbeat',
@@ -69,7 +65,7 @@ export const useHeartbeat = ({
         }, WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL);
       }
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to schedule heartbeat'),
@@ -95,8 +91,6 @@ export const useHeartbeat = ({
         sendHeartbeat();
         // Start the heartbeat schedule
         scheduleNextHeartbeat();
-
-        addBreadcrumb('Heartbeat system started', 'websocket');
       } else {
         // Clear heartbeat when not connected
         if (heartbeatTimeoutRef.current) {
@@ -104,7 +98,7 @@ export const useHeartbeat = ({
         }
       }
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to manage heartbeat system'),
@@ -125,7 +119,7 @@ export const useHeartbeat = ({
           clearTimeout(heartbeatTimeoutRef.current);
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to cleanup heartbeat system'),

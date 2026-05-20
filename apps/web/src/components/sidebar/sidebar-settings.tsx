@@ -16,7 +16,7 @@ import { validateUsername } from '@fpp/shared';
 import { IconBell, IconCards, IconVolume } from '@tabler/icons-react';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
@@ -278,12 +278,6 @@ const RoomSettings = ({
         form.setFieldValue('roomName', data.roomName);
         form.setFieldError('roomName', null);
 
-        addBreadcrumb('Room name updated successfully', 'room', {
-          newRoomName: data.roomName,
-          userId,
-          roomId,
-        });
-
         if (userId && roomId && data.roomName) {
           triggerAction({
             action: 'changeRoomName',
@@ -293,7 +287,7 @@ const RoomSettings = ({
           });
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to handle room name update success'),
@@ -307,7 +301,7 @@ const RoomSettings = ({
       }
     },
     onError: (error) => {
-      captureError(
+      recordError(
         error,
         {
           component: 'SidebarSettings',
@@ -370,18 +364,13 @@ const RoomSettings = ({
         .replace(/[^A-Za-z0-9]/g, '')
         .toLowerCase();
 
-      addBreadcrumb('Attempting to update room name', 'room', {
-        oldRoomName: roomName,
-        newRoomName: cleanRoomName,
-      });
-
       updateRoomNameMutation.mutate({
         userId,
         roomId,
         newRoomName: cleanRoomName,
       });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to submit room name update'),

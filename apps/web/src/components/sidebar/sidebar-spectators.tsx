@@ -6,7 +6,7 @@ import type { Action } from '@fpp/shared';
 import { type User } from '@fpp/shared';
 import { IconEye } from '@tabler/icons-react';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
@@ -22,11 +22,6 @@ const SidebarSpectators = ({
   try {
     const users = useRoomStore((store) => store.users);
     const spectators = users.filter((user) => user.isSpectator);
-
-    addBreadcrumb('Spectators sidebar loaded', 'spectators', {
-      spectatorCount: spectators.length,
-      totalUsers: users.length,
-    });
 
     return (
       <SidebarContent
@@ -44,7 +39,7 @@ const SidebarSpectators = ({
       />
     );
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to load spectators sidebar'),
@@ -69,7 +64,6 @@ const SpectatorsList = ({
   // Try/catch used for breadcrumb logging, not JSX error handling
   try {
     if (spectators.length === 0) {
-      addBreadcrumb('No spectators in room', 'spectators');
       return (
         <div className="w-full text-center py-4">
           <Text size="sm" c="dimmed">
@@ -93,7 +87,7 @@ const SpectatorsList = ({
       </div>
     );
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to render spectators list'),
@@ -127,7 +121,7 @@ const SpectatorCard = ({
   const roomId = useLocalstorageStore((state) => state.roomId);
 
   if (!userId || !roomId) {
-    captureError(
+    recordError(
       'Missing required data for spectator card',
       {
         component: 'SpectatorCard',

@@ -7,7 +7,7 @@ import {
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,8 +29,8 @@ export default async function handler(
     console.log('Daily analytics invoked ', response.status);
     return res.status(200).json({ message: 'Daily analytics invoked' });
   } catch (error) {
-    // captureError already logs to console in development mode
-    captureError(
+    // recordError already logs to console in development mode
+    recordError(
       error instanceof Error
         ? error
         : new Error('Error invoking daily analytics'),

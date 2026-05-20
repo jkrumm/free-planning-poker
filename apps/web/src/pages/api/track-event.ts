@@ -15,7 +15,7 @@ import {
 } from 'fpp/constants/error.constant';
 import HttpStatusCode from 'fpp/constants/http-status-codes.constant';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { findUserById } from 'fpp/utils/db-api.util';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
@@ -63,7 +63,7 @@ const TrackEvent = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     // System error (5xx) - capture via OTEL
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error('Failed to track event'),
       {
         component: 'track-event',
