@@ -17,7 +17,7 @@ import {
 } from '@fpp/shared';
 import { User } from './room.entity';
 import { type RoomState } from './room.state';
-import { captureError, captureMessage } from './utils/app-error';
+import { recordError } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 export class MessageHandler {
@@ -108,23 +108,20 @@ export class MessageHandler {
       return;
     }
 
-    // If we get here, it's an unknown action
+    // If we get here, it's an unknown action — operator narration, not a domain
+    // event or error; a Pino warning (stdout) is the right signal.
     const unknownAction = (data as { action?: unknown }).action;
-    captureMessage(
-      'Unknown WebSocket action received',
+    log.warn(
       {
         component: 'messageHandler',
         action: 'routeAction',
-        extra: {
-          wsId: ws.id,
-          receivedAction:
-            typeof unknownAction === 'string' ||
-            typeof unknownAction === 'number'
-              ? String(unknownAction)
-              : JSON.stringify(unknownAction),
-        },
+        wsId: ws.id,
+        receivedAction:
+          typeof unknownAction === 'string' || typeof unknownAction === 'number'
+            ? String(unknownAction)
+            : JSON.stringify(unknownAction),
       },
-      'medium',
+      'Unknown WebSocket action received',
     );
     ws.send(
       JSON.stringify({
@@ -245,7 +242,7 @@ export class MessageHandler {
             }),
           );
         } catch (error: unknown) {
-          captureError(
+          recordError(
             error as Error,
             {
               component: 'handleKick',
@@ -263,7 +260,7 @@ export class MessageHandler {
         try {
           kickedUser.ws.close();
         } catch (error: unknown) {
-          captureError(
+          recordError(
             error as Error,
             {
               component: 'handleKick',

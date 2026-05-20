@@ -23,12 +23,7 @@ import { User } from './room.entity';
 import { roomSnapshot } from './room.snapshot';
 import { RoomState } from './room.state';
 import { type Analytics } from './types';
-import {
-  addBreadcrumb,
-  captureError,
-  captureMessage,
-  recordEvent,
-} from './utils/app-error';
+import { recordError, recordEvent } from './utils/app-error';
 import { instrumentAction } from './utils/instrument-action';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
@@ -98,7 +93,7 @@ const app = new Elysia({
       return { error: 'Not found', timestamp: Date.now() };
     }
 
-    captureError(
+    recordError(
       error as Error,
       {
         component: 'elysiaOnError',
@@ -166,26 +161,20 @@ app.ws('/ws', {
   }),
   async open(ws) {
     const { roomId, userId, username } = ws.data.query;
-
-    addBreadcrumb('WebSocket connection opened', 'websocket', {
-      roomId: roomId ? String(roomId) : 'unknown',
-      userId: userId ?? 'unknown',
-    });
+    // Connection success is recorded as the ws.connected event below, after
+    // setup; rejections here are operator narration → Pino warnings.
 
     if (!roomId || !userId || !username) {
-      captureMessage(
-        'WebSocket connection missing query parameters',
+      log.warn(
         {
           component: 'websocketOpen',
           action: 'validateParams',
-          extra: {
-            wsId: ws.id,
-            hasRoomId: !!roomId,
-            hasUserId: !!userId,
-            hasUsername: !!username,
-          },
+          wsId: ws.id,
+          hasRoomId: !!roomId,
+          hasUserId: !!userId,
+          hasUsername: !!username,
         },
-        'medium',
+        'WebSocket connection missing query parameters',
       );
       ws.close(1008, 'Missing parameters');
       return;
@@ -194,18 +183,15 @@ app.ws('/ws', {
     // Validate username with shared validation logic (strict mode)
     const usernameValidation = validateUsername(username, { strict: true });
     if (!usernameValidation.isValid) {
-      captureMessage(
-        'WebSocket connection with invalid username',
+      log.warn(
         {
           component: 'websocketOpen',
           action: 'validateUsername',
-          extra: {
-            wsId: ws.id,
-            username: username.slice(0, 20),
-            error: usernameValidation.error ?? 'Unknown validation error',
-          },
+          wsId: ws.id,
+          username: username.slice(0, 20),
+          error: usernameValidation.error ?? 'Unknown validation error',
         },
-        'medium',
+        'WebSocket connection with invalid username',
       );
       ws.close(1008, usernameValidation.error ?? 'Invalid username');
       return;
@@ -245,7 +231,7 @@ app.ws('/ws', {
         [ATTR.USER_ID]: userId,
       });
     } catch (error) {
-      captureError(
+      recordError(
         error as Error,
         {
           component: 'websocketOpen',
@@ -270,14 +256,14 @@ app.ws('/ws', {
         typeof data === 'object'
           ? JSON.stringify(data).slice(0, 200)
           : String(data).slice(0, 200);
-      captureMessage(
-        'Invalid WebSocket message format',
+      log.warn(
         {
           component: 'websocketMessage',
           action: 'validateMessage',
-          extra: { wsId: ws.id, receivedData: safeData },
+          wsId: ws.id,
+          receivedData: safeData,
         },
-        'medium',
+        'Invalid WebSocket message format',
       );
       ws.send(JSON.stringify({ error: 'Invalid message format', wsId: ws.id }));
       return;
@@ -310,6 +296,9 @@ app.ws('/ws', {
     // 1006 = Abnormal closure (no close frame - very common for tab closes, network issues)
     const expectedCloseCodes = [1000, 1001, 1005, 1006];
     if (!expectedCloseCodes.includes(code)) {
+      // Abnormal close → the ws.disconnected event (carries room/user +
+      // close.reason). A Pino debug line keeps the raw reason text for the
+      // terminal without a second OTEL record.
       recordEvent(EVENT.WS_DISCONNECTED, {
         ...(connection && {
           [ATTR.ROOM_ID]: connection.roomId,
@@ -317,28 +306,16 @@ app.ws('/ws', {
         }),
         [ATTR.CLOSE_REASON]: String(code),
       });
-
-      addBreadcrumb('WebSocket abnormal close', 'websocket', {
-        closeCode: String(code),
-        reason: reason?.toString() ?? 'unknown',
-        roomId: connection?.roomId ? String(connection.roomId) : 'unknown',
-        userId: connection?.userId ?? 'unknown',
-      });
-
-      captureMessage(
-        `WebSocket closed with abnormal code: ${code}`,
+      log.debug(
         {
           component: 'websocketClose',
-          action: 'handleClose',
-          extra: {
-            closeCode: code,
-            reason: reason?.toString() ?? 'none',
-            wsId: ws.id,
-            roomId: connection?.roomId ? String(connection.roomId) : 'unknown',
-            userId: connection?.userId ?? 'unknown',
-          },
+          closeCode: code,
+          reason: reason?.toString() ?? 'none',
+          wsId: ws.id,
+          roomId: connection?.roomId ?? null,
+          userId: connection?.userId ?? null,
         },
-        'low',
+        `WebSocket closed with abnormal code: ${code}`,
       );
     }
 

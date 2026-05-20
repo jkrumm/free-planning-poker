@@ -44,10 +44,10 @@ const flattenExtra = (
 };
 
 /**
- * Capture an exception. Records on the active span (if any), emits an OTEL
+ * Record an exception. Records on the active span (if any), emits an OTEL
  * log record correlated by trace_id, and logs to Pino for terminal output.
  */
-export function captureError(
+export function recordError(
   error: Error | string,
   context: ErrorContext = {},
   severity: ErrorSeverity = 'medium',
@@ -68,6 +68,8 @@ export function captureError(
 
   const span = trace.getActiveSpan();
   if (span) {
+    // TODO(otel): migrate to a log-based exception event per OTEP 4430 once the
+    // converting processor is wired into SDK init; recordException is shimmed.
     span.recordException(err);
     span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
     if (context.component)
@@ -93,45 +95,6 @@ export function captureError(
 }
 
 /**
- * Capture a non-exception message. Use for informational or
- * warning-level events that aren't errors.
- */
-export function captureMessage(
-  message: string,
-  context: ErrorContext = {},
-  severity: ErrorSeverity = 'medium',
-): void {
-  const logData = {
-    component: context.component ?? 'unknown',
-    action: context.action ?? 'unknown',
-    severity,
-    ...context.extra,
-  };
-  if (severity === 'low') {
-    log.info(
-      logData,
-      `[${severity}] ${context.component}:${context.action} - ${message}`,
-    );
-  } else {
-    log.warn(
-      logData,
-      `[${severity}] ${context.component}:${context.action} - ${message}`,
-    );
-  }
-  otelLogger.emit({
-    severityNumber: SEVERITY_NUMBER[severity],
-    severityText: SEVERITY_TEXT[severity],
-    body: message,
-    attributes: {
-      'fpp.severity': severity,
-      ...(context.component && { 'fpp.component': context.component }),
-      ...(context.action && { 'fpp.action': context.action }),
-      ...flattenExtra(context.extra),
-    },
-  });
-}
-
-/**
  * Record a domain event as an OTEL log-based event: an INFO log record carrying
  * `event.name` plus typed, registry-keyed attributes, correlated to the active
  * trace. This is the §3 "log-based Event" signal — discrete, named occurrences
@@ -146,26 +109,5 @@ export function recordEvent(
     severityNumber: SeverityNumber.INFO,
     severityText: 'INFO',
     attributes: { 'event.name': name, ...attributes },
-  });
-}
-
-/**
- * Breadcrumb-equivalent: emit an INFO log record correlated to the active
- * trace. Query in HyperDX by trace_id to reconstruct the event timeline.
- */
-export function addBreadcrumb(
-  message: string,
-  category = 'user',
-  data?: Record<string, string | number | boolean | null>,
-): void {
-  otelLogger.emit({
-    severityNumber: SeverityNumber.INFO,
-    severityText: 'INFO',
-    body: message,
-    attributes: {
-      'fpp.breadcrumb': 'true',
-      'fpp.category': category,
-      ...flattenExtra(data),
-    },
   });
 }

@@ -5,7 +5,7 @@ import { RoomServer, type User } from './room.entity';
 import { roomSnapshot } from './room.snapshot';
 import { metrics } from './telemetry';
 import { type Analytics, type AnalyticsUser } from './types';
-import { captureError, captureMessage, recordEvent } from './utils/app-error';
+import { recordError, recordEvent } from './utils/app-error';
 import { WEBSOCKET_CONSTANTS } from './websocket.constants';
 
 type CloseReason = 'empty' | 'timeout';
@@ -109,7 +109,7 @@ export class RoomState {
         'Rehydrated room from Redis snapshot',
       );
     } catch (err) {
-      captureError(
+      recordError(
         err as Error,
         {
           component: 'roomState',
@@ -142,7 +142,7 @@ export class RoomState {
       // addUserToRoom only runs from the WebSocket open/rejoin paths, where
       // ws is always live. A null here means a programming error — bail
       // rather than crash on user.ws.id below.
-      captureMessage(
+      recordError(
         'addUserToRoom called with ws-less user',
         {
           component: 'roomState',
@@ -315,7 +315,7 @@ export class RoomState {
         }
       } catch (error: unknown) {
         failureCount++;
-        captureError(
+        recordError(
           error as Error,
           {
             component: 'roomState',
@@ -333,7 +333,7 @@ export class RoomState {
 
     // Track if there were excessive failures
     if (failureCount > 0 && failureCount >= room.users.length / 2) {
-      captureMessage(
+      recordError(
         'High WebSocket send failure rate in room',
         {
           component: 'roomState',
@@ -396,7 +396,7 @@ export class RoomState {
           );
         }
       } catch (error: unknown) {
-        captureError(
+        recordError(
           error as Error,
           {
             component: 'roomState',

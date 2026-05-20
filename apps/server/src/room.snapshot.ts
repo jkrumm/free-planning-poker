@@ -1,6 +1,6 @@
 import { RedisClient } from 'bun';
 import { log } from './index';
-import { captureError, captureMessage } from './utils/app-error';
+import { recordError } from './utils/app-error';
 
 const ROOM_KEY_PREFIX = 'fpp:room:';
 // 6h covers long-idle rooms (open tab through a meeting + lunch). The 30-min
@@ -54,7 +54,7 @@ export class RoomSnapshotStore {
         );
       };
       void this.client.connect().catch((err: Error) => {
-        captureError(
+        recordError(
           err,
           {
             component: 'roomSnapshot',
@@ -65,7 +65,7 @@ export class RoomSnapshotStore {
         );
       });
     } catch (err) {
-      captureError(
+      recordError(
         err as Error,
         { component: 'roomSnapshot', action: 'init' },
         'high',
@@ -109,15 +109,16 @@ export class RoomSnapshotStore {
         ),
       ]);
     } catch (err) {
-      // Fail open: hydration miss is recoverable (room starts empty).
-      captureMessage(
-        'Redis fetch failed — proceeding without snapshot',
+      // Fail open: hydration miss is recoverable (room starts empty). Operator
+      // narration → Pino warning (not an OTEL error/event).
+      log.warn(
         {
           component: 'roomSnapshot',
           action: 'fetch',
-          extra: { roomId, error: (err as Error).message },
+          roomId,
+          error: (err as Error).message,
         },
-        'medium',
+        'Redis fetch failed — proceeding without snapshot',
       );
       return null;
     }
@@ -179,14 +180,14 @@ export class RoomSnapshotStore {
     this.client
       .expire(`${ROOM_KEY_PREFIX}${roomId}`, SNAPSHOT_TTL_SECONDS)
       .catch((err: Error) => {
-        captureMessage(
-          'Redis TTL touch failed',
+        log.info(
           {
             component: 'roomSnapshot',
             action: 'touch',
-            extra: { roomId, error: err.message },
+            roomId,
+            error: err.message,
           },
-          'low',
+          'Redis TTL touch failed',
         );
       });
   }
@@ -205,14 +206,14 @@ export class RoomSnapshotStore {
     const inflight = this.inflightPersists.get(roomId);
     const issueDel = (): void => {
       client.del(`${ROOM_KEY_PREFIX}${roomId}`).catch((err: Error) => {
-        captureMessage(
-          'Redis delete failed',
+        log.info(
           {
             component: 'roomSnapshot',
             action: 'delete',
-            extra: { roomId, error: err.message },
+            roomId,
+            error: err.message,
           },
-          'low',
+          'Redis delete failed',
         );
       });
     };
@@ -234,7 +235,7 @@ export class RoomSnapshotStore {
     try {
       json = serialize();
     } catch (err) {
-      captureError(
+      recordError(
         err as Error,
         {
           component: 'roomSnapshot',
@@ -269,14 +270,14 @@ export class RoomSnapshotStore {
     } catch (err) {
       // Fail open: in-memory state is still authoritative; we just lose
       // restart resilience for this room until the next change.
-      captureMessage(
-        'Redis write failed — snapshot may be stale',
+      log.warn(
         {
           component: 'roomSnapshot',
           action: 'write',
-          extra: { roomId, error: (err as Error).message },
+          roomId,
+          error: (err as Error).message,
         },
-        'medium',
+        'Redis write failed — snapshot may be stale',
       );
     }
   }

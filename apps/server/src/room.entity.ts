@@ -10,7 +10,7 @@ import { validateUsername } from '@fpp/shared';
 import { ATTR, EVENT } from '@fpp/shared/telemetry';
 import { metrics } from './telemetry';
 import { preciseTimeout } from './utils';
-import { captureError, recordEvent } from './utils/app-error';
+import { recordError, recordEvent } from './utils/app-error';
 import { tracedFetch } from './utils/traced-fetch';
 
 // Re-export shared types from room.types for backward compatibility
@@ -262,7 +262,7 @@ export class RoomServer extends RoomBase {
 
     if (!fppServerSecret) {
       const error = new Error('FPP_SERVER_SECRET not set');
-      captureError(
+      recordError(
         error,
         {
           component: 'roomEntity',
@@ -316,7 +316,7 @@ export class RoomServer extends RoomBase {
         // Persistence path for vote + estimation rows. Failure is silent to
         // the user (WebSocket flip already succeeded) but means data loss —
         // surface as warning so it shows in HyperDX.
-        captureError(
+        recordError(
           error as Error,
           {
             component: 'roomEntity',
