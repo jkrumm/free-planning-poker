@@ -8,8 +8,7 @@ import { type RoomBase } from '@fpp/shared';
 import { type User } from '@fpp/shared';
 import confetti from 'canvas-confetti';
 
-import { recordError } from 'fpp/utils/app-error';
-import { logger } from 'fpp/utils/logger';
+import { log, recordError } from 'fpp/utils/app-error';
 
 import {
   getFromLocalstorage,
@@ -674,9 +673,9 @@ export function executeKick(
     if (scenario !== 'kick_notification') {
       // The server emits the authoritative user.kicked event; this is just
       // client-side narration of the redirect.
-      logger.warn(
-        { component: 'executeKick', action: 'kick', scenario },
+      log.warn(
         `User was kicked from room (${scenario}), redirecting to homepage`,
+        { component: 'executeKick', action: 'kick', extra: { scenario } },
       );
     }
 

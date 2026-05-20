@@ -4,7 +4,10 @@
 import { logs } from '@opentelemetry/api-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs';
+import {
+  LoggerProvider,
+  SimpleLogRecordProcessor,
+} from '@opentelemetry/sdk-logs';
 import { registerOTel } from '@vercel/otel';
 
 export async function register() {
@@ -32,10 +35,15 @@ export async function register() {
     traceExporter: 'auto',
   });
 
+  // Simple (synchronous) processor, not Batch: Vercel serverless functions can
+  // suspend after the response is sent, before a batched export flushes —
+  // dropping the very low-volume signals (errors + operator narration) we emit
+  // server-side. Simple kicks the OTLP export off immediately per record,
+  // shrinking the suspend-race window from the batch delay to a network RTT.
   const loggerProvider = new LoggerProvider({
     resource,
     processors: [
-      new BatchLogRecordProcessor(
+      new SimpleLogRecordProcessor(
         new OTLPLogExporter({ url: `${endpoint}/v1/logs`, headers }),
       ),
     ],

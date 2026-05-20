@@ -563,7 +563,12 @@ verbs (clean break, no Sentry-era aliases):
 - `recordEvent(EVENT.X, attrs)` — log-based domain events (typed, registry-keyed).
 - `metrics.*` — typed instrument handles (fpp-server only; the browser emits
   events, never metrics).
-- Operator narration → `log.*` (Pino, server) / `logger.*` (web), not OTEL.
+- Operator narration → `log.warn`/`log.info`. On fpp-server/analytics this is
+  Pino-to-stdout (piped into ClickStack on the VPS). On **apps/web** it's the
+  `app-error` facade's `log.*`, which dual-writes stdout **and** a plain OTLP log
+  record (no `event.name`) server-side — Vercel stdout reaches no aggregator our
+  stack reads. Raw `logger` (`fpp/utils/logger`) is ESLint-banned outside the
+  facade on web.
 - `captureMessage` / `addBreadcrumb` are **gone**.
 
 Every attribute key / event name / metric name originates in
@@ -663,8 +668,9 @@ emitted via `recordEvent(EVENT.X, attrs)` — typed names from the
   — the authoritative source. Don't mirror them from the browser.
 - The **browser emits only client-only events** the server can't observe:
   `ws.reconnected`, `ws.reconnect_exhausted`, `ws.recovery_reload`.
-- Operator narration (invalid message, fail-open warnings) → plain logs
-  (`log.*` / `logger.*`), not events.
+- Operator narration (invalid message, fail-open warnings) → plain logs via
+  `log.warn`/`log.info` (web facade dual-writes stdout + OTLP server-side; see
+  the facade verbs above), not events.
 - Never an event per render/effect, keystroke, or high-frequency tick.
 
 Add a new event/attribute/metric to the registry **first**, then emit it. See

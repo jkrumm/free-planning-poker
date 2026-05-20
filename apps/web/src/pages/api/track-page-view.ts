@@ -14,8 +14,7 @@ import {
   MethodNotAllowedError,
 } from 'fpp/constants/error.constant';
 
-import { recordError } from 'fpp/utils/app-error';
-import { logger } from 'fpp/utils/logger';
+import { log, recordError } from 'fpp/utils/app-error';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
@@ -121,13 +120,15 @@ export const getUserPayload = (req: NextApiRequest) => {
   const city = cityRaw ? safeDecode(cityRaw) : null;
 
   // Fail-open monitor: when the edge geo headers are absent we store no location
-  // rather than calling out to a third-party IP service. This warn log (no IP,
-  // no PII) is how we measure how often that happens — if it stays ~0 in
+  // rather than calling out to a third-party IP service. This warn (no IP, no
+  // PII) is how we measure how often that happens — if it stays ~0 in
   // production the Vercel-edge path is validated and no fallback is needed.
+  // Goes through log.warn (not raw Pino) so it reaches HyperDX as an OTLP log
+  // record — Vercel stdout is not aggregated into our stack.
   if (!country && process.env.NODE_ENV === 'production') {
-    logger.warn(
-      { component: 'getUserPayload' },
+    log.warn(
       'geo headers absent — stored null location (no third-party fallback)',
+      { component: 'getUserPayload' },
     );
   }
 

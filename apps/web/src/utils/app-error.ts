@@ -141,8 +141,8 @@ export const recordError = (
     span.setStatus({ code: SpanStatusCode.ERROR, message: errorObj.message });
     Object.entries(flatExtra).forEach(([k, v]) => span.setAttribute(k, v));
     if (context.component)
-      span.setAttribute('fpp.component', context.component);
-    if (context.action) span.setAttribute('fpp.action', context.action);
+      span.setAttribute(ATTR.FPP_COMPONENT, context.component);
+    if (context.action) span.setAttribute(ATTR.FPP_ACTION, context.action);
   }
 
   const trpcAttrs =
@@ -156,9 +156,9 @@ export const recordError = (
       'exception.type': errorObj.name,
       'exception.message': errorObj.message,
       'exception.stacktrace': errorObj.stack ?? '',
-      'fpp.severity': severity,
-      ...(context.component && { 'fpp.component': context.component }),
-      ...(context.action && { 'fpp.action': context.action }),
+      [ATTR.FPP_SEVERITY]: severity,
+      ...(context.component && { [ATTR.FPP_COMPONENT]: context.component }),
+      ...(context.action && { [ATTR.FPP_ACTION]: context.action }),
       ...userContextAttrs(),
       ...trpcAttrs,
       ...flatExtra,
@@ -187,6 +187,51 @@ export const recordEvent = (
       ...attributes,
     },
   });
+};
+
+/**
+ * Operator narration (fail-open warnings, invalid-input notes) — NOT an error
+ * and NOT a domain event. Dual-writes:
+ *   - Pino stdout (Logdy locally, Vercel platform logs in prod), and
+ *   - server-side only, a plain OTEL log record (no `event.name`) so it reaches
+ *     ClickStack/HyperDX. This is the one transport the Vercel-hosted web app
+ *     has for narration: its stdout is not aggregated anywhere our stack reads.
+ *
+ * In the browser we deliberately skip the explicit emit — the HyperDX SDK's
+ * `consoleCapture` already forwards Pino's console output, so emitting here too
+ * would double-log. A plain log record carries no `event.name`, which is what
+ * keeps it distinct from `recordEvent` (a counted/filtered business occurrence)
+ * in ClickHouse.
+ */
+const emitNarration = (
+  level: 'info' | 'warn',
+  message: string,
+  context: ErrorContext = {},
+): void => {
+  const { component, action, extra } = context;
+  logger[level]({ component, action, ...extra }, message);
+
+  // Browser: consoleCapture handles the HyperDX hop; avoid a duplicate record.
+  if (typeof window !== 'undefined') return;
+
+  getOtelLogger().emit({
+    severityNumber:
+      level === 'warn' ? SeverityNumber.WARN : SeverityNumber.INFO,
+    severityText: level === 'warn' ? 'WARN' : 'INFO',
+    body: message,
+    attributes: {
+      ...(component && { [ATTR.FPP_COMPONENT]: component }),
+      ...(action && { [ATTR.FPP_ACTION]: action }),
+      ...flattenExtra(extra),
+    },
+  });
+};
+
+export const log = {
+  info: (message: string, context?: ErrorContext): void =>
+    emitNarration('info', message, context),
+  warn: (message: string, context?: ErrorContext): void =>
+    emitNarration('warn', message, context),
 };
 
 /**

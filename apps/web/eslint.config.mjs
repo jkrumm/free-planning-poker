@@ -120,19 +120,30 @@ export default defineConfig([
               message:
                 'Use recordError() from fpp/utils/app-error instead of @hyperdx/browser directly. Init lives in instrumentation-client.ts.',
             },
+            {
+              name: 'fpp/utils/logger',
+              message:
+                'Use log.warn()/log.info() (operator narration) or recordError()/recordEvent() from fpp/utils/app-error. The raw Pino logger only reaches stdout — on the Vercel-hosted web app stdout is not aggregated into ClickStack/HyperDX.',
+            },
           ],
         },
       ],
     },
   },
 
-  // Exception: telemetry init + the wrapper itself need direct access.
+  // Exception: telemetry init + the facade itself need direct access. The tRPC
+  // handler is allowlisted too — it keeps a raw-Pino per-request access log that
+  // is stdout-only by design (request RED is covered by @vercel/otel spans, so
+  // it must not emit an OTLP record); see the import comment there.
   {
     name: 'otel-exceptions',
     files: [
       'src/utils/app-error.ts',
       'instrumentation.ts',
       'instrumentation-client.ts',
+      // Glob, not the literal path: the `[trpc]` brackets in the filename are a
+      // glob character class, so an exact path would never match.
+      'src/pages/api/trpc/*.ts',
     ],
     rules: {
       'no-restricted-imports': 'off',
