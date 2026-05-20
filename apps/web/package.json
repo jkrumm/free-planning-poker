@@ -3,8 +3,7 @@
   "version": "8.4.0",
   "private": true,
   "scripts": {
-    "build": "next build && bun run upload-sourcemaps",
-    "upload-sourcemaps": "node ./scripts/upload-sourcemaps.mjs",
+    "build": "next build",
     "dev": "../../scripts/kill-ports.sh 7720 && op run --account tkrumm --env-file=.env.tpl -- ./scripts/dev.sh",
     "start": "next start",
     "lint": "eslint .",
@@ -68,7 +67,6 @@
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
     "@tailwindcss/postcss": "^4.3.0",
-    "@hyperdx/cli": "^0.4.0",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.12.3",
