@@ -37,8 +37,6 @@
     "@trpc/next": "^11.17.0",
     "@trpc/react-query": "^11.17.0",
     "@trpc/server": "^11.17.0",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.0",
     "ag-charts-community": "^13.2.1",
     "ag-charts-react": "^13.2.1",
     "canvas-confetti": "^1.9.4",

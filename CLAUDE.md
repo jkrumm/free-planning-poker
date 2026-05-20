@@ -210,7 +210,7 @@ make analytics-update-local              # Regenerate parquet files for /analyti
 
 ### Local env via 1Password (no Doppler)
 
-Each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkrumm --env-file=.env.tpl --`. Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (HyperDX, Upstash, email) are hardcoded dummies. Vercel manages prod env directly.
+Each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkrumm --env-file=.env.tpl --`. Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (HyperDX, email) are hardcoded dummies. Vercel manages prod env directly.
 
 ### Local URLs
 
@@ -402,8 +402,7 @@ free-planning-poker/
 │   │   │   ├── server/            # Server-side code (tRPC routers, db connection)
 │   │   │   ├── store/             # Zustand stores
 │   │   │   ├── utils/             # Utility functions
-│   │   │   ├── env.ts             # Environment validation
-│   │   │   └── proxy.ts           # Next.js proxy (rate limiting)
+│   │   │   └── env.ts             # Environment validation
 │   │   ├── public/                # Static assets
 │   │   ├── next.config.js
 │   │   ├── eslint.config.mjs
