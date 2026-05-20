@@ -13,7 +13,7 @@ from starlette.responses import Response
 from config import ANALYTICS_SECRET_TOKEN
 from routers import analytics, health, room
 from util.error_capture import ErrorContext, capture_error
-from util.telemetry import init_telemetry, shutdown_telemetry
+from util.telemetry import init_telemetry, record_request, shutdown_telemetry
 
 
 # Custom JSON formatter to match Pino structure
@@ -83,6 +83,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration_ms = (time.perf_counter() - start_time) * 1000
 
+        # Endpoint RED metrics. Use the route template (not the raw path) as the
+        # endpoint label so /room/{room_id}/stats stays one low-cardinality
+        # series. Skip /health — high-frequency probe, excluded from spans too.
+        if request.url.path != "/health":
+            route = request.scope.get("route")
+            endpoint = getattr(route, "path", None) or "unmatched"
+            record_request(endpoint, response.status_code, duration_ms / 1000)
+
         # Skip logging for /health 200 OK responses
         if request.url.path == "/health" and response.status_code == 200:
             return response
@@ -134,14 +142,14 @@ def verify_auth(authorization: str = Header(None)) -> bool:
 # be populated before the app starts handling requests. Doing this inside
 # `lifespan` is too late — the middleware stack has already been frozen
 # and the instrumentor's middleware silently never runs.
-_tracer_provider, _logger_provider = init_telemetry()
+_tracer_provider, _logger_provider, _meter_provider = init_telemetry()
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Flush OTEL batches on shutdown. Provider init happens at import time."""
     yield
-    shutdown_telemetry(_tracer_provider, _logger_provider)
+    shutdown_telemetry(_tracer_provider, _logger_provider, _meter_provider)
 
 
 # Global exception handler for unhandled system errors.
