@@ -24,8 +24,6 @@ NEXT_PUBLIC_HYPERDX_URL=https://fpp.test
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 
 # --- Disabled-in-local dummies (satisfy zod, no real connection) ---
-UPSTASH_REDIS_REST_URL=https://dev-disabled.local
-UPSTASH_REDIS_REST_TOKEN=local-dev-noop
 TODOIST_SECRET=local-dev-noop
 BEA_BASE_URL=https://dev-disabled.local
 BEA_SECRET_KEY=local-dev-noop

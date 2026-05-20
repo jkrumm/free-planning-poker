@@ -588,7 +588,12 @@ const existingRoom = await db.query.rooms.findFirst({
 
 ### Rate Limiting
 
-The Next.js proxy (`apps/web/src/proxy.ts:1`) implements rate limiting for API routes using Upstash Redis.
+| Surface | Where | Mechanism |
+|-|-|-|
+| Next.js (Vercel) | Vercel edge | Vercel WAF rate-limit rule (dashboard-managed, per-IP, fixed window) — Vercel is not behind Traefik |
+| fpp-server / fpp-analytics | VPS / Traefik | Traefik `rate-limit@file` middleware (per-IP, 100 avg / 200 burst per second) |
+
+The Next.js app has no in-app limiter — it relies on the Vercel WAF rule. The two VPS services are protected at the Traefik layer.
 
 ### CORS Protection
 
@@ -603,7 +608,7 @@ The Bun WebSocket server only accepts connections from the same origin. Cross-or
 | Analytics API | VPS Docker | `deploy.yml` → RollHook |
 | Analytics updater | VPS Docker | `deploy.yml` → RollHook |
 | Database | Self-hosted MariaDB | `vps` |
-| Redis | Upstash | rate limiting |
+| Rate limiting | Vercel WAF (web) + Traefik middleware (server/analytics) | per-IP, no external store |
 
 The WebSocket server ships as a single self-contained binary produced by `bun build --compile` inside the Docker build — no runtime `node_modules`, no `package.json` in the image. The Dockerfile copies all workspace manifests (`apps/web`, `apps/server`, `packages/db`, `packages/shared`) plus `bun.lock` so `bun install --frozen-lockfile` can resolve the entire workspace graph; only `apps/server` and `packages/shared` sources are actually compiled in.
 

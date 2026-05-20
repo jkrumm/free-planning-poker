@@ -9,10 +9,6 @@ export const env = createEnv({
     BEA_SECRET_KEY: z.string().min(1),
     BEA_BASE_URL: z.string().min(1),
     ANALYTICS_URL: z.string().url({ error: 'Invalid Analytics URL' }),
-    UPSTASH_REDIS_REST_URL: z
-      .string()
-      .url({ error: 'Invalid Upstash Redis URL' }),
-    UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     TODOIST_SECRET: z.string().min(1),
     FPP_SERVER_SECRET: z.string().min(1),
   },
@@ -36,8 +32,6 @@ export const env = createEnv({
     ANALYTICS_URL: process.env.ANALYTICS_URL,
     BEA_SECRET_KEY: process.env.BEA_SECRET_KEY,
     BEA_BASE_URL: process.env.BEA_BASE_URL,
-    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     TODOIST_SECRET: process.env.TODOIST_SECRET,
     FPP_SERVER_SECRET: process.env.FPP_SERVER_SECRET,
     NEXT_PUBLIC_FPP_SERVER_URL: process.env.NEXT_PUBLIC_FPP_SERVER_URL,
