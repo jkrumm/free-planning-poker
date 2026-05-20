@@ -78,7 +78,7 @@ apps/server/src/
 ├── utils.ts               # Helper functions
 ├── websocket.constants.ts # Reconnect delay, idle timeout
 └── utils/
-    └── app-error.ts       # OTEL wrappers (captureError, addBreadcrumb)
+    └── app-error.ts       # OTEL facade (recordError, recordEvent)
 
 packages/shared/src/       # imported as `@fpp/shared`
 ├── room.actions.ts        # TypeBox action schemas + Action union (types only)
@@ -235,46 +235,54 @@ await fetch(`${process.env.TRPC_URL}/room.trackFlip`, {
 
 ## Error Handling
 
-fpp-server emits OpenTelemetry traces and log records to ClickStack/HyperDX. The `app-error.ts` wrapper records exceptions on the active span and emits correlated log records — same public API across all three services.
+fpp-server emits OpenTelemetry traces, log records **and metrics** to
+ClickStack/HyperDX. **Observability v2** added metrics + log-based events + a
+typed taxonomy — see `docs/otel-migration/05-observability-v2.md` and
+`.claude/rules/observability.md`. The facade uses OTEL-native verbs (clean
+break, no Sentry-era aliases). fpp-server is the **authoritative owner of all
+metrics**.
 
-### Error Capture Helpers
+### Telemetry Helpers
 
 **Import:**
 
 ```typescript
-import { addBreadcrumb, captureError, captureMessage } from './utils/app-error';
+import { recordError, recordEvent } from './utils/app-error';
+import { metrics } from './telemetry';
+import { ATTR, EVENT } from '@fpp/shared/telemetry';
 ```
 
 **Usage:**
 
 ```typescript
-// System errors
-captureError(
+// Exceptions
+recordError(
   error as Error,
   {
     component: 'messageHandler',
-    action: 'selectEstimation',
+    action: 'estimate',
     extra: { roomId, userId },
   },
   'high',
 );
 
-// Informational messages
-captureMessage(
-  'Unknown action received',
-  {
-    component: 'messageHandler',
-    action: 'routeAction',
-    extra: { action: message.action },
-  },
-  'medium',
-);
-
-// Breadcrumbs (lifecycle events)
-addBreadcrumb('WebSocket connection opened', 'websocket', {
-  roomId,
-  userId,
+// Log-based domain events — emitted at the state-mutation chokepoint in
+// room.entity / room.state (NOT the handler), so timer/cron paths are covered.
+recordEvent(EVENT.VOTE_CAST, {
+  [ATTR.ROOM_ID]: this.id,
+  [ATTR.USER_ID]: userId,
+  [ATTR.VOTE_VALUE]: estimation,
 });
+
+// Metrics — typed handles from telemetry.ts (never a raw meter). No room.id /
+// user.id on a metric. instrumentAction owns the action RED metrics.
+metrics.voteCast.add(1, { [ATTR.VOTE_VALUE]: estimation });
+
+// Operator narration → Pino (stdout), not OTEL.
+log.warn(
+  { component: 'messageHandler', action: 'routeAction' },
+  'Unknown action',
+);
 ```
 
 ### Error Severity Guidelines
@@ -289,9 +297,9 @@ addBreadcrumb('WebSocket connection opened', 'websocket', {
 ### What NOT to Capture
 
 - Room/user not found (stale state, expected)
-- Invalid message format (validation, expected)
+- Invalid message format (validation, expected) → Pino warning, not OTEL
 - Normal WebSocket closes (1000, 1001, 1005, 1006)
-- Connection errors (sampled at 10%)
+- Abnormal closes → the `ws.disconnected` event, not an error
 
 ### Centralized Capture Points
 
@@ -301,9 +309,9 @@ addBreadcrumb('WebSocket connection opened', 'websocket', {
 
 ### Privacy & Performance
 
-- **PII removed:** email, IP, geo, headers (beforeSend)
-- **Sampling:** Connection errors sampled at 10%
-- **Performance tracing:** 10% in production
+- **PII removed:** users are anonymous nanoid(21) — no email/IP/auth attached.
+- **Sampling:** 100% traces (full fidelity at this scale). Metrics aggregated;
+  events 100%. Revisit head/tail sampling only if span volume becomes a cost.
 - **Development:** OTEL ships to local ClickStack on `http://localhost:4319` (unauthed)
 
 ### Graceful Degradation
@@ -497,9 +505,10 @@ bun run typecheck
 ### Environment Variables
 
 ```bash
-TRPC_URL=http://localhost:3001/api/trpc  # Next.js tRPC endpoint
-FPP_SERVER_SECRET=secret-token           # Auth for callbacks
-SENTRY_DSN=https://...                   # Error tracking
+TRPC_URL=http://localhost:3001/api/trpc          # Next.js tRPC endpoint
+FPP_SERVER_SECRET=secret-token                   # Auth for callbacks
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319 # ClickStack OTLP (traces/logs/metrics)
+OTEL_SERVICE_NAME=fpp-server
 NODE_ENV=development
 ```
 
@@ -572,6 +581,6 @@ Use Context7 MCP as a reference for documentation:
 
 ---
 
-**Last Updated**: 2025-12-27
+**Last Updated**: 2026-05-20
 **For architecture overview**: See `/ARCHITECTURE.md`
 **For client integration**: See `/CLAUDE.md` (root)

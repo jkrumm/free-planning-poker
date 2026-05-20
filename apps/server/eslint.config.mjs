@@ -47,6 +47,37 @@ export default tseslint.config(
           },
         },
       ],
+
+      // OTEL: telemetry primitives must only be touched inside telemetry.ts and
+      // the app-error facade. Domain code goes through recordError / recordEvent
+      // and the typed `metrics` handles — never the raw logs/metrics APIs.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@opentelemetry/api-logs',
+              importNames: ['logs'],
+              message:
+                'Use recordError() / recordEvent() from utils/app-error instead of emitting OTEL logs directly.',
+            },
+            {
+              name: '@opentelemetry/api',
+              importNames: ['metrics'],
+              message:
+                'Create meters/instruments only in telemetry.ts; consume the typed `metrics` handles it exports.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // Exception: the telemetry bootstrap + facade need direct OTEL access.
+  {
+    name: 'otel-exceptions',
+    files: ['src/telemetry.ts', 'src/utils/app-error.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 );
