@@ -7,7 +7,7 @@ import {
 import { type ElysiaWS } from 'elysia/ws';
 import { ATTR } from '@fpp/shared/telemetry';
 import { metrics } from '../telemetry';
-import { captureError } from './app-error';
+import { recordError } from './app-error';
 
 // Structural action shape (not the Action union): every action carries these,
 // and SetPresenceAction lacks _traceparent, so a structural optional keeps the
@@ -65,7 +65,7 @@ export function instrumentAction(
         });
       } catch (err) {
         span.setStatus({ code: SpanStatusCode.ERROR });
-        captureError(
+        recordError(
           err as Error,
           { component: 'messageHandler', action: action.action },
           'high',
