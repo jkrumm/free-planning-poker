@@ -10,8 +10,7 @@ import { RoomClient, type RoomDto } from '@fpp/shared';
 import { EVENT } from '@fpp/shared/telemetry';
 import { context, propagation } from '@opentelemetry/api';
 
-import { recordError, recordEvent } from 'fpp/utils/app-error';
-import { logger } from 'fpp/utils/logger';
+import { log, recordError, recordEvent } from 'fpp/utils/app-error';
 import { executeKick, executeRoomNameChange } from 'fpp/utils/room.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
@@ -217,15 +216,14 @@ export const useWebSocketRoom = ({
             // Other unexpected close codes are more concerning. The server
             // emits the authoritative ws.disconnected event; this is just
             // client-side operator narration.
-            logger.warn(
-              {
-                component: 'useWebSocketRoom',
-                action: 'onClose',
+            log.warn('WebSocket closed unexpectedly', {
+              component: 'useWebSocketRoom',
+              action: 'onClose',
+              extra: {
                 code: event.code,
                 reason: event.reason || 'No reason provided',
               },
-              'WebSocket closed unexpectedly',
-            );
+            });
           }
         }
       },

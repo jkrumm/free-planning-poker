@@ -12,6 +12,10 @@ import { type TRPCError } from '@trpc/server';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 
 import { recordError } from 'fpp/utils/app-error';
+// Raw Pino, intentionally: the per-request access log below is stdout-only
+// (Logdy locally, Vercel platform logs in prod). Request RED is already covered
+// by @vercel/otel spans in HyperDX, so this must NOT emit an OTLP record — it is
+// the one justified raw-logger use on web (ESLint-allowlisted in eslint.config).
 import { logger } from 'fpp/utils/logger';
 
 import { CustomTRPCError } from 'fpp/server/api/custom-error';
@@ -43,23 +47,9 @@ const trpcErrorHandler = ({
   path: string | undefined;
   input: unknown;
 }) => {
-  // NOTE: strict monitoring — all errors flow through recordError. Switch to
+  // NOTE: strict monitoring — all errors flow through recordError, which writes
+  // both a Pino stdout line and a trace-correlated OTEL log record. Switch to
   // isBusinessLogicError(error) gating once we've validated the classification.
-
-  logger.error(
-    {
-      component: 'trpcErrorHandler',
-      action: path ?? 'unknown',
-      type,
-      error: {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
-      },
-    },
-    'tRPC System Error',
-  );
 
   // Check if error has custom metadata from router
   if (error instanceof CustomTRPCError) {

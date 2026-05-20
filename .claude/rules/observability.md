@@ -39,8 +39,17 @@ event key) is the one allowed literal, inside `recordEvent` only.
   (`room.id`, `user.id`, `vote.value`). Never `span.addEvent()` (OTEP 4430).
 - **Metric** (`metrics.*`) — numeric series for dashboards/alerts.
   **Low-cardinality labels only — never `room.id` or `user.id`.**
-- **Plain log** (`log.*` Pino on server, `logger.*` on web) — operator
-  narration (invalid message, fail-open warning). Not OTEL.
+- **Plain log** — operator narration (invalid message, fail-open warning). A
+  plain log is *not* an event (no `event.name`). Transport differs by service
+  because stdout aggregation does:
+  - **fpp-server / analytics** → `log.*` (Pino) to stdout, piped into ClickStack
+    on the VPS. Not OTEL.
+  - **apps/web (Vercel)** → `log.warn`/`log.info` from the `app-error` facade,
+    which dual-writes Pino stdout (Logdy + Vercel platform logs) **and**, on the
+    server, a plain OTLP log record — because the Vercel app's stdout reaches no
+    aggregator our stack reads. In the browser it skips the OTLP emit (the
+    HyperDX SDK's `consoleCapture` already forwards it). Raw `logger` (Pino) is
+    ESLint-banned outside the facade on web for this reason.
 - **Exception** (`recordError(err, ctx, sev)`) — error conditions.
 
 ## Naming (spec §4)
@@ -54,10 +63,12 @@ business concepts (`room.*`, `user.*`, `vote.*`, `round.*`, `action.type`,
 
 ## Facade verbs (clean break — no Sentry-era verbs)
 
-`recordError` / `recordEvent` / `metrics.*` only. **No `captureMessage`,
+`recordError` / `recordEvent` / `metrics.*`, plus `log.warn`/`log.info` for
+operator narration (web facade — see §3). **No `captureMessage`,
 `captureError`, `addBreadcrumb`** in TS. ESLint bans importing `logs`
-(`@opentelemetry/api-logs`), `metrics` (`@opentelemetry/api`) and
-`@hyperdx/browser` outside the facade/telemetry/instrumentation files.
+(`@opentelemetry/api-logs`), `metrics` (`@opentelemetry/api`),
+`@hyperdx/browser` and the raw Pino `logger` (`fpp/utils/logger`) outside the
+facade/telemetry/instrumentation files.
 
 ## Server emission rules (authoritative source)
 
