@@ -20,11 +20,13 @@ import {
   LoggerProvider,
 } from '@opentelemetry/sdk-logs';
 import {
+  type ViewOptions,
+  createAllowListAttributesProcessor,
   MeterProvider,
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { METRIC } from '@fpp/shared/telemetry';
+import { ATTR, METRIC } from '@fpp/shared/telemetry';
 
 const SERVICE_NAME = process.env.OTEL_SERVICE_NAME ?? 'fpp-server';
 const SERVICE_VERSION = process.env.OTEL_SERVICE_VERSION ?? 'local';
@@ -61,8 +63,47 @@ logs.setGlobalLoggerProvider(loggerProvider);
 // THIS provider's meter (not the global) so they always export via our reader
 // regardless of what touches the global meter provider. fpp-server is the
 // authoritative owner of room state, so it owns all metrics (spec §5/§8).
+// Per-metric attribute allowlist (spec §13). A View drops any attribute not on
+// the list BEFORE export, so a stray room.id / user.id passed at a record site
+// can never reach a metric series — enforcement, not just convention. Empty
+// allowlist = the gauges/totals that carry no labels.
+const allow = (...keys: string[]) => createAllowListAttributesProcessor(keys);
+
+const metricViews: ViewOptions[] = [
+  { instrumentName: METRIC.USER_ACTIVE.name, attributesProcessors: [allow()] },
+  { instrumentName: METRIC.ROOM_ACTIVE.name, attributesProcessors: [allow()] },
+  {
+    instrumentName: METRIC.CONNECTION_ACTIVE.name,
+    attributesProcessors: [allow()],
+  },
+  {
+    instrumentName: METRIC.ACTION_COUNT.name,
+    attributesProcessors: [
+      allow(ATTR.ACTION_TYPE, ATTR.OUTCOME, ATTR.ERROR_TYPE),
+    ],
+  },
+  {
+    instrumentName: METRIC.ACTION_DURATION.name,
+    attributesProcessors: [allow(ATTR.ACTION_TYPE)],
+  },
+  {
+    instrumentName: METRIC.VOTE_CAST.name,
+    attributesProcessors: [allow(ATTR.VOTE_VALUE)],
+  },
+  {
+    instrumentName: METRIC.ROUND_FLIPPED.name,
+    attributesProcessors: [allow(ATTR.FLIP_TRIGGER, ATTR.ROUND_CONSENSUS)],
+  },
+  { instrumentName: METRIC.ROOM_CREATED.name, attributesProcessors: [allow()] },
+  {
+    instrumentName: METRIC.ROOM_CLOSED.name,
+    attributesProcessors: [allow(ATTR.CLOSE_REASON)],
+  },
+];
+
 const meterProvider = new MeterProvider({
   resource,
+  views: metricViews,
   readers: [
     new PeriodicExportingMetricReader({
       exporter: new OTLPMetricExporter({ url: `${BASE_URL}/v1/metrics` }),
