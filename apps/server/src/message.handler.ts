@@ -27,132 +27,111 @@ export class MessageHandler {
    * Handle incoming WebSocket messages
    */
   handleMessage(ws: ElysiaWS, data: Action): void {
-    const room = this.roomState.getOrCreateRoom(data.roomId);
     log.debug({ ...data, wsId: ws.id }, 'Received message');
 
-    try {
-      if (isHeartbeatAction(data)) {
-        this.handleHeartbeat(ws, data);
-        return;
-      }
-
-      if (isEstimateAction(data)) {
-        room.setEstimation(data.userId, data.estimation);
-        this.roomState.sendToEverySocketInRoom(room.id);
-        return;
-      }
-
-      if (isSetSpectatorAction(data)) {
-        room.setSpectator(data.targetUserId, data.isSpectator);
-        this.roomState.sendToEverySocketInRoom(room.id);
-        return;
-      }
-
-      if (isResetAction(data)) {
-        room.reset();
-        this.roomState.sendToEverySocketInRoom(room.id);
-        return;
-      }
-
-      if (isSetAutoFlipAction(data)) {
-        room.setAutoFlip(data.isAutoFlip);
-        this.roomState.sendToEverySocketInRoom(room.id);
-        return;
-      }
-
-      if (isLeaveAction(data)) {
-        this.handleLeave(ws, data);
-        return;
-      }
-
-      if (isRejoinAction(data)) {
-        this.handleRejoin(ws, data);
-        return;
-      }
-
-      if (isSetPresenceAction(data)) {
-        this.roomState.updateUserPresence(
-          data.roomId,
-          data.userId,
-          data.isPresent,
-        );
-        this.roomState.sendToEverySocketInRoom(data.roomId);
-        return;
-      }
-
-      if (isChangeUsernameAction(data)) {
-        room.changeUsername(data.userId, data.username);
-        this.roomState.sendToEverySocketInRoom(room.id);
-        return;
-      }
-
-      if (isChangeRoomNameAction(data)) {
-        this.handleChangeRoomName(ws, data);
-        return;
-      }
-
-      if (isFlipAction(data)) {
-        room.flip();
-        this.roomState.sendToEverySocketInRoom(room.id);
-        return;
-      }
-
-      if (isKickAction(data)) {
-        this.handleKick(ws, data);
-        return;
-      }
-
-      // If we get here, it's an unknown action
-      const unknownAction = (data as { action?: unknown }).action;
-      captureMessage(
-        'Unknown WebSocket action received',
-        {
-          component: 'messageHandler',
-          action: 'routeAction',
-          extra: {
-            wsId: ws.id,
-            receivedAction:
-              typeof unknownAction === 'string' ||
-              typeof unknownAction === 'number'
-                ? String(unknownAction)
-                : JSON.stringify(unknownAction),
-          },
-        },
-        'medium',
-      );
-      ws.send(
-        JSON.stringify({
-          error: 'Unknown action',
-          wsId: ws.id,
-        }),
-      );
-    } catch (error: unknown) {
-      // Single capture point — richer context than the outer try-catch in
-      // index.ts (action name from the typed Action, plus roomId/userId).
-      // Send the error reply to the client here so the outer handler
-      // doesn't fire and double-emit OTEL records.
-      captureError(
-        error as Error,
-        {
-          component: 'messageHandler',
-          action: data.action,
-          extra: {
-            roomId: String(data.roomId),
-            userId: data.userId,
-          },
-        },
-        'high',
-      );
-      if (error instanceof Error) {
-        ws.send(
-          JSON.stringify({
-            error: error.message,
-            timestamp: Date.now(),
-            wsId: ws.id,
-          }),
-        );
-      }
+    // heartbeat is dispatched here on the bypass path (no instrumentAction).
+    // It must run before getOrCreateRoom so a stale liveness ping for a
+    // closed room can't conjure an empty room (and a spurious room.created).
+    if (isHeartbeatAction(data)) {
+      this.handleHeartbeat(ws, data);
+      return;
     }
+
+    // No try-catch: errors propagate to instrumentAction (the single capture
+    // point + RED error outcome). The domain event/metric for each action
+    // fires at the entity/state chokepoint, not here.
+    const room = this.roomState.getOrCreateRoom(data.roomId);
+
+    if (isEstimateAction(data)) {
+      room.setEstimation(data.userId, data.estimation);
+      this.roomState.sendToEverySocketInRoom(room.id);
+      return;
+    }
+
+    if (isSetSpectatorAction(data)) {
+      room.setSpectator(data.targetUserId, data.isSpectator);
+      this.roomState.sendToEverySocketInRoom(room.id);
+      return;
+    }
+
+    if (isResetAction(data)) {
+      room.reset();
+      this.roomState.sendToEverySocketInRoom(room.id);
+      return;
+    }
+
+    if (isSetAutoFlipAction(data)) {
+      room.setAutoFlip(data.isAutoFlip);
+      this.roomState.sendToEverySocketInRoom(room.id);
+      return;
+    }
+
+    if (isLeaveAction(data)) {
+      this.handleLeave(ws, data);
+      return;
+    }
+
+    if (isRejoinAction(data)) {
+      this.handleRejoin(ws, data);
+      return;
+    }
+
+    if (isSetPresenceAction(data)) {
+      this.roomState.updateUserPresence(
+        data.roomId,
+        data.userId,
+        data.isPresent,
+      );
+      this.roomState.sendToEverySocketInRoom(data.roomId);
+      return;
+    }
+
+    if (isChangeUsernameAction(data)) {
+      room.changeUsername(data.userId, data.username);
+      this.roomState.sendToEverySocketInRoom(room.id);
+      return;
+    }
+
+    if (isChangeRoomNameAction(data)) {
+      this.handleChangeRoomName(ws, data);
+      return;
+    }
+
+    if (isFlipAction(data)) {
+      room.flip('manual');
+      this.roomState.sendToEverySocketInRoom(room.id);
+      return;
+    }
+
+    if (isKickAction(data)) {
+      this.handleKick(ws, data);
+      return;
+    }
+
+    // If we get here, it's an unknown action
+    const unknownAction = (data as { action?: unknown }).action;
+    captureMessage(
+      'Unknown WebSocket action received',
+      {
+        component: 'messageHandler',
+        action: 'routeAction',
+        extra: {
+          wsId: ws.id,
+          receivedAction:
+            typeof unknownAction === 'string' ||
+            typeof unknownAction === 'number'
+              ? String(unknownAction)
+              : JSON.stringify(unknownAction),
+        },
+      },
+      'medium',
+    );
+    ws.send(
+      JSON.stringify({
+        error: 'Unknown action',
+        wsId: ws.id,
+      }),
+    );
   }
 
   /**
@@ -193,39 +172,23 @@ export class MessageHandler {
       'User rejoining room',
     );
 
-    try {
-      this.roomState.addUserToRoom(
-        data.roomId,
-        new User({
-          id: data.userId,
-          name: data.username,
-          estimation: null,
-          isSpectator: false,
-          isPresent: true,
-          ws,
-        }),
-      );
+    // Errors propagate to instrumentAction (the single capture point).
+    this.roomState.addUserToRoom(
+      data.roomId,
+      new User({
+        id: data.userId,
+        name: data.username,
+        estimation: null,
+        isSpectator: false,
+        isPresent: true,
+        ws,
+      }),
+    );
 
-      // Send update after a short delay for rejoin
-      setTimeout(() => {
-        this.roomState.sendToEverySocketInRoom(data.roomId);
-      }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
-    } catch (error: unknown) {
-      captureError(
-        error as Error,
-        {
-          component: 'handleRejoin',
-          action: 'reconnectUser',
-          extra: {
-            roomId: String(data.roomId),
-            userId: data.userId,
-            wsId: ws.id,
-          },
-        },
-        'high',
-      );
-      throw error;
-    }
+    // Send update after a short delay for rejoin
+    setTimeout(() => {
+      this.roomState.sendToEverySocketInRoom(data.roomId);
+    }, WEBSOCKET_CONSTANTS.RECONNECT_DELAY);
   }
 
   /**
@@ -316,7 +279,8 @@ export class MessageHandler {
       }
     }
 
-    // Remove user from room
-    this.roomState.removeUserFromRoom(data.roomId, data.targetUserId);
+    // Remove user from room — 'kick' departure so room.state emits user.kicked
+    // alongside room.left.
+    this.roomState.removeUserFromRoom(data.roomId, data.targetUserId, 'kick');
   }
 }
