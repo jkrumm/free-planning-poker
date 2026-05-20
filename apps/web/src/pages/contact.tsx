@@ -18,7 +18,7 @@ import { EventType, FeatureFlagType, RouteType } from '@fpp/db';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { sendTrackEvent } from 'fpp/utils/send-track-event.util';
 
 import { useConfigStore } from 'fpp/store/config.store';
@@ -57,7 +57,7 @@ const Contact: NextPage = () => {
         try {
           return value.trim().length > 50;
         } catch (error) {
-          captureError(
+          recordError(
             error instanceof Error
               ? error
               : new Error('Name validation failed'),
@@ -85,7 +85,7 @@ const Contact: NextPage = () => {
               trimmed.length > 70)
           );
         } catch (error) {
-          captureError(
+          recordError(
             error instanceof Error
               ? error
               : new Error('Email validation failed'),
@@ -104,7 +104,7 @@ const Contact: NextPage = () => {
           const trimmed = value.trim();
           return trimmed.length < 3 || trimmed.length > 100;
         } catch (error) {
-          captureError(
+          recordError(
             error instanceof Error
               ? error
               : new Error('Subject validation failed'),
@@ -122,7 +122,7 @@ const Contact: NextPage = () => {
         try {
           return value.trim().length > 800;
         } catch (error) {
-          captureError(
+          recordError(
             error instanceof Error
               ? error
               : new Error('Message validation failed'),
@@ -141,13 +141,6 @@ const Contact: NextPage = () => {
 
   const handleFormSubmit = () => {
     try {
-      addBreadcrumb('Contact form submission started', 'form', {
-        hasName: !!form.values.name,
-        hasEmail: !!form.values.email,
-        hasSubject: !!form.values.subject,
-        hasMessage: !!form.values.message,
-      });
-
       sendMail.mutate(form.values, {
         onSuccess: () => {
           try {
@@ -157,10 +150,9 @@ const Contact: NextPage = () => {
               message:
                 'Thank you for your message, we will get back to you as soon as possible',
             });
-            addBreadcrumb('Contact form submission successful', 'form');
             form.reset();
           } catch (error) {
-            captureError(
+            recordError(
               error instanceof Error
                 ? error
                 : new Error('Failed to show success notification'),
@@ -174,7 +166,7 @@ const Contact: NextPage = () => {
         },
         onError: (error) => {
           try {
-            captureError(
+            recordError(
               error instanceof Error
                 ? error
                 : new Error('Contact form submission failed'),
@@ -198,7 +190,7 @@ const Contact: NextPage = () => {
               message: 'Something went wrong, please try again later',
             });
           } catch (notificationError) {
-            captureError(
+            recordError(
               notificationError instanceof Error
                 ? notificationError
                 : new Error('Failed to show error notification'),
@@ -219,7 +211,7 @@ const Contact: NextPage = () => {
           userId,
         });
       } catch (trackingError) {
-        captureError(
+        recordError(
           trackingError instanceof Error
             ? trackingError
             : new Error('Failed to track contact form submission'),
@@ -232,7 +224,7 @@ const Contact: NextPage = () => {
         );
       }
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to handle contact form submission'),
@@ -248,16 +240,9 @@ const Contact: NextPage = () => {
   // Track page initialization
   if (!hasInitialized) {
     try {
-      addBreadcrumb('Contact page initialized', 'page', {
-        hasUsername: !!username,
-        hasUserId: !!userId,
-        contactFormEnabled: activeFeatureFlags.includes(
-          FeatureFlagType.CONTACT_FORM,
-        ),
-      });
       setHasInitialized(true);
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize contact page'),

@@ -31,6 +31,9 @@ export const EVENT = {
   WS_CONNECTED: 'ws.connected',
   WS_DISCONNECTED: 'ws.disconnected',
   WS_RECONNECTED: 'ws.reconnected',
+  // Client-only (W) connection-recovery signals the server can't observe.
+  WS_RECONNECT_EXHAUSTED: 'ws.reconnect_exhausted',
+  WS_RECOVERY_RELOAD: 'ws.recovery_reload',
 } as const;
 
 /** Every valid `event.name`. A raw `'vote.casted'` typo is not assignable. */

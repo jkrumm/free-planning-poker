@@ -2,7 +2,7 @@ import React, { Component, type ReactNode } from 'react';
 
 import { Button, Container, Text, Title } from '@mantine/core';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 interface Props {
   children: ReactNode;
@@ -27,17 +27,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Add breadcrumb for error boundary catch
-    addBreadcrumb(
-      `Error boundary caught error in ${this.props.componentName ?? 'Unknown Component'}`,
-      'error',
-      {
-        componentStack: errorInfo.componentStack?.substring(0, 100) ?? 'N/A',
-        errorMessage: error.message,
-      },
-    );
 
     // Capture error with full context
-    captureError(
+    recordError(
       error,
       {
         component: this.props.componentName ?? 'ErrorBoundary',

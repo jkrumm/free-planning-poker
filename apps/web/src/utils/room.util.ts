@@ -8,11 +8,8 @@ import { type RoomBase } from '@fpp/shared';
 import { type User } from '@fpp/shared';
 import confetti from 'canvas-confetti';
 
-import {
-  addBreadcrumb,
-  captureError,
-  captureMessage,
-} from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
+import { logger } from 'fpp/utils/logger';
 
 import {
   getFromLocalstorage,
@@ -38,7 +35,7 @@ function getEstimationsFromUsers(
       const roomId = useLocalstorageStore.getState().roomId;
 
       if (!userId || !roomId) {
-        captureError(
+        recordError(
           'Missing user or room ID for auto-reset',
           {
             component: 'getEstimationsFromUsers',
@@ -54,11 +51,6 @@ function getEstimationsFromUsers(
         return estimations;
       }
 
-      addBreadcrumb('Auto-resetting room due to no estimations', 'room', {
-        roomId,
-        userCount: users.length,
-      });
-
       triggerAction({
         action: 'reset',
         roomId,
@@ -67,7 +59,7 @@ function getEstimationsFromUsers(
     }
     return estimations;
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to get estimations from users'),
@@ -90,7 +82,7 @@ export function getICreateVoteFromRoomState(roomState: RoomBase): ICreateVote {
     const estimations = getEstimationsFromUsers(roomState.users);
 
     if (estimations.length === 0) {
-      captureError(
+      recordError(
         'No estimations available for vote creation',
         {
           component: 'getICreateVoteFromRoomState',
@@ -128,16 +120,9 @@ export function getICreateVoteFromRoomState(roomState: RoomBase): ICreateVote {
       wasAutoFlip: roomState.isAutoFlip,
     };
 
-    addBreadcrumb('Vote data created from room state', 'room', {
-      roomId: roomState.id,
-      estimationCount: estimations.length,
-      spectatorCount: result.amountOfSpectators,
-      duration: result.duration,
-    });
-
     return result;
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to create vote from room state'),
@@ -180,7 +165,7 @@ export function getAverageFromUsers(
       estimations.length;
     return String(Math.round(average * 10) / 10);
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to calculate average from users'),
@@ -230,15 +215,9 @@ export function getStackedEstimationsFromUsers(
       return b.amount - a.amount;
     });
 
-    addBreadcrumb('Stacked estimations calculated', 'room', {
-      userCount: users.length,
-      votingOptions: result.length,
-      average: averageStr,
-    });
-
     return result;
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to get stacked estimations from users'),
@@ -276,14 +255,10 @@ async function initializeWebAudio() {
       await audioContext.resume();
     }
 
-    addBreadcrumb('Web Audio context initialized', 'audio', {
-      state: audioContext.state,
-    });
-
     // Pre-load audio files
     await preloadAudioFiles();
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to initialize Web Audio'),
@@ -307,7 +282,6 @@ async function preloadAudioFiles() {
     for (const sound of sounds) {
       const response = await fetch(`/sounds/${sound}.wav`);
       if (!response.ok) {
-        addBreadcrumb('Failed to fetch audio file', 'audio', { sound });
         continue;
       }
 
@@ -315,16 +289,9 @@ async function preloadAudioFiles() {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       audioBuffers.set(sound, audioBuffer);
     }
-
-    addBreadcrumb('Audio files preloaded', 'audio', {
-      loadedCount: audioBuffers.size,
-    });
-  } catch (error) {
+  } catch {
     // EncodingError and similar decode failures are expected browser limitations
     // (e.g., browser doesn't support WAV codec). App gracefully degrades to silent.
-    addBreadcrumb('Audio preload failed', 'audio', {
-      errorName: error instanceof Error ? error.name : 'Unknown',
-    });
   }
 }
 
@@ -338,11 +305,10 @@ export function initializeAudioContext() {
     if (hasUserInteracted) return;
 
     hasUserInteracted = true;
-    addBreadcrumb('User interaction detected for audio', 'audio');
 
     // Initialize Web Audio API without awaiting in event handler
     initializeWebAudio().catch((error) => {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize audio after user interaction'),
@@ -367,17 +333,11 @@ export function initializeAudioContext() {
 
 function playWebAudioSound(sound: 'join' | 'leave' | 'success' | 'tick') {
   if (audioContext?.state !== 'running' || !hasUserInteracted) {
-    addBreadcrumb('Web Audio not available', 'audio', {
-      hasContext: !!audioContext,
-      contextState: audioContext?.state ?? 'null',
-      hasInteraction: hasUserInteracted,
-    });
     return false;
   }
 
   const buffer = audioBuffers.get(sound);
   if (!buffer) {
-    addBreadcrumb('Audio buffer not found', 'audio', { sound });
     return false;
   }
 
@@ -392,10 +352,9 @@ function playWebAudioSound(sound: 'join' | 'leave' | 'success' | 'tick') {
     gainNode.connect(audioContext.destination);
 
     source.start();
-    addBreadcrumb('Web Audio sound played', 'audio', { sound });
     return true;
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to play Web Audio sound'),
@@ -413,9 +372,6 @@ function playWebAudioSound(sound: 'join' | 'leave' | 'success' | 'tick') {
 // Fallback to HTML5 Audio
 function playHtml5Sound(sound: 'join' | 'leave' | 'success' | 'tick') {
   if (!hasUserInteracted) {
-    addBreadcrumb('HTML5 Audio blocked - no user interaction', 'audio', {
-      sound,
-    });
     return;
   }
 
@@ -426,42 +382,34 @@ function playHtml5Sound(sound: 'join' | 'leave' | 'success' | 'tick') {
     const playPromise = audio.play();
 
     if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          addBreadcrumb('HTML5 Audio sound played', 'audio', { sound });
-        })
-        .catch((error) => {
-          if (
-            error instanceof Error &&
-            (error.name === 'NotAllowedError' ||
-              error.name === 'NotSupportedError')
-          ) {
-            // NotAllowedError: Browser autoplay policy blocked audio
-            // NotSupportedError: Browser doesn't support audio format (expected limitation)
-            addBreadcrumb('HTML5 Audio blocked or not supported', 'audio', {
-              sound,
-              errorName: error.name,
-            });
-          } else {
-            captureError(
-              error instanceof Error
-                ? error
-                : new Error('Failed to play HTML5 sound'),
-              {
-                component: 'playHtml5Sound',
-                action: 'play',
-                extra: {
-                  sound,
-                  errorName: error instanceof Error ? error.name : 'Unknown',
-                },
+      playPromise.catch((error) => {
+        if (
+          error instanceof Error &&
+          (error.name === 'NotAllowedError' ||
+            error.name === 'NotSupportedError')
+        ) {
+          // NotAllowedError: Browser autoplay policy blocked audio
+          // NotSupportedError: Browser doesn't support audio format (expected limitation)
+        } else {
+          recordError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to play HTML5 sound'),
+            {
+              component: 'playHtml5Sound',
+              action: 'play',
+              extra: {
+                sound,
+                errorName: error instanceof Error ? error.name : 'Unknown',
               },
-              'low',
-            );
-          }
-        });
+            },
+            'low',
+          );
+        }
+      });
     }
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to create HTML5 audio'),
@@ -480,7 +428,6 @@ function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
     if (getFromLocalstorage('isPlaySound') === 'false') return;
 
     if (!hasUserInteracted) {
-      addBreadcrumb('Audio blocked - no user interaction', 'audio', { sound });
       return;
     }
 
@@ -490,7 +437,7 @@ function playSound(sound: 'join' | 'leave' | 'success' | 'tick') {
       playHtml5Sound(sound);
     }
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error('Failed to play sound'),
       {
         component: 'playSound',
@@ -522,13 +469,8 @@ function notify({
       title,
       message,
     });
-    addBreadcrumb('Notification shown', 'notification', {
-      color,
-      title,
-      autoClose: autoClose ?? 5000,
-    });
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error('Failed to show notification'),
       {
         component: 'notify',
@@ -570,11 +512,6 @@ export function notifyOnRoomChanges({
           oldUser.isSpectator !== newUser.isSpectator)
       ) {
         playSound('tick');
-        addBreadcrumb('User state changed', 'room', {
-          userId: newUser.id,
-          estimationChanged: oldUser.estimation !== newUser.estimation,
-          spectatorChanged: oldUser.isSpectator !== newUser.isSpectator,
-        });
       }
     }
 
@@ -587,32 +524,23 @@ export function notifyOnRoomChanges({
       const isUnanimous =
         estimations.length > 1 && new Set(estimations).size === 1;
 
-      addBreadcrumb('Room flipped', 'room', {
-        estimationCount: estimations.length,
-        isUnanimous,
-      });
-
       if (isUnanimous) {
         confetti({
           particleCount: 200,
           spread: 80,
           origin: { y: 0.4 },
-        })
-          ?.then(() => {
-            addBreadcrumb('Confetti celebration triggered', 'room');
-          })
-          .catch((error) => {
-            captureError(
-              error instanceof Error
-                ? error
-                : new Error('Failed to trigger confetti'),
-              {
-                component: 'notifyOnRoomChanges',
-                action: 'confetti',
-              },
-              'low',
-            );
-          });
+        })?.catch((error) => {
+          recordError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to trigger confetti'),
+            {
+              component: 'notifyOnRoomChanges',
+              action: 'confetti',
+            },
+            'low',
+          );
+        });
       }
     }
 
@@ -662,7 +590,7 @@ export function notifyOnRoomChanges({
       return;
     }
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to process room changes'),
@@ -693,12 +621,6 @@ export function executeLeave({
   router?: NextRouter;
 }) {
   try {
-    addBreadcrumb('Executing room leave', 'room', {
-      roomId,
-      userId,
-      hasRouter: !!router,
-    });
-
     // Cleanup room State
     const { setRoomId, setRoomName } = useLocalstorageStore.getState();
     setRoomId(null);
@@ -713,29 +635,24 @@ export function executeLeave({
 
     // Navigate to homepage
     if (router) {
-      router
-        .push('/')
-        .then(() => {
-          addBreadcrumb('Navigation to homepage successful', 'navigation');
-        })
-        .catch((error) => {
-          captureError(
-            error instanceof Error
-              ? error
-              : new Error('Failed to navigate to homepage after leave'),
-            {
-              component: 'executeLeave',
-              action: 'navigate',
-              extra: { roomId, userId },
-            },
-            'medium',
-          );
-        });
+      router.push('/').catch((error) => {
+        recordError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to navigate to homepage after leave'),
+          {
+            component: 'executeLeave',
+            action: 'navigate',
+            extra: { roomId, userId },
+          },
+          'medium',
+        );
+      });
     } else if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to execute room leave'),
@@ -754,19 +671,12 @@ export function executeKick(
   router?: NextRouter,
 ): void {
   try {
-    addBreadcrumb('Executing kick', 'room', {
-      scenario,
-      hasRouter: !!router,
-    });
     if (scenario !== 'kick_notification') {
-      captureMessage(
+      // The server emits the authoritative user.kicked event; this is just
+      // client-side narration of the redirect.
+      logger.warn(
+        { component: 'executeKick', action: 'kick', scenario },
         `User was kicked from room (${scenario}), redirecting to homepage`,
-        {
-          component: 'executeKick',
-          action: 'kick',
-          extra: { scenario },
-        },
-        'warning',
       );
     }
 
@@ -789,30 +699,25 @@ export function executeKick(
     // Use router if provided, otherwise fallback to window.location
     setTimeout(() => {
       if (router) {
-        router
-          .push('/')
-          .then(() => {
-            addBreadcrumb('Navigation after kick successful', 'navigation');
-          })
-          .catch((error) => {
-            captureError(
-              error instanceof Error
-                ? error
-                : new Error('Failed to navigate after kick'),
-              {
-                component: 'executeKick',
-                action: 'navigate',
-                extra: { scenario },
-              },
-              'medium',
-            );
-          });
+        router.push('/').catch((error) => {
+          recordError(
+            error instanceof Error
+              ? error
+              : new Error('Failed to navigate after kick'),
+            {
+              component: 'executeKick',
+              action: 'navigate',
+              extra: { scenario },
+            },
+            'medium',
+          );
+        });
       } else if (typeof window !== 'undefined') {
         window.location.href = '/';
       }
     }, 200);
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error ? error : new Error('Failed to execute kick'),
       {
         component: 'executeKick',
@@ -832,11 +737,6 @@ export function executeRoomNameChange({
   router?: NextRouter;
 }): void {
   try {
-    addBreadcrumb('Executing room name change', 'room', {
-      newRoomName,
-      hasRouter: !!router,
-    });
-
     // Update local storage with new room name
     const { setRoomName, setRecentRoom } = useLocalstorageStore.getState();
     setRoomName(newRoomName);
@@ -851,29 +751,24 @@ export function executeRoomNameChange({
 
     // Navigate to new room URL
     if (router) {
-      router
-        .push(`/room/${newRoomName}`)
-        .then(() => {
-          addBreadcrumb('Navigation to renamed room successful', 'navigation');
-        })
-        .catch((error) => {
-          captureError(
-            error instanceof Error
-              ? error
-              : new Error('Failed to navigate to renamed room'),
-            {
-              component: 'executeRoomNameChange',
-              action: 'navigate',
-              extra: { newRoomName },
-            },
-            'medium',
-          );
-        });
+      router.push(`/room/${newRoomName}`).catch((error) => {
+        recordError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to navigate to renamed room'),
+          {
+            component: 'executeRoomNameChange',
+            action: 'navigate',
+            extra: { newRoomName },
+          },
+          'medium',
+        );
+      });
     } else if (typeof window !== 'undefined') {
       window.location.href = `/room/${newRoomName}`;
     }
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to execute room name change'),

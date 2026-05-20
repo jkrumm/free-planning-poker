@@ -3,7 +3,7 @@ import { startTransition, useEffect, useState } from 'react';
 import { FeatureFlagType } from '@fpp/db';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useConfigStore } from 'fpp/store/config.store';
 
@@ -30,7 +30,7 @@ export const useConfigLoader = () => {
 
       setTimeout(checkReady, 0);
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize useConfigLoader'),
@@ -80,9 +80,6 @@ export const useConfigLoader = () => {
       try {
         if (statusGetFeatureFlag === 'success') {
           setFeatureFlags(featureFlags);
-          addBreadcrumb('Feature flags loaded successfully', 'config', {
-            count: featureFlags?.length || 0,
-          });
         } else if (statusGetFeatureFlag === 'error') {
           const fallbackFlags = Object.keys(FeatureFlagType).map((name) => ({
             name: name as keyof typeof FeatureFlagType,
@@ -91,7 +88,7 @@ export const useConfigLoader = () => {
 
           setFeatureFlags(fallbackFlags);
 
-          captureError(
+          recordError(
             featureFlagsError || 'Failed to load feature flags',
             {
               component: 'useConfigLoader',
@@ -103,19 +100,12 @@ export const useConfigLoader = () => {
             },
             'medium',
           );
-
-          addBreadcrumb('Feature flags fallback applied', 'config', {
-            fallbackCount: fallbackFlags.length,
-          });
         }
 
         if (statusGetLatestTag === 'success') {
           setLatestTag(latestTag);
-          addBreadcrumb('Latest tag loaded successfully', 'config', {
-            tag: latestTag || 'none',
-          });
         } else if (statusGetLatestTag === 'error') {
-          captureError(
+          recordError(
             latestTagError || 'Failed to load latest tag',
             {
               component: 'useConfigLoader',
@@ -128,7 +118,7 @@ export const useConfigLoader = () => {
           );
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Unknown error in config loader'),
@@ -158,10 +148,6 @@ export const useConfigLoader = () => {
 
   useEffect(() => {
     if (hasMounted && isHydrated) {
-      addBreadcrumb('Config loader fully initialized', 'component', {
-        featureFlagsStatus: statusGetFeatureFlag,
-        latestTagStatus: statusGetLatestTag,
-      });
     }
   }, [hasMounted, isHydrated, statusGetFeatureFlag, statusGetLatestTag]);
 

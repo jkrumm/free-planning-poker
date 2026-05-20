@@ -11,7 +11,7 @@ import { IconCopy, IconEdit, IconEye } from '@tabler/icons-react';
 
 import { fibonacciSequence } from 'fpp/constants/fibonacci.constant';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { copyToClipboard } from 'fpp/utils/copy-top-clipboard.util';
 import { isValidMediumint } from 'fpp/utils/number.utils';
 import { executeLeave } from 'fpp/utils/room.util';
@@ -53,7 +53,7 @@ export const Interactions = ({
   const handleCopyUrl = () => {
     try {
       if (!window.location) {
-        captureError(
+        recordError(
           'Window location not available',
           {
             component: 'Interactions',
@@ -65,12 +65,8 @@ export const Interactions = ({
         return;
       }
       copyToClipboard(window.location.toString(), userId);
-      addBreadcrumb('Room URL copied to clipboard', 'room', {
-        roomId,
-        roomName,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to copy room URL'),
         {
           component: 'Interactions',
@@ -85,12 +81,8 @@ export const Interactions = ({
   const handleEditRoomName = () => {
     try {
       setTab(SidebarTabs.settings);
-      addBreadcrumb('Room name edit requested', 'room', {
-        roomId,
-        roomName,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to open room settings'),
@@ -114,12 +106,8 @@ export const Interactions = ({
         isSpectator: !isSpectator,
       });
       setTab(isSpectator ? null : SidebarTabs.spectators);
-      addBreadcrumb('Spectator mode toggled', 'room', {
-        newSpectatorState: !isSpectator,
-        roomId,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to toggle spectator mode'),
@@ -144,12 +132,8 @@ export const Interactions = ({
         roomId,
         userId,
       });
-      addBreadcrumb('Room reset requested', 'room', {
-        roomId,
-        status,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to reset room'),
         {
           component: 'Interactions',
@@ -169,11 +153,8 @@ export const Interactions = ({
         triggerAction,
         router,
       });
-      addBreadcrumb('Room leave requested', 'room', {
-        roomId,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to leave room'),
         {
           component: 'Interactions',
@@ -194,12 +175,8 @@ export const Interactions = ({
         userId,
         estimation: newEstimation,
       });
-      addBreadcrumb('Estimation submitted', 'room', {
-        estimation: newEstimation,
-        roomId,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to submit estimation'),
@@ -219,14 +196,6 @@ export const Interactions = ({
   };
 
   const shouldShowTooltip = userCount === 1 || isHovered;
-
-  addBreadcrumb('Interactions component rendered', 'room', {
-    roomId,
-    isConnected,
-    isSpectator,
-    status,
-    userCount,
-  });
 
   return (
     <div className="fixed bottom-0 left-0 w-screen flex justify-center h-[160px] sm:h-[170px] border-t md:border-0 border-[#424242] bg-[#242424] z-10">

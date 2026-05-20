@@ -12,7 +12,7 @@ import { IconArrowBadgeRightFilled } from '@tabler/icons-react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { generateRoomNumber } from 'fpp/utils/room-number.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -45,7 +45,7 @@ const IndexForm = () => {
 
       setTimeout(checkReady, 0);
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize IndexForm'),
@@ -71,7 +71,7 @@ const IndexForm = () => {
   if (getOpenRoomNumberQuery.isSuccess && getOpenRoomNumberQuery.data) {
     openRoomNumber = getOpenRoomNumberQuery.data;
   } else if (getOpenRoomNumberQuery.isError) {
-    captureError(
+    recordError(
       getOpenRoomNumberQuery.error || 'Failed to get open room number',
       {
         component: 'IndexForm',
@@ -94,29 +94,21 @@ const IndexForm = () => {
         if (!roomName || roomName === 'null' || roomName === 'undefined') {
           setRoomReadable(null);
         } else {
-          addBreadcrumb('Navigating to existing room', 'navigation', {
-            roomName,
+          router.push(`/room/${roomName}`).catch((error) => {
+            recordError(
+              error instanceof Error ? error : new Error('Navigation failed'),
+              {
+                component: 'IndexForm',
+                action: 'navigateToRoom',
+                extra: { roomName },
+              },
+              'medium',
+            );
           });
-          router
-            .push(`/room/${roomName}`)
-            .then(() => {
-              addBreadcrumb('Navigation to room successful', 'navigation');
-            })
-            .catch((error) => {
-              captureError(
-                error instanceof Error ? error : new Error('Navigation failed'),
-                {
-                  component: 'IndexForm',
-                  action: 'navigateToRoom',
-                  extra: { roomName },
-                },
-                'medium',
-              );
-            });
         }
       });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to handle room navigation'),
@@ -151,7 +143,7 @@ const IndexForm = () => {
         form.setFieldValue('room', roomValue);
       });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to format room input'),
@@ -177,7 +169,7 @@ const IndexForm = () => {
 
   useEffect(() => {
     if (analyticsError) {
-      captureError(
+      recordError(
         analyticsError,
         {
           component: 'IndexForm',
@@ -192,29 +184,21 @@ const IndexForm = () => {
     try {
       setRoomReadable(String(openRoomNumber));
       setRoomEvent(RoomEvent.ENTERED_RANDOM_ROOM);
-      addBreadcrumb('Starting random room', 'navigation', {
-        roomNumber: openRoomNumber,
+      router.push(`/room/${openRoomNumber}`).catch((error) => {
+        recordError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to navigate to random room'),
+          {
+            component: 'IndexForm',
+            action: 'handleStartPlanning',
+            extra: { roomNumber: openRoomNumber },
+          },
+          'medium',
+        );
       });
-      router
-        .push(`/room/${openRoomNumber}`)
-        .then(() => {
-          addBreadcrumb('Navigation to random room successful', 'navigation');
-        })
-        .catch((error) => {
-          captureError(
-            error instanceof Error
-              ? error
-              : new Error('Failed to navigate to random room'),
-            {
-              component: 'IndexForm',
-              action: 'handleStartPlanning',
-              extra: { roomNumber: openRoomNumber },
-            },
-            'medium',
-          );
-        });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to start planning'),
         {
           component: 'IndexForm',
@@ -231,29 +215,21 @@ const IndexForm = () => {
       const roomValue = form.values.room.toLowerCase();
       setRoomReadable(roomValue);
       setRoomEvent(RoomEvent.ENTERED_ROOM_DIRECTLY);
-      addBreadcrumb('Joining specific room', 'navigation', {
-        roomName: roomValue,
+      router.push(`/room/${roomValue}`).catch((error) => {
+        recordError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to navigate to specific room'),
+          {
+            component: 'IndexForm',
+            action: 'handleJoinRoom',
+            extra: { roomName: roomValue },
+          },
+          'medium',
+        );
       });
-      router
-        .push(`/room/${roomValue}`)
-        .then(() => {
-          addBreadcrumb('Navigation to specific room successful', 'navigation');
-        })
-        .catch((error) => {
-          captureError(
-            error instanceof Error
-              ? error
-              : new Error('Failed to navigate to specific room'),
-            {
-              component: 'IndexForm',
-              action: 'handleJoinRoom',
-              extra: { roomName: roomValue },
-            },
-            'medium',
-          );
-        });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to join room'),
         {
           component: 'IndexForm',
@@ -267,7 +243,6 @@ const IndexForm = () => {
 
   useEffect(() => {
     if (hasMounted && isHydrated) {
-      addBreadcrumb('IndexForm fully loaded', 'component', { openRoomNumber });
     }
   }, [hasMounted, isHydrated, openRoomNumber]);
 
@@ -388,7 +363,7 @@ export function AnimatedNumber({
 
       return () => clearTimeout(timeout);
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to animate number'),
         {
           component: 'AnimatedNumber',

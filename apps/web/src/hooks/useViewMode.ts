@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
 import { useRoomStore } from 'fpp/store/room.store';
@@ -15,13 +15,8 @@ export const useViewMode = () => {
       try {
         const newIsMobile = window.innerWidth < 768;
         setIsMobile(newIsMobile);
-
-        addBreadcrumb('Screen size checked', 'ui', {
-          width: window.innerWidth,
-          isMobile: newIsMobile,
-        });
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to check screen size'),
@@ -37,13 +32,8 @@ export const useViewMode = () => {
     try {
       checkScreenSize();
       window.addEventListener('resize', checkScreenSize);
-
-      addBreadcrumb('View mode initialized', 'ui', {
-        preferCardView,
-        userCount: users.length,
-      });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error
           ? error
           : new Error('Failed to initialize view mode'),
@@ -59,7 +49,7 @@ export const useViewMode = () => {
       try {
         window.removeEventListener('resize', checkScreenSize);
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to cleanup view mode'),
@@ -80,7 +70,7 @@ export const useViewMode = () => {
 
     return shouldUseCardList ? 'cardList' : 'table';
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to determine view mode'),

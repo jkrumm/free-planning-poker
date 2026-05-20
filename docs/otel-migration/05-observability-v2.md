@@ -231,8 +231,12 @@ Emitted via `recordEvent`. `S` = fpp-server (authoritative, primary), `W` = web 
 | `ws.connected` | Socket open | `room.id`, `user.id` | S |
 | `ws.disconnected` | Socket close (non-normal) | `room.id`, `user.id`, `close.reason` | S |
 | `ws.reconnected` | Action queue flush after reconnect | `room.id`, `user.id` | W |
+| `ws.reconnect_exhausted` | Client reconnect attempts exhausted | `room.id`, `user.id` | W |
+| `ws.recovery_reload` | Connection-health watchdog forced a page reload | `room.id`, `user.id` | W |
 
 `heartbeat` is intentionally **not** an event — it's noise. It feeds presence/liveness only.
+
+> `ws.reconnect_exhausted` and `ws.recovery_reload` are client-only recovery signals the authoritative server cannot observe (the browser gave up reconnecting / force-reloaded itself). Added beyond the original §7 set during P4.
 
 ---
 

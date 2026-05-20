@@ -6,7 +6,7 @@ import { type RouteType } from '@fpp/db';
 
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -59,12 +59,6 @@ export const useTrackPageView = (
         window.history.replaceState({}, '', url.toString());
       });
 
-      addBreadcrumb('Page view tracking initiated', 'tracking', {
-        route,
-        roomId: roomId ?? null,
-        hasSource: !!source,
-      });
-
       sendTrackPageView({
         userId,
         route,
@@ -74,7 +68,7 @@ export const useTrackPageView = (
         setUserIdRoomState,
       });
     } catch (error) {
-      captureError(
+      recordError(
         error instanceof Error ? error : new Error('Failed to track page view'),
         {
           component: 'useTrackPageView',
@@ -122,11 +116,6 @@ export const sendTrackPageView = ({
     });
     const url = `${env.NEXT_PUBLIC_API_ROOT}api/track-page-view`;
 
-    addBreadcrumb('Sending page view tracking', 'tracking', {
-      route,
-      hasUserId: !!userId,
-    });
-
     if (navigator.sendBeacon && userId && validateNanoId(userId)) {
       try {
         const blob = new Blob([body], { type: 'application/json' });
@@ -134,9 +123,7 @@ export const sendTrackPageView = ({
         if (!beaconSent) {
           throw new Error('Beacon failed to send');
         }
-        addBreadcrumb('Page view sent via beacon', 'tracking');
       } catch {
-        addBreadcrumb('Beacon failed, falling back to fetch', 'tracking');
         sendViaFetch(url, body, setUserIdLocalStorage, setUserIdRoomState, {
           userId,
           route,
@@ -151,7 +138,7 @@ export const sendTrackPageView = ({
       });
     }
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to send page view tracking'),
@@ -185,9 +172,6 @@ const sendViaFetch = (
     .then((res) => {
       // Handle rate limiting or WAF blocks gracefully - don't capture as errors
       if (res.status === 403 || res.status === 429) {
-        addBreadcrumb('Page view tracking rate limited', 'tracking', {
-          status: res.status,
-        });
         return null;
       }
       if (!res.ok) {
@@ -203,12 +187,9 @@ const sendViaFetch = (
         setUserIdRoomState(data.userId);
         setUserIdLocalStorage(data.userId);
       });
-      addBreadcrumb('Page view tracking successful', 'tracking', {
-        newUserId: data.userId,
-      });
     })
     .catch((fetchError) => {
-      captureError(
+      recordError(
         fetchError instanceof Error
           ? fetchError
           : new Error('Fetch tracking failed'),

@@ -1,6 +1,6 @@
 import { logEndpoint } from 'fpp/constants/logging.constant';
 
-import { captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 
 export function sendTrackEvent({
   event,
@@ -30,7 +30,7 @@ export function sendTrackEvent({
       });
     }
   } catch (e) {
-    captureError(
+    recordError(
       e instanceof Error ? e : new Error('Failed to track event'),
       {
         component: 'sendTrackEvent',

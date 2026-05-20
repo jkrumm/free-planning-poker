@@ -7,13 +7,11 @@ import { env } from 'fpp/env';
 
 import { type Action } from '@fpp/shared';
 import { RoomClient, type RoomDto } from '@fpp/shared';
+import { EVENT } from '@fpp/shared/telemetry';
 import { context, propagation } from '@opentelemetry/api';
 
-import {
-  addBreadcrumb,
-  captureError,
-  captureMessage,
-} from 'fpp/utils/app-error';
+import { recordError, recordEvent } from 'fpp/utils/app-error';
+import { logger } from 'fpp/utils/logger';
 import { executeKick, executeRoomNameChange } from 'fpp/utils/room.util';
 
 import { useRoomStore } from 'fpp/store/room.store';
@@ -104,7 +102,6 @@ export const useWebSocketRoom = ({
 
         if (message.data === 'pong') {
           setLastPongReceived(Date.now());
-          addBreadcrumb('Heartbeat pong received', 'websocket');
           return;
         }
 
@@ -115,31 +112,20 @@ export const useWebSocketRoom = ({
             | { type: 'kicked'; message: string }
             | { type: 'roomNameChanged'; roomName: string };
 
-          addBreadcrumb('WebSocket message received', 'websocket', {
-            type: 'type' in data ? data.type : 'room_update',
-          });
-
           // Handle kick notification
           if ('type' in data && data.type === 'kicked') {
-            addBreadcrumb('User kicked from room', 'room', {
-              reason: data.message,
-            });
             executeKick('kick_notification', router);
             return;
           }
 
           // Handle roomNameChanged notification
           if ('type' in data && data.type === 'roomNameChanged') {
-            addBreadcrumb('Room name changed', 'room', {
-              newName: data.roomName,
-            });
             executeRoomNameChange({ newRoomName: data.roomName, router });
             return;
           }
 
           if ('error' in data) {
             if (data.error === 'User not found - userId not found') {
-              addBreadcrumb('User not found, attempting rejoin', 'websocket');
               if (triggerActionRef.current) {
                 triggerActionRef.current({
                   action: 'rejoin',
@@ -151,7 +137,7 @@ export const useWebSocketRoom = ({
               return;
             }
 
-            captureError(
+            recordError(
               'Server error received',
               {
                 component: 'useWebSocketRoom',
@@ -165,7 +151,7 @@ export const useWebSocketRoom = ({
 
           updateRoomState(RoomClient.fromJson(data));
         } catch (e) {
-          captureError(
+          recordError(
             e instanceof Error
               ? e
               : new Error('Failed to parse WebSocket message'),
@@ -188,11 +174,7 @@ export const useWebSocketRoom = ({
           return;
         }
 
-        addBreadcrumb('WebSocket error occurred', 'websocket', {
-          eventKeys: Object.keys(event).join(', '),
-        });
-
-        captureError(
+        recordError(
           'WebSocket error occurred',
           {
             component: 'useWebSocketRoom',
@@ -208,12 +190,6 @@ export const useWebSocketRoom = ({
       },
 
       onClose: (event) => {
-        addBreadcrumb('WebSocket disconnected', 'websocket', {
-          code: event.code,
-          reason: event.reason || 'No reason provided',
-          wasClean: event.wasClean,
-        });
-
         // Handle code 1008 (policy violation) - usually invalid username
         if (event.code === 1008) {
           const reason = event.reason || '';
@@ -223,16 +199,6 @@ export const useWebSocketRoom = ({
             reason.includes('letters');
 
           if (isUsernameError) {
-            addBreadcrumb(
-              'WebSocket closed: Invalid username detected',
-              'websocket',
-              {
-                code: event.code,
-                reason,
-                message: 'Username validation failed - clearing localStorage',
-              },
-            );
-
             // Notify parent component to clear username and show modal
             if (onInvalidUsername) {
               onInvalidUsername();
@@ -247,47 +213,34 @@ export const useWebSocketRoom = ({
           if (event.code === 1006 || event.code === 1001) {
             // 1006 (abnormal closure) and 1001 (going away) are very common
             // 1001 occurs during CloudFlare proxy restarts - expected behavior
-            addBreadcrumb(
-              'WebSocket closed abnormally (network/timeout/proxy restart)',
-              'websocket',
-              {
-                code: event.code,
-                message:
-                  'Common network disconnection - will reconnect automatically',
-              },
-            );
           } else {
-            // Other unexpected close codes are more concerning
-            captureMessage(
-              'WebSocket closed unexpectedly',
+            // Other unexpected close codes are more concerning. The server
+            // emits the authoritative ws.disconnected event; this is just
+            // client-side operator narration.
+            logger.warn(
               {
                 component: 'useWebSocketRoom',
                 action: 'onClose',
-                extra: {
-                  code: event.code,
-                  reason: event.reason || 'No reason provided',
-                },
+                code: event.code,
+                reason: event.reason || 'No reason provided',
               },
-              'warning',
+              'WebSocket closed unexpectedly',
             );
           }
         }
       },
 
       onOpen: () => {
-        addBreadcrumb('WebSocket connected successfully', 'websocket');
         setConnectedAt();
         setLastPongReceived(Date.now());
       },
 
-      onReconnectStop: (numAttempts) => {
-        // Don't capture as an error - this is expected after 20 retries (~190 seconds)
-        // User likely closed laptop, lost network, or intentionally left
-        addBreadcrumb('WebSocket reconnection exhausted', 'websocket', {
-          attempts: numAttempts,
-          message:
-            'All retry attempts exhausted - expected after prolonged network loss',
-        });
+      onReconnectStop: () => {
+        // Not an error — expected after 20 retries (~190s): laptop closed,
+        // network lost, or the user left. A client-only event the server can't
+        // observe (it never sees the browser give up). user/room come from the
+        // facade's userContext.
+        recordEvent(EVENT.WS_RECONNECT_EXHAUSTED);
       },
     },
   );
@@ -295,9 +248,6 @@ export const useWebSocketRoom = ({
   // Sync readyState to store whenever it changes
   useEffect(() => {
     setReadyState(readyState);
-    addBreadcrumb('WebSocket state changed', 'websocket', {
-      state: ReadyState[readyState],
-    });
   }, [readyState, setReadyState]);
 
   const triggerAction = useCallback(
@@ -306,9 +256,6 @@ export const useWebSocketRoom = ({
         if (readyState === ReadyState.OPEN) {
           const message = serializeWithTraceContext(action);
           sendMessage(message);
-          addBreadcrumb('WebSocket action sent', 'websocket', {
-            action: action.action,
-          });
         } else if (
           readyState === ReadyState.CONNECTING ||
           readyState === ReadyState.CLOSED ||
@@ -327,36 +274,15 @@ export const useWebSocketRoom = ({
             case 'leave':
               // Leave actions are less critical when connection is already down
               // The server will clean up stale connections, and beforeunload uses beacon fallback
-              addBreadcrumb(
-                'Leave action skipped - connection not ready',
-                'websocket',
-                {
-                  readyState: ReadyState[readyState],
-                },
-              );
               return; // Don't queue leave actions
 
             case 'heartbeat':
               // Don't queue heartbeats when not connected - they're only useful when connected
-              addBreadcrumb(
-                'Heartbeat skipped - connection not ready',
-                'websocket',
-                {
-                  readyState: ReadyState[readyState],
-                },
-              );
               return;
 
             case 'rejoin':
               // Rejoin actions are only meaningful when we have a connection attempt
               if (readyState !== ReadyState.CONNECTING) {
-                addBreadcrumb(
-                  'Rejoin action skipped - not connecting',
-                  'websocket',
-                  {
-                    readyState: ReadyState[readyState],
-                  },
-                );
                 return;
               }
               break;
@@ -372,19 +298,9 @@ export const useWebSocketRoom = ({
           };
 
           actionQueueRef.current.push(queuedAction);
-
-          addBreadcrumb(
-            'WebSocket action queued - connection not ready',
-            'websocket',
-            {
-              action: action.action,
-              readyState: ReadyState[readyState],
-              queueLength: actionQueueRef.current.length,
-            },
-          );
         }
       } catch (error) {
-        captureError(
+        recordError(
           error instanceof Error
             ? error
             : new Error('Failed to send WebSocket action'),
@@ -418,11 +334,8 @@ export const useWebSocketRoom = ({
           // stale traceparent captured at queue time.
           const message = serializeWithTraceContext(action);
           sendMessage(message);
-          addBreadcrumb('Queued WebSocket action sent', 'websocket', {
-            action: action.action,
-          });
         } catch (error) {
-          captureError(
+          recordError(
             error instanceof Error
               ? error
               : new Error('Failed to send queued WebSocket action'),
@@ -439,10 +352,9 @@ export const useWebSocketRoom = ({
       });
 
       if (validActions.length > 0) {
-        addBreadcrumb('Processed queued actions', 'websocket', {
-          processedCount: validActions.length,
-          expiredCount: actionQueueRef.current.length - validActions.length,
-        });
+        // Queue drained after the socket came back → the reconnect completed.
+        // Client-only signal (the server just sees fresh actions arrive).
+        recordEvent(EVENT.WS_RECONNECTED);
       }
 
       actionQueueRef.current = [];

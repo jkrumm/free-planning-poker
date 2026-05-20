@@ -1,7 +1,7 @@
 import { RingProgress, Text } from '@mantine/core';
 
 import { api } from 'fpp/utils/api';
-import { addBreadcrumb, captureError } from 'fpp/utils/app-error';
+import { recordError } from 'fpp/utils/app-error';
 import { secondsToReadableTime } from 'fpp/utils/number.utils';
 
 import { useLocalstorageStore } from 'fpp/store/local-storage.store';
@@ -54,12 +54,11 @@ const SidebarRoomAnalytics = () => {
   const query = api.room.getRoomStats.useQuery({ roomId });
 
   if (query.isPending) {
-    addBreadcrumb('Loading room analytics', 'analytics', { roomId });
     return null;
   }
 
   if (query.isError) {
-    captureError(
+    recordError(
       query.error || 'Failed to load room analytics',
       {
         component: 'SidebarRoomAnalytics',
@@ -74,7 +73,7 @@ const SidebarRoomAnalytics = () => {
   }
 
   if (!query.data) {
-    captureError(
+    recordError(
       'Room analytics data is null',
       {
         component: 'SidebarRoomAnalytics',
@@ -100,13 +99,6 @@ const SidebarRoomAnalytics = () => {
       spectators,
       spectators_per_vote,
     } = query.data;
-
-    addBreadcrumb('Room analytics loaded successfully', 'analytics', {
-      roomId,
-      votes,
-      estimations,
-      spectators,
-    });
 
     return (
       <SidebarContent
@@ -155,7 +147,7 @@ const SidebarRoomAnalytics = () => {
       />
     );
   } catch (error) {
-    captureError(
+    recordError(
       error instanceof Error
         ? error
         : new Error('Failed to render room analytics'),
