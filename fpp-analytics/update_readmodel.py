@@ -39,10 +39,10 @@ UPTIMEKUMA_PUSH_URL = os.getenv("UPTIMEKUMA_PUSH_URL")
 #
 # DB_SSL=true forces a TLS handshake — required when MariaDB is started with
 # --require-secure-transport=ON, which is the case on the VPS. DB_SSL_VERIFY=false
-# skips cert+hostname verification, which is what we want when connecting to
-# the internal `mariadb` hostname (the wildcard cert's CN is *.jkrumm.com and
-# won't match). For external connections through fpp-db.jkrumm.com we'd flip
-# DB_SSL_VERIFY back to true.
+# keeps cert-chain validation but skips only the hostname check — needed when
+# connecting to the internal `mariadb` hostname (the wildcard cert's CN is
+# *.jkrumm.com and won't match). For external connections through
+# fpp-db.jkrumm.com we'd flip DB_SSL_VERIFY back to true (full verification).
 DB_CONFIG: dict[str, Any] = {
     "host": os.getenv("DB_HOST", "mariadb"),
     "port": int(os.getenv("DB_PORT", "3306")),
@@ -57,8 +57,11 @@ if os.getenv("DB_SSL", "false").lower() == "true":
 
     ctx = ssl_module.create_default_context()
     if os.getenv("DB_SSL_VERIFY", "true").lower() == "false":
+        # Validate the cert chain (CERT_REQUIRED, a publicly-trusted LE wildcard)
+        # so a forged cert can't MITM the connection, but skip the hostname check
+        # since the internal `mariadb` host won't match the wildcard SAN.
         ctx.check_hostname = False
-        ctx.verify_mode = ssl_module.CERT_NONE
+        ctx.verify_mode = ssl_module.CERT_REQUIRED
     DB_CONFIG["ssl"] = ctx
 
 # Table definitions: {table_name: sync_column}
