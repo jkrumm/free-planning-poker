@@ -26,7 +26,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system app && useradd --system --gid app --home-dir /app app
 
-COPY --from=builder --chown=app:app /app /app
+COPY --from=builder /app /app
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \

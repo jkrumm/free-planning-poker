@@ -346,11 +346,10 @@ export function AnimatedNumber({
   delay?: number;
 }) {
   const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
-  // Use space separator (ISO 31-0 standard) - neutral for all locales
+  // Use space separator (ISO 31-0 standard) - neutral for all locales.
+  // toLocaleString + split/join avoids a backtracking lookahead regex.
   const display = useTransform(spring, (current) =>
-    Math.round(current)
-      .toString()
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ' '),
+    Math.round(current).toLocaleString('en-US').split(',').join(' '),
   );
 
   useEffect(() => {
