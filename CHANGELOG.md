@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 
 
+## [8.5.0](https://github.com/jkrumm/free-planning-poker/compare/8.4.0...8.5.0) (2026-05-21)
+
+### Features
+
+* add typed telemetry taxonomy in @fpp/shared ([6ef82b1](https://github.com/jkrumm/free-planning-poker/commit/6ef82b12e7c48e698ba373b3029e013fe15c4152))
+* always-on browser OTEL SDK + dev proxy to local ClickStack ([847a73f](https://github.com/jkrumm/free-planning-poker/commit/847a73f47e443ce7bd058b6374ad9743eae52815))
+* analytics endpoint RED metrics + taxonomy (Observability v2 P5) ([0ef0234](https://github.com/jkrumm/free-planning-poker/commit/0ef0234a8a36b57daaacce243a666c8346783d98))
+* auto-attach userId/roomId to every browser OTEL emission ([43247ad](https://github.com/jkrumm/free-planning-poker/commit/43247ad813aa4bab377ccc7057ad68beea64e3aa))
+* convert to bun monorepo ([28b6f79](https://github.com/jkrumm/free-planning-poker/commit/28b6f7907f64e2048464b133ccc7066497ff2e6e))
+* edge-derived geo + honest GDPR imprint, drop ip-api.com ([af9d923](https://github.com/jkrumm/free-planning-poker/commit/af9d9234c8d6ed653a23517dc96c857df1431083))
+* end-to-end distributed tracing across the WebSocket boundary ([b084f87](https://github.com/jkrumm/free-planning-poker/commit/b084f874866a7cab20c75a5faede8e361a7e938e))
+* fpp-server metrics + log-based domain events (Observability v2 P2) ([3225843](https://github.com/jkrumm/free-planning-poker/commit/322584347cea63a58753aa8de99cb274ebbe0c49))
+* per-metric attribute allowlist via SDK Views (Observability v2 P7) ([7ede100](https://github.com/jkrumm/free-planning-poker/commit/7ede100fdc762da691a071b874712b1cc2c94c68))
+* persist room state to Valkey for restart resilience ([1b41c04](https://github.com/jkrumm/free-planning-poker/commit/1b41c04c87fbe025959a2a692b6ce77c815bf86e))
+* route web operator narration to OTLP via log facade verb ([d3a3e95](https://github.com/jkrumm/free-planning-poker/commit/d3a3e95fd038f9c9769a34f0473d3dd01254b012))
+* web facade clean rename + client-only events (Observability v2 P4) ([e0a95b3](https://github.com/jkrumm/free-planning-poker/commit/e0a95b34fd0fbf291133c7ac7ae0b9cbc7980cd8))
+
+### Bug Fixes
+
+* address snapshot races + review feedback ([cdd73d7](https://github.com/jkrumm/free-planning-poker/commit/cdd73d7d35196b595e1ad9d2c8084090315da0ed))
+* analytics OTEL silently broken — HTTP exporter + earlier instrument ([a0ba3f2](https://github.com/jkrumm/free-planning-poker/commit/a0ba3f2af2aff0ab44defe802ccfb37763d5ecee)), closes [vps#3](https://github.com/jkrumm/vps/issues/3)
+
+### Refactoring
+
+* align monorepo tooling and extract drizzle client to @fpp/db ([ea1f247](https://github.com/jkrumm/free-planning-poker/commit/ea1f247b3a14b659d3515740a404df240d0c90ef))
+* drop unused SEND_EMAIL/TARGET_EMAIL env vars ([5782d34](https://github.com/jkrumm/free-planning-poker/commit/5782d349f988f26d2d819a2559e0e9927f3982b4))
+* drop Upstash rate limiting in favor of Vercel WAF ([752ff20](https://github.com/jkrumm/free-planning-poker/commit/752ff209ead684615adc2cffff9a704ef494886a))
+* overhaul local dev stack — 1Password + Caddy + 7720 ports ([5a3a1e5](https://github.com/jkrumm/free-planning-poker/commit/5a3a1e54b0feb4afa9109f294ec7207d4f199177))
+* replace sentry with opentelemetry → clickstack/hyperdx ([c36b72d](https://github.com/jkrumm/free-planning-poker/commit/c36b72d72f5c7e5f01d1d7d61a17af8d390664c9))
+* server facade clean rename to recordError (Observability v2 P3) ([773b035](https://github.com/jkrumm/free-planning-poker/commit/773b035b20fc7a0d77cc5a33c1ea90ad6a796039))
+
+### Documentation
+
+* add observability v2 spec (metrics, events, typed taxonomy) ([e2598ef](https://github.com/jkrumm/free-planning-poker/commit/e2598efc2557d9f18029e2c65a6a557e03221c60))
+* fix global skills path (was stale SourceRoot/.claude reference) ([295472d](https://github.com/jkrumm/free-planning-poker/commit/295472d4cf9e523387d3550b33b38a82485864f3))
+* point database and deploy references to vps stack ([f7a19f0](https://github.com/jkrumm/free-planning-poker/commit/f7a19f0b0fadb23f0655dc4aa87d6ec8bafb4349))
+* reflect monorepo structure across all docs ([b48cd42](https://github.com/jkrumm/free-planning-poker/commit/b48cd42bd5bfcdf73995069348e26063520912cf))
+
 ## [8.4.0](https://github.com/jkrumm/free-planning-poker/compare/8.3.0...8.4.0) (2026-05-10)
 
 ### Features
