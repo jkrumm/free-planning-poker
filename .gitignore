@@ -148,3 +148,4 @@ cython_debug/
 
 # Auto Claude data directory
 .auto-claude/
+fpp-server/.claude/settings.local.json
