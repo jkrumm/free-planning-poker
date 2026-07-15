@@ -68,7 +68,7 @@ bun run dev:all
 # Or individually
 bun run dev                        # Next.js only (port 7720)
 bun run --filter=@fpp/server dev   # WebSocket server only (port 7721)
-cd fpp-analytics && op run --account tkrumm --env-file=.env.tpl -- uv run uvicorn main:app --reload --port 7722
+cd fpp-analytics && secrets-run run --env-file=.env.tpl -- uv run uvicorn main:app --reload --port 7722
 ```
 
 **First-time analytics setup:** `cd fpp-analytics && uv run python update_readmodel.py` once to generate the Parquet files.
