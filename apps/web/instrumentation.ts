@@ -43,9 +43,9 @@ export async function register() {
   const loggerProvider = new LoggerProvider({
     resource,
     processors: [
-      new SimpleLogRecordProcessor(
-        new OTLPLogExporter({ url: `${endpoint}/v1/logs`, headers }),
-      ),
+      new SimpleLogRecordProcessor({
+        exporter: new OTLPLogExporter({ url: `${endpoint}/v1/logs`, headers }),
+      }),
     ],
   });
   logs.setGlobalLoggerProvider(loggerProvider);
