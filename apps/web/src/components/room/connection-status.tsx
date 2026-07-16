@@ -22,11 +22,7 @@ export const ConnectionStatus = ({
     [ReadyState.CLOSED]: 'Closed',
     [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
   }[readyState] as
-    | 'Connecting'
-    | 'Connected'
-    | 'Closing'
-    | 'Closed'
-    | 'Uninstantiated';
+    'Connecting' | 'Connected' | 'Closing' | 'Closed' | 'Uninstantiated';
 
   let color = 'red';
   if (connectionStatus === 'Connected') {
