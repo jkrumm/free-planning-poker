@@ -20,8 +20,8 @@
   ],
   "scripts": {
     "build": "bun run --filter=@fpp/web build",
-    "dev": "bun run --filter=@fpp/web dev",
-    "dev:all": "concurrently bun:dev:all:*",
+    "dev": "concurrently bun:dev:all:*",
+    "dev:web": "bun run --filter=@fpp/web dev",
     "dev:all:logdy": "./scripts/kill-ports.sh 7723 7724 7725 7726 && logdy socket --port 7723 7724 7725 7726 --config logdy.config.json",
     "dev:all:nextjs": "sleep 2 && bun run --filter=@fpp/web dev 2>&1 | logdy forward 7724",
     "dev:all:server": "sleep 2 && bun run --filter=@fpp/server dev 2>&1 | logdy forward 7725",

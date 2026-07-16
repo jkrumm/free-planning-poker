@@ -63,10 +63,10 @@ Container ports stay 3003 (server) and 5100 (analytics); the local `PORT` env ov
 bun install                        # workspace root — populates all packages
 
 # Start everything (Next.js + server + analytics + Logdy UI)
-bun run dev:all
+bun run dev
 
 # Or individually
-bun run dev                        # Next.js only (port 7720)
+bun run dev:web                    # Next.js only (port 7720)
 bun run --filter=@fpp/server dev   # WebSocket server only (port 7721)
 cd fpp-analytics && secrets-run run --env-file=.env.tpl -- uv run uvicorn main:app --reload --port 7722
 ```
@@ -138,7 +138,7 @@ GitHub Actions runs 17 jobs in parallel on every PR:
 2. Clone [vps](https://github.com/jkrumm/vps) and bring up the FPP stack — it provides the MariaDB this project talks to.
 3. `make db-setup-local` — grants the local `fpp` database user.
 4. `bun install`
-5. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:7723)
+5. `bun run dev` — full stack with the Logdy log UI on http://localhost:7723 (or `bun run dev:web` for Next.js alone)
 
 Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`, `fpp-analytics/.env.tpl`). The `dev` scripts wrap `secrets-run run --env-file=.env.tpl -- ...` to inject them.
 
