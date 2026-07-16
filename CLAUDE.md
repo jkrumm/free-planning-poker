@@ -170,7 +170,7 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 
 ## Build & Development Commands
 
-**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars come from 1Password (`op run --env-file=apps/web/.env.tpl`) at runtime, not at build time.
+**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars come from 1Password (`secrets-run run --env-file=apps/web/.env.tpl`) at runtime, not at build time.
 
 All scripts run from the workspace root unless noted. The root `package.json` delegates to workspace members via `bun run --filter=@fpp/<pkg>`.
 
@@ -210,7 +210,7 @@ make analytics-update-local              # Regenerate parquet files for /analyti
 
 ### Local env via 1Password (no Doppler)
 
-Each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkrumm --env-file=.env.tpl --`. Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (HyperDX, email) are hardcoded dummies. Vercel manages prod env directly.
+Each service has its own `.env.tpl` resolved at dev-script time by `secrets-run run --env-file=.env.tpl --` (a faithful `op run` drop-in: passthrough to `op` on the MacBook, encrypted-cache resolution on the mini). Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (HyperDX, email) are hardcoded dummies. Vercel manages prod env directly.
 
 ### Local URLs
 
@@ -347,7 +347,7 @@ import { useRoomStore } from '../store/room.store';
 ### 🚨 Environment Variables
 - **Client vars**: Must be prefixed with `NEXT_PUBLIC_`
 - **Build command**: Always use `SKIP_ENV_VALIDATION=1 bun run build`
-- **Environment file**: 1Password via `op run --env-file=apps/web/.env.tpl` (see `apps/web/.env.tpl`). Production secrets live in Vercel and the VPS 1Password vault.
+- **Environment file**: 1Password via `secrets-run run --env-file=apps/web/.env.tpl` (see `apps/web/.env.tpl`). Production secrets live in Vercel and the VPS 1Password vault.
 
 ## ESLint & React 19 Linting
 
@@ -549,7 +549,7 @@ Users are anonymous. Each client generates a 21-character nanoid stored in local
 The app has an **action queue** in `useWebSocketRoom.ts` - actions sent while disconnected are queued and sent on reconnect.
 
 ### 5. Build Environment
-Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injected at runtime by `op run --env-file=apps/web/.env.tpl` (1Password).
+Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injected at runtime by `secrets-run run --env-file=apps/web/.env.tpl` (1Password).
 
 ## Error Handling Standards (OpenTelemetry → HyperDX)
 

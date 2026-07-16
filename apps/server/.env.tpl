@@ -1,5 +1,5 @@
 # FPP Server (Bun + Elysia WS) — local dev env via 1Password.
-# Resolved at runtime: `op run --account tkrumm --env-file=.env.tpl -- <cmd>`.
+# Resolved at runtime: `secrets-run run --env-file=.env.tpl -- <cmd>`.
 # Production env is injected by docker-compose on the VPS (see vps/apps/fpp).
 
 # --- Hardcoded local config ---

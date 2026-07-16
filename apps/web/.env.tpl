@@ -1,5 +1,5 @@
 # FPP Web (Next.js) — local dev env via 1Password.
-# Resolved at runtime: `op run --account tkrumm --env-file=.env.tpl -- <cmd>`.
+# Resolved at runtime: `secrets-run run --env-file=.env.tpl -- <cmd>`.
 # Production secrets live in Vercel — not here.
 
 # --- Hardcoded local config (matches Caddy hostnames) ---

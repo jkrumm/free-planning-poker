@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "../../scripts/kill-ports.sh 7720 && op run --account tkrumm --env-file=.env.tpl -- ./scripts/dev.sh",
+    "dev": "../../scripts/kill-ports.sh 7720 && secrets-run run --env-file=.env.tpl -- ./scripts/dev.sh",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

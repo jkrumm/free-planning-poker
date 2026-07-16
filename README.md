@@ -140,7 +140,7 @@ GitHub Actions runs 17 jobs in parallel on every PR:
 4. `bun install`
 5. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:7723)
 
-Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`, `fpp-analytics/.env.tpl`). The `dev` scripts wrap `op run --account tkrumm --env-file=.env.tpl -- ...` so 1Password references resolve to live values without ever writing them to disk.
+Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`, `fpp-analytics/.env.tpl`). The `dev` scripts wrap `secrets-run run --env-file=.env.tpl -- ...` so 1Password references resolve to live values without ever writing them to disk.
 
 ### WebSocket server (standalone)
 
@@ -148,7 +148,7 @@ Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`
 bun run --filter=@fpp/server dev   # port 7721
 ```
 
-Env vars are populated by `op run` from `apps/server/.env.tpl`. The only secret that resolves from 1Password is `FPP_SERVER_SECRET` (must match the Next.js side for flip-tracking callbacks); the rest are hardcoded local defaults.
+Env vars are populated by `secrets-run run` from `apps/server/.env.tpl`. The only secret that resolves from 1Password is `FPP_SERVER_SECRET` (must match the Next.js side for flip-tracking callbacks); the rest are hardcoded local defaults.
 
 ### Analytics service (standalone)
 
