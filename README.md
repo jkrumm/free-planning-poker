@@ -134,13 +134,15 @@ GitHub Actions runs 17 jobs in parallel on every PR:
 
 ## Run Locally
 
-1. Install Node 24 (`nvm install`), Bun (`curl -fsSL https://bun.sh/install | bash`), Docker + Compose, [1Password CLI](https://developer.1password.com/docs/cli/get-started/) (`brew install 1password-cli`), and uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
+1. Install Node 24 (`nvm install`), Bun (`curl -fsSL https://bun.sh/install | bash`), Docker + Compose, and uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
 2. Clone [vps](https://github.com/jkrumm/vps) and bring up the FPP stack — it provides the MariaDB this project talks to.
-3. Sign in to 1Password with the personal `tkrumm` account; secrets are resolved at runtime from `op://vps/fpp/*` and `op://vps/mariadb/FPP_PASSWORD` via per-service `.env.tpl` files.
+3. `make db-setup-local` — grants the local `fpp` database user.
 4. `bun install`
 5. `bun run dev` (or `bun run dev:all` for the full stack with Logdy log UI on http://localhost:7723)
 
-Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`, `fpp-analytics/.env.tpl`). The `dev` scripts wrap `secrets-run run --env-file=.env.tpl -- ...` so 1Password references resolve to live values without ever writing them to disk.
+Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`, `fpp-analytics/.env.tpl`). The `dev` scripts wrap `secrets-run run --env-file=.env.tpl -- ...` to inject them.
+
+**Local dev needs no 1Password access.** No `.env.tpl` holds an `op://` reference — every local value is a literal, because nothing local needs to match production (the database is a localhost container, and the shared secrets only need the local services to agree with each other). Even `make db-sync-from-prod`, which copies real production data down, needs no local 1Password: the VPS resolves the production credential remotely via its own service account and only the dump travels back over SSH. It needs SSH access to the VPS, nothing more.
 
 ### WebSocket server (standalone)
 
@@ -148,14 +150,14 @@ Each service has its own `.env.tpl` (`apps/web/.env.tpl`, `apps/server/.env.tpl`
 bun run --filter=@fpp/server dev   # port 7721
 ```
 
-Env vars are populated by `secrets-run run` from `apps/server/.env.tpl`. The only secret that resolves from 1Password is `FPP_SERVER_SECRET` (must match the Next.js side for flip-tracking callbacks); the rest are hardcoded local defaults.
+Env vars are populated by `secrets-run run` from `apps/server/.env.tpl` — all hardcoded local defaults, no 1Password. `FPP_SERVER_SECRET` must match the value in `apps/web/.env.tpl` (flip-tracking callbacks authenticate with it).
 
 ### Analytics service (standalone)
 
 ```bash
 cd fpp-analytics
 uv sync
-cp .env.example .env                       # populate from 1Password / Doppler
+cp .env.example .env                       # or: secrets-run run --env-file=.env.tpl -- ...
 uv run python update_readmodel.py          # first-time only — builds Parquet
 uv run uvicorn main:app --reload --port 5100
 ```

@@ -170,7 +170,7 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 
 ## Build & Development Commands
 
-**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars come from 1Password (`secrets-run run --env-file=apps/web/.env.tpl`) at runtime, not at build time.
+**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars are injected by `secrets-run run --env-file=apps/web/.env.tpl` at runtime, not at build time.
 
 All scripts run from the workspace root unless noted. The root `package.json` delegates to workspace members via `bun run --filter=@fpp/<pkg>`.
 
@@ -208,9 +208,21 @@ make db-setup-local                      # Re-grant fpp user (no SSL — local h
 make analytics-update-local              # Regenerate parquet files for /analytics
 ```
 
-### Local env via 1Password (no Doppler)
+### Local env (no 1Password needed)
 
-Each service has its own `.env.tpl` resolved at dev-script time by `secrets-run run --env-file=.env.tpl --` (a faithful `op run` drop-in: passthrough to `op` on the MacBook, encrypted-cache resolution on the mini). Only secrets that must actually match prod resolve from `op://vps/fpp/*` (e.g. `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) or `op://vps/mariadb/FPP_PASSWORD`; non-essentials (HyperDX, email) are hardcoded dummies. Vercel manages prod env directly.
+Each service has its own `.env.tpl` resolved at dev-script time by `secrets-run run --env-file=.env.tpl --` (a faithful `op run` drop-in: passthrough to `op` on the MacBook, encrypted-cache resolution on the mini).
+
+**No `.env.tpl` contains an `op://` reference.** Every local value is a literal, so `bun run dev` / `dev:all` needs no 1Password access and runs on any machine — including the headless Mac mini. The three values that once came from `op://vps/*` (`MARIADB_FPP_PASSWORD`, `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) never needed prod values: the DB is a localhost container (`:13306`), and the two shared secrets only need the local services to agree with each other. Sourcing them from prod bought automatic rotation-propagation and cost the ability to develop on the mini, where the only way to resolve an `op://` ref is to cache it — and prod refs must never enter that cache (`dotfiles-private/headless.refs`).
+
+Values that must agree across files (all local-only, none are secrets):
+
+| Value | Defined in |
+|-|-|
+| `fpp-local-dev` | `apps/web/.env.tpl` + `LOCAL_FPP_DB_PASSWORD` in root `Makefile` |
+| `local-dev-server-secret` | `apps/web/.env.tpl` + `apps/server/.env.tpl` |
+| `local-dev-analytics-token` | `apps/web/.env.tpl` + `fpp-analytics/.env.tpl` |
+
+**No local target needs 1Password — including `make db-sync-from-prod`.** It does reach the real production database, but the prod credential never touches this machine: the script's remote half is `ssh vps 'op run ...'`, so the VPS resolves `MARIADB_ROOT_PASSWORD` itself via its own op service account and only the dump comes back over SSH. Its local half reads the dev container's own env, as do `make db-setup-local` (root password from the container, grants the local-only password) and `make analytics-update-local` (reads the local DB). All three run on the headless mini; `db-sync-from-prod` needs only SSH access to the VPS over Tailscale. Vercel manages prod env directly.
 
 ### Local URLs
 
@@ -347,7 +359,7 @@ import { useRoomStore } from '../store/room.store';
 ### 🚨 Environment Variables
 - **Client vars**: Must be prefixed with `NEXT_PUBLIC_`
 - **Build command**: Always use `SKIP_ENV_VALIDATION=1 bun run build`
-- **Environment file**: 1Password via `secrets-run run --env-file=apps/web/.env.tpl` (see `apps/web/.env.tpl`). Production secrets live in Vercel and the VPS 1Password vault.
+- **Environment file**: injected via `secrets-run run --env-file=apps/web/.env.tpl` (see `apps/web/.env.tpl`) — local values are literals. Production secrets live in Vercel and the VPS 1Password vault.
 
 ## ESLint & React 19 Linting
 
@@ -549,7 +561,7 @@ Users are anonymous. Each client generates a 21-character nanoid stored in local
 The app has an **action queue** in `useWebSocketRoom.ts` - actions sent while disconnected are queued and sent on reconnect.
 
 ### 5. Build Environment
-Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injected at runtime by `secrets-run run --env-file=apps/web/.env.tpl` (1Password).
+Local builds require `SKIP_ENV_VALIDATION=1` — environment variables are injected at runtime by `secrets-run run --env-file=apps/web/.env.tpl`.
 
 ## Error Handling Standards (OpenTelemetry → HyperDX)
 

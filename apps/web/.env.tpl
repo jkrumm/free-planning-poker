@@ -1,6 +1,10 @@
-# FPP Web (Next.js) — local dev env via 1Password.
+# FPP Web (Next.js) — local dev env.
 # Resolved at runtime: `secrets-run run --env-file=.env.tpl -- <cmd>`.
 # Production secrets live in Vercel — not here.
+#
+# This template holds no op:// references: local dev needs no 1Password access
+# and runs on any machine, headless mini included. Only `make db-sync-from-prod`
+# still needs 1Password (it reaches the real production database).
 
 # --- Hardcoded local config (matches Caddy hostnames) ---
 NEXT_PUBLIC_NODE_ENV=development
@@ -28,16 +32,27 @@ TODOIST_SECRET=local-dev-noop
 BEA_BASE_URL=https://dev-disabled.local
 BEA_SECRET_KEY=local-dev-noop
 
-# --- What actually needs to work locally ---
-# DATABASE_URL is composed in the `dev` script from MARIADB_FPP_PASSWORD —
-# `op run` resolves `op://` refs but doesn't interpolate ${VAR} within values,
-# so the URL assembly happens one layer up. Keeps the FPP MariaDB password
-# as a single source of truth in op://vps/mariadb/FPP_PASSWORD; if you rotate
-# it on the VPS, local dev picks it up automatically with no fpp-side edit.
-MARIADB_FPP_PASSWORD=op://vps/mariadb/FPP_PASSWORD
+# --- What actually needs to work locally (local-only values, NOT secrets) ---
+# These were once op://vps/* refs so they'd match prod. Nothing local needs
+# them to: the database is a localhost container (:13306) and the two shared
+# secrets only need the local services to agree with each other. Sourcing them
+# from prod made fpp undevelopable on the headless Mac mini, where the only way
+# to resolve an op:// ref is to cache it — and prod refs must never enter that
+# cache (see dotfiles-private/headless.refs). Local literals cost nothing here
+# and let fpp run on any machine with no 1Password access at all.
+#
+# DATABASE_URL is composed in the `dev` script from MARIADB_FPP_PASSWORD
+# because env-file resolution doesn't interpolate ${VAR} within values, so the
+# URL assembly happens one layer up.
+#
+# Must match LOCAL_FPP_DB_PASSWORD in the root Makefile — `make db-setup-local`
+# grants exactly this password to the local `fpp` user.
+MARIADB_FPP_PASSWORD=fpp-local-dev
 
-# Shared with fpp-server (web ↔ server auth for flip callback)
-FPP_SERVER_SECRET=op://vps/fpp/SERVER_SECRET
+# Shared with fpp-server (web ↔ server auth for flip callback).
+# Must match FPP_SERVER_SECRET in apps/server/.env.tpl.
+FPP_SERVER_SECRET=local-dev-server-secret
 
-# Shared with fpp-analytics (only needed if you hit analytics admin pages)
-ANALYTICS_SECRET_TOKEN=op://vps/fpp/ANALYTICS_SECRET_TOKEN
+# Shared with fpp-analytics (only needed if you hit analytics admin pages).
+# Must match ANALYTICS_SECRET_TOKEN in fpp-analytics/.env.tpl.
+ANALYTICS_SECRET_TOKEN=local-dev-analytics-token
