@@ -144,10 +144,10 @@ Room state exists in THREE places:
 
 ```bash
 # Start all services simultaneously (Next.js + server + analytics + Logdy UI)
-bun run dev:all
+bun run dev
 
 # Or start individually
-bun run dev                                                              # Next.js (7720)
+bun run dev:web                                                          # Next.js (7720)
 bun run --filter=@fpp/server dev                                         # Server (7721)
 cd fpp-analytics && uv run uvicorn main:app --reload --port 7722         # Analytics
 
@@ -176,8 +176,8 @@ All scripts run from the workspace root unless noted. The root `package.json` de
 
 ```bash
 # Development (suggest to user — don't run yourself)
-bun run dev                              # Next.js only (port 7720)
-bun run dev:all                          # All services + Logdy UI (7720 / 7721 / 7722 / 7723)
+bun run dev                              # All services + Logdy UI (7720 / 7721 / 7722 / 7723)
+bun run dev:web                          # Next.js only (port 7720)
 
 # Building
 SKIP_ENV_VALIDATION=1 bun run build      # Next.js production build
@@ -212,7 +212,7 @@ make analytics-update-local              # Regenerate parquet files for /analyti
 
 Each service has its own `.env.tpl` resolved at dev-script time by `secrets-run run --env-file=.env.tpl --` (a faithful `op run` drop-in: passthrough to `op` on the MacBook, encrypted-cache resolution on the mini).
 
-**No `.env.tpl` contains an `op://` reference.** Every local value is a literal, so `bun run dev` / `dev:all` needs no 1Password access and runs on any machine — including the headless Mac mini. The three values that once came from `op://vps/*` (`MARIADB_FPP_PASSWORD`, `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) never needed prod values: the DB is a localhost container (`:13306`), and the two shared secrets only need the local services to agree with each other. Sourcing them from prod bought automatic rotation-propagation and cost the ability to develop on the mini, where the only way to resolve an `op://` ref is to cache it — and prod refs must never enter that cache (`dotfiles-private/headless.refs`).
+**No `.env.tpl` contains an `op://` reference.** Every local value is a literal, so `bun run dev` needs no 1Password access and runs on any machine — including the headless Mac mini. The three values that once came from `op://vps/*` (`MARIADB_FPP_PASSWORD`, `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) never needed prod values: the DB is a localhost container (`:13306`), and the two shared secrets only need the local services to agree with each other. Sourcing them from prod bought automatic rotation-propagation and cost the ability to develop on the mini, where the only way to resolve an `op://` ref is to cache it — and prod refs must never enter that cache (`dotfiles-private/headless.refs`).
 
 Values that must agree across files (all local-only, none are secrets):
 
@@ -257,8 +257,8 @@ logdy --version
 ### Usage
 
 ```bash
-# Start all services with Logdy (recommended for multi-service development)
-bun run dev:all
+# Start all services with Logdy (the default — recommended for multi-service development)
+bun run dev
 # Opens:
 # - http://localhost:7720 (Next.js)         or https://fpp.test
 # - http://localhost:7721 (fpp-server)       or https://fpp-server.test
@@ -266,7 +266,7 @@ bun run dev:all
 # - http://localhost:7723 (Logdy UI)         or https://fpp-logdy.test
 
 # Start individual services without Logdy (simpler for single-service work)
-bun run dev                                                          # Next.js only
+bun run dev:web                                                      # Next.js only
 bun run --filter=@fpp/server dev                                     # fpp-server only
 cd fpp-analytics && uv run uvicorn main:app --reload --port 7722     # Analytics only
 ```
