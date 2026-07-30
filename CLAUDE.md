@@ -951,17 +951,25 @@ Use Context7 MCP as a reference for documentation:
 - **Subject:** lowercase/sentence-case, no trailing period, header ≤ 80 chars
 - **Branch naming:** `<type>/<short-description>` (e.g., `feat/multi-vote-rounds`)
 
-**Changelog visibility** (per `.release-it.json`):
+**Changelog visibility and bump eligibility** (per `.release-it.json`):
 
-| Section | Types |
-|-|-|
-| Features | `feat` |
-| Bug Fixes | `fix` |
-| Performance | `perf` |
-| Refactoring | `refactor` |
-| Documentation | `docs` |
-| CI/CD | `ci` |
-| _hidden_ | `chore`, `test`, `style`, `build` |
+`conventional-changelog-conventionalcommits` v10 controls both with one `effect`
+field per type, so a type cannot be hidden from the changelog *and* still count
+toward a version bump — `hidden` means neither.
+
+| Section | Types | `effect` | Bumps? |
+|-|-|-|-|
+| Features | `feat` | `bump` | minor |
+| Bug Fixes | `fix` | `bump` | patch |
+| Performance | `perf` | `bump` | patch |
+| Refactoring | `refactor` | `bump` | patch |
+| Documentation | `docs` | `bump` | patch |
+| CI/CD | `ci` | `bump` | patch |
+| _hidden_ | `chore`, `test`, `style`, `build` | `hidden` | no |
+
+A release window containing only hidden types therefore resolves to no version.
+`release.yml` fails loudly in that case rather than passing with nothing released
+(release-it's own behaviour is to print "No new version to release" and exit 0).
 
 ### Local validation (`lefthook.yml`)
 
@@ -1008,10 +1016,19 @@ Manual, deliberate. Master pushes deploy automatically but never auto-release �
 
 **CI-based (canonical):**
 ```bash
-gh workflow run release.yml                    # auto-bump per conventional commits
-gh workflow run release.yml -f dry_run=true    # preview only
+gh workflow run release.yml                       # auto-bump per conventional commits
+gh workflow run release.yml -f dry_run=true       # preview only
+gh workflow run release.yml -f allow_major=true   # required for a major bump
 ```
 Runs on a fresh runner using `RELEASE_TOKEN` (PAT) to push past branch protection; falls back to `GITHUB_TOKEN`.
+
+A pre-flight step resolves the next version and **fails the run** on either of the
+two cases release-it would otherwise wave through:
+
+| Case | Behaviour |
+|-|-|
+| No bump-eligible commits since the last tag | Fails — otherwise the run is green and releases nothing |
+| Major bump without `allow_major=true` | Fails — a stray `feat!:` or `BREAKING CHANGE:` footer can't cut a major by accident |
 
 **Local with AI-enhanced notes — `/release-fpp [version]`:**
 - Pre-flight → analyze commits → AI-generated summary → `release-it --ci` locally → `gh release edit` to prepend AI summary to the auto-generated changelog
