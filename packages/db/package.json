@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
-    "mysql2": "^3.22.6",
+    "mysql2": "^3.23.1",
     "nanoid": "^5.1.16"
   },
   "devDependencies": {
@@ -32,8 +32,8 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.63.0"
+    "typescript-eslint": "^8.65.0"
   }
 }
