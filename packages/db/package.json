@@ -25,7 +25,7 @@
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "mysql2": "^3.23.1",
-    "nanoid": "^5.1.16"
+    "nanoid": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
