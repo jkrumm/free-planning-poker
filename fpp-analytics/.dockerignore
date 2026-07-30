@@ -1,6 +1,11 @@
 .venv
+# A pattern without a slash matches at the context root ONLY, so the bare
+# `__pycache__` below never matched calculations/, routers/ or util/ — their
+# host-built bytecode was being COPYed into the image. The `**/` forms fix that.
 __pycache__
+**/__pycache__
 *.py[cod]
+**/*.py[cod]
 *.pyo
 .pytest_cache
 .mypy_cache

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 WORKDIR /app
 
@@ -21,9 +22,23 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.14-slim-bookworm AS runner
 WORKDIR /app
 
-RUN apt-get update \
+# Cache mounts are not persisted into the layer, so the image still ships an
+# empty /var/lib/apt/lists and the `rm -rf` this replaces was redundant.
+# Verified: identical image size with and without the docker-clean removal.
+#
+# docker-clean must go first. Debian's /etc/apt/apt.conf.d/docker-clean drops
+# both the downloaded .debs and the package indices in a post-invoke hook, so
+# with it in place both mounts stay empty and cache nothing at all.
+#
+# Caveat: this only pays off on a builder that keeps its state. deploy.yml
+# builds on a fresh GitHub runner and BuildKit cache mounts are not carried by
+# cache-from/cache-to, so in CI these mounts start empty every run. They're
+# kept because they cost nothing and speed up repeated local builds.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean \
+  && apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates curl \
-  && rm -rf /var/lib/apt/lists/* \
   && groupadd --system app && useradd --system --gid app --home-dir /app app
 
 COPY --from=builder /app /app
