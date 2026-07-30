@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM oven/bun:1.3-alpine AS builder
 WORKDIR /app
 
@@ -16,10 +17,19 @@ COPY packages/shared/package.json ./packages/shared/package.json
 # `bun build --compile` produces a self-contained binary that inlines deps,
 # so devDeps don't ship anyway and pruning them here just risks breaking
 # build-time imports.
-RUN bun install --frozen-lockfile --ignore-scripts
+#
+# Cache mount: bun's global install cache (root's HOME here — this stage sets
+# no USER). It lives outside the layer, so it speeds rebuilds without growing
+# the image. Same caveat as the analytics image: deploy.yml builds on a fresh
+# runner where the mount starts empty, so this only pays off locally.
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --ignore-scripts
 
 # Source files for the server build (workspace deps must be present at the
 # paths referenced in the lockfile so Bun can resolve symlinks).
+# tsconfig.base.json is the `extends` target of apps/server/tsconfig.json —
+# without it the extends silently no-ops and the base compilerOptions are lost.
+COPY tsconfig.base.json ./tsconfig.base.json
 COPY apps/server/tsconfig.json ./apps/server/tsconfig.json
 COPY apps/server/src ./apps/server/src
 COPY packages/shared/src ./packages/shared/src

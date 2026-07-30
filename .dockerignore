@@ -1,0 +1,59 @@
+# Build context for the fpp-server image is the MONOREPO ROOT
+# (.github/workflows/deploy.yml: dockerfile apps/server/Dockerfile, context ".").
+# Without this file the daemon receives ~2.9 GB per build.
+#
+# fpp-analytics builds from its own context (context: fpp-analytics) and is
+# bounded by fpp-analytics/.dockerignore — this file does not apply there.
+#
+# Deny-list only. Every path apps/server/Dockerfile COPYs must stay visible:
+#   package.json, bun.lock, tsconfig.base.json
+#   apps/{web,server}/package.json, packages/{db,shared}/package.json
+#   apps/server/tsconfig.json, apps/server/src, packages/shared/src
+
+# Dependencies — the single largest entry (~1.7 GB). Installed in-image.
+node_modules
+**/node_modules
+
+# VCS + CI. No build step reads git metadata (no version stamp in the Dockerfile).
+.git
+.gitignore
+.github
+
+# Separate build context, never COPYed from the root context (~400 MB:
+# .venv, .mypy_cache, parquet data).
+fpp-analytics
+
+# Build output. The server binary is compiled from src by `bun build --compile`;
+# none of these are COPYed in.
+apps/web/.next
+apps/web/out
+apps/server/dist
+**/*.tsbuildinfo
+
+# Local env files. No Dockerfile COPYs an env file of any kind.
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Editor / agent / tooling state
+.claude
+**/.claude
+.vscode
+.idea
+.turbo
+.wtp.yml
+.auto-claude
+
+# Test + report artifacts
+coverage
+**/coverage
+.scannerwork
+
+# Noise
+# NB: patterns without a slash match at the context root only, hence the
+# paired `**/` forms below.
+.DS_Store
+**/.DS_Store
+*.log
+**/*.log

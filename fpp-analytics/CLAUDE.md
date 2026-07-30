@@ -512,10 +512,14 @@ Expected: 100-500ms per request (on-demand computation). This is acceptable for 
 
 ### Docker Configuration
 
-Docker configuration is **NOT in this repository**. It lives in the [vps](https://github.com/jkrumm/vps) repo:
-- **Location:** `vps/apps/fpp/` (sibling repo, relative to this monorepo root)
-- **Dockerfile:** built from this repo by `deploy.yml` (FastAPI server)
-- **Dockerfile.updater:** built from this repo by `deploy.yml` (sync script)
+The **Dockerfile lives here**; only the compose/orchestration config is external, in the
+[vps](https://github.com/jkrumm/vps) repo (`vps/apps/fpp/`, sibling to this monorepo root):
+- **Dockerfile:** `fpp-analytics/Dockerfile` — one image for both containers, built by
+  `deploy.yml` with build context `fpp-analytics`. There is **no** `Dockerfile.updater`.
+- **fpp-analytics-updater:** the *same* image under a separate name (so RollHook's container
+  discovery can't conflate the two services). `deploy.yml` builds it from the same Dockerfile;
+  `compose.yml` overrides the entrypoint to a sleep-loop around `update_readmodel.py` and
+  replaces the HEALTHCHECK.
 - **compose.yml:** `vps/apps/fpp/compose.yml`
 
 Local development runs directly via `uv run uvicorn`. Production runs containerized on CPS.
