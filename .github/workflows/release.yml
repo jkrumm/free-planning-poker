@@ -14,6 +14,10 @@ on:
         description: Dry run (analyze version without publishing)
         type: boolean
         default: false
+      allow_major:
+        description: Permit a major version bump (required when a commit carries a breaking change)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -49,6 +53,47 @@ jobs:
         run: |
           git config user.name "Johannes Krumm"
           git config user.email "jkrumm@users.noreply.github.com"
+
+      # Pre-flight gate. Two failure modes release-it does not surface on its own:
+      #
+      #  1. No bump-eligible commits. conventional-changelog v10 only bumps for
+      #     types marked `effect: "bump"` in .release-it.json, so a window of only
+      #     chore/test/style/build resolves to no version — release-it prints
+      #     "No new version to release" and exits 0. Without this gate the run is
+      #     green and silently releases nothing.
+      #  2. An accidental major. A stray `feat!:` or a `BREAKING CHANGE:` footer
+      #     takes the bump straight to the next major with no confirmation step.
+      #     Require the allow_major input to be set deliberately.
+      - name: Resolve and gate next version
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if ! OUT=$(bunx release-it --release-version 2>/dev/null); then
+            echo "::error::release-it could not resolve the next version"
+            exit 1
+          fi
+
+          # --release-version prints the version on stdout; hook output can precede it.
+          NEXT=$(printf '%s\n' "$OUT" | tail -n1 | tr -d '[:space:]')
+
+          if ! printf '%s' "$NEXT" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::No bump-eligible commits since the last tag — nothing to release."
+            echo "::error::Only types marked 'effect: \"bump\"' in .release-it.json count; chore/test/style/build do not."
+            exit 1
+          fi
+
+          CURRENT=$(node -p "require('./package.json').version")
+          if [ "${NEXT%%.*}" -gt "${CURRENT%%.*}" ] && [ "${{ inputs.allow_major }}" != "true" ]; then
+            echo "::error::Refusing a major bump ($CURRENT -> $NEXT) without allow_major."
+            echo "::error::A commit carries a breaking change. Re-run with allow_major=true if that is intended."
+            exit 1
+          fi
+
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Releasing $CURRENT -> $NEXT"
 
       - name: Run release-it
         env:
