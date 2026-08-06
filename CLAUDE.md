@@ -160,13 +160,13 @@ bun run validate                                                         # All t
 ## Project Overview
 
 Free Planning Poker is a Next.js application using the **Pages Router** (not App Router). Key technologies:
-- **Next.js 16.0.1** with Turbopack
+- **Next.js 16.2.12** with Turbopack
 - **React 19.2.0** with stricter linting rules
-- **tRPC 11.7.1** for type-safe API layer
+- **tRPC 11.18.0** for type-safe API layer
 - **Bun WebSocket server** for real-time features
-- **Zustand 5.0.8** for state management
-- **Drizzle ORM 0.44.7** with MySQL
-- **Tailwind CSS 4** + **Mantine 8.3.6** for UI
+- **Zustand 5.0.14** for state management
+- **Drizzle ORM 0.45.2** with MySQL
+- **Tailwind CSS 4** + **Mantine 9.5.0** for UI
 
 ## Build & Development Commands
 
@@ -914,7 +914,7 @@ Use Context7 MCP as a reference for documentation:
 - **React 19**: https://react.dev
 - **tRPC v11**: https://trpc.io/docs
 - **React Query v5**: https://tanstack.com/query/latest
-- **Mantine v8**: https://mantine.dev
+- **Mantine v9**: https://mantine.dev
 - **Drizzle ORM**: https://orm.drizzle.team
 - **Elysia**: https://elysiajs.com
 
@@ -1006,7 +1006,7 @@ gh workflow run deploy.yml -f service=<all|fpp-server|fpp-analytics|fpp-analytic
 ### PR workflow
 
 1. **Branch + PR:** `git checkout -b <type>/<desc>` → commit (lefthook validates) → `git push -u origin HEAD` → `gh pr create --base master --fill`. Or use `/pr create` (runs `/check`, offers `/git-cleanup` for ≥3 commits).
-2. **CI runs:** `validate.yml` (11 jobs) + `sonarcloud.yml` immediately; `comment.yml` posts heads-up when `**/schema.ts`, `apps/server/**`, `packages/shared/**`, `packages/db/**`, or `fpp-analytics/**` change; **CodeRabbit** (account-level GitHub App, no repo config) posts file-level comments + summary.
+2. **CI runs:** `validate.yml` (17 jobs) + `sonarcloud.yml` immediately; `comment.yml` posts heads-up when `**/schema.ts`, `apps/server/**`, `packages/shared/**`, `packages/db/**`, or `fpp-analytics/**` change; **CodeRabbit** (account-level GitHub App, no repo config) posts file-level comments + summary.
 3. **Iterate on CodeRabbit feedback:** fold fix-ups into the originating commit with `/commit --amend` + `git push --force-with-lease` — don't litter with one-line "fix lint" commits. `/ship` automates pulling CodeRabbit comments and offering fixes.
 4. **Merge:** wait for green CI + resolved conversations → squash-merge (linear history required) → squash commit on master triggers `deploy.yml` + Vercel.
 
@@ -1043,5 +1043,5 @@ two cases release-it would otherwise wave through:
 
 ---
 
-**Last Updated**: 2026-05-20
+**Last Updated**: 2026-08-06
 **For detailed architecture explanation**: See `ARCHITECTURE.md`
