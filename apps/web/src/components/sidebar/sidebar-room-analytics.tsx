@@ -87,82 +87,61 @@ const SidebarRoomAnalytics = () => {
     return null;
   }
 
-  try {
-    const {
-      votes,
-      duration,
-      estimations,
-      estimations_per_vote,
-      avg_min_estimation,
-      avg_avg_estimation,
-      avg_max_estimation,
-      spectators,
-      spectators_per_vote,
-    } = query.data;
+  const {
+    votes,
+    duration,
+    estimations,
+    estimations_per_vote,
+    avg_min_estimation,
+    avg_avg_estimation,
+    avg_max_estimation,
+    spectators,
+    spectators_per_vote,
+  } = query.data;
 
-    return (
-      <SidebarContent
-        childrens={[
-          {
-            title: 'Total Votes',
-            content: (
-              <>
-                <Stat title="Votes" value={votes} />
-                <Stat
-                  title="Duration"
-                  value={secondsToReadableTime(duration)}
-                />
-              </>
-            ),
-          },
-          {
-            title: 'Total Estimations',
-            content: (
-              <>
-                <Stat title="Estimations" value={estimations} />
-                <Stat title="Per Vote" value={estimations_per_vote} />
-              </>
-            ),
-          },
-          {
-            title: 'Average Estimations',
-            content: (
-              <>
-                <VoteRing value={avg_min_estimation} name="LOW" />
-                <VoteRing value={avg_avg_estimation} name="AVG" />
-                <VoteRing value={avg_max_estimation} name="HIGH" />
-              </>
-            ),
-          },
-          {
-            title: 'Total Spectators',
-            content: (
-              <>
-                <Stat title="Spectators" value={spectators} />
-                <Stat title="Per Vote" value={spectators_per_vote} />
-              </>
-            ),
-          },
-        ]}
-      />
-    );
-  } catch (error) {
-    recordError(
-      error instanceof Error
-        ? error
-        : new Error('Failed to render room analytics'),
-      {
-        component: 'SidebarRoomAnalytics',
-        action: 'renderAnalytics',
-        extra: {
-          roomId,
-          hasData: !!query.data,
+  return (
+    <SidebarContent
+      childrens={[
+        {
+          title: 'Total Votes',
+          content: (
+            <>
+              <Stat title="Votes" value={votes} />
+              <Stat title="Duration" value={secondsToReadableTime(duration)} />
+            </>
+          ),
         },
-      },
-      'medium',
-    );
-    return null;
-  }
+        {
+          title: 'Total Estimations',
+          content: (
+            <>
+              <Stat title="Estimations" value={estimations} />
+              <Stat title="Per Vote" value={estimations_per_vote} />
+            </>
+          ),
+        },
+        {
+          title: 'Average Estimations',
+          content: (
+            <>
+              <VoteRing value={avg_min_estimation} name="LOW" />
+              <VoteRing value={avg_avg_estimation} name="AVG" />
+              <VoteRing value={avg_max_estimation} name="HIGH" />
+            </>
+          ),
+        },
+        {
+          title: 'Total Spectators',
+          content: (
+            <>
+              <Stat title="Spectators" value={spectators} />
+              <Stat title="Per Vote" value={spectators_per_vote} />
+            </>
+          ),
+        },
+      ]}
+    />
+  );
 };
 
 export default SidebarRoomAnalytics;
