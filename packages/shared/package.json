@@ -20,13 +20,13 @@
   },
   "dependencies": {
     "@sinclair/typebox": "^0.34.52",
-    "elysia": "^1.4.29"
+    "elysia": "^1.4.30"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "eslint": "^9.39.5",
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.65.0"
+    "typescript-eslint": "^8.69.0"
   }
 }

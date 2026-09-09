@@ -25,7 +25,7 @@ Bun-powered WebSocket server managing real-time planning poker room state. Runs 
 | Runtime    | Bun                                | latest                                        |
 | Framework  | Elysia                             | 1.4.18                                        |
 | Validation | TypeBox                            | latest                                        |
-| Monitoring | OpenTelemetry (ClickStack/HyperDX) | @elysiajs/opentelemetry 1.4.12 + OTEL SDK 2.x |
+| Monitoring | OpenTelemetry (ClickStack/HyperDX) | @elysiajs/opentelemetry 1.4.11 + OTEL SDK 2.x |
 | Logging    | @bogeychan/elysia-logger (pino)    | latest                                        |
 
 ### Architecture Role
