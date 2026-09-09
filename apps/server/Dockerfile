@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM oven/bun:1.3-alpine AS builder
+FROM oven/bun:1.4-alpine AS builder
 WORKDIR /app
 
 # Build context is the monorepo root. With --frozen-lockfile, Bun verifies
@@ -47,7 +47,7 @@ RUN bun build \
     --outfile /app/server \
     ./src/index.ts
 
-FROM oven/bun:1.3-alpine AS runner
+FROM oven/bun:1.4-alpine AS runner
 WORKDIR /app
 
 RUN apk add --no-cache curl ca-certificates \
