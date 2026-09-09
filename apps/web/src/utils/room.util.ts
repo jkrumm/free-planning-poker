@@ -648,6 +648,7 @@ export function executeLeave({
         );
       });
     } else if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Valid pattern: fallback hard navigation when the Next.js router is unavailable
       window.location.href = '/';
     }
   } catch (error) {
@@ -712,6 +713,7 @@ export function executeKick(
           );
         });
       } else if (typeof window !== 'undefined') {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Valid pattern: fallback hard navigation when the Next.js router is unavailable after a kick
         window.location.href = '/';
       }
     }, 200);
@@ -764,6 +766,7 @@ export function executeRoomNameChange({
         );
       });
     } else if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Valid pattern: fallback hard navigation when the Next.js router is unavailable after a room rename
       window.location.href = `/room/${newRoomName}`;
     }
   } catch (error) {

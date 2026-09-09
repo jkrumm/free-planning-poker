@@ -22,7 +22,6 @@ export const StatsCard = ({
           isFirstUpdate.current = false;
           prevValue.current = value;
         } else {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: Timer-based flash animation on value change
           setFlash(value > prevValue.current ? 'increase' : 'decrease');
           prevValue.current = value;
           const timer = setTimeout(() => setFlash(null), 1000);

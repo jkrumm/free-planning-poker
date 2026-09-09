@@ -19,38 +19,25 @@ const SidebarSpectators = ({
 }: {
   triggerAction: (action: Action) => void;
 }) => {
-  try {
-    const users = useRoomStore((store) => store.users);
-    const spectators = users.filter((user) => user.isSpectator);
+  const users = useRoomStore((store) => store.users);
 
-    return (
-      <SidebarContent
-        childrens={[
-          {
-            title: 'Spectators',
-            content: (
-              <SpectatorsList
-                spectators={spectators}
-                triggerAction={triggerAction}
-              />
-            ),
-          },
-        ]}
-      />
-    );
-  } catch (error) {
-    recordError(
-      error instanceof Error
-        ? error
-        : new Error('Failed to load spectators sidebar'),
-      {
-        component: 'SidebarSpectators',
-        action: 'render',
-      },
-      'medium',
-    );
-    return null;
-  }
+  const spectators = users.filter((user) => user.isSpectator);
+
+  return (
+    <SidebarContent
+      childrens={[
+        {
+          title: 'Spectators',
+          content: (
+            <SpectatorsList
+              spectators={spectators}
+              triggerAction={triggerAction}
+            />
+          ),
+        },
+      ]}
+    />
+  );
 };
 
 const SpectatorsList = ({
@@ -60,54 +47,29 @@ const SpectatorsList = ({
   spectators: User[];
   triggerAction: (action: Action) => void;
 }) => {
-  /* eslint-disable react-hooks/error-boundaries */
-  // Try/catch used for breadcrumb logging, not JSX error handling
-  try {
-    if (spectators.length === 0) {
-      return (
-        <div className="w-full text-center py-4">
-          <Text size="sm" c="dimmed">
-            No spectators in this room
-          </Text>
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full">
-        <Stack gap="sm">
-          {spectators.map((spectator) => (
-            <SpectatorCard
-              key={spectator.id}
-              spectator={spectator}
-              triggerAction={triggerAction}
-            />
-          ))}
-        </Stack>
-      </div>
-    );
-  } catch (error) {
-    recordError(
-      error instanceof Error
-        ? error
-        : new Error('Failed to render spectators list'),
-      {
-        component: 'SpectatorsList',
-        action: 'render',
-        extra: {
-          spectatorCount: spectators.length,
-        },
-      },
-      'medium',
-    );
+  if (spectators.length === 0) {
     return (
       <div className="w-full text-center py-4">
         <Text size="sm" c="dimmed">
-          Error loading spectators
+          No spectators in this room
         </Text>
       </div>
     );
   }
+
+  return (
+    <div className="w-full">
+      <Stack gap="sm">
+        {spectators.map((spectator) => (
+          <SpectatorCard
+            key={spectator.id}
+            spectator={spectator}
+            triggerAction={triggerAction}
+          />
+        ))}
+      </Stack>
+    </div>
+  );
 };
 
 const SpectatorCard = ({
