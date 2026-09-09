@@ -160,13 +160,13 @@ bun run validate                                                         # All t
 ## Project Overview
 
 Free Planning Poker is a Next.js application using the **Pages Router** (not App Router). Key technologies:
-- **Next.js 16.2.12** with Turbopack
-- **React 19.2.0** with stricter linting rules
+- **Next.js 16.3.4** with Turbopack
+- **React 19.2.8** with stricter linting rules
 - **tRPC 11.18.0** for type-safe API layer
 - **Bun WebSocket server** for real-time features
-- **Zustand 5.0.14** for state management
+- **Zustand 5.0.15** for state management
 - **Drizzle ORM 0.45.2** with MySQL
-- **Tailwind CSS 4** + **Mantine 9.5.0** for UI
+- **Tailwind CSS 4** + **Mantine 9.6.0** for UI
 
 ## Build & Development Commands
 
