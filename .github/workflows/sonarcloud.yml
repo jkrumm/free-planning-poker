@@ -11,7 +11,7 @@ jobs:
     name: SonarCloud - Next.js
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: SonarCloud Scan
@@ -25,7 +25,7 @@ jobs:
     name: SonarCloud - FPP Server
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: SonarCloud Scan
@@ -39,7 +39,7 @@ jobs:
     name: SonarCloud - FPP Analytics
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: SonarCloud Scan
