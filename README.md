@@ -53,7 +53,7 @@ Tooling is centralised: `tsconfig.base.json` + `prettier.config.cjs` + `.prettie
 
 Container ports stay 3003 (server) and 5100 (analytics); the local `PORT` env override lives in each service's `.env.tpl`.
 
-**For detailed architecture**, see `ARCHITECTURE.md`, `apps/server/CLAUDE.md`, and `fpp-analytics/CLAUDE.md`.
+**For detailed architecture**, see `ARCHITECTURE.md`, `apps/server/AGENTS.md`, and `fpp-analytics/AGENTS.md`.
 
 ---
 

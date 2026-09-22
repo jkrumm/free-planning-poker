@@ -46,7 +46,7 @@ include = ["main.py", "config.py", "update_readmodel.py"]
 line-length = 88
 target-version = "py314"
 # Ruff 0.16 started formatting Python inside Markdown fences, which pulls
-# README.md/CLAUDE.md into `ruff format` and makes `format --check` fail on
+# README.md/AGENTS.md into `ruff format` and makes `format --check` fail on
 # hand-written doc snippets. Keep the formatter scoped to source.
 extend-exclude = ["*.md"]
 

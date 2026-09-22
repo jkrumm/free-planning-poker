@@ -21,7 +21,7 @@ This service is the authoritative source for real-time room state. It:
 - Broadcasts state changes to all connected clients
 - Runs cleanup cron every 30 minutes
 
-**For detailed architecture**, see `/ARCHITECTURE.md` and `CLAUDE.md`.
+**For detailed architecture**, see `/ARCHITECTURE.md` and `AGENTS.md`.
 
 ---
 
@@ -140,7 +140,7 @@ docker logs -f fpp-server
 
 ### Add New WebSocket Action
 
-See `CLAUDE.md` for detailed guide. Quick steps:
+See `AGENTS.md` for detailed guide. Quick steps:
 
 1. Define type in `room.actions.ts`
 2. Add TypeBox schema
@@ -204,7 +204,7 @@ bun --inspect src/index.ts
 
 ## For AI Development
 
-See `CLAUDE.md` for:
+See `AGENTS.md` for:
 
 - TypeBox patterns (NOT Zod)
 - Broadcast patterns
