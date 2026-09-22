@@ -618,7 +618,7 @@ Zero-downtime rollouts are handled by RollHook: GitHub OIDC → RollHook exchang
 
 React 19 introduced stricter ESLint rules that flag patterns like `setState` in `useEffect` as errors. But some of these patterns are **valid and necessary**.
 
-I documented every ESLint suppression in `CLAUDE.md` with detailed explanations:
+I documented every ESLint suppression in `AGENTS.md` with detailed explanations:
 
 ```tsx
 // apps/web/src/hooks/use-has-mounted.hook.ts:8
