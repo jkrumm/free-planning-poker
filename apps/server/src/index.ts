@@ -112,6 +112,18 @@ const app = new Elysia({
         code === 'VALIDATION' ? 'Invalid request' : 'Internal server error',
       timestamp: Date.now(),
     };
+  })
+  // navigator.sendBeacon (used by /leave on page unload) sends a `text/plain`
+  // Blob rather than `application/json` so the cross-origin request stays a
+  // CORS "simple request" (no OPTIONS preflight) — sendBeacon can't wait for
+  // one anyway. Elysia only auto-parses JSON for `application/json`, so parse
+  // text/plain bodies as JSON here; falls through to the default parser for
+  // every other content type.
+  .onParse(async ({ request, contentType }) => {
+    if (contentType === 'text/plain') {
+      const text = await request.text();
+      return JSON.parse(text) as Record<string, unknown>;
+    }
   });
 
 app.get('/', () => {

@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -21,8 +22,30 @@ DB_CONFIG = {
 # Authentication
 ANALYTICS_SECRET_TOKEN = os.getenv("ANALYTICS_SECRET_TOKEN")
 
+
+def _normalize_base_url(raw: str | None) -> str | None:
+    """Normalize an env-provided base URL: add a default scheme when the
+    value is a bare host (e.g. `bea.example.com`), then validate it.
+
+    httpx raises `UnsupportedProtocol` for a scheme-less URL, which surfaces
+    as a 500 on every endpoint that calls out to it — fail fast here instead,
+    at config load, with a clear error pointing at the offending value.
+    """
+    if not raw:
+        return raw
+
+    candidate = raw if "://" in raw else f"https://{raw}"
+    parsed = urlparse(candidate)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise ValueError(
+            f"BEA_BASE_URL is not a valid http(s) URL: {raw!r}. "
+            "Expected a full URL with scheme, e.g. https://bea.example.com"
+        )
+    return candidate
+
+
 # Email service
-BEA_BASE_URL = os.getenv("BEA_BASE_URL")
+BEA_BASE_URL = _normalize_base_url(os.getenv("BEA_BASE_URL"))
 BEA_SECRET_KEY = os.getenv("BEA_SECRET_KEY")
 
 # Monitoring
