@@ -29,8 +29,8 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 
 # --- Disabled-in-local dummies (satisfy zod, no real connection) ---
 TODOIST_SECRET=local-dev-noop
-BEA_BASE_URL=https://dev-disabled.local
-BEA_SECRET_KEY=local-dev-noop
+EMAIL_GATEWAY_URL=https://dev-disabled.local
+EMAIL_GATEWAY_SECRET_KEY=local-dev-noop
 
 # --- What actually needs to work locally (local-only values, NOT secrets) ---
 # These were once op://vps/* refs so they'd match prod. Nothing local needs
