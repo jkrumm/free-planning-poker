@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from config import BEA_BASE_URL, BEA_SECRET_KEY
+from config import EMAIL_GATEWAY_SECRET_KEY, EMAIL_GATEWAY_URL
 from util.error_capture import ErrorContext, capture_error
 
 
@@ -15,16 +15,16 @@ class EmailServiceError(Exception):
 
 
 async def send_daily_email(daily_analytics: dict[str, Any]) -> None:
-    """Send daily analytics email via BEA service.
+    """Send daily analytics email via email-gateway service.
 
     Raises:
         EmailServiceError: If email service request fails
     """
-    if not BEA_BASE_URL or not BEA_SECRET_KEY:
-        print("BEA service not configured, skipping email")
+    if not EMAIL_GATEWAY_URL or not EMAIL_GATEWAY_SECRET_KEY:
+        print("email-gateway service not configured, skipping email")
         return
 
-    url = f"{BEA_BASE_URL.rstrip('/')}/fpp-daily-analytics"
+    url = f"{EMAIL_GATEWAY_URL.rstrip('/')}/fpp-daily-analytics"
 
     try:
         async with httpx.AsyncClient() as client:
@@ -32,7 +32,7 @@ async def send_daily_email(daily_analytics: dict[str, Any]) -> None:
                 url,
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {BEA_SECRET_KEY}",
+                    "Authorization": f"Bearer {EMAIL_GATEWAY_SECRET_KEY}",
                 },
                 json=daily_analytics,
                 timeout=30.0,

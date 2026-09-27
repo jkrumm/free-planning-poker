@@ -48,11 +48,11 @@ export const contactRouter = createTRPCRouter({
         });
       }
 
-      const response = await fetch(`${env.BEA_BASE_URL}/fpp`, {
+      const response = await fetch(`${env.EMAIL_GATEWAY_URL}/fpp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${env.BEA_SECRET_KEY}`,
+          Authorization: `Bearer ${env.EMAIL_GATEWAY_SECRET_KEY}`,
         },
         body: JSON.stringify({ name, email, subject, message }),
         signal: AbortSignal.timeout(7000),
@@ -63,7 +63,7 @@ export const contactRouter = createTRPCRouter({
           extra: {
             email,
             subject: subject.substring(0, 50),
-            beaBaseUrl: env.BEA_BASE_URL,
+            emailGatewayUrl: env.EMAIL_GATEWAY_URL,
           },
         });
       });

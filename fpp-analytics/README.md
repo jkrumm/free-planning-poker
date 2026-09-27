@@ -39,8 +39,8 @@ uv run python update_readmodel.py
 |--------|-------------|
 | `ANALYTICS_SECRET_TOKEN` | Bearer token for API authentication |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP gRPC receiver (e.g. `http://clickstack:4317`). Compose default. |
-| `BEA_BASE_URL` | Email service base URL — full URL with scheme, no trailing slash (e.g. `https://bun-email-api.example.com`). Optional. |
-| `BEA_SECRET_KEY` | Email service bearer token (optional) |
+| `EMAIL_GATEWAY_URL` | Email service base URL — full URL with scheme, no trailing slash (e.g. `https://email-gateway.example.com`). Optional. |
+| `EMAIL_GATEWAY_SECRET_KEY` | Email service bearer token (optional) |
 
 ### Required Secrets for `fpp-analytics-updater`
 
