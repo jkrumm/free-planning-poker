@@ -236,21 +236,12 @@ Logdy provides a unified web UI for viewing logs from all services in real-time 
 
 ### Features
 
-- Real-time log streaming from all services (Next.js, fpp-server, fpp-analytics)
-- Automatic JSON log parsing (Pino structured logs)
-- Filter by service name (`service:free-planning-poker`, `service:fpp-server`, `service:fpp-analytics`)
-- Filter by origin port (7724=Next.js, 7725=fpp-server, 7726=fpp-analytics)
-- Search across all logs (field-based: e.g., `userId:abc123`, `level:error`, `component:auth`)
-- Color-coded log levels (20=debug, 30=info, 40=warn, 50=error, 60=fatal)
-- Timeline view with timestamps
+Real-time log streaming and automatic JSON parsing (Pino) from all services; filter by `service`, `origin.port` or field (e.g. `userId:abc123`, `level:error`), color-coded levels (20=debug … 60=fatal), timeline view.
 
 ### Installation (One-time per Machine)
 
 ```bash
-brew tap logdyhq/logdy
-brew install logdy
-
-# Verify installation
+brew tap logdyhq/logdy && brew install logdy
 logdy --version
 ```
 
@@ -300,13 +291,9 @@ All services use structured JSON logging (Pino format):
 - Production-ready (structured logs work with log aggregation tools)
 - Error logs automatically sent to HyperDX as OTEL log records
 
-**How it works:**
-- Logdy runs in **socket mode** listening on ports 7724, 7725, 7726
-- Each service pipes logs to its dedicated port via `logdy forward`
-- Logs are tagged with `origin.port` for filtering (7724=Next.js, 7725=fpp-server, 7726=fpp-analytics)
-- Web UI (port 7723) aggregates and displays all streams in real-time
+**How it works:** Logdy runs in socket mode on ports 7724/7725/7726; each service pipes logs to its dedicated port via `logdy forward`, tagged with `origin.port` (7724=Next.js, 7725=fpp-server, 7726=fpp-analytics). The UI (7723) aggregates all streams in real-time.
 
-**Note:** Next.js dev server outputs some plain text logs (e.g., "GET /api/... 200 in 632ms (compile: 4ms)") that cannot be suppressed. These are development-only and won't appear in production (`next start`).
+**Note:** Next.js dev prints some unsuppressable plain-text logs (compile times); dev-only, absent in `next start`.
 
 **Logdy Configuration:**
 - Config file: `logdy.config.json` (automatically loaded)
@@ -316,20 +303,10 @@ All services use structured JSON logging (Pino format):
 
 ### Production Logging
 
-All services output **production-ready JSON logs** to stdout:
-
-**Current setup:**
-- Services output structured JSON logs (Pino format)
-- All logs include `service` field for filtering
-- Logs go to stdout/stderr (captured by Docker/K8s)
-- Compatible with any JSON log aggregation tool
-
-**Log correlation:**
-- Filter by `service` field: `free-planning-poker`, `fpp-server`, `fpp-analytics`
-- Correlate by `userId`, `roomId` across services
-- Future: Add `requestId` for distributed tracing
-
-**Note:** Production log aggregation tool (Loki, Datadog, etc.) not yet configured.
+All services emit production-ready Pino JSON to stdout (captured by Docker/Vercel),
+each tagged with a `service` field (`free-planning-poker`, `fpp-server`,
+`fpp-analytics`); correlate across services by `userId`/`roomId`. No standalone log
+aggregator is configured — HyperDX/ClickStack receives error logs as OTLP records.
 
 ## Critical Rules
 
@@ -535,14 +512,67 @@ recordEvent(EVENT.WS_RECONNECTED); // typed, client-only domain event
 recordError(error, { component: 'ComponentName', action: 'actionName' }, 'high');
 ```
 
-## Testing & Verification
+## Validate
 
-Before committing:
+`make check` mirrors exactly what `validate.yml` runs on every PR — format
+check, lint, type-check and build for every workspace (web, server, db, shared,
+fpp-analytics), non-zero on the first failure and non-mutating (`format:check`
+never writes; only gitignored build output/caches appear). Install once first:
+
 ```bash
-bun run pre  # Runs format, lint, type-check, and build
+bun install --frozen-lockfile
+make check
 ```
 
-## Common Gotchas
+`bun run validate` (or `validate:<workspace>`) runs the same checks, but web,
+server and analytics format in place — prefer `make check` for a CI-equivalent,
+side-effect-free run. Every commit additionally runs `format:check + lint +
+type-check` for all services, plus `commitlint` on the message, via
+`lefthook.yml`; **never `--no-verify`** — CI fails the same way. `bun run pre`
+is the web-only shortcut (format, lint, type-check, build).
+
+## Deploy
+
+Deploys are owned by CI, never run locally — `make deploy` is a no-op that
+prints `deployed by CI on push`. On every push to master:
+
+| Service | Runtime | Trigger |
+|-|-|-|
+| Next.js web | Vercel | Vercel GitHub integration on every master push |
+| fpp-server | VPS Docker | `deploy.yml` → RollHook (rolling, zero-downtime) |
+| fpp-analytics | VPS Docker | `deploy.yml` → RollHook |
+| fpp-analytics-updater | VPS Docker | `deploy.yml` → RollHook |
+
+**Auth:** GitHub OIDC → RollHook exchanges for short-lived registry creds; RollHook authorizes via the `rollhook.allowed_repos` label on the running container (`vps/apps/fpp/compose.yml`). `deploy.yml` uses `concurrency.cancel-in-progress: false` — deploys queue, never cancel.
+
+**Manual redeploy** (e.g. an env var changed in 1Password, no code change):
+```bash
+gh workflow run deploy.yml -f service=<all|fpp-server|fpp-analytics|fpp-analytics-updater>
+```
+
+## Verify & Monitor
+
+`make verify` curls production and exits non-zero if any endpoint is down:
+
+| Check | URL |
+|-|-|
+| Web root | https://free-planning-poker.com/ |
+| Server health | https://server.free-planning-poker.com/health |
+| Analytics health | https://analytics.free-planning-poker.com/health |
+
+Uptime Kuma monitors: `FPP - Server - HTTP` and `FPP - Analytics - HTTP`.
+
+OTel `service.name` per service (how HyperDX/ClickStack groups them):
+
+| Service | `service.name` | Source |
+|-|-|-|
+| Next.js web | `free-planning-poker` | `OTEL_SERVICE_NAME`, default in `apps/web/instrumentation.ts` |
+| fpp-server | `fpp-server` | `apps/server/src/telemetry.ts` |
+| fpp-analytics | `fpp-analytics` | `fpp-analytics/util/telemetry.py` |
+
+`make logs` tails the last 200 lines of the production `fpp-server` container over SSH (no `-f`); override with `make logs SERVICE=fpp-analytics`. Full signal contract: `docs/otel-migration/05-observability-v2.md` and `.claude/rules/observability.md`.
+
+## Gotchas
 
 ### 1. WebSocket vs tRPC
 - **tRPC** (HTTP): Room creation, joining, stats, name changes
@@ -644,29 +674,7 @@ mutation.mutate(data, {
 
 ### recordError Usage
 
-```typescript
-// Good: Provides context
-recordError(error, {
-  component: 'UserProfile',
-  action: 'updateSettings',
-  extra: { userId, settingKey }
-}, 'high');
-
-// Bad: No context
-recordError(error);
-
-// Good: Capturing user input error to fix frontend validations
-if (email.length > 100) {
-  recordError('Email too long', { component: 'Form' }, 'medium');
-}
-
-// Good: Capturing validation logic bug
-try {
-  return value.trim().length > 50;
-} catch (error) {
-  recordError(error, { component: 'Form', action: 'validate' }, 'low');
-}
-```
+Always pass `component`/`action`/`extra` context — `recordError(error)` alone is not enough. Capture validation *logic* bugs (low/medium); do not capture plain user-input errors (see "Don't Capture"). Examples: `docs/error-handling-patterns.md`.
 
 ### Event Guidelines (`recordEvent`)
 
@@ -690,20 +698,11 @@ Add a new event/attribute/metric to the registry **first**, then emit it. See
 
 ## Error Handling Implementation Guide
 
-This section provides comprehensive patterns for implementing error handling across Next.js API routes and tRPC routers using CustomTRPCError.
-
-### Overview
-
-Free Planning Poker uses **CustomTRPCError** for centralized error capture. All system errors flow through a single capture point in `apps/web/src/pages/api/trpc/[trpc].ts`, eliminating double-capture bugs and reducing boilerplate.
-
-**Key Files:**
-- `apps/web/src/server/api/custom-error.ts` - CustomTRPCError class and helpers
-- `apps/web/src/pages/api/trpc/[trpc].ts` - Central error handler
-- `apps/web/src/utils/app-error.ts` - OTEL wrapper (used by API routes and frontend)
+System errors on web flow through **CustomTRPCError**: `apps/web/src/server/api/custom-error.ts` defines the class plus `toCustomTRPCError`; `apps/web/src/pages/api/trpc/[trpc].ts` is the single capture point; `apps/web/src/utils/app-error.ts` wraps OTEL.
 
 ### Next.js API Routes (Pages Router)
 
-All Next.js API route handlers (`apps/web/src/pages/api/*.ts`) must wrap their logic in try-catch blocks:
+All Next.js API route handlers (`apps/web/src/pages/api/*.ts`) wrap their logic in try-catch, capture with context, and return HTTP 500:
 
 ```typescript
 import { type NextApiRequest, type NextApiResponse } from '@trpc/server/adapters/next';
@@ -711,58 +710,31 @@ import { recordError } from 'fpp/utils/app-error';
 
 const ApiHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    // Validate request method
-    if (req.method !== 'POST') {
-      throw new MethodNotAllowedError('Only POST requests allowed');
-    }
-
-    // Parse and validate input
+    if (req.method !== 'POST') throw new MethodNotAllowedError('Only POST requests allowed');
     const { userId, data } = req.body;
     validateInput(userId, data);
-
-    // Perform database operations
     await db.insert(table).values({ userId, data });
-
-    // Return success response
     return res.status(200).json({ success: true });
   } catch (error) {
-    // Capture error with context
     recordError(
       error instanceof Error ? error : new Error('Operation failed'),
-      {
-        component: 'api-route-name',
-        action: 'handlerName',
-        extra: {
-          method: req.method ?? 'unknown',
-          hasBody: !!req.body,
-          // Add relevant context (avoid sensitive data)
-        },
-      },
-      'high', // Adjust severity based on impact
+      { component: 'api-route-name', action: 'handlerName', extra: { method: req.method ?? 'unknown', hasBody: !!req.body } },
+      'high',
     );
-
-    // Return error response
-    return res.status(500).json({
-      error: 'Internal server error',
-      // Return safe error details if needed
-    });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 export default ApiHandler;
 ```
 
-**Key Points:**
-- Wrap entire handler function in try-catch
-- Capture errors with component/action context using `recordError`
-- Return HTTP 500 with safe error message
-- Use 'high' severity for API failures (blocks user action)
+**Key Points:** wrap the whole handler; capture with component/action context; return a safe 500; use `'high'` for API failures (they block the user).
 
 ### tRPC Router Error Handling (CustomTRPCError)
 
-**IMPORTANT:** tRPC routers use CustomTRPCError for centralized error capture. Do NOT use try-catch or recordError directly in routers.
-
-#### Pattern 1: Database Query
+**IMPORTANT:** tRPC routers never use try-catch or `recordError` directly — that causes
+double-capture. Attach `.catch()` to every database/fetch call and rethrow a
+`toCustomTRPCError` with component, action, extra and severity:
 
 ```typescript
 import { TRPCError } from '@trpc/server';
@@ -785,10 +757,7 @@ export const exampleRouter = createTRPCRouter({
       });
 
       if (!data) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Data not found',
-        });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Data not found' });
       }
 
       return data;
@@ -796,117 +765,26 @@ export const exampleRouter = createTRPCRouter({
 });
 ```
 
-#### Pattern 2: External API Fetch
-
-```typescript
-const response = await fetch(url, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
-}).catch((error) => {
-  throw toCustomTRPCError(error, 'Failed to fetch external API', {
-    component: 'exampleRouter',
-    action: 'getData',
-    extra: { url },
-    severity: 'high',
-  });
-});
-
-if (!response.ok) {
-  throw toCustomTRPCError(
-    new Error(`API error: ${response.status} ${response.statusText}`),
-    'External API returned error status',
-    {
-      component: 'exampleRouter',
-      action: 'getData',
-      extra: { url, status: response.status },
-      severity: 'high',
-    },
-  );
-}
-
-return response.json();
-```
-
-#### Pattern 3: Promise.allSettled
-
-```typescript
-const promises = [
-  db.insert(table1).values(data1),
-  db.insert(table2).values(data2),
-  db.update(table3).set(data3).where(eq(table3.id, id)),
-];
-
-const results = await Promise.allSettled(promises);
-const failedResults = results.filter(r => r.status === 'rejected');
-
-if (failedResults.length > 0) {
-  throw toCustomTRPCError(
-    failedResults[0].reason,
-    'Failed to persist data',
-    {
-      component: 'exampleRouter',
-      action: 'procedureName',
-      extra: {
-        failedCount: failedResults.length,
-        totalCount: promises.length,
-      },
-      severity: 'high',
-    },
-  );
-}
-```
+The same `.catch()` → `toCustomTRPCError` shape covers external `fetch` (also check
+`response.ok` and capture `response.status` in `extra`) and `Promise.allSettled` (rethrow the
+first `rejected` reason with failed/total counts in `extra`); full code in `docs/error-handling-patterns.md`.
 
 ### Error Types
 
-**Business Logic Errors (use standard TRPCError):**
+**Business logic errors** — expected, user-facing failures — use a standard `TRPCError`
+(`NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`) and are **not** captured:
+
 ```typescript
-// NOT_FOUND, CONFLICT, BAD_REQUEST, UNAUTHORIZED, FORBIDDEN
-if (!data) {
-  throw new TRPCError({
-    code: 'NOT_FOUND',
-    message: 'Resource not found',
-  });
-}
+throw new TRPCError({ code: 'NOT_FOUND', message: 'Resource not found' });
 ```
-These are NOT captured as errors in HyperDX (expected user-facing errors).
 
-**System Errors (use CustomTRPCError via toCustomTRPCError):**
-```typescript
-// Database failures, external API errors, timeouts
-await db.query().catch((error) => {
-  throw toCustomTRPCError(error, 'Failed to query', {
-    component: 'routerName',
-    action: 'procedureName',
-    extra: { context },
-    severity: 'high',
-  });
-});
-```
-These ARE captured as errors in HyperDX (unexpected system failures).
+**System errors** — database failures, external API errors, timeouts — use
+`toCustomTRPCError` and **are** captured in HyperDX.
 
-### Error Severity Guidelines
-
-Use these severity levels consistently:
-
-- **critical**: App crash, data loss, security breach
-- **high**: User action blocked (database error, API failure, auth failure) - DEFAULT
-- **medium**: Degraded experience (non-critical feature failures)
-- **low**: Informational (analytics tracking failed, geo lookup failed)
-
-### Common Mistakes to Avoid
-
-❌ **Don't:**
-- Use try-catch in tRPC routers (creates double-capture)
-- Use recordError directly in tRPC routers (use toCustomTRPCError)
-- Wrap business logic errors with CustomTRPCError (use standard TRPCError)
-- Forget to add .catch() to async operations
-
-✅ **Do:**
-- Use .catch() with toCustomTRPCError for all database/fetch operations
-- Use standard TRPCError for business logic errors
-- Provide component, action, and extra context in metadata
-- Use severity 'high' (default) for system errors
+**Common mistakes:** try-catch or `recordError` in a router (double-capture); wrapping a
+business error in `CustomTRPCError`; omitting `.catch()`; omitting component/action/extra.
+Severity stays as the decision tree above: critical (crash/data loss/security), high
+(blocked user action — the DEFAULT for system errors), medium (degraded), low (informational).
 
 ## Additional Resources
 Use Context7 MCP as a reference for documentation:
@@ -971,10 +849,6 @@ A release window containing only hidden types therefore resolves to no version.
 `release.yml` fails loudly in that case rather than passing with nothing released
 (release-it's own behaviour is to print "No new version to release" and exit 0).
 
-### Local validation (`lefthook.yml`)
-
-Every commit runs `format:check + lint + type-check` for all three services in parallel, plus `commitlint` on the message. **Never `--no-verify`** — CI will fail the same way.
-
 ### CI workflows (`.github/workflows/`)
 
 | Workflow | Trigger | Purpose |
@@ -986,22 +860,6 @@ Every commit runs `format:check + lint + type-check` for all three services in p
 | `release.yml` | `workflow_dispatch` only | Runs `release-it --ci` on a fresh runner; pushes chore commit + tag back to master |
 
 `deploy.yml` uses `concurrency.cancel-in-progress: false` — deploys queue rather than cancel.
-
-### Deployment
-
-| Service | Runtime | Trigger |
-|-|-|-|
-| Next.js | Vercel | Vercel GitHub integration on every master push |
-| fpp-server | VPS Docker | `deploy.yml` → RollHook (rolling, zero-downtime) |
-| fpp-analytics | VPS Docker | `deploy.yml` → RollHook |
-| fpp-analytics-updater | VPS Docker | `deploy.yml` → RollHook |
-
-**Auth:** GitHub OIDC → RollHook exchanges for short-lived registry creds. RollHook authorizes via the `rollhook.allowed_repos` label on the running container (see `vps/apps/fpp/compose.yml`).
-
-**Manual redeploy** (e.g., env var changed in 1Password, no code change):
-```bash
-gh workflow run deploy.yml -f service=<all|fpp-server|fpp-analytics|fpp-analytics-updater>
-```
 
 ### PR workflow
 
