@@ -23,17 +23,17 @@
     "validate": "bun run format:check && bun run lint && bun run type-check"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2",
-    "mysql2": "^3.24.4",
-    "nanoid": "^6.0.1"
+    "drizzle-orm": "^0.45.4",
+    "mysql2": "^3.24.6",
+    "nanoid": "^6.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "dotenv": "^17.4.2",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.10",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.69.0"
+    "typescript-eslint": "^8.72.1"
   }
 }
