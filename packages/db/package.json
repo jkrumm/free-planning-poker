@@ -23,9 +23,9 @@
     "validate": "bun run format:check && bun run lint && bun run type-check"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.4",
     "mysql2": "^3.24.4",
-    "nanoid": "^6.0.1"
+    "nanoid": "^6.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

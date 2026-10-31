@@ -164,8 +164,8 @@ Free Planning Poker is a Next.js application using the **Pages Router** (not App
 - **React 19.3.1** with stricter linting rules
 - **tRPC 11.19.0** for type-safe API layer
 - **Bun WebSocket server** for real-time features
-- **Zustand 5.0.15** for state management
-- **Drizzle ORM 0.45.2** with MySQL
+- **Zustand 5.0.16** for state management
+- **Drizzle ORM 0.45.4** with MySQL
 - **Tailwind CSS 4** + **Mantine 9.7.4** for UI
 
 ## Build & Development Commands
