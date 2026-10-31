@@ -5,33 +5,33 @@ description = "Free Planning Poker Analytics - FastAPI + Polars"
 requires-python = ">=3.14"
 dependencies = [
     # Web framework (starlette 1.0 transitively via fastapi 0.136+)
-    "fastapi>=0.136.0",
-    "uvicorn[standard]>=0.46.0",
+    "fastapi>=0.162.0",
+    "uvicorn[standard]>=0.54.0",
     # Data processing
     "polars>=1.40.0",
     # Database (direct connection, same docker network)
-    "pymysql>=1.1.3",
+    "pymysql>=1.2.3",
     # HTTP client (email service, UptimeKuma)
     "httpx>=0.28.0",
     # Observability — OpenTelemetry → ClickStack/HyperDX
-    "opentelemetry-api>=1.42.0",
-    "opentelemetry-sdk>=1.42.0",
+    "opentelemetry-api>=1.45.1",
+    "opentelemetry-sdk>=1.45.1",
     # HTTP/protobuf exporter — matches the rest of the FPP stack (Argo, fpp-server,
     # browser SDK) which all target the unauthed ClickStack :4319 receiver. The
     # gRPC ports (:4317) are authed in prod; switching to HTTP avoids needing an
     # auth header in the OTLP exporter config.
-    "opentelemetry-exporter-otlp-proto-http>=1.42.0",
-    "opentelemetry-instrumentation-fastapi>=0.63b0",
-    "opentelemetry-instrumentation-logging>=0.63b0",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.1",
+    "opentelemetry-instrumentation-fastapi>=0.66b1",
+    "opentelemetry-instrumentation-logging>=0.66b1",
     # Environment
-    "python-dotenv>=1.2.2",
+    "python-dotenv>=1.2.4",
     "python-json-logger>=4.1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.16.0",
-    "mypy>=2.3.0",
+    "ruff>=0.17.0",
+    "mypy>=2.4.0",
 ]
 
 [build-system]
