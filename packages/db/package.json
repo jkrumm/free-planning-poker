@@ -24,13 +24,13 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
-    "mysql2": "^3.24.4",
+    "mysql2": "^3.24.6",
     "nanoid": "^6.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "dotenv": "^17.4.2",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "prettier": "^3.9.8",
     "typescript": "^6.0.3",
