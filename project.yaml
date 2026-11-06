@@ -1,0 +1,12 @@
+# How the factory ships this project (software-factory docs/design.md §9).
+apiVersion: factory/v2
+name: free-planning-poker
+deploy:
+  mode: auto # a push to master deploys: Vercel (web) + deploy.yml → RollHook (fpp-server, fpp-analytics); `make deploy` is a no-op
+  targets:
+    - { name: prod, host: vps, verify: make verify } # probes web, server and analytics health
+  hold: 10m # Vercel build + RollHook rollout finish before the verify counts
+  migrations: [packages/db/drizzle/] # applied by hand (`bun run db:migrate`), never by the deploy
+ship:
+  - { paths: ["**"], via: pr } # PR-required repo (config/pr-required-repos.json)
+leads: 1
