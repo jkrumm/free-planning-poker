@@ -510,7 +510,13 @@ FPP_SERVER_SECRET=secret-token                   # Auth for callbacks
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319 # ClickStack OTLP (traces/logs/metrics)
 OTEL_SERVICE_NAME=fpp-server
 NODE_ENV=development
+FACTORY_FEEDBACK_URL=https://<mini-tailnet-name>:8796/feedback/free-planning-poker  # prod only, optional
+FACTORY_FEEDBACK_TOKEN=<see-1password>           # prod only, optional; feedback-free-planning-poker token
 ```
+
+`POST /feedback` (`src/feedback.ts`) takes in-app feedback from the web sidebar form and forwards it to the software-factory door
+(tailnet-only, bearer token). Per-client and global rate limits are in-memory. Without the two `FACTORY_FEEDBACK_*` vars the endpoint
+answers 503 and the form reports feedback as unavailable. CORS is allow-listed for the web origins in `index.ts`.
 
 ### Debugging
 
