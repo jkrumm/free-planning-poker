@@ -11,6 +11,11 @@ const nextConfig = {
   // Locally we proxy through Caddy as fpp.test, so whitelist it for both the
   // HMR WebSocket and the /__nextjs_original-stack-frames endpoint. No prod
   // impact — this is a dev-only check.
+  // Build identity sent with in-app feedback (short commit SHA on Vercel).
+  env: {
+    NEXT_PUBLIC_APP_VERSION:
+      process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
+  },
   allowedDevOrigins: ['fpp.test', 'localhost:7720'],
   transpilePackages: ['@fpp/db', '@fpp/shared', 'geist'],
   // Dev-only same-origin proxy for browser OTLP ingest. The browser SDK posts

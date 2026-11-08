@@ -13,11 +13,13 @@ import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { Elysia, t } from 'elysia';
 import {
   ActionSchema,
+  FEEDBACK_LIMITS,
   isHeartbeatAction,
   USERNAME_RULES,
   validateUsername,
 } from '@fpp/shared';
 import { ATTR, EVENT } from '@fpp/shared/telemetry';
+import { createFeedbackService } from './feedback';
 import { MessageHandler } from './message.handler';
 import { User } from './room.entity';
 import { roomSnapshot } from './room.snapshot';
@@ -86,6 +88,14 @@ const app = new Elysia({
   // Centralized error handler (HTTP endpoints only)
   .onError(({ code, error, set, request }) => {
     const url = new URL(request.url);
+
+    // Validation failures on /feedback must stay readable cross-origin.
+    if (url.pathname === '/feedback') {
+      Object.assign(
+        set.headers,
+        feedbackCorsHeaders(request.headers.get('origin')),
+      );
+    }
 
     // NOT_FOUND is expected (favicon.ico, robots.txt, etc.) - don't capture
     if (code === 'NOT_FOUND') {
@@ -157,6 +167,79 @@ app.post(
     body: t.Object({
       roomId: t.Number(),
       userId: t.String(),
+    }),
+  },
+);
+
+// --- In-app feedback → software-factory door -------------------------------
+// The browser calls this endpoint (cross-origin: web on Vercel, server on the
+// VPS); the door URL and token stay here. Without FACTORY_FEEDBACK_URL/TOKEN
+// the endpoint answers 503 and the form says feedback is unavailable.
+const feedback = createFeedbackService({
+  url: process.env.FACTORY_FEEDBACK_URL,
+  token: process.env.FACTORY_FEEDBACK_TOKEN,
+});
+
+const FEEDBACK_ALLOWED_ORIGINS = new Set([
+  'https://free-planning-poker.com',
+  'https://fpp.test',
+  'http://localhost:7720',
+]);
+
+function feedbackCorsHeaders(origin: string | null): Record<string, string> {
+  if (!origin || !FEEDBACK_ALLOWED_ORIGINS.has(origin)) return {};
+  return {
+    'access-control-allow-origin': origin,
+    'access-control-allow-methods': 'POST, OPTIONS',
+    'access-control-allow-headers': 'content-type',
+    'access-control-max-age': '86400',
+    vary: 'Origin',
+  };
+}
+
+// First hop of x-forwarded-for is the client behind Traefik/the tunnel; the
+// service's global cap bounds abuse if the header is spoofed.
+function clientKey(request: Request): string {
+  return (
+    request.headers.get('cf-connecting-ip') ??
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    'unknown'
+  );
+}
+
+app.options('/feedback', ({ request, set }) => {
+  Object.assign(
+    set.headers,
+    feedbackCorsHeaders(request.headers.get('origin')),
+  );
+  set.status = 204;
+});
+
+app.post(
+  '/feedback',
+  async ({ body, request, set }) => {
+    Object.assign(
+      set.headers,
+      feedbackCorsHeaders(request.headers.get('origin')),
+    );
+    const result = await feedback.submit(body, clientKey(request));
+    set.status = result.status;
+    if (result.status === 429) {
+      set.headers['retry-after'] = String(result.retryAfterSeconds);
+    } else if (result.status !== 200) {
+      log.warn({ status: result.status }, 'Feedback forwarding failed');
+    }
+    return result.body;
+  },
+  {
+    body: t.Object({
+      title: t.String({ minLength: 1, maxLength: FEEDBACK_LIMITS.TITLE_MAX }),
+      text: t.Optional(t.String({ maxLength: FEEDBACK_LIMITS.TEXT_MAX })),
+      version: t.String({
+        minLength: 1,
+        maxLength: FEEDBACK_LIMITS.VERSION_MAX,
+      }),
+      route: t.String({ minLength: 1, maxLength: FEEDBACK_LIMITS.ROUTE_MAX }),
     }),
   },
 );

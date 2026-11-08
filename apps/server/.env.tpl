@@ -21,3 +21,7 @@ OTEL_SERVICE_NAME=fpp-server
 # agree with each other, never to match prod. See apps/web/.env.tpl for why
 # this is a literal rather than an op:// ref.
 FPP_SERVER_SECRET=local-dev-server-secret
+
+# --- In-app feedback → software-factory door (prod only) ---
+# Unset locally: POST /feedback answers 503. Prod values are injected by
+# docker-compose on the VPS (FACTORY_FEEDBACK_URL, FACTORY_FEEDBACK_TOKEN).
