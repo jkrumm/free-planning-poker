@@ -60,7 +60,7 @@ if os.getenv("DB_SSL", "false").lower() == "true":
         # Validate the cert chain (CERT_REQUIRED, a publicly-trusted LE wildcard)
         # so a forged cert can't MITM the connection, but skip the hostname check
         # since the internal `mariadb` host won't match the wildcard SAN.
-        ctx.check_hostname = False
+        ctx.check_hostname = False  # NOSONAR: intentional, chain still verified
         ctx.verify_mode = ssl_module.CERT_REQUIRED
     DB_CONFIG["ssl"] = ctx
 
