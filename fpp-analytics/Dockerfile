@@ -6,17 +6,16 @@ ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     UV_PROJECT_ENVIRONMENT=/app/.venv
 
+# --no-build: install wheels only, never run an sdist's setup scripts. The app
+# itself is not installed: its sources are copied below and run from /app.
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project
+    uv sync --frozen --no-dev --no-install-project --no-build
 
 COPY main.py config.py update_readmodel.py ./
 COPY calculations ./calculations
 COPY routers ./routers
 COPY util ./util
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
 
 
 FROM python:3.14-slim-bookworm AS runner
