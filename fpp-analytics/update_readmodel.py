@@ -55,7 +55,7 @@ DB_CONFIG: dict[str, Any] = {
 if os.getenv("DB_SSL", "false").lower() == "true":
     import ssl as ssl_module  # noqa: E402
 
-    ctx = ssl_module.create_default_context()  # NOSONAR: see DB_SSL_VERIFY below
+    ctx = ssl_module.create_default_context()
     if os.getenv("DB_SSL_VERIFY", "true").lower() == "false":
         # Validate the cert chain (CERT_REQUIRED, a publicly-trusted LE wildcard)
         # so a forged cert can't MITM the connection, but skip the hostname check
