@@ -76,7 +76,7 @@ Deploys run via the `deploy.yml` GitHub Actions workflow → RollHook (zero-down
    # Should see "Sync complete in X.Xs"
    ```
 
-4. **API server starts as part of `make fpp-up`** — no separate command needed. To restart just the API container after a code change: `make fpp-rebuild` (RollHook handles zero-downtime rolling deploys in CI).
+4. **API server starts as part of `make fpp-up`** — no separate command needed. To ship a code change to the API container, push to master: `deploy.yml` rebuilds it and RollHook rolls it out with zero downtime. To redeploy only that service by hand: `gh workflow run deploy.yml -f service=fpp-analytics`.
 
 5. **Verify:**
    ```bash
