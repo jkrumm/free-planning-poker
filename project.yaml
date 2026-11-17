@@ -1,4 +1,4 @@
-# How the factory ships this project (software-factory docs/design.md §9).
+# How the factory ships this project (software-factory docs/project.md).
 apiVersion: factory/v2
 name: free-planning-poker
 deploy:
@@ -6,7 +6,8 @@ deploy:
   targets:
     - { name: prod, host: vps, verify: make verify } # probes web, server and analytics health
   hold: 10m # Vercel build + RollHook rollout finish before the verify counts
-  migrations: [packages/db/drizzle/] # applied by hand (`bun run db:migrate`), never by the deploy
 ship:
-  - { paths: ["**"], via: pr } # PR-required repo (config/pr-required-repos.json)
+  - { via: pr } # master branch protection requires a PR, see AGENTS.md §Shipping & Release
+# One merge window at a time: every master push redeploys prod through the shared deploy.yml queue,
+# and a rebase onto a moving master invalidates the CI run of another lead's PR.
 leads: 1
