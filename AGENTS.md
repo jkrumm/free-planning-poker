@@ -306,7 +306,17 @@ All services use structured JSON logging (Pino format):
 All services emit production-ready Pino JSON to stdout (captured by Docker/Vercel),
 each tagged with a `service` field (`free-planning-poker`, `fpp-server`,
 `fpp-analytics`); correlate across services by `userId`/`roomId`. No standalone log
-aggregator is configured — HyperDX/ClickStack receives error logs as OTLP records.
+aggregator is configured — HyperDX/ClickStack receives OTLP log records from the
+code itself: fpp-server (`recordError`, `recordEvent`, `otelLog.*`), the web server
+(the `app-error` facade) and fpp-analytics (stdlib `logging` bridge). Every record
+has a non-empty Body (events: `event.name` plus its attributes as `key=value`).
+
+Resource attributes on every runtime incl. the browser: `service.namespace=free-planning-poker`,
+`service.version` = short git SHA (`OTEL_SERVICE_VERSION` Docker build arg set by
+`deploy.yml`; `VERCEL_GIT_COMMIT_SHA` shortened on Vercel; `local` in dev) and
+`deployment.environment.name` = `prod` | `dev` (mapped from `NODE_ENV`). The browser
+SDK runs with `advancedNetworkCapture: false` (no request/response headers or
+bodies) and session replay with `maskAllInputs: true`.
 
 ## Critical Rules
 

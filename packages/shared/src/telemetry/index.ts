@@ -11,3 +11,4 @@
 export * from './attributes';
 export * from './events';
 export * from './metrics';
+export * from './event-body';

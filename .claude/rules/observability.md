@@ -42,8 +42,9 @@ event key) is the one allowed literal, inside `recordEvent` only.
 - **Plain log** — operator narration (invalid message, fail-open warning). A
   plain log is *not* an event (no `event.name`). Transport differs by service
   because stdout aggregation does:
-  - **fpp-server / analytics** → `log.*` (Pino) to stdout, piped into ClickStack
-    on the VPS. Not OTEL.
+  - **fpp-server** → `otelLog.*` (OTLP log record) and `recordError` /
+    `recordEvent`; Pino `log.*` still writes stdout. **fpp-analytics** → stdlib
+    `logging` (stdout JSON) bridged to OTLP by `LoggingHandler`.
   - **apps/web (Vercel)** → `log.warn`/`log.info` from the `app-error` facade,
     which dual-writes Pino stdout (Logdy + Vercel platform logs) **and**, on the
     server, a plain OTLP log record — because the Vercel app's stdout reaches no
@@ -51,6 +52,17 @@ event key) is the one allowed literal, inside `recordEvent` only.
     HyperDX SDK's `consoleCapture` already forwards it). Raw `logger` (Pino) is
     ESLint-banned outside the facade on web for this reason.
 - **Exception** (`recordError(err, ctx, sev)`) — error conditions.
+
+## Resource attributes and log Body
+
+Every runtime (fpp-server, fpp-analytics, web server, browser) sets
+`service.namespace=free-planning-poker`, `service.version` (short git SHA;
+`local` in dev) and `deployment.environment.name` (`prod` | `dev`, mapped from
+`NODE_ENV` in one helper per runtime — never the deprecated
+`deployment.environment`). Every OTLP log record needs a non-empty Body:
+`recordEvent` uses `eventBody(name, attrs)` (`event.name` stays an attribute).
+The browser SDK keeps `advancedNetworkCapture: false` and replay
+`maskAllInputs: true`.
 
 ## Naming (spec §4)
 

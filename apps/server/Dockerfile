@@ -55,7 +55,11 @@ RUN apk add --no-cache curl ca-certificates \
 
 COPY --from=builder --chown=app:app /app/server /app/server
 
-ENV NODE_ENV=production
+# Short git SHA, passed by deploy.yml (build_args). Read at runtime as
+# service.version; stays 'local' for builds that pass nothing.
+ARG OTEL_SERVICE_VERSION=local
+ENV NODE_ENV=production \
+    OTEL_SERVICE_VERSION=${OTEL_SERVICE_VERSION}
 EXPOSE 3003
 
 USER app

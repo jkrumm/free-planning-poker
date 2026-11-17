@@ -42,7 +42,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 COPY --from=builder /app /app
 
-ENV PATH="/app/.venv/bin:$PATH" \
+# Short git SHA, passed by deploy.yml (build_args). Read at runtime as
+# service.version; stays 'local' for builds that pass nothing.
+ARG OTEL_SERVICE_VERSION=local
+ENV OTEL_SERVICE_VERSION=${OTEL_SERVICE_VERSION} \
+    PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DATA_DIR=/app/data

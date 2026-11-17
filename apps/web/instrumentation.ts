@@ -10,6 +10,12 @@ import {
 } from '@opentelemetry/sdk-logs';
 import { registerOTel } from '@vercel/otel';
 
+// Estate telemetry contract: deployment.environment.name is exactly 'prod' or
+// 'dev'; service.version is the short git SHA (Vercel exposes the full one).
+const ENVIRONMENT = process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
+const SERVICE_VERSION =
+  process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local';
+
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
@@ -21,16 +27,16 @@ export async function register() {
     'service.name': process.env.OTEL_SERVICE_NAME ?? 'free-planning-poker',
     // Groups the three fpp services as one app in HyperDX.
     'service.namespace': 'free-planning-poker',
-    'service.version': process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
-    'deployment.environment': process.env.NODE_ENV ?? 'development',
+    'service.version': SERVICE_VERSION,
+    'deployment.environment.name': ENVIRONMENT,
   });
 
   registerOTel({
     serviceName: process.env.OTEL_SERVICE_NAME ?? 'free-planning-poker',
     attributes: {
       'service.namespace': 'free-planning-poker',
-      'service.version': process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
-      'deployment.environment': process.env.NODE_ENV ?? 'development',
+      'service.version': SERVICE_VERSION,
+      'deployment.environment.name': ENVIRONMENT,
     },
     traceExporter: 'auto',
   });
