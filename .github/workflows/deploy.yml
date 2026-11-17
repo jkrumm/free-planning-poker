@@ -35,10 +35,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - id: version
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - uses: jkrumm/rollhook-action@v1
         with:
           url: https://rollhook.jkrumm.com
           image_name: fpp-server
+          build_args: |
+            OTEL_SERVICE_VERSION=${{ steps.version.outputs.short_sha }}
           dockerfile: apps/server/Dockerfile
           context: .
 
@@ -49,10 +53,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - id: version
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - uses: jkrumm/rollhook-action@v1
         with:
           url: https://rollhook.jkrumm.com
           image_name: fpp-analytics
+          build_args: |
+            OTEL_SERVICE_VERSION=${{ steps.version.outputs.short_sha }}
           dockerfile: fpp-analytics/Dockerfile
           context: fpp-analytics
 
@@ -63,9 +71,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - id: version
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - uses: jkrumm/rollhook-action@v1
         with:
           url: https://rollhook.jkrumm.com
           image_name: fpp-analytics-updater
+          build_args: |
+            OTEL_SERVICE_VERSION=${{ steps.version.outputs.short_sha }}
           dockerfile: fpp-analytics/Dockerfile
           context: fpp-analytics

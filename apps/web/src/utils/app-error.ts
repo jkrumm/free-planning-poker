@@ -4,6 +4,7 @@ import {
   ATTR,
   type EventName,
   type TelemetryAttributes,
+  eventBody,
 } from '@fpp/shared/telemetry';
 import HyperDX from '@hyperdx/browser';
 import { SpanStatusCode, trace } from '@opentelemetry/api';
@@ -181,6 +182,7 @@ export const recordEvent = (
   getOtelLogger().emit({
     severityNumber: SeverityNumber.INFO,
     severityText: 'INFO',
+    body: eventBody(name, attributes),
     attributes: {
       'event.name': name,
       ...userContextAttrs(),

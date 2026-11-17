@@ -30,7 +30,8 @@ import { ATTR, METRIC } from '@fpp/shared/telemetry';
 
 const SERVICE_NAME = process.env.OTEL_SERVICE_NAME ?? 'fpp-server';
 const SERVICE_VERSION = process.env.OTEL_SERVICE_VERSION ?? 'local';
-const ENVIRONMENT = process.env.NODE_ENV ?? 'development';
+// Estate telemetry contract: deployment.environment.name is exactly 'prod' or 'dev'.
+const ENVIRONMENT = process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
 const BASE_URL =
   process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4319';
 
@@ -39,7 +40,7 @@ const resource = resourceFromAttributes({
   // Groups the three fpp services as one app in HyperDX.
   'service.namespace': 'free-planning-poker',
   'service.version': SERVICE_VERSION,
-  'deployment.environment': ENVIRONMENT,
+  'deployment.environment.name': ENVIRONMENT,
 });
 
 const spanProcessors = [

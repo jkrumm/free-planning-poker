@@ -3,6 +3,7 @@ import { SeverityNumber } from '@opentelemetry/api-logs';
 import {
   type EventName,
   type TelemetryAttributes,
+  eventBody,
 } from '@fpp/shared/telemetry';
 
 import { log } from '../index';
@@ -108,6 +109,7 @@ export function recordEvent(
   otelLogger.emit({
     severityNumber: SeverityNumber.INFO,
     severityText: 'INFO',
+    body: eventBody(name, attributes),
     attributes: { 'event.name': name, ...attributes },
   });
 }

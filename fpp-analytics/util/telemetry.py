@@ -32,8 +32,13 @@ from util.telemetry_taxonomy import ATTR, METRIC
 
 SERVICE_NAME = os.getenv("OTEL_SERVICE_NAME", "fpp-analytics")
 SERVICE_VERSION = os.getenv("OTEL_SERVICE_VERSION", "local")
-ENVIRONMENT = os.getenv(
-    "OTEL_DEPLOYMENT_ENVIRONMENT", os.getenv("NODE_ENV", "development")
+# Estate telemetry contract: deployment.environment.name is exactly "prod" or
+# "dev".
+ENVIRONMENT = (
+    "prod"
+    if os.getenv("OTEL_DEPLOYMENT_ENVIRONMENT", os.getenv("NODE_ENV", "")).lower()
+    in ("prod", "production")
+    else "dev"
 )
 
 # OTLP HTTP base — exporter appends /v1/traces and /v1/logs at request time.
@@ -47,7 +52,7 @@ _resource = Resource.create(
         # Groups the three fpp services as one app in HyperDX.
         "service.namespace": "free-planning-poker",
         "service.version": SERVICE_VERSION,
-        "deployment.environment": ENVIRONMENT,
+        "deployment.environment.name": ENVIRONMENT,
     }
 )
 
