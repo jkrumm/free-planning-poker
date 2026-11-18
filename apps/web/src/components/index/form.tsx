@@ -21,8 +21,8 @@ import { useHasMounted } from 'fpp/hooks/use-has-mounted.hook';
 
 import { FlipWords } from 'fpp/components/index/flip-words';
 
-export const FALLBACK_USER_COUNT = 10000;
-export const FALLBACK_ESTIMATION_COUNT = 70000;
+const FALLBACK_USER_COUNT = 10000;
+const FALLBACK_ESTIMATION_COUNT = 70000;
 
 const IndexForm = () => {
   const hasMounted = useHasMounted();
@@ -338,7 +338,7 @@ const IndexForm = () => {
   );
 };
 
-export function AnimatedNumber({
+function AnimatedNumber({
   value,
   delay = 0,
 }: {

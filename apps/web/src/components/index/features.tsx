@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { Button, Title } from '@mantine/core';
 
-export const Features = () => {
+const Features = () => {
   return (
     <section id="features" className="mt-20">
       <Title order={2} className="text-center">

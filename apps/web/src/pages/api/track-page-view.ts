@@ -19,8 +19,6 @@ import { validateNanoId } from 'fpp/utils/validate-nano-id.util';
 
 import db from 'fpp/server/db/db';
 
-export const preferredRegion = 'fra1';
-
 const TrackPageView = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     if (req.method !== 'POST') {

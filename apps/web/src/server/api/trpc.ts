@@ -14,10 +14,7 @@ import db from 'fpp/server/db/db';
  * Creates the inner tRPC context with request/response objects and database
  * This is called for every request
  */
-export const createInnerTRPCContext = (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
+const createInnerTRPCContext = (req: NextApiRequest, res: NextApiResponse) => {
   return {
     db,
     req,
@@ -60,7 +57,6 @@ const t = initTRPC.context<Context>().create({
  * Export router and procedure helpers
  * These are used to create tRPC routers and procedures
  */
-export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 /**
