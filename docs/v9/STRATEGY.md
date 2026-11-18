@@ -1,6 +1,6 @@
 # v9 strategy
 
-The plan for rewriting Free Planning Poker as release 9.0.0: what gets built, on what, in which order, and what was decided against. Detail lives in `ARCHITECTURE.md` (the technical contract), `UX.md` (the product), `PLAN.md` (stages and rows) and `research/` (thirteen cited reports from 2026-11-18).
+The plan for rewriting Free Planning Poker as release 9.0.0: what gets built, on what, in which order, and what was decided against. Detail lives in `ARCHITECTURE.md` (the technical contract), `ENGINEERING.md` (patterns, CI and the development loop), `UX.md` (the product, with wireframes), `PLAN.md` (stages and rows) and `research/` (fourteen cited reports from 2026-11-18).
 
 ## Verdict
 
@@ -42,6 +42,8 @@ The stack is mostly what you asked for. Four of your premises do not survive the
 | Measurement | OpenTelemetry for health, server-fed Umami for behaviour, Postgres for product numbers; browser telemetry is errors only | adding a consented script later is additive |
 | Tests | Properties on the core, a deterministic simulator nightly, real sockets and Postgres for the server, Playwright with one context per seat against the shipped image, k6 nightly | none |
 | Tooling | basalt-ui's oxlint, oxfmt and tsconfig presets; no Turborepo; fast tier under 60 s | low |
+| CI | One workflow, lanes chosen by changed paths, one required gate job; 8 minutes median on free hosted runners | low |
+| Code rules | Module boundaries and purity enforced by a script, not by review (`ENGINEERING.md`) | low |
 | Repo | Eight modules, v1 frozen beside them, deleted 14 days after cutover | none |
 
 The rejected options and the evidence are in `research/`:
@@ -71,6 +73,8 @@ The rejected options and the evidence are in `research/`:
 | 2 Table | basalt-ui 3, the table prototype, then the whole room UI | the playground with every table state, then the real room on the beta host | two verdicts of yours: the table's look, later the finished room |
 | 3 Site and numbers | Astro site, landing demo, server-fed Umami, edge routing on the beta host, HTTP API, rollups, v1 importer | the full site and the funnel in Umami on the beta host | every v1 URL answers on the beta host |
 | 4 Launch | budgets, polish, rehearsal, cutover, v1 removal | the rehearsed cutover on the beta host | your go for the switch; later your yes to deleting MariaDB |
+
+![v9 in four stages with the five owner stops](diagrams/stages.svg)
 
 A row is one factory Issue: one change that ships alone, sized for one lead session of at most a day. Stage 1 is filed as 17 rows now, plus the first two rows of stage 2.
 

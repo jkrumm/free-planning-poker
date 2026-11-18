@@ -1,6 +1,6 @@
 # v9 product and UX concept
 
-What the rewritten product does and how it feels. `ARCHITECTURE.md` says how it is built and `PLAN.md` in which order; where they disagree with this file on behaviour, this file wins. Competitor facts and platform limits are from `research/r07-ux-competitive.md`, `r06-rendering-motion.md` and `r04-spa-stack.md`.
+What the rewritten product does and how it feels. The three figures are wireframes drawn from the planned seat geometry: they show structure and states, not the final look, which the table prototype settles. `ARCHITECTURE.md` says how it is built and `PLAN.md` in which order; where they disagree with this file on behaviour, this file wins. Competitor facts and platform limits are from `research/r07-ux-competitive.md`, `r06-rendering-motion.md` and `r04-spa-stack.md`.
 
 ## Position
 
@@ -50,6 +50,8 @@ A round has two states. **Voting:** players pick a card, can change it, and see 
 
 Presence, vote and role combine: an away seat that has voted keeps its face-down card and is dimmed.
 
+![The table at 6, 12, 20 and 30 players, with the seat states](img/table-sizes.svg)
+
 Avatars are generated from a random seed in a few shapes and token colours, re-rolled in settings. No uploads, no photos.
 
 ## Flows
@@ -78,6 +80,8 @@ The layout follows the width of the room container, by container queries, so the
 | 700 to 1099 px | ring, smaller seats | docked | panels open as sheets |
 | under 700 px | no ring: a status strip, then a seat grid of four or five columns | bottom sheet with two rows of large cards | full-screen sheets; the result is one |
 
+![Room layout at three container widths](img/layouts.svg)
+
 Seat size steps down at 9 and at 17 players. The grid replaces the ring when the container is under 700 px wide or the room has 25 or more players. A Table/Grid switch overrides the automatic choice and replaces v1's "prefer card view".
 
 Seats are spaced by arc length around the table edge, with the viewer always at the bottom centre. The geometry is therefore a pure function of seat count and container size, and it is tested without a browser.
@@ -85,6 +89,8 @@ Seats are spaced by arc length around the table edge, with the viewer always at 
 ## The reveal
 
 The reveal is the only choreographed sequence. It takes at most 1.6 seconds:
+
+![The reveal in four frames: voting, flip, sort, result](img/reveal.svg)
 
 1. Cards flip in seat order, 320 ms each, the stagger scaled so that 30 seats finish as fast as 6.
 2. The cards leave their seats and sort into columns by value in the centre of the table. The histogram is made of the cards themselves; each seat keeps a small chip with its value.
