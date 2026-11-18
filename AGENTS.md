@@ -813,7 +813,7 @@ Use Context7 MCP as a reference for documentation:
 | Rule | State |
 |-|-|
 | `required_pull_request_reviews` | enabled, 0 approvals — PR required structurally |
-| `required_linear_history` | true — squash-merge only, no merge commits |
+| `required_linear_history` | true — no merge commits; the repo allows rebase merges only |
 | `required_conversation_resolution` | true — open PR threads block merge |
 | `allow_force_pushes` | false |
 | `enforce_admins` | false — repo owner can push directly to master |
@@ -876,7 +876,7 @@ A release window containing only hidden types therefore resolves to no version.
 1. **Branch + PR:** `git checkout -b <type>/<desc>` → commit (lefthook validates) → `git push -u origin HEAD` → `gh pr create --base master --fill`. Or use `/pr create` (runs `/check`, offers `/git-cleanup` for ≥3 commits).
 2. **CI runs:** `validate.yml` (17 jobs) + `sonarcloud.yml` immediately; `comment.yml` posts heads-up when `**/schema.ts`, `apps/server/**`, `packages/shared/**`, `packages/db/**`, or `fpp-analytics/**` change; **CodeRabbit** (account-level GitHub App, no repo config) posts file-level comments + summary.
 3. **Iterate on CodeRabbit feedback:** fold fix-ups into the originating commit with `/commit --amend` + `git push --force-with-lease` — don't litter with one-line "fix lint" commits. `/ship` automates pulling CodeRabbit comments and offering fixes.
-4. **Merge:** wait for green CI + resolved conversations → squash-merge (linear history required) → squash commit on master triggers `deploy.yml` + Vercel.
+4. **Merge:** wait for green CI + resolved conversations, then merge inside the merge window: `factory merge-lock --project free-planning-poker -- sh -c 'git fetch origin master && git rebase origin/master && git push --force-with-lease && <wait for CI on the pushed head> && gh pr merge <n> --rebase'`. The lock covers the whole rebase → push → CI → merge span, so leads build in parallel and merge one at a time. The rebased commit on master triggers `deploy.yml` + Vercel; deploys queue there.
 
 ### Releases
 

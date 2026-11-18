@@ -8,6 +8,3 @@ deploy:
   hold: 10m # Vercel build + RollHook rollout finish before the verify counts
 ship:
   - { via: pr } # master branch protection requires a PR, see AGENTS.md §Shipping & Release
-# One merge window at a time: every master push redeploys prod through the shared deploy.yml queue,
-# and a rebase onto a moving master invalidates the CI run of another lead's PR.
-leads: 1
