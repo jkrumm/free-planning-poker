@@ -60,23 +60,15 @@ Deploys run via the `deploy.yml` GitHub Actions workflow → RollHook (zero-down
 
 1. **Ensure secrets are in 1Password** (`vps` + `common` vaults — see `vps/apps/fpp/`).
 
-2. **Build/restart containers:**
-   ```bash
-   ssh vps
-   cd ~/vps
-   make fpp-down && make fpp-up
-   ```
+2. **Build/restart containers** (the `fpp-*` targets live in the `vps` repo, another repo). On the VPS (`ssh vps`): `cd ~/vps && make fpp-down && make fpp-up`.
 
-3. **Start updater first:**
+3. **Start updater first.** `cd ~/vps && make fpp-up` (the `vps` repo, another repo) resolves all secrets and brings up updater + API together. Then wait for the initial sync:
    ```bash
-   make fpp-up   # `op run` resolves all secrets; brings up updater + API together
-
-   # Wait for initial sync (check logs)
    docker logs -f fpp-analytics-updater
    # Should see "Sync complete in X.Xs"
    ```
 
-4. **API server starts as part of `make fpp-up`** — no separate command needed. To ship a code change to the API container, push to master: `deploy.yml` rebuilds it and RollHook rolls it out with zero downtime. To redeploy only that service by hand: `gh workflow run deploy.yml -f service=fpp-analytics`.
+4. **API server starts as part of `make fpp-up`** (`vps` repo, another repo) — no separate command needed. To ship a code change to the API container, push to master: `deploy.yml` rebuilds it and RollHook rolls it out with zero downtime. To redeploy only that service by hand: `gh workflow run deploy.yml -f service=fpp-analytics`.
 
 5. **Verify:**
    ```bash
