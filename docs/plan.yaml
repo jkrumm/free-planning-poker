@@ -1,0 +1,543 @@
+# The v9 rewrite, run by the factory (software-factory docs/plan.md). The concept is docs/v9/; this file wins over docs/v9/PLAN.md.
+# Every row waits for v9-gate-1, the owner's verdict on the concept (an Issue filed by hand with checkpoint gate: no default verdict).
+# Stage 1 (the spine) and the first two rows of stage 2 are written out. Stages 2 to 4 are written by the rows v9-plan-table,
+# v9-plan-site and v9-plan-launch from what the stage before measured; their drafts are in docs/v9/PLAN.md.
+version: 1
+rows:
+  - key: v9-gate-1
+    issue: 2295
+
+  - key: v9-foundation
+    title: 'v9 foundation: check tiers, CI lanes by path, tooling for the new directories, decks, the API health route'
+    kind: chore
+    seat: {tier: opus, effort: high}
+    after: [v9-gate-1]
+    after_needs: shipped
+    facts:
+      why: |-
+        Every row of the rewrite needs a fast local gate, CI lanes that keep v1 and v9 apart, and a place for code. Today make check runs v1's four packages and the Python service only, validate.yml starts 17 jobs on every pull request and has no test job, and lefthook runs v1's checks on every commit. docs/v9/ARCHITECTURE.md (sections Repo map, Stack, Checks CI and deploy) is the contract; read it first, and docs/v9/STRATEGY.md section Rulings of gate 1.
+      what: |-
+        New, as real code and not as stubs: packages/room-core (package @fpp/room-core) with the decks of docs/v9/UX.md section Decks and facilitation as data (Fibonacci as v1's 1 2 3 5 8 13 21, modified Fibonacci, T-shirt, powers of two, the special cards) and the distance between two cards in deck positions, with tests; apps/api (package @fpp/api) with Elysia pinned exactly, GET /api/health and GET /api/version, and one test per route.
+        Shared: Makefile (check-fast; check extended; JUnit written to FACTORY_JUNIT_DIR only when it is set); project.yaml (checks: { fast: make check-fast, full: make check, ci: true }, budgets: { fast: 60s } with the reason in a comment); .github/workflows/ci-v9.yml and path filters for validate.yml and sonarcloud.yml; lefthook.yml (v1 commands only for v1 paths, v9 commands for v9 paths); root package.json scripts; lint, format and tsconfig files scoped to the new directories; .gitattributes (docs/plan.yaml merge=plan); AGENTS.md; docs/development.md.
+      change: |-
+        1. Pin one exact Bun version for local, CI and images (a version file the workflows read). Check every version you install with agw web package and pin it exactly.
+        2. Lint with oxlint and format with oxfmt for the new directories, with a minimal config of this repo; basalt-ui's presets replace it in v9-ui-foundation. v1 keeps ESLint and Prettier untouched.
+        3. Type-check the new directories with TypeScript 7 if it installs beside v1's TypeScript 6 pin without changing v1's results, else with 6; record which in the pull request.
+        4. make check-fast runs format check, lint, types and bun test for the new directories only. make check runs v1's existing gate and v9's full gate. Both exit non-zero on the first failure and print which step failed.
+        5. CI: a pull request that touches only new directories or docs/v9 runs ci-v9.yml and none of v1's jobs; a pull request that touches only v1 paths runs v1's jobs and not ci-v9.yml; one that touches shared files (root package.json, bun.lock, Makefile, workflows) runs both. Hosted runners: the repo is public.
+        6. AGENTS.md gets one short section: the five v1 directories are frozen and take fixes only, the new directories follow docs/v9/ARCHITECTURE.md, the fast and full check commands. The file stays under 12,000 bytes.
+        7. Ports for local v9 are 7738 (site), 7739 (room app), 7740 (API); add bun run dev:v9 only as far as the API exists.
+      acceptance: |-
+        - make check-fast on a clean checkout exits 0 in under 60 s on the mini; the pull request quotes the time.
+        - make check exits 0 and its output shows v1's steps and v9's.
+        - The pull request's own CI run shows ci-v9.yml ran; a second pull request (or a recorded dispatch) touching only apps/web shows it did not.
+        - factory project check and factory plan check docs/plan.yaml exit 0; factory project show free-planning-poker prints the checks.
+        - wc -c AGENTS.md is at most 12000.
+        - curl of /api/health on the locally started API answers 200 in a test, not by a dev server left running.
+      scope: |-
+        No file under apps/web, apps/server, packages/db, packages/shared, fpp-analytics changes. No package beyond the two named. No Turborepo.
+
+  - key: v9-dev-host
+    title: 'Local doors for FPP v9: fpp-next.test with production''s path split, and a database fpp on the mini'
+    repo: dotfiles
+    kind: chore
+    after: [v9-gate-1]
+    after_needs: shipped
+    facts:
+      why: |-
+        The free-planning-poker repo is being rewritten (its docs/v9/ARCHITECTURE.md). Production will serve one hostname and split it by path between a static site, a room app and an API; local development must split the same way, or origin-bound behaviour (storage, service worker scope, the WebSocket origin check) is first seen in production. The new API uses Postgres; the mini's Postgres is declared here.
+      what: |-
+        config/Caddyfile: a host fpp-next.test. config/postgres/cluster.yaml: a login role fpp and a database fpp it owns. The registries this repo keeps for doors and ports, if they list either. Use the mini-service skill.
+      change: |-
+        fpp-next.test proxies /room and /room/* and /_room/* to localhost:7739 (Vite dev server, WebSocket upgrade for hot reload included), /api/* to localhost:7740 (the API, WebSocket at /api/ws included), and everything else to localhost:7738 (Astro dev). The existing hosts fpp.test, fpp-server.test, fpp-analytics.test and fpp-logdy.test stay as they are: v1 is developed beside v9 until the cutover. The role fpp follows this file's rules (one role per app, least privilege, its own password ref or none as the neighbours do), with a connection limit of 20. Apply with make pg-apply.
+      acceptance: |-
+        - The Caddy config validates and reloads through this repo's own target; curl -sk https://fpp-next.test/api/health reaches port 7740 (a 502 while nothing listens is the expected answer and proves the route).
+        - make pg-plan shows no pending change after the apply; a connection as role fpp to database fpp can create and drop a table, and cannot connect to database shared.
+        - 7738, 7739 and 7740 are recorded wherever this repo records assigned ports.
+      scope: |-
+        Nothing of v1's doors or ports changes. No LaunchAgent: the dev servers are started by hand.
+
+  - key: v9-vps-postgres
+    title: 'Postgres schema and role fpp for the Free Planning Poker rewrite'
+    repo: vps
+    kind: chore
+    after: [v9-gate-1]
+    after_needs: shipped
+    facts:
+      why: |-
+        Free Planning Poker is being rewritten (free-planning-poker docs/v9/ARCHITECTURE.md, section Data model) and moves from its own MariaDB container to the shared Postgres. The new API needs its schema before its first deploy. MariaDB and the v1 containers stay untouched until the cutover.
+      what: |-
+        scripts/setup-postgres.sh (a block for schema fpp and role fpp, like the shutterflow block); the 1Password item and the .env.tpl line for FPP_DB_PASSWORD; docs/postgres-schema-model.md (the list of schemas); the backup and restore scripts only if they enumerate schemas by name.
+      change: |-
+        Follow docs/postgres-schema-model.md: role name equals schema name, the password variable is FPP_DB_PASSWORD, the app keeps its migration journal in its own schema. The API creates one UNLOGGED table (room_snapshot) in that schema: confirm the nightly backup and the restore drill handle an unlogged table (its rows are not in a base backup after a crash and need not be) and say so in the doc. A secret the mini's cache lacks is requested with make -C ~/SourceRoot/dotfiles secrets-reseal-request, never with op.
+      acceptance: |-
+        - make postgres-setup ENV=prod has run; as role fpp, CREATE TABLE fpp.t and CREATE UNLOGGED TABLE fpp.u succeed and SELECT from umami's tables is refused.
+        - docs/postgres-schema-model.md lists fpp.
+        - make check passes.
+      scope: |-
+        No compose change, no route, nothing of apps/fpp. MariaDB is not touched.
+
+  - key: v9-room-core
+    title: 'Room core: protocol schemas, the pure reducer, the per-seat projection and the property that no vote leaks before the reveal'
+    kind: feature
+    seat: {tier: opus, effort: high}
+    after: [v9-foundation]
+    after_needs: shipped
+    facts:
+      why: |-
+        The product's promises live in the room logic: a vote is hidden until the reveal, a seat survives a reconnect, one round cannot receive another round's vote. v1 has no test of any of it, and its server lets any socket act as any user. docs/v9/ARCHITECTURE.md sections Invariants (3, 4, 6, 7, 8, 9), Room model and Protocol are the contract; research/r01 and r02 hold the reasoning.
+      what: |-
+        packages/room-core/src: the frame and command schemas (Zod 4), their TypeScript types under a separate entry that imports no Zod, reduce(state, command, ctx), project(state, seat), applyEvent(view, event) for clients, the rules of section Room model. packages/room-core/fixtures/v1: one JSON file per frame type, command and event. packages/room-core/test. docs/v9/protocol.md.
+      change: |-
+        1. reduce is pure: time, randomness and new ids arrive in ctx. It returns the next state, the events to publish and the effects to run (persist a round, start or cancel the reveal countdown).
+        2. project returns what one seat may see. While a round is in voting it holds, for every other seat, whether it has voted and never the value; the own seat's value is present.
+        3. Every event is the same for all seats (voted names the seat only). applyEvent on a view gives the same result as project on the new state; the own vote is the one field a client keeps from its own command.
+        4. Properties with fast-check over generated command sequences for 1 to 30 players and 0 to 20 spectators: (a) no projection for seat A contains seat B's value while the round is voting; (b) a second reveal changes nothing; (c) a vote that names another round id changes nothing; (d) a command with an id already applied changes nothing; (e) player and spectator counts never exceed their limits; (f) folding applyEvent over the published events equals project. Add one model-based test with fc.commands.
+        5. docs/v9/protocol.md: every frame, command, event, rejection reason and close code, each with the fixture file as its example. From this row on it is the exact reference and docs/v9/ARCHITECTURE.md section Protocol is its summary; correct that summary where they differ.
+      acceptance: |-
+        - bun test packages/room-core exits 0 with at least 1,000 runs of property (a); a failure prints its seed.
+        - The pull request shows property (a) failing when the redaction in project is removed, then restored.
+        - The bundled types entry contains no string zod (a test builds it and checks).
+        - A test fails when a file under packages/room-core/src outside sim/ names Date.now, Math.random, setTimeout, setInterval, WebSocket or fetch.
+        - A test compares the frame, command and event names in the schemas with those in docs/v9/protocol.md and with the fixture files, and fails on any difference.
+        - make check-fast stays under 60 s.
+      scope: |-
+        No sockets, no server, no storage, no simulator, no React. No file under apps/web, apps/server, packages/db, packages/shared, fpp-analytics changes; packages/shared's v1 protocol is read for reference only.
+
+  - key: v9-room-runtime
+    title: 'Room runtime behind ports (handshake, seat tokens, resume, presence, limits) and the deterministic simulator that tests it'
+    kind: feature
+    seat: {tier: opus, effort: high}
+    after: [v9-room-core]
+    after_needs: shipped
+    facts:
+      why: |-
+        Between the reducer and a socket sits the part where real-time systems break: who a connection is, what a reconnect receives, when a silent seat is away, how a flood is refused. Written once behind ports, it runs unchanged under the API, under tests and under the landing page's demo. A simulator with a seeded clock and a lossy network finds the orderings no hand-written test thinks of (docs/v9/research/r09-testing-ci.md, section 5). Contract: docs/v9/ARCHITECTURE.md sections Invariants (5, 6, 8, 12), Protocol, Server (the port table), Testing.
+      what: |-
+        packages/room-core/src/runtime: createRoomRuntime(ports) and the port types (send to a connection, publish to a room, close with a code, clock, id source, room store, history, telemetry). packages/room-core/src/sim, exported as @fpp/room-core/sim: in-memory transport, seeded scheduler and clock, bots, invariant checks, a command-line entry. .github/workflows/nightly-v9.yml. Tests.
+      change: |-
+        1. Runtime: hello and welcome with protocol version check (close 4001); a seat token is 32 random bytes from the id source, returned once and kept as a hash in room state; resume by token and lastSeq answers with a full view; a token bucket per connection (burst 10, refill 5 per second), one fx per 2 s per seat, close 4008 on repeated violation; application ping every 25 s and a dead connection after 60 s of silence; presence active, away, reconnecting and gone, with a seat held 120 s after its socket is lost; the auto-reveal countdown with cancel; export and import of a room as a snapshot for the store port. Everything timed goes through the clock port.
+        2. Simulator: a network that drops, delays, duplicates and reorders frames and cuts connections, all from one seed; bots that behave as a quick voter, a lurker, a phone that sleeps, a spectator and a spammer; after every step the invariants: secrecy (property (a) of v9-room-core on every frame sent), seq strictly increasing per room, at most one vote per seat per round, every acknowledged vote present after a resume in the same round, limits never exceeded.
+        3. The same seed produces the same trace; a failing run prints the seed and how to replay it.
+        4. Tiers: 200 seeds in make check-fast, 10,000 in the nightly workflow.
+      acceptance: |-
+        - The simulator's 200-seed tier exits 0 in under 30 s; a test hashes one seed's trace twice and the hashes match.
+        - A test resumes a seat at 1,000 generated points of a session and each welcome view equals project(state, seat) at that moment.
+        - The pull request shows the simulator catching a seeded fault (the round id check on a vote switched off by a test flag) within 200 seeds.
+        - nightly-v9.yml has passed once by workflow dispatch with 10,000 seeds; its run time is in the pull request.
+        - make check-fast stays under 60 s.
+      scope: |-
+        No Elysia, no Bun.serve, no Postgres: only ports and in-memory adapters. No UI.
+
+  - key: v9-db-schema
+    title: 'Postgres schema fpp with Drizzle: rooms, the unlogged snapshot table with its ownership epoch, rounds, daily rollups'
+    kind: feature
+    after: [v9-foundation, v9-dev-host]
+    after_needs: shipped
+    facts:
+      why: |-
+        v9 keeps everything durable in Postgres: the room registry (every v1 room name must keep working), live snapshots for restore and handoff between two server versions, one row per revealed round, and the rollups behind the public statistics page. Contract: docs/v9/ARCHITECTURE.md sections Data model, Server (Ownership and handoff, Expiry) and invariant 12; reasons in research/r10-deploy-topology.md section 6 and r13-analytics-engine.md.
+      what: |-
+        apps/api/src/db (schema, client, repositories), apps/api/drizzle and its config, apps/api/test/db, a postgres:18 service in .github/workflows/ci-v9.yml, apps/api/.env.tpl with local values only (no op:// reference, as every template of this repo).
+      change: |-
+        1. Tables as in section Data model, in the Postgres schema fpp, the Drizzle journal in the same schema. room_snapshot is UNLOGGED. No table holds a display name, an IP address or a user agent.
+        2. Repositories behind the port types of packages/room-core: claim a room (epoch plus one, owner set, state returned), write a snapshot only where the epoch matches and report owned or lost, release, sweep expired snapshots, delete rooms unused for 12 months with their rounds; insert a round with its votes in one transaction; list a room's rounds; upsert a daily statistic.
+        3. Drizzle 0.45.x pinned exactly, not the 1.0 release candidate. Driver: try drizzle-orm/bun-sql on the pinned Bun; keep it if the repository tests pass 20 runs in a row, else use the postgres driver; record the result.
+        4. Local runs use the database fpp on the mini (dotfiles row v9-dev-host); CI uses the service container. Tests create and drop their own schema so parallel runs do not collide.
+      acceptance: |-
+        - The migrate command creates the schema on an empty database and drizzle-kit's check reports no drift.
+        - Tests on real Postgres: two clients claim one room and get different epochs, and the stale one's conditional write changes no row; the sweep deletes expired snapshots only; a round and its votes are inserted together or not at all; a query on pg_class shows room_snapshot with relpersistence u.
+        - ci-v9.yml runs these tests against postgres:18.
+        - make check passes.
+      scope: |-
+        No HTTP route, no WebSocket, no importer from MariaDB (stage 3). packages/db (v1) is not changed.
+
+  - key: v9-api-ws
+    title: 'Room server: the WebSocket endpoint on Elysia over the room runtime, with origin check, payload cap and close codes'
+    kind: feature
+    seat: {tier: opus, effort: high}
+    after: [v9-room-runtime]
+    after_needs: shipped
+    facts:
+      why: |-
+        The runtime needs its production transport. v1's endpoint takes room, user id and name from the query string and trusts them; v9's accepts only the protocol of docs/v9/protocol.md and refuses the rest at the edge of the process. Contract: docs/v9/ARCHITECTURE.md sections Protocol and Server; Bun and Elysia specifics in research/r05-elysia-bun-backend.md sections 3 and 8 and r02-netcode-patterns.md sections 8 and 9.
+      what: |-
+        apps/api/src/ws (the Elysia adapter of the transport port), apps/api/src/app.ts, apps/api/test/ws. In-memory adapters for store and history until v9-api-persistence.
+      change: |-
+        1. /api/ws?room=<slug>: before the upgrade check the Origin header against an allowlist from the environment (403 otherwise) and the slug against the rule of section Room model; negotiate the subprotocol fpp.v1.
+        2. Bun options set on purpose: maximum payload 16 KB, per-message deflate off, an explicit idle timeout above the 25 s application ping, a backpressure limit of 256 KB with close on reaching it.
+        3. One pub/sub topic per room for events; frames validated with the schemas of @fpp/room-core; an invalid frame is answered with a rejection and counted against the connection's bucket.
+        4. The runtime's clock is driven by one timer in the adapter; no other timer exists in apps/api/src/ws.
+        5. Keep handler code thin: Elysia 1.4 is pinned and 2.0 is a release candidate, so the adapter is the only file that knows Elysia's WebSocket API.
+      acceptance: |-
+        All with real sockets on an ephemeral port, under bun test:
+        - Two clients join; one votes; the raw text of every frame the other receives before the reveal contains no vote value; after the reveal it does.
+        - A wrong subprotocol is closed with 4001; a foreign Origin gets 403; a 17 KB frame closes the socket with 1009; a flood is rejected and then closed with 4008.
+        - A client that drops and resumes with its token keeps its seat index and receives the current view.
+        - 30 players join; the 31st is refused as a player and accepted as a spectator.
+        - make check passes.
+      scope: |-
+        No Postgres, no drain or handoff, no HTTP route beyond health and version, no telemetry beyond the port.
+
+  - key: v9-api-persistence
+    title: 'Rooms survive a restart: Postgres store with epoch fencing, round history, expiry, and the two room routes'
+    kind: feature
+    after: [v9-api-ws, v9-db-schema]
+    after_needs: shipped
+    facts:
+      why: |-
+        With in-memory adapters a restart loses every room. v1 writes snapshots to Valkey with a six-hour lifetime; v9 writes them to Postgres, where the same statement that loads a room also takes ownership of it, which is what makes two overlapping server versions safe (docs/v9/ARCHITECTURE.md invariant 12 and section Server).
+      what: |-
+        apps/api/src (wiring the repositories of v9-db-schema into the runtime's store and history ports, the expiry job, routes POST /api/rooms and GET /api/rooms/:slug with Eden types exported for clients), apps/api/test.
+      change: |-
+        1. A room is loaded on its first join by the claim statement; snapshots are written 250 ms after the last event and at once on request; a conditional write that reports lost closes that room's sockets with 4002 and drops the room from memory.
+        2. A reveal writes one round row and one round_vote row per voting seat.
+        3. A live snapshot expires 6 hours after the room's last event; the hourly job sweeps snapshots and, daily, rooms unused for 12 months.
+        4. POST /api/rooms with an optional slug returns the room, creating it when it does not exist (v1's behaviour for a room name); without a slug the server generates a short readable one. GET /api/rooms/:slug answers whether it exists, its settings and its seat counts, and never a name or a vote.
+      acceptance: |-
+        - A test plays a round up to three hidden votes, kills the API process with SIGKILL after the snapshot window, starts it again, resumes the three seats, reveals, and sees all three values.
+        - A test runs two API processes on one database: after the second claims a room, the first's next write reports lost and its sockets for that room close with 4002 within 1 s.
+        - After a reveal the database holds exactly one new round row and one round_vote row per voter.
+        - POST /api/rooms twice with one slug returns the same room id; a slug that breaks the rule is a typed 400.
+        - make check passes.
+      scope: |-
+        No drain on SIGTERM (v9-api-drain). No other HTTP route. No Valkey.
+
+  - key: v9-api-drain
+    title: 'Zero-loss deploys: drain on SIGTERM, hand rooms to the next container, proven by killing a server mid-round'
+    kind: feature
+    seat: {tier: opus, effort: high}
+    after: [v9-api-persistence]
+    after_needs: shipped
+    facts:
+      why: |-
+        RollHook starts the new container, waits for its health check, then stops the old one, so two versions overlap on every deploy and every push to master is a deploy. A round in progress must survive it: no lost seat, no lost vote, a gap of a few seconds at most. Contract: docs/v9/ARCHITECTURE.md section Server (Ownership and handoff). Known trap: server.stop could hang after server-initiated closes (Bun issue 36223, research/r05-elysia-bun-backend.md section 8).
+      what: |-
+        apps/api/src (shutdown sequence, health state), apps/api/test/handoff, the Bun version pin if the fix for issue 36223 needs a newer release.
+      change: |-
+        On SIGTERM: answer /api/health with 503; claim no further room; flush every snapshot; close every socket with 4002; exit when no socket is left or after 20 s, with the stop call raced against that deadline. Check the pinned Bun release against issue 36223 and record what you found. Record the handoff duration through the telemetry port as fpp.deploy.handoff.duration.
+      acceptance: |-
+        - A test starts process A, seats three clients mid-round with hidden votes, starts process B on the same database, sends A a SIGTERM: the clients receive 4002, connect to B, and their views hold their seats and their own votes; a reveal on B shows all three; A exits with code 0 inside 20 s; the gap the clients see is under 5 s.
+        - The same test with SIGKILL instead of SIGTERM: every vote acknowledged more than one snapshot window before the kill is present after the resume.
+        - The test runs in make check and in ci-v9.yml; ten runs in a row pass.
+      scope: |-
+        No change to RollHook, Traefik or compose (the vps rows own those). No client code.
+
+  - key: v9-api-telemetry
+    title: 'Telemetry for the new API: names package, spans per command, the room server metrics, and a test that no name, slug or vote is exported'
+    kind: feature
+    after: [v9-api-ws]
+    after_needs: shipped
+    facts:
+      why: |-
+        v9 must follow the estate's telemetry contract from its first deploy (vps docs/observability.md, section Telemetry contract: service.namespace, deployment.environment.name prod or dev, service.version as the short commit hash, the service registered in the same change that first emits it) and its own rule that telemetry carries no vote value, display name or room slug (docs/v9/ARCHITECTURE.md invariant 11 and section Measurement). Read docs/observability.md of this repo before writing: its severity tree and event discipline carry over.
+      what: |-
+        packages/telemetry (package @fpp/telemetry: attribute, event and metric names, and the recordError and recordEvent facade for a server), apps/api/src/telemetry.ts and its preload, tests. apps/server/src/telemetry.ts is the working reference for OpenTelemetry on Bun; read it, do not change it.
+      change: |-
+        1. One span per command, continued from the frame's traceparent when present; the metrics of section Measurement with labels build and fixed enums only; logs as structured lines with trace ids.
+        2. Service name fpp-api. With no OTLP endpoint in the environment the SDK is a no-op that logs nothing.
+        3. A lint rule or test refuses a telemetry name written as a literal outside packages/telemetry.
+        4. A content test plays a full round through the runtime with an in-memory exporter, with a marker string as display name, as slug and as each vote value, and fails if any exported span, metric, log body or attribute contains a marker.
+      acceptance: |-
+        - The content test passes, and fails when a span attribute is given the slug (shown once in the pull request).
+        - A test starts the API with no endpoint set and asserts no export attempt and no error line.
+        - Against the local ClickStack, one played round shows spans of service fpp-api with the three contract attributes; the pull request quotes the query (the otel skill) and its answer.
+        - make check passes.
+      scope: |-
+        No browser telemetry (stage 2). No dashboards or alerts (vps, stage 3). packages/shared's v1 registry is not changed.
+
+  - key: v9-room-client
+    title: 'Headless room client: connection state machine, resume with backoff, pending commands, seat tokens and v1 settings adoption'
+    kind: feature
+    after: [v9-api-ws]
+    after_needs: shipped
+    facts:
+      why: |-
+        v1 spreads connection handling over five React hooks and reloads the page when it loses track. v9 puts it in one framework-free object that tests can drive without a browser and that the plain room, the real room and the landing demo all use. Contract: docs/v9/ARCHITECTURE.md section Client; patterns in research/r02-netcode-patterns.md sections 3 to 5.
+      what: |-
+        packages/room-client (package @fpp/room-client) and its tests. It imports @fpp/room-core for types, applyEvent and the simulator in tests.
+      change: |-
+        1. createRoomClient({ slug, profile, ports }) returns state (subscribe and getSnapshot, usable by useSyncExternalStore), send(command) and dispose(). Ports: WebSocket constructor, storage, timers, online and visibility signals, so the tests run under bun without a DOM.
+        2. Status values as in section Client. Backoff is full jitter, base 500 ms, cap 30 s, reset after 60 s of stable connection; after close 4002 the wait is uniform 0 to 2 s; reconnect at once on online and on becoming visible. reconnecting is reported only after 3 s without a connection.
+        3. Every command gets an id; the own vote is shown as pending until acknowledged; after a resume an unacknowledged vote is sent again with its id, and the own vote is re-asserted when the welcome view of the same round lacks it.
+        4. Storage keys under fpp:v9: as in section Client, each value with a schema version. On first run read v1's keys username, isPlaySound, isNotificationsEnabled, preferCardView and recentRoom once (apps/web/src/store/local-storage.store.ts shows their shapes) and write the new ones; v1's userId is not copied and no v1 key is deleted.
+      acceptance: |-
+        - Against the simulator's lossy transport, 500 seeds of connect, vote, drop and resume end with the client's view equal to the server's projection.
+        - With a fake clock: a gap of 2 s never reports reconnecting, a gap of 4 s does; 4001 ends in reload-required, 4003 in kicked with no reconnect, 4004 in a fresh join.
+        - A fixture of v1's localStorage yields the new keys, no userId, and the v1 keys still present.
+        - One test plays a full round against a real apps/api on an ephemeral port.
+        - The built entry is at most 12 kB gzip and contains no string zod; the size is in the pull request.
+        - make check passes.
+      scope: |-
+        No React, no DOM, no UI, no service worker.
+
+  - key: v9-room-plain
+    title: 'A plain room: the Vite app with every command reachable in unstyled HTML, served by the API'
+    kind: feature
+    after: [v9-room-client, v9-api-persistence]
+    after_needs: shipped
+    facts:
+      why: |-
+        basalt-ui 3.0.0 is not published, and nothing with a look can be built before it is. A deliberately plain room lets the end-to-end suite, the image, the deploy to the beta host and the load test exist months of design earlier, and its test ids outlive the redesign. Contract: docs/v9/ARCHITECTURE.md sections Topology, Repo map, Client; behaviour in docs/v9/UX.md sections The room and Flows.
+      what: |-
+        apps/room (package @fpp/room: Vite 8, React 19.3 with the React Compiler, TanStack Router with file routes, client only), apps/api/src (serving the built app), tests.
+      change: |-
+        1. Routes /room (create or join, recent rooms), /room/new (creates a room through POST /api/rooms and replaces the URL), /room/$slug. Assets are built under /_room/ with hashed names.
+        2. The API answers /room and /room/* with the app shell and /_room/* with the assets, cached as immutable; the shell is never cached.
+        3. /room/$slug in semantic HTML and no styling system: a name field, the seat list with each seat's state, the deck as buttons, clear, reveal with its countdown and cancel, new round, re-vote, topic, become spectator or player, kick, rename, leave, the settings auto reveal and facilitator lock, the connection status as text. One hook, useRoom(slug), binds @fpp/room-client.
+        4. Every interactive element and every seat carries a data-testid named in docs/v9/UX.md's words (seat, card, reveal, new-round, topic, invite-link). Write the list to e2e/TESTIDS.md: stage 2 keeps these ids.
+        5. No design decisions: no colours, no layout beyond source order, no animation, no basalt-ui, no Tailwind.
+      acceptance: |-
+        - The build writes apps/room/dist; a test starts the API and gets the shell at /room/abc, a 200 with a cache-control of immutable for a hashed file under /_room/, and no-cache for the shell.
+        - A test under bun with a DOM implementation, or one Playwright smoke if v9-e2e has not merged, seats two clients, votes and reveals.
+        - The entry JavaScript is at most 130 kB gzip; the number is in the pull request.
+        - rg finds no import of basalt-ui, tailwindcss or a CSS framework under apps/room.
+        - make check passes.
+      scope: |-
+        No look, no PWA, no embed mode, no telemetry in the browser, no marketing page.
+
+  - key: v9-api-image
+    title: 'One image for API and room app, a compose file for self-hosting and tests, built in CI'
+    kind: chore
+    after: [v9-room-plain]
+    after_needs: shipped
+    facts:
+      why: |-
+        Client and server ship as one image so they are always the same version, the same image with a Postgres container is the documented way to self-host, and the end-to-end suite tests exactly what is deployed (docs/v9/ARCHITECTURE.md section Topology). Image and telemetry traps: research/r05-elysia-bun-backend.md section 9.
+      what: |-
+        apps/api/Dockerfile, deploy/compose.yml (API and postgres:18), Makefile targets v9-up and v9-down (Docker is driven through Makefile targets only in this estate), a build job in .github/workflows/ci-v9.yml, docs/development.md.
+      change: |-
+        A multi-stage build on the pinned Bun image: install with the frozen lockfile, build apps/room, run apps/api with the built app beside it. The container runs as a non-root user, has a health check on /api/health, takes OTEL_SERVICE_VERSION as a build argument like v1's images, and runs migrations on start behind an advisory lock so two starting containers do not race. Do not minify identifiers (span names come from function names). The compose file needs no secret store: every value has a local default.
+      acceptance: |-
+        - make v9-up brings the stack up from a clean checkout; /api/health answers 200 and /room/x returns the shell; make v9-down removes it.
+        - docker inspect shows a non-root user; a SIGTERM stops the container inside 20 s with exit code 0.
+        - The compressed image size is in the pull request (aim: under 150 MB).
+        - ci-v9.yml builds the image on a pull request that touches apps/api, apps/room or packages.
+        - make check passes.
+      scope: |-
+        No push to a registry and no rollout (v9-next-deploy). v1's Dockerfiles and deploy.yml are not changed.
+
+  - key: v9-e2e
+    title: 'End-to-end suite: one browser context per seat against the shipped image, including a container replaced mid-round'
+    kind: chore
+    after: [v9-api-image, v9-api-drain]
+    after_needs: shipped
+    facts:
+      why: |-
+        The repo has no end-to-end test. A multi-user product is only proven with several users, and the promise that a deploy costs nobody a seat is only proven by replacing the server under a running round. Patterns: docs/v9/research/r09-testing-ci.md section 2. Contract: docs/v9/ARCHITECTURE.md section Testing.
+      what: |-
+        e2e (package @fpp/e2e: Playwright pinned exactly, config, a fixture room(n) that opens n contexts, the tests), Makefile target e2e (locally through factory slot run), a sharded job in .github/workflows/ci-v9.yml with blob reports merged, traces on the first retry, JUnit to FACTORY_JUNIT_DIR when set.
+      change: |-
+        Tests, each in its own room, selecting by the ids of e2e/TESTIDS.md and by role:
+        1. Three seats: vote, and before the reveal no page's DOM and no WebSocket frame received by another seat (captured with the page's websocket events) contains a vote value; reveal shows all values to all.
+        2. Re-vote clears the cards and keeps the topic; a spectator does not hold up auto reveal; the countdown can be cancelled.
+        3. Kick, rename, leave; the facilitator lock stops a non-facilitator's reveal.
+        4. A seat reloads mid-round and returns to the same seat with its vote.
+        5. The API container is replaced mid-round (stop with SIGTERM, start a new one on the same database): every seat resumes and the reveal shows every vote.
+        6. Thirty players in one room vote and reveal.
+        7. A 390 by 844 viewport completes a round.
+        A subset tagged smoke runs against any base URL (make e2e-beta), for the beta host.
+      acceptance: |-
+        - The suite passes five CI runs in a row with no retry used; the run numbers are in the pull request.
+        - CI wall time for the suite is at most 6 minutes.
+        - Test 1 fails against a build whose projection leaks a value (shown once in the pull request).
+        - ci-v9.yml runs the suite on pull requests that touch apps/api, apps/room, packages or e2e.
+      scope: |-
+        Chromium only; other engines and screenshots come in stage 2. No test against production.
+
+  - key: v9-vps-next
+    title: 'Beta host for the Free Planning Poker rewrite: the fpp-api service, its route, and its telemetry registry entries'
+    repo: vps
+    kind: feature
+    after: [v9-api-image, v9-vps-postgres]
+    after_needs: shipped
+    facts:
+      why: |-
+        The rewrite of Free Planning Poker (free-planning-poker docs/v9/ARCHITECTURE.md) runs on a beta hostname until its cutover, so every merged change can be tried on real infrastructure while v1 stays in production untouched. The image is built from apps/api/Dockerfile of that repo and serves the API, the WebSocket and the room app on one port.
+      what: |-
+        apps/fpp/compose.yml (a service fpp-api beside the v1 services), the public hostname next.free-planning-poker.com through the tunnel and DNS (the cloudflare skill), observability/services.yaml (fpp-api and the browser service fpp-room), an Uptime Kuma monitor, the docs this repo keeps per service.
+      change: |-
+        1. fpp-api follows the RollHook contract of AGENTS.md: no ports, no container name, the image as an IMAGE_TAG default, a health check on /api/health, the label that allows the repo jkrumm/free-planning-poker to deploy, Watchtower off. stop_grace_period 30s: the app drains in 20 s.
+        2. Environment: the Postgres URL for role fpp, the OTLP endpoint and service name as fpp-server has them, the allowed WebSocket origin https://next.free-planning-poker.com, the feedback door variables as fpp-server has them.
+        3. Traefik: a router for the hostname with the security headers middleware, an X-Robots-Tag noindex response header, the active health check on /api/health, and rate limiting that does not throttle a room of 30 people behind one office address (measure against the existing rate-limit middleware and say what you chose).
+        4. Bring the service up the way this repo bootstraps a new RollHook app; the first image arrives with free-planning-poker's row v9-next-deploy.
+        5. v1's services, their routes and MariaDB are not changed.
+      acceptance: |-
+        - make check and make telemetry-lint pass with the two new registry entries.
+        - The compose file validates through this repo's target; the hostname resolves and Traefik lists the router.
+        - Once an image exists: curl of https://next.free-planning-poker.com/api/health answers 200 with the noindex header, and the monitor is green.
+      scope: |-
+        No change at the apex hostname, to Vercel's records or to v1. No Worker, no Umami change (stage 3).
+
+  - key: v9-next-deploy
+    title: 'Every push that touches v9 rolls out to the beta host, and make verify probes it'
+    kind: chore
+    after: [v9-vps-next]
+    after_needs: shipped
+    facts:
+      why: |-
+        The owner wants to open the current state of the rewrite at any time, and a lead must be able to prove its change on real infrastructure. Deploys of this repo are owned by CI (AGENTS.md section Shipping, docs/shipping.md).
+      what: |-
+        .github/workflows/deploy-next.yml (new), Makefile (verify, logs, e2e-beta), project.yaml (a second deploy target), docs/shipping.md.
+      change: |-
+        1. deploy-next.yml runs on pushes to master that touch apps/api, apps/room, packages/room-core, packages/room-client, packages/telemetry or the workflow itself, and by dispatch; it uses jkrumm/rollhook-action as deploy.yml does, with image name fpp-api, dockerfile apps/api/Dockerfile, context the repo root. Deploys queue, never cancel.
+        2. make verify also probes https://next.free-planning-poker.com/api/health, with the URL overridable like the others; project.yaml lists the beta host as a second target whose verify is a make target.
+        3. deploy.yml (v1) is left as it is.
+      acceptance: |-
+        - A push to master that touches apps/api shows a green deploy-next run, and /api/version on the beta host returns that commit's short hash.
+        - make verify exits 0 and names the beta host in its output; factory project check passes.
+        - make e2e-beta passes its smoke subset against the beta host; with the verifier or the browse skill, two browser contexts complete a round at https://next.free-planning-poker.com/room/<a fresh slug>, and a rollout triggered during the round keeps both seats and both votes. The pull request holds the evidence.
+      scope: |-
+        No change at the apex hostname. No Worker deploy (stage 3).
+
+  - key: v9-load
+    title: 'Load test with k6: 5,000 sockets in 500 rooms, a handoff under load, and a nightly guard'
+    kind: chore
+    after: [v9-api-image, v9-api-drain]
+    after_needs: shipped
+    facts:
+      why: |-
+        The scale target (docs/v9/ARCHITECTURE.md section Server: 500 rooms, 5,000 sockets, p99 from command to fan-out under 100 ms) and the claim that a handoff loses no acknowledged vote are estimates until measured. Method: docs/v9/research/r09-testing-ci.md section 6 and r10-deploy-topology.md section 6.
+      what: |-
+        load (the k6 scenario and its helpers), Makefile target load (the stack of deploy/compose.yml plus k6 in a container, run through factory slot run), a reduced profile in .github/workflows/nightly-v9.yml, docs/v9/evidence/load.md.
+      change: |-
+        1. Scenario: 500 rooms of 10 seats; each room plays three rounds with one vote per seat and a reveal; 1 % of seats reconnect per minute. Thresholds: p99 from sending a command to the last seat receiving its event under 100 ms, no acknowledged vote missing at a reveal, error rate under 0.1 %.
+        2. A second run replaces the API container halfway through; the same thresholds hold except latency during the 20 s of the handoff, and the reconnect storm's peak upgrades per second is recorded.
+        3. Run both once on the mini, in a slot, and write the numbers with the API's CPU and memory to docs/v9/evidence/load.md. A threshold that fails is reported as it is, with the profile, and the row ships the measurement; the fix is a new row.
+        4. Nightly: 50 rooms on a hosted runner, as a guard against regressions, not as a capacity claim.
+      acceptance: |-
+        - docs/v9/evidence/load.md holds both runs with date, commit, thresholds met or not met, peak sockets, CPU and memory.
+        - make load exits non-zero when a threshold fails.
+        - The nightly profile has passed once by dispatch.
+      scope: |-
+        Never against production or the beta host. No tuning of the server in this row.
+
+  - key: v9-ui-foundation
+    title: 'Install basalt-ui 3 in the room app: profile app, its lint, format and tsconfig presets for all new directories, component test setup'
+    kind: chore
+    after: [v9-room-plain]
+    after_needs: shipped
+    facts:
+      why: |-
+        v9's chrome and charts are built on basalt-ui 3 (docs/v9/ARCHITECTURE.md section basalt-ui). On 2026-11-18 npm serves basalt-ui 2.29.0 and basalt-ui's plan forbids installing an unpublished build, so this row waits for the registry.
+      what: |-
+        apps/room (dependency, provider, Vite plugin, tokens, the files basalt-ui init writes), the lint, format and tsconfig configuration of all new directories, lefthook.yml, AGENTS.md (basalt-ui's block), .claude/rules and .claude/skills as init writes them, the component test configuration.
+      change: |-
+        1. First: read the registry (agw web package basalt-ui) and docs/v9/STRATEGY.md section Rulings of gate 1. If no 3.x release is served, and the ruling on basalt-ui timing does not name a release candidate to use, defer this Issue by seven days with factory issue defer and end the turn; repeat on each wake. Never install from a path, a git URL or basalt-ui's master.
+        2. Install basalt-ui 3.x and run its init with profile app from the local bin (never bunx). Wrap the app in its provider; the plain room keeps working unchanged and unstyled apart from what the provider sets.
+        3. Replace the minimal oxlint, oxfmt and tsconfig files of v9-foundation with basalt-ui's presets for every new directory (apps/api and the packages take the node and parts presets as they fit). Fix what the presets flag; record any waiver with its reason.
+        4. Set up Vitest browser mode in Chromium with one real component test.
+        5. Keep basalt-ui's default accent: the table prototype's verdict sets the look.
+      acceptance: |-
+        - basalt-ui's doctor command exits 0.
+        - make check-fast exits 0 and its time is in the pull request; if it exceeds 60 s the budget in project.yaml changes with the reason in its comment.
+        - The end-to-end suite passes unchanged.
+        - AGENTS.md holds basalt-ui's block and is at most 12,000 bytes.
+        - The room entry size after the install is in the pull request.
+      scope: |-
+        No redesign of any screen. No change in basalt-ui's repo: a problem there is a signal (factory signal file --from agent:free-planning-poker --repo basalt-ui).
+
+  - key: v9-table-prototype
+    title: 'The table, prototyped: seat layout for 2 to 30, cards, the reveal that turns cards into the histogram, in a playground driven by the simulator (Spec)'
+    kind: feature
+    seat: {tier: opus, effort: high}
+    checkpoint: spec
+    after: [v9-ui-foundation, v9-room-runtime]
+    after_needs: shipped
+    facts:
+      why: |-
+        How the table looks and moves is what sets v9 apart and the one thing a document cannot settle: the owner judges it on screen before the rest of the room is planned (docs/v9/PLAN.md, stage 2). Behaviour: docs/v9/UX.md sections The room, Layout by size, The reveal, Motion sound touch, Accessibility. Techniques and limits: docs/v9/research/r06-rendering-motion.md.
+      what: |-
+        packages/table (package @fpp/table: the layout function, Seat, Card, Hand, Table, the reveal sequence, the result line, game tokens on top of basalt-ui's tokens), a playground route in apps/room that no room slug can collide with, docs/v9/evidence/table-prototype.md with screenshots.
+      change: |-
+        1. The layout is a pure function of seat count, container size and viewer seat: positions by arc length on a superellipse, the viewer at the bottom centre, seat sizes stepping down at 9 and at 17 players, a grid from 25 players or under 700 px. Test it without a browser.
+        2. Components take a view from @fpp/room-core and callbacks; they know no transport. Seats are a list in DOM order; the ring is presentation.
+        3. The reveal as in section The reveal, at most 1.6 s, skippable, with the reduced-motion variant. Transform and opacity only. Start with CSS (transitions, linear() easing, view transitions or a FLIP step); add a JavaScript animation library only for a need you can name, and record the decision.
+        4. The playground drives the table from @fpp/room-core/sim with controls for seat count, round state, presence mix, deck, container width, reduced motion and calm mode.
+        5. basalt-ui's lint denies elements positioned from data outside its geometry seam. Find the sanctioned way for packages/table (an app composite, or a seam) and keep basalt-ui's lint on; if basalt-ui must change, file one signal there with the minimal case.
+        6. Measure the 30-seat reveal in Chrome with CPU throttled four times (the browse skill): frame rate, long tasks, layout count.
+        7. The Spec for the owner: screenshots of 6, 12 and 30 seats in voting, revealed with a split and consensus, at desktop and phone width; the measurements; at most three open choices with your default (for example the table's shape and how literal it looks, the accent seed, the reveal's length).
+      acceptance: |-
+        - A property test places n seats for n from 2 to 30 at container widths from 360 to 1920 px and finds no two seats overlapping and none outside the container.
+        - The playground is reachable on the beta host; axe reports no serious or critical finding on its voting and revealed states; the reveal's end state is reached at once with reduced motion set.
+        - docs/v9/evidence/table-prototype.md holds the screenshots and the throttled measurement, median frame rate of at least 50 per second or the reason and the fix planned.
+        - basalt-ui's lint passes on packages/table with no rule switched off globally.
+        - The owner's verdict on the Spec is recorded on the Issue.
+      scope: |-
+        No room shell, settings, sound, reactions or insights: those are planned by v9-plan-table after the verdict. The plain room stays the room at /room/$slug.
+
+  - key: v9-plan-table
+    title: 'Plan stage 2, the table and the room, from the prototype''s verdict and what the spine measured'
+    kind: docs
+    seat: {tier: opus, effort: high}
+    checkpoint: spec
+    after: [v9-table-prototype, v9-e2e, v9-next-deploy]
+    after_needs: shipped
+    facts:
+      why: |-
+        Stages after the spine are planned when the stage before has reported (docs/v9/PLAN.md, section Rules): their rows in docs/v9/PLAN.md are drafts written on 2026-11-18, before any code of the rewrite existed. This row plans the room's whole interface from the owner's verdict on the table prototype and from the spine's measurements.
+      what: |-
+        docs/plan.yaml (the rows of stage 2, written after this row; the after of the next planning row moved onto this stage's exit row in the same commit), docs/v9/PLAN.md (the stage's section rewritten to match), docs/v9/UX.md and docs/v9/ARCHITECTURE.md where the build proved them wrong or silent, the Spec at docs/v9/evidence/plan-table.md.
+      change: |-
+        First the read, from merged pull requests and evidence files only: the owner's verdict and notes on v9-table-prototype with docs/v9/evidence/table-prototype.md; the room entry size, the fast and full check times, the end-to-end suite's run time and flake count, docs/v9/evidence/load.md if it exists. Also: every place where a document did not tell a builder enough, corrected or listed; planned against actual row time.
+        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 2. Every row that changes a screen keeps the ids of e2e/TESTIDS.md and extends the end-to-end suite and the component tests in the same pull request; screenshots in a pinned container and axe checks get their own early row so later rows inherit them.
+        The stage's exit row is a row in which the owner gives his verdict on the finished room on the beta host; it is placed after the last row that makes the room whole.
+        The Spec: the read in numbers, the rows as a table, and at most three open choices with your default and what changing each later costs.
+      acceptance: |-
+        - factory plan check docs/plan.yaml exits 0.
+        - Every section of docs/v9/UX.md from The room to Accessibility, and every line of its table What changes for a v1 user, is owned by exactly one row or listed in the Spec as cut, with the reason.
+        - The next planning row's after names this stage's exit row, so it is not filed when the rows are merely written.
+        - Every number in the Spec names the pull request or evidence file it comes from.
+      scope: |-
+        Plans and documents only: no code. No row for work listed under After launch in docs/v9/PLAN.md.
+
+  - key: v9-plan-site
+    title: 'Plan stage 3, the marketing site, measurement and data, from the spine on the beta host'
+    kind: docs
+    seat: {tier: opus, effort: high}
+    checkpoint: spec
+    after: [v9-next-deploy]
+    after_needs: shipped
+    facts:
+      why: |-
+        Stages after the spine are planned when the stage before has reported (docs/v9/PLAN.md, section Rules): their rows in docs/v9/PLAN.md are drafts written on 2026-11-18, before any code of the rewrite existed. This row plans the Astro site, the edge routing that puts site and app on one hostname, analytics fed by the servers, the remaining HTTP API, the rollups and the importer from v1's MariaDB.
+      what: |-
+        docs/plan.yaml (the rows of stage 3, written after this row; the after of the next planning row moved onto this stage's exit row in the same commit), docs/v9/PLAN.md (the stage's section rewritten to match), docs/v9/UX.md and docs/v9/ARCHITECTURE.md where the build proved them wrong or silent, the Spec at docs/v9/evidence/plan-site.md.
+      change: |-
+        First the read, from merged pull requests and evidence files only: what the beta deploy showed about RollHook, Traefik and the tunnel for this service; the state of basalt-ui 3 on npm (rows that need its tokens wait for v9-ui-foundation, rows that do not must not); the page inventory of v1 (apps/web/src/pages, public/sitemap.xml) with each URL's fate. Also: every place where a document did not tell a builder enough, corrected or listed; planned against actual row time.
+        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 3. Two rows are experiments and come first, each ending in a recorded answer: v9-edge-routing (on the beta hostname, a Worker with static assets on all paths and routes without a Worker for /room*, /_room/* and /api/*, WebSocket included; whether asset requests are billed on the free plan; else the Worker proxies those paths) and the Umami session join (a page view sent by the Worker and an event sent by the API, both with the visitor's IP and user agent forwarded, land in one Umami session; what the vps instance needs set for forwarded addresses). Rows in the vps repo carry repo: vps and say so in their titles. The privacy page's text is a row whose pull request the owner reads: it states a legal position (docs/v9/research/r08-umami-privacy.md).
+        The stage's exit row is the row after which every v1 URL answers on the beta host with the new site and the activation funnel is visible in Umami.
+        The Spec: the read in numbers, the rows as a table, and at most three open choices with your default and what changing each later costs.
+      acceptance: |-
+        - factory plan check docs/plan.yaml exits 0.
+        - Every v1 URL has a row that serves it or a redirect entry; every event name of docs/v9/ARCHITECTURE.md section Measurement is emitted by exactly one row; the importer's row names what it carries over and what it leaves, as section Data model states.
+        - The next planning row's after names this stage's exit row, so it is not filed when the rows are merely written.
+        - Every number in the Spec names the pull request or evidence file it comes from.
+      scope: |-
+        Plans and documents only: no code. No row for work listed under After launch in docs/v9/PLAN.md.
+
+  - key: v9-plan-launch
+    title: 'Plan stage 4, launch: budgets, rehearsals, the cutover behind the owner''s go, and the removal of v1'
+    kind: docs
+    seat: {tier: opus, effort: high}
+    checkpoint: spec
+    after: [v9-plan-table, v9-plan-site]
+    after_needs: shipped
+    facts:
+      why: |-
+        Stages after the spine are planned when the stage before has reported (docs/v9/PLAN.md, section Rules): their rows in docs/v9/PLAN.md are drafts written on 2026-11-18, before any code of the rewrite existed. This row plans the switch of production from v1 to v9 and the deletion of v1. The rows v9-plan-table and v9-plan-site each move this row's after onto their stage's exit row, so it starts when both stages have shipped, not when they were planned.
+      what: |-
+        docs/plan.yaml (the rows of stage 4, written after this row; the after of the next planning row moved onto this stage's exit row in the same commit), docs/v9/PLAN.md (the stage's section rewritten to match), docs/v9/UX.md and docs/v9/ARCHITECTURE.md where the build proved them wrong or silent, the Spec at docs/v9/evidence/plan-launch.md.
+      change: |-
+        First the read, from merged pull requests and evidence files only: the owner's verdict on the finished room; the funnel as Umami shows it on the beta host; the importer's rehearsal against a production dump; the load evidence; open findings of the polish and quality rows. Also: every place where a document did not tell a builder enough, corrected or listed; planned against actual row time.
+        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 4 and docs/v9/ARCHITECTURE.md section Cutover. The cutover runbook is docs/v9/CUTOVER.md, rehearsed twice on the beta host before the row that asks for the owner's go; that row is checkpoint: gate, and so is the row that deletes MariaDB, which comes at least 14 days after the cutover (after_days: 14) and after the final dump is archived and its restore proven. The removal of v1's directories is its own row with after_days: 14 on the cutover. Release 9.0.0 goes through release.yml with allow_major, never by hand.
+        The stage's exit row is the row that removes v1's containers and database in the vps repo.
+        The Spec: the read in numbers, the rows as a table, and at most three open choices with your default and what changing each later costs.
+      acceptance: |-
+        - factory plan check docs/plan.yaml exits 0.
+        - The runbook has a rollback step for every forward step; the two gate rows exist; no row deletes data without one.
+        - The next planning row's after names this stage's exit row, so it is not filed when the rows are merely written.
+        - Every number in the Spec names the pull request or evidence file it comes from.
+      scope: |-
+        Plans and documents only: no code. No row for work listed under After launch in docs/v9/PLAN.md.
+
