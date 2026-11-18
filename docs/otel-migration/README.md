@@ -41,4 +41,4 @@ Migration plan + supporting research for replacing Sentry with self-hosted OpenT
 
 ## Owner
 
-Johannes. Solo project, no review chain. fpp is on the PR-required denylist in the global SourceRoot config, so all non-trivial changes ship through a PR (CodeRabbit + CI + squash-merge via admin bypass).
+Johannes. Solo project, no review chain. fpp is on the PR-required denylist in the global SourceRoot config, so all non-trivial changes ship through a PR (CodeRabbit + CI + rebase-merge via admin bypass).
