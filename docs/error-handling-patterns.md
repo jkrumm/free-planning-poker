@@ -1,6 +1,6 @@
 # Error handling patterns
 
-Extended examples moved verbatim out of `AGENTS.md` (size budget). The rules live in `AGENTS.md` §recordError Usage and §Error Handling Implementation Guide.
+Extended examples moved verbatim out of `AGENTS.md` (size budget). The rules live in `docs/observability.md` §Error Handling Standards and §Error Handling Implementation Guide.
 
 ## recordError Usage
 
