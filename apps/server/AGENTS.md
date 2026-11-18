@@ -341,7 +341,6 @@ bun run validate      # Run all checks
 
 - **TypeScript**: Strict mode enabled in tsconfig.json
 - **ESLint**: TypeScript recommended rules (pragmatic `any` allowed for WebSocket types)
-- **Prettier**: Import sorting with @ianvs/prettier-plugin-sort-imports
 - **Type checking**: `tsc --noEmit` for comprehensive checks
 
 ### Before Committing
