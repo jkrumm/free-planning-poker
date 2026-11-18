@@ -40,16 +40,6 @@ export interface ClientLog extends GlobalLoggingType {
   withBeacon?: boolean;
 }
 
-function removeNulls(obj: ServerLog | ClientLog) {
-  const serializedObj: Record<string, string> = {};
-  Object.entries(obj).forEach(([key, value]) => {
-    if (value !== null && value !== undefined && value !== '') {
-      serializedObj[key] = String(value);
-    }
-  });
-  return serializedObj;
-}
-
 /**
  * Error types
  */
