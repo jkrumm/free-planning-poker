@@ -15,22 +15,27 @@ rows:
     after_needs: shipped
     facts:
       why: |-
-        Every row of the rewrite needs a fast local gate, CI lanes that keep v1 and v9 apart, and a place for code. Today make check runs v1's four packages and the Python service only, validate.yml starts 17 jobs on every pull request and has no test job, and lefthook runs v1's checks on every commit. docs/v9/ARCHITECTURE.md (sections Repo map, Stack, Checks CI and deploy) is the contract; read it first, and docs/v9/STRATEGY.md section Rulings of gate 1.
+        Every row of the rewrite needs a fast local gate, CI lanes that keep v1 and v9 apart, and a place for code. Today make check runs v1's four packages and the Python service only, validate.yml starts 17 jobs on every pull request and has no test job, and lefthook runs v1's checks on every commit. docs/v9/ARCHITECTURE.md (sections Repo map and Stack) and docs/v9/ENGINEERING.md (all of it: this row builds its sections Targets, What a script enforces, Local checks and CI) are the contract; read them first, and docs/v9/STRATEGY.md section Rulings of gate 1.
       what: |-
         New, as real code and not as stubs: packages/room-core (package @fpp/room-core) with the decks of docs/v9/UX.md section Decks and facilitation as data (Fibonacci as v1's 1 2 3 5 8 13 21, modified Fibonacci, T-shirt, powers of two, the special cards) and the distance between two cards in deck positions, with tests; apps/api (package @fpp/api) with Elysia pinned exactly, GET /api/health and GET /api/version, and one test per route.
-        Shared: Makefile (check-fast; check extended; JUnit written to FACTORY_JUNIT_DIR only when it is set); project.yaml (checks: { fast: make check-fast, full: make check, ci: true }, budgets: { fast: 60s } with the reason in a comment); .github/workflows/ci-v9.yml and path filters for validate.yml and sonarcloud.yml; lefthook.yml (v1 commands only for v1 paths, v9 commands for v9 paths); root package.json scripts; lint, format and tsconfig files scoped to the new directories; .gitattributes (docs/plan.yaml merge=plan); AGENTS.md; docs/development.md.
+        Shared: Makefile (check-fast; check extended; JUnit written to FACTORY_JUNIT_DIR only when it is set); project.yaml (checks: { fast: make check-fast, full: make check, ci: true }, budgets: { fast: 60s } with the reason in a comment); .github/workflows/ci.yml with .github/lanes and .github/lanes.sh; validate.yml turned into a reusable workflow that ci.yml calls for lane v1; scripts/boundaries.ts with its table; lefthook.yml (v1 commands only for v1 paths, v9 commands for v9 paths, staged files only); root package.json scripts; lint, format and tsconfig files scoped to the new directories; .gitattributes (docs/plan.yaml merge=plan); AGENTS.md; docs/development.md; docs/shipping.md (the workflow table and the required check).
       change: |-
         1. Pin one exact Bun version for local, CI and images (a version file the workflows read). Check every version you install with agw web package and pin it exactly.
         2. Lint with oxlint and format with oxfmt for the new directories, with a minimal config of this repo; basalt-ui's presets replace it in v9-ui-foundation. v1 keeps ESLint and Prettier untouched.
         3. Type-check the new directories with TypeScript 7 if it installs beside v1's TypeScript 6 pin without changing v1's results, else with 6; record which in the pull request.
-        4. make check-fast runs format check, lint, types and bun test for the new directories only. make check runs v1's existing gate and v9's full gate. Both exit non-zero on the first failure and print which step failed.
-        5. CI: a pull request that touches only new directories or docs/v9 runs ci-v9.yml and none of v1's jobs; a pull request that touches only v1 paths runs v1's jobs and not ci-v9.yml; one that touches shared files (root package.json, bun.lock, Makefile, workflows) runs both. Hosted runners: the repo is public.
-        6. AGENTS.md gets one short section: the five v1 directories are frozen and take fixes only, the new directories follow docs/v9/ARCHITECTURE.md, the fast and full check commands. The file stays under 12,000 bytes.
-        7. Ports for local v9 are 7738 (site), 7739 (room app), 7740 (API); add bun run dev:v9 only as far as the API exists.
+        4. make check-fast runs format check, lint, types, the boundaries check and bun test for the new directories only. make check runs check-fast, the server tests against Postgres, the build and v1's existing gate; make e2e and make load are separate targets added by their rows. Each exits non-zero on the first failure and prints which step failed.
+        5. CI as docs/v9/ENGINEERING.md section CI describes: one workflow, a lanes job that reads .github/lanes and the diff (weatherorb's .github/lanes and lanes.sh are the working example; the Makefile reads the same file), the jobs check and v1 behind their lanes, and a final job ci that always runs and fails when a needed job failed or was cancelled. No paths filter on the workflow itself. Concurrency cancels superseded runs on pull requests only. Hosted runners on ubuntu-24.04, actions and Bun pinned. The jobs image, e2e and e2e-report are added by the rows v9-api-image and v9-e2e. Make ci the required check of master's branch protection and remove none before it has passed once.
+        6. scripts/boundaries.ts enforces the repo map's arrows and the classes pure, adapter and shell of section What a script enforces (software-factory's scripts/boundaries.ts is the working example); it runs in make check-fast and fails this row's own test when a pure module imports node:fs.
+        7. Measure bun install --frozen-lockfile on a hosted runner with and without a restored cache and keep whichever is faster; record both numbers.
+        8. AGENTS.md gets one short section: the five v1 directories are frozen and take fixes only, the new directories follow docs/v9/ARCHITECTURE.md, the fast and full check commands. The file stays under 12,000 bytes.
+        9. Ports for local v9 are 7738 (site), 7739 (room app), 7740 (API); add bun run dev:v9 only as far as the API exists.
       acceptance: |-
         - make check-fast on a clean checkout exits 0 in under 60 s on the mini; the pull request quotes the time.
         - make check exits 0 and its output shows v1's steps and v9's.
-        - The pull request's own CI run shows ci-v9.yml ran; a second pull request (or a recorded dispatch) touching only apps/web shows it did not.
+        - The pull request's own CI run shows the lanes job selecting v9 and the job v1 skipped, with ci green; a second pull request touching only apps/web shows the reverse; a third that breaks a v9 test shows ci red.
+        - gh api of the branch protection names ci as the required check.
+        - The boundaries check fails on a planted violation (shown once in the pull request) and passes without it.
+        - The wall-clock time of the ci run is in the pull request.
         - factory project check and factory plan check docs/plan.yaml exit 0; factory project show free-planning-poker prints the checks.
         - wc -c AGENTS.md is at most 12000.
         - curl of /api/health on the locally started API answers 200 in a test, not by a dev server left running.
@@ -114,7 +119,7 @@ rows:
       why: |-
         Between the reducer and a socket sits the part where real-time systems break: who a connection is, what a reconnect receives, when a silent seat is away, how a flood is refused. Written once behind ports, it runs unchanged under the API, under tests and under the landing page's demo. A simulator with a seeded clock and a lossy network finds the orderings no hand-written test thinks of (docs/v9/research/r09-testing-ci.md, section 5). Contract: docs/v9/ARCHITECTURE.md sections Invariants (5, 6, 8, 12), Protocol, Server (the port table), Testing.
       what: |-
-        packages/room-core/src/runtime: createRoomRuntime(ports) and the port types (send to a connection, publish to a room, close with a code, clock, id source, room store, history, telemetry). packages/room-core/src/sim, exported as @fpp/room-core/sim: in-memory transport, seeded scheduler and clock, bots, invariant checks, a command-line entry. .github/workflows/nightly-v9.yml. Tests.
+        packages/room-core/src/runtime: createRoomRuntime(ports) and the port types (send to a connection, publish to a room, close with a code, clock, id source, room store, history, telemetry). packages/room-core/src/sim, exported as @fpp/room-core/sim: in-memory transport, seeded scheduler and clock, bots, invariant checks, a command-line entry. .github/workflows/nightly.yml. Tests.
       change: |-
         1. Runtime: hello and welcome with protocol version check (close 4001); a seat token is 32 random bytes from the id source, returned once and kept as a hash in room state; resume by token and lastSeq answers with a full view; a token bucket per connection (burst 10, refill 5 per second), one fx per 2 s per seat, close 4008 on repeated violation; application ping every 25 s and a dead connection after 60 s of silence; presence active, away, reconnecting and gone, with a seat held 120 s after its socket is lost; the auto-reveal countdown with cancel; export and import of a room as a snapshot for the store port. Everything timed goes through the clock port.
         2. Simulator: a network that drops, delays, duplicates and reorders frames and cuts connections, all from one seed; bots that behave as a quick voter, a lurker, a phone that sleeps, a spectator and a spammer; after every step the invariants: secrecy (property (a) of v9-room-core on every frame sent), seq strictly increasing per room, at most one vote per seat per round, every acknowledged vote present after a resume in the same round, limits never exceeded.
@@ -124,7 +129,7 @@ rows:
         - The simulator's 200-seed tier exits 0 in under 30 s; a test hashes one seed's trace twice and the hashes match.
         - A test resumes a seat at 1,000 generated points of a session and each welcome view equals project(state, seat) at that moment.
         - The pull request shows the simulator catching a seeded fault (the round id check on a vote switched off by a test flag) within 200 seeds.
-        - nightly-v9.yml has passed once by workflow dispatch with 10,000 seeds; its run time is in the pull request.
+        - nightly.yml has passed once by workflow dispatch with 10,000 seeds; its run time is in the pull request.
         - make check-fast stays under 60 s.
       scope: |-
         No Elysia, no Bun.serve, no Postgres: only ports and in-memory adapters. No UI.
@@ -138,7 +143,7 @@ rows:
       why: |-
         v9 keeps everything durable in Postgres: the room registry (every v1 room name must keep working), live snapshots for restore and handoff between two server versions, one row per revealed round, and the rollups behind the public statistics page. Contract: docs/v9/ARCHITECTURE.md sections Data model, Server (Ownership and handoff, Expiry) and invariant 12; reasons in research/r10-deploy-topology.md section 6 and r13-analytics-engine.md.
       what: |-
-        apps/api/src/db (schema, client, repositories), apps/api/drizzle and its config, apps/api/test/db, a postgres:18 service in .github/workflows/ci-v9.yml, apps/api/.env.tpl with local values only (no op:// reference, as every template of this repo).
+        apps/api/src/db (schema, client, repositories), apps/api/drizzle and its config, apps/api/test/db, a postgres:18 service on the check job of .github/workflows/ci.yml, apps/api/.env.tpl with local values only (no op:// reference, as every template of this repo).
       change: |-
         1. Tables as in section Data model, in the Postgres schema fpp, the Drizzle journal in the same schema. room_snapshot is UNLOGGED. No table holds a display name, an IP address or a user agent.
         2. Repositories behind the port types of packages/room-core: claim a room (epoch plus one, owner set, state returned), write a snapshot only where the epoch matches and report owned or lost, release, sweep expired snapshots, delete rooms unused for 12 months with their rounds; insert a round with its votes in one transaction; list a room's rounds; upsert a daily statistic.
@@ -147,7 +152,7 @@ rows:
       acceptance: |-
         - The migrate command creates the schema on an empty database and drizzle-kit's check reports no drift.
         - Tests on real Postgres: two clients claim one room and get different epochs, and the stale one's conditional write changes no row; the sweep deletes expired snapshots only; a round and its votes are inserted together or not at all; a query on pg_class shows room_snapshot with relpersistence u.
-        - ci-v9.yml runs these tests against postgres:18.
+        - The check job of ci.yml runs these tests against a postgres:18 service.
         - make check passes.
       scope: |-
         No HTTP route, no WebSocket, no importer from MariaDB (stage 3). packages/db (v1) is not changed.
@@ -219,7 +224,7 @@ rows:
       acceptance: |-
         - A test starts process A, seats three clients mid-round with hidden votes, starts process B on the same database, sends A a SIGTERM: the clients receive 4002, connect to B, and their views hold their seats and their own votes; a reveal on B shows all three; A exits with code 0 inside 20 s; the gap the clients see is under 5 s.
         - The same test with SIGKILL instead of SIGTERM: every vote acknowledged more than one snapshot window before the kill is present after the resume.
-        - The test runs in make check and in ci-v9.yml; ten runs in a row pass.
+        - The test runs in make check and in the check job of ci.yml; ten runs in a row pass.
       scope: |-
         No change to RollHook, Traefik or compose (the vps rows own those). No client code.
 
@@ -260,12 +265,13 @@ rows:
         1. createRoomClient({ slug, profile, ports }) returns state (subscribe and getSnapshot, usable by useSyncExternalStore), send(command) and dispose(). Ports: WebSocket constructor, storage, timers, online and visibility signals, so the tests run under bun without a DOM.
         2. Status values as in section Client. Backoff is full jitter, base 500 ms, cap 30 s, reset after 60 s of stable connection; after close 4002 the wait is uniform 0 to 2 s; reconnect at once on online and on becoming visible. reconnecting is reported only after 3 s without a connection.
         3. Every command gets an id; the own vote is shown as pending until acknowledged; after a resume an unacknowledged vote is sent again with its id, and the own vote is re-asserted when the welcome view of the same round lacks it.
-        4. Storage keys under fpp:v9: as in section Client, each value with a schema version. On first run read v1's keys username, isPlaySound, isNotificationsEnabled, preferCardView and recentRoom once (apps/web/src/store/local-storage.store.ts shows their shapes) and write the new ones; v1's userId is not copied and no v1 key is deleted.
+        4. A command-line entry, bun run bots, seats simulator bots in a real room through this client (flags for room, seat count, behaviour and speed), so one person can fill a local table (docs/v9/ENGINEERING.md section The development loop).
+        5. Storage keys under fpp:v9: as in section Client, each value with a schema version. On first run read v1's keys username, isPlaySound, isNotificationsEnabled, preferCardView and recentRoom once (apps/web/src/store/local-storage.store.ts shows their shapes) and write the new ones; v1's userId is not copied and no v1 key is deleted.
       acceptance: |-
         - Against the simulator's lossy transport, 500 seeds of connect, vote, drop and resume end with the client's view equal to the server's projection.
         - With a fake clock: a gap of 2 s never reports reconnecting, a gap of 4 s does; 4001 ends in reload-required, 4003 in kicked with no reconnect, 4004 in a fresh join.
         - A fixture of v1's localStorage yields the new keys, no userId, and the v1 keys still present.
-        - One test plays a full round against a real apps/api on an ephemeral port.
+        - One test plays a full round against a real apps/api on an ephemeral port, and one seats twelve bots through the bots entry and sees a reveal.
         - The built entry is at most 12 kB gzip and contains no string zod; the size is in the pull request.
         - make check passes.
       scope: |-
@@ -305,14 +311,14 @@ rows:
       why: |-
         Client and server ship as one image so they are always the same version, the same image with a Postgres container is the documented way to self-host, and the end-to-end suite tests exactly what is deployed (docs/v9/ARCHITECTURE.md section Topology). Image and telemetry traps: research/r05-elysia-bun-backend.md section 9.
       what: |-
-        apps/api/Dockerfile, deploy/compose.yml (API and postgres:18), Makefile targets v9-up and v9-down (Docker is driven through Makefile targets only in this estate), a build job in .github/workflows/ci-v9.yml, docs/development.md.
+        apps/api/Dockerfile, deploy/compose.yml (API and postgres:18), Makefile targets v9-up and v9-down (Docker is driven through Makefile targets only in this estate), the job image in .github/workflows/ci.yml (docs/v9/ENGINEERING.md section CI: the GitHub cache backend with one scope per image, the image handed on as an artifact), docs/development.md.
       change: |-
         A multi-stage build on the pinned Bun image: install with the frozen lockfile, build apps/room, run apps/api with the built app beside it. The container runs as a non-root user, has a health check on /api/health, takes OTEL_SERVICE_VERSION as a build argument like v1's images, and runs migrations on start behind an advisory lock so two starting containers do not race. Do not minify identifiers (span names come from function names). The compose file needs no secret store: every value has a local default.
       acceptance: |-
         - make v9-up brings the stack up from a clean checkout; /api/health answers 200 and /room/x returns the shell; make v9-down removes it.
         - docker inspect shows a non-root user; a SIGTERM stops the container inside 20 s with exit code 0.
         - The compressed image size is in the pull request (aim: under 150 MB).
-        - ci-v9.yml builds the image on a pull request that touches apps/api, apps/room or packages.
+        - The image job runs on a pull request in lane v9 and its warm and cold build times are in the pull request.
         - make check passes.
       scope: |-
         No push to a registry and no rollout (v9-next-deploy). v1's Dockerfiles and deploy.yml are not changed.
@@ -326,7 +332,7 @@ rows:
       why: |-
         The repo has no end-to-end test. A multi-user product is only proven with several users, and the promise that a deploy costs nobody a seat is only proven by replacing the server under a running round. Patterns: docs/v9/research/r09-testing-ci.md section 2. Contract: docs/v9/ARCHITECTURE.md section Testing.
       what: |-
-        e2e (package @fpp/e2e: Playwright pinned exactly, config, a fixture room(n) that opens n contexts, the tests), Makefile target e2e (locally through factory slot run), a sharded job in .github/workflows/ci-v9.yml with blob reports merged, traces on the first retry, JUnit to FACTORY_JUNIT_DIR when set.
+        e2e (package @fpp/e2e: Playwright pinned exactly, config, a fixture room(n) that opens n contexts, the tests), Makefile target e2e (locally through factory slot run), the jobs e2e (two shards) and e2e-report in .github/workflows/ci.yml as docs/v9/ENGINEERING.md section CI describes (the image loaded from the artifact, deploy/compose.yml started, Playwright on the runner itself because test 5 needs Docker, blob reports merged, a trace on the first retry), both added to the needs of the gate job ci; JUnit to FACTORY_JUNIT_DIR when set. Test files end in .e2e.ts so bun test never collects them.
       change: |-
         Tests, each in its own room, selecting by the ids of e2e/TESTIDS.md and by role:
         1. Three seats: vote, and before the reveal no page's DOM and no WebSocket frame received by another seat (captured with the page's websocket events) contains a vote value; reveal shows all values to all.
@@ -341,7 +347,7 @@ rows:
         - The suite passes five CI runs in a row with no retry used; the run numbers are in the pull request.
         - CI wall time for the suite is at most 6 minutes.
         - Test 1 fails against a build whose projection leaks a value (shown once in the pull request).
-        - ci-v9.yml runs the suite on pull requests that touch apps/api, apps/room, packages or e2e.
+        - A pull request in lane v9 runs the suite and the gate job ci waits for it.
       scope: |-
         Chromium only; other engines and screenshots come in stage 2. No test against production.
 
@@ -399,7 +405,7 @@ rows:
       why: |-
         The scale target (docs/v9/ARCHITECTURE.md section Server: 500 rooms, 5,000 sockets, p99 from command to fan-out under 100 ms) and the claim that a handoff loses no acknowledged vote are estimates until measured. Method: docs/v9/research/r09-testing-ci.md section 6 and r10-deploy-topology.md section 6.
       what: |-
-        load (the k6 scenario and its helpers), Makefile target load (the stack of deploy/compose.yml plus k6 in a container, run through factory slot run), a reduced profile in .github/workflows/nightly-v9.yml, docs/v9/evidence/load.md.
+        load (the k6 scenario and its helpers), Makefile target load (the stack of deploy/compose.yml plus k6 in a container, run through factory slot run), a reduced profile in .github/workflows/nightly.yml, docs/v9/evidence/load.md.
       change: |-
         1. Scenario: 500 rooms of 10 seats; each room plays three rounds with one vote per seat and a reveal; 1 % of seats reconnect per minute. Thresholds: p99 from sending a command to the last seat receiving its event under 100 ms, no acknowledged vote missing at a reveal, error rate under 0.1 %.
         2. A second run replaces the API container halfway through; the same thresholds hold except latency during the 20 s of the handoff, and the reconnect storm's peak upgrades per second is recorded.

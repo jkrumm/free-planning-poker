@@ -2,6 +2,8 @@
 
 How the rewrite is staged and what each stage contains. The rows the factory runs are in `docs/plan.yaml`; that file wins over this page. This page exists so the whole scope is visible before the later stages are written as rows.
 
+![v9 in four stages with the five owner stops](diagrams/stages.svg)
+
 ## Rules
 
 - A row is one change that ships alone and fits one lead session. Its facts carry what the lead needs; the contract is `ARCHITECTURE.md`, the behaviour `UX.md`.

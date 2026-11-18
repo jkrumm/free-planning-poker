@@ -1,6 +1,6 @@
 # v9 architecture
 
-The technical contract of the rewrite that ships as release 9.0.0. It binds every file under the new directories listed in "Repo map". The directories of the current app (`apps/web`, `apps/server`, `packages/db`, `packages/shared`, `fpp-analytics`) are v1: they stay in production until the cutover and take fixes only. For v1 the root `AGENTS.md` governs; for v9 this file governs and `UX.md` says what the product does. Why each choice was made, and what was rejected: `STRATEGY.md`. Evidence: `research/`.
+The technical contract of the rewrite that ships as release 9.0.0. It binds every file under the new directories listed in "Repo map". The directories of the current app (`apps/web`, `apps/server`, `packages/db`, `packages/shared`, `fpp-analytics`) are v1: they stay in production until the cutover and take fixes only. For v1 the root `AGENTS.md` governs; for v9 this file governs, `UX.md` says what the product does and `ENGINEERING.md` how code is written, checked and run. Why each choice was made, and what was rejected: `STRATEGY.md`. Evidence: `research/`.
 
 ## Invariants
 
@@ -20,6 +20,8 @@ These cannot be retrofitted. A change to one is a plan change with the owner's v
 12. **One process owns a room at a time**, enforced by an epoch column in Postgres, not by routing.
 
 ## Topology
+
+![One origin, split at the edge: marketing on a Cloudflare Worker, the room app, API and WebSocket in one container on the VPS](diagrams/topology.svg)
 
 | Path | Served by | Notes |
 |-|-|-|
@@ -56,7 +58,7 @@ Versions as read on 2026-11-18; a row that installs one checks it with `agw web 
 |-|-|-|
 | Runtime, package manager, unit test runner | Bun | 1.4.x, one exact pin for local, CI and image |
 | HTTP and WebSocket server | Elysia with Eden Treaty for the typed HTTP client | 1.4.x exact; 2.0 is a release candidate and is adopted in its own row after it is stable |
-| Validation | Zod 4 on the server. The SPA imports protocol types only and ships no validator | 4.x |
+| Validation | Zod 4 for protocol frames in `packages/room-core`, Elysia's `t` for HTTP routes. The SPA imports protocol types only and ships no validator | Zod 4.x |
 | Database | PostgreSQL on the shared VPS instance, schema `fpp` | 18 |
 | ORM and migrations | Drizzle | 0.45.x; the 1.0 line is a release candidate |
 | Room app | React with the React Compiler, Vite, TanStack Router (file routes, client only) | React 19.3, Vite 8, Router 1.170 |
@@ -136,6 +138,8 @@ Limits from the first version: a token bucket per connection (burst 10, refill 5
 
 **Ownership and handoff.** A room is loaded on first join with `UPDATE room_snapshot SET epoch = epoch + 1, owner = $me … RETURNING`; every later snapshot write is conditional on that epoch. A write that updates no row means another process owns the room: this process closes that room's sockets with 4002 and forgets it. Snapshots are written debounced (250 ms) after each event and flushed on drain. RollHook starts the new container, waits for health, then sends the old one SIGTERM with a three-minute grace period, so two processes overlap on every deploy. On SIGTERM the old process answers `/api/health` with 503, stops claiming rooms, flushes snapshots, closes sockets with 4002 and exits when empty or after 20 s; clients reconnect, the new process claims the room, and `welcome` restores each seat. `server.stop` is always raced against a timeout.
 
+![A round survives a deploy: drain, resume and epoch fencing between the old and the new API container](diagrams/handoff.svg)
+
 **Expiry.** A room's live snapshot expires after 6 hours without an event (v1's rule). The room row and its slug stay; rounds are kept 12 months; a room unused for 12 months is deleted with its history and its slug is free again. A job in the API process sweeps hourly.
 
 **Scale target.** One process, 500 concurrent rooms, 5,000 sockets, p99 command-to-fan-out under 100 ms on the VPS. Horizontal scale is out of scope and invariant 12 is what would make it possible later.
@@ -161,6 +165,8 @@ Routes under `/api`, typed end to end with Eden: `POST /rooms` (create, optional
 ## Client
 
 `@fpp/room-client` exposes one object per room: `state` (a store with the seat's view, connection status and pending commands), `send(command)`, `dispose()`. Status is one of `connecting`, `live`, `reconnecting`, `draining`, `reload-required`, `kicked`, `gone`. It reconnects on `online` and on `visibilitychange`, shows `reconnecting` only after 3 s, and marks the own vote as pending until acknowledged; no other optimism exists.
+
+![A seat's connection states and the close codes that move between them](diagrams/connection.svg)
 
 Storage keys, all under the prefix `fpp:v9:` with a schema version inside each value: `profile` (name, avatar seed), `prefs` (sound, calm mode, view), `seat:<slug>` (seat token), `recent` (last ten slugs), `stats` (the local-only personal record). On first run the client reads v1's keys `username`, `isPlaySound`, `isNotificationsEnabled`, `preferCardView` and `recentRoom` once and writes them into the new shape. v1's `userId` is not carried over (invariant 5).
 
@@ -204,7 +210,7 @@ The simulator is also the engine of the landing page's demo table and of the UI 
 
 - `make check-fast`: format check, lint, types and the core tier for v9 paths. Budget 60 s. This is what a lead runs before each push.
 - `make check`: everything a pull request must pass, v1's existing gate included for as long as v1 exists. CI runs it on the pull request head on hosted runners (the repo is public); `project.yaml` declares `checks: { fast: make check-fast, full: make check, ci: true }`.
-- CI lanes are filtered by path: a change under v9 paths does not build v1, and the reverse. Test targets write JUnit to `$FACTORY_JUNIT_DIR` when it is set.
+- CI is one workflow with lanes chosen by changed paths and one required gate job: a change under v9 paths does not build v1, and the reverse. The pipeline, its timings and the local loop are in `ENGINEERING.md`.
 - Every push to `master` that touches v9 paths builds the API image and rolls it out to the beta host through RollHook, and deploys `apps/site` with wrangler. `make verify` probes production and the beta host.
 - Local development: `bun run dev:v9` starts site, room app and API against the mini's Postgres (database `fpp`, declared in dotfiles `config/postgres/cluster.yaml`). One host, `https://fpp-next.test`, splits paths the way production does: `/room*` and `/_room/*` to the Vite dev server on 7739, `/api/*` to the API on 7740, everything else to Astro on 7738. Agents never start dev servers.
 

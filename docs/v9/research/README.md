@@ -1,6 +1,6 @@
 # Research behind the v9 decisions
 
-Thirteen cited research runs from 2026-11-18. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
+Fourteen cited research runs from 2026-11-18. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
 
 | Run | Topic | Status | Grounded citations |
 |-|-|-|-|
@@ -17,5 +17,6 @@ Thirteen cited research runs from 2026-11-18. Each file is one run's report, its
 | [r11](r11-observability.md) | OpenTelemetry in the browser and on Bun | ok | 15/15 |
 | [r12](r12-rewrite-cutover.md) | Rewrite strategy and cutover | ok | 13/13 |
 | [r13](r13-analytics-engine.md) | Engine for the statistics pages | partial | 8/9 |
+| [r14](r14-ci-hosted-runners.md) | CI on GitHub-hosted runners for a Bun monorepo | ok | 36/36 |
 
 Version numbers are as read on 2026-11-18. Check a version with `agw web package <name>` before pinning it.
