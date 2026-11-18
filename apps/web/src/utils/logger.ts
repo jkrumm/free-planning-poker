@@ -10,5 +10,3 @@ export const logger = pino({
     service: 'free-planning-poker',
   },
 });
-
-export default logger;

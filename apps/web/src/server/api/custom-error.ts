@@ -113,65 +113,12 @@ export function toCustomTRPCError(
 }
 
 /**
- * Static helper to convert any error to CustomTRPCError.
- * If error is already CustomTRPCError, returns it unchanged.
- * Otherwise creates new CustomTRPCError with provided metadata.
- *
- * (Inspired by NestJS CustomError.toCustomError pattern)
- *
- * @example
- * ```typescript
- * try {
- *   await riskyOperation();
- * } catch (error) {
- *   throw fromError(error, {
- *     component: 'exampleRouter',
- *     action: 'getData',
- *     severity: 'high',
- *   });
- * }
- * ```
- */
-export function fromError(
-  error: unknown,
-  metadata: ErrorMetadata,
-): CustomTRPCError {
-  if (error instanceof CustomTRPCError) {
-    return error;
-  }
-
-  if (error instanceof TRPCError) {
-    return new CustomTRPCError(
-      error.code,
-      error.message,
-      metadata,
-      error.cause,
-    );
-  }
-
-  if (error instanceof Error) {
-    return new CustomTRPCError(
-      'INTERNAL_SERVER_ERROR',
-      error.message,
-      metadata,
-      error,
-    );
-  }
-
-  return new CustomTRPCError(
-    'INTERNAL_SERVER_ERROR',
-    'An unexpected error occurred',
-    metadata,
-    error,
-  );
-}
-
-/**
  * Helper to check if an error is a business logic error (shouldn't be captured in OTEL).
  *
  * Business logic errors are expected errors that indicate user input issues
  * or resource states, not system failures.
  */
+// fallow-ignore-next-line unused-export
 export function isBusinessLogicError(error: TRPCError): boolean {
   return [
     'BAD_REQUEST',

@@ -92,7 +92,7 @@ export const Table = ({
   );
 };
 
-export function StackedEstimations({
+function StackedEstimations({
   users,
   triggerAction,
 }: {

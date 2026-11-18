@@ -18,7 +18,7 @@ const PrivacyFeature = (props: { name: string; itemKey: number }) => {
   );
 };
 
-export const Privacy = () => {
+const Privacy = () => {
   return (
     <section
       id="privacy"

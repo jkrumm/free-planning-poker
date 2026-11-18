@@ -40,7 +40,7 @@ export interface ClientLog extends GlobalLoggingType {
   withBeacon?: boolean;
 }
 
-export function removeNulls(obj: ServerLog | ClientLog) {
+function removeNulls(obj: ServerLog | ClientLog) {
   const serializedObj: Record<string, string> = {};
   Object.entries(obj).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
@@ -74,18 +74,6 @@ export class NotFoundError extends BaseError {
 
 export class MethodNotAllowedError extends BaseError {
   httpCode = HttpStatusCode.METHOD_NOT_ALLOWED;
-}
-
-export class InternalServerError extends BaseError {
-  httpCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-}
-
-export class NotImplementedError extends BaseError {
-  httpCode = HttpStatusCode.NOT_IMPLEMENTED;
-}
-
-export class TooManyRequestsError extends BaseError {
-  httpCode = HttpStatusCode.TOO_MANY_REQUESTS;
 }
 
 /**

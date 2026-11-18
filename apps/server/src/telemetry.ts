@@ -7,7 +7,6 @@ import {
   type Tracer,
   type TracerProvider,
   metrics as metricsApi,
-  SpanStatusCode,
   trace,
 } from '@opentelemetry/api';
 import { SeverityNumber, logs } from '@opentelemetry/api-logs';
@@ -186,7 +185,6 @@ export const telemetryConfig = {
 
 export const tracer: Tracer = trace.getTracer(SERVICE_NAME);
 export const otelLogger = logs.getLogger(SERVICE_NAME);
-export { SpanStatusCode };
 
 export async function shutdownTelemetry(timeoutMs = 2000): Promise<void> {
   try {
@@ -242,6 +240,7 @@ function emit(level: LogLevel, body: string, attributes?: Attributes): void {
 
 // Structured logger that emits OTEL log records correlated with the active
 // trace. Mirrors Argo's `log` helper. Use for non-error info/warn flows.
+// fallow-ignore-next-line unused-export
 export const otelLog = {
   debug(message: string, attributes?: Attributes): void {
     emit('debug', message, attributes);

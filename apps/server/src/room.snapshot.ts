@@ -14,7 +14,7 @@ const PERSIST_DEBOUNCE_MS = 500;
 // storms. Failing open is the right move: snapshots are a warm cache.
 const HYDRATE_TIMEOUT_MS = 2000;
 
-export class RoomSnapshotStore {
+class RoomSnapshotStore {
   private client: RedisClient | null = null;
   private available = false;
   private readonly persistTimers = new Map<

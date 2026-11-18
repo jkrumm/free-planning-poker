@@ -15,13 +15,9 @@ import { tracedFetch } from './utils/traced-fetch';
 
 // Re-export shared types from room.types for backward compatibility
 export {
-  RoomClient,
-  RoomBase,
-  RoomStateStatus,
   type RoomDto,
   type CreateUserDto as CreateUserDtoBase,
 } from '@fpp/shared';
-export { User as UserBase } from '@fpp/shared';
 
 /**
  * Server-specific extensions that require Bun/Elysia dependencies
