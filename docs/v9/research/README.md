@@ -1,6 +1,6 @@
 # Research behind the v9 decisions
 
-Fourteen cited research runs from 2026-11-18. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
+Seventeen cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19, after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
 
 | Run | Topic | Status | Grounded citations |
 |-|-|-|-|
@@ -18,5 +18,8 @@ Fourteen cited research runs from 2026-11-18. Each file is one run's report, its
 | [r12](r12-rewrite-cutover.md) | Rewrite strategy and cutover | ok | 13/13 |
 | [r13](r13-analytics-engine.md) | Engine for the statistics pages | partial | 8/9 |
 | [r14](r14-ci-hosted-runners.md) | CI on GitHub-hosted runners for a Bun monorepo | ok | 36/36 |
+| [r15](r15-elysia-2.md) | Elysia 2 pre-release as the server framework | ok | 46/46 |
+| [r16](r16-umami-tracker-import.md) | Umami browser tracker and importing history | ok | 39/39 |
+| [r17](r17-integrations-embed-webhooks.md) | Embedding, webhooks and tracker integrations | ok | 54/55 |
 
-Version numbers are as read on 2026-11-18. Check a version with `agw web package <name>` before pinning it.
+Version numbers are as read on the day of the run. Check a version with `agw web package <name>` before pinning it.

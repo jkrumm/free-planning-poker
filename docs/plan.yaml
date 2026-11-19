@@ -1,6 +1,6 @@
 # The v9 rewrite, run by the factory (software-factory docs/plan.md). The concept is docs/v9/; this file wins over docs/v9/PLAN.md.
 # Every row waits for v9-gate-1, the owner's verdict on the concept (an Issue filed by hand with checkpoint gate: no default verdict).
-# Stage 1 (the spine) and the first two rows of stage 2 are written out. Stages 2 to 4 are written by the rows v9-plan-table,
+# Stage 1 (the spine, with Umami on v1) and the first two rows of stage 2 are written out. Stages 2 to 4 are written by the rows v9-plan-table,
 # v9-plan-site and v9-plan-launch from what the stage before measured; their drafts are in docs/v9/PLAN.md.
 version: 1
 rows:
@@ -8,17 +8,17 @@ rows:
     issue: 2295
 
   - key: v9-foundation
-    title: 'v9 foundation: check tiers, CI lanes by path, tooling for the new directories, decks, the API health route'
+    title: 'v9 foundation: check tiers, CI lanes by path, path filters for v1 deploys, tooling for the new directories, decks, the API health route on Elysia 2'
     kind: chore
     seat: {tier: opus, effort: high}
     after: [v9-gate-1]
     after_needs: shipped
     facts:
       why: |-
-        Every row of the rewrite needs a fast local gate, CI lanes that keep v1 and v9 apart, and a place for code. Today make check runs v1's four packages and the Python service only, validate.yml starts 17 jobs on every pull request and has no test job, and lefthook runs v1's checks on every commit. docs/v9/ARCHITECTURE.md (sections Repo map and Stack) and docs/v9/ENGINEERING.md (all of it: this row builds its sections Targets, What a script enforces, Local checks and CI) are the contract; read them first, and docs/v9/STRATEGY.md section Rulings of gate 1.
+        Every row of the rewrite needs a fast local gate, CI lanes that keep v1 and v9 apart, and a place for code. Today make check runs v1's four packages and the Python service only, validate.yml starts 17 jobs on every pull request and has no test job, and lefthook runs v1's checks on every commit. deploy.yml and the Vercel build run on every push to master whatever changed, so each merge of this plan would restart v1's server and interrupt rooms in progress. docs/v9/ARCHITECTURE.md (sections Repo map and Stack) and docs/v9/ENGINEERING.md (all of it: this row builds its sections Targets, What a script enforces, Local checks and CI) are the contract; read them first, and docs/v9/STRATEGY.md sections Your rulings of 2026-11-19 and Rulings of gate 1.
       what: |-
-        New, as real code and not as stubs: packages/room-core (package @fpp/room-core) with the decks of docs/v9/UX.md section Decks and facilitation as data (Fibonacci as v1's 1 2 3 5 8 13 21, modified Fibonacci, T-shirt, powers of two, the special cards) and the distance between two cards in deck positions, with tests; apps/api (package @fpp/api) with Elysia pinned exactly, GET /api/health and GET /api/version, and one test per route.
-        Shared: Makefile (check-fast; check extended; JUnit written to FACTORY_JUNIT_DIR only when it is set); project.yaml (checks: { fast: make check-fast, full: make check, ci: true }, budgets: { fast: 60s } with the reason in a comment); .github/workflows/ci.yml with .github/lanes and .github/lanes.sh; validate.yml turned into a reusable workflow that ci.yml calls for lane v1; scripts/boundaries.ts with its table; lefthook.yml (v1 commands only for v1 paths, v9 commands for v9 paths, staged files only); root package.json scripts; lint, format and tsconfig files scoped to the new directories; .gitattributes (docs/plan.yaml merge=plan); AGENTS.md; docs/development.md; docs/shipping.md (the workflow table and the required check).
+        New, as real code and not as stubs: packages/room-core (package @fpp/room-core) with the decks of docs/v9/UX.md section Decks and facilitation as data (Fibonacci as v1's 1 2 3 5 8 13 21, modified Fibonacci, T-shirt, powers of two, the special cards; every card a label and a number or none, T-shirt sizes mapped onto the Fibonacci numbers) and the distance between two cards in deck positions, with tests; apps/api (package @fpp/api) with Elysia 2 pinned exactly at the release candidate docs/v9/ARCHITECTURE.md section Stack names, installed by version and never by npm tag (latest is the 1.4 line), GET /api/health and GET /api/version, and one test per route.
+        Shared: Makefile (check-fast; check extended; JUnit written to FACTORY_JUNIT_DIR only when it is set); project.yaml (checks: { fast: make check-fast, full: make check, ci: true }, budgets: { fast: 60s } with the reason in a comment); .github/workflows/ci.yml with .github/lanes and .github/lanes.sh; validate.yml turned into a reusable workflow that ci.yml calls for lane v1; scripts/boundaries.ts with its table; lefthook.yml (v1 commands only for v1 paths, v9 commands for v9 paths, staged files only); root package.json scripts; lint, format and tsconfig files scoped to the new directories; .gitattributes (docs/plan.yaml merge=plan); AGENTS.md; docs/development.md; docs/shipping.md (the workflow table and the required check); .github/workflows/deploy.yml (a paths filter and nothing else); apps/web/vercel.json (an ignore command and nothing else); sonar-project.properties (the v9 source directories added).
       change: |-
         1. Pin one exact Bun version for local, CI and images (a version file the workflows read). Check every version you install with agw web package and pin it exactly.
         2. Lint with oxlint and format with oxfmt for the new directories, with a minimal config of this repo; basalt-ui's presets replace it in v9-ui-foundation. v1 keeps ESLint and Prettier untouched.
@@ -29,6 +29,8 @@ rows:
         7. Measure bun install --frozen-lockfile on a hosted runner with and without a restored cache and keep whichever is faster; record both numbers.
         8. AGENTS.md gets one short section: the five v1 directories are frozen and take fixes only, the new directories follow docs/v9/ARCHITECTURE.md, the fast and full check commands. The file stays under 12,000 bytes.
         9. Ports for local v9 are 7738 (site), 7739 (room app), 7740 (API); add bun run dev:v9 only as far as the API exists.
+        10. Give v1's deploys a path filter and change nothing else in them. deploy.yml runs on pushes that touch apps/server, fpp-analytics, packages/shared, packages/db, the lockfile or the workflow itself, and still by dispatch. The Vercel project builds only when apps/web, packages/db, packages/shared or the lockfile changed, through an ignoreCommand in apps/web/vercel.json (or the project setting if the file cannot express it; record which). Check each list against what the service really imports before fixing it.
+        11. oxlint restricts imports of elysia and @elysia/* to apps/api/src/http and apps/api/src/ws.
       acceptance: |-
         - make check-fast on a clean checkout exits 0 in under 60 s on the mini; the pull request quotes the time.
         - make check exits 0 and its output shows v1's steps and v9's.
@@ -39,8 +41,33 @@ rows:
         - factory project check and factory plan check docs/plan.yaml exit 0; factory project show free-planning-poker prints the checks.
         - wc -c AGENTS.md is at most 12000.
         - curl of /api/health on the locally started API answers 200 in a test, not by a dev server left running.
+        - bun pm ls shows elysia at the exact pre-release version of section Stack; a test fails when package.json names it by tag or range.
+        - After the merge, the first push to master that touches no v1 path starts no Deploy run and no Vercel production build; the lead notes the run list on the Issue. A dispatch of deploy.yml still deploys.
       scope: |-
-        No file under apps/web, apps/server, packages/db, packages/shared, fpp-analytics changes. No package beyond the two named. No Turborepo.
+        No file under apps/web, apps/server, packages/db, packages/shared, fpp-analytics changes, except the ignore command in apps/web/vercel.json. No package beyond the two named. No Turborepo.
+
+  - key: v9-umami-on-v1
+    title: 'Umami on v1: the cookieless script on the current pages, so its history starts before the rewrite ships'
+    kind: feature
+    after: [v9-gate-1]
+    after_needs: shipped
+    facts:
+      why: |-
+        The owner ruled on 2026-11-19 that Umami's cookieless script runs without a consent banner, and asked that the analytics history is kept and walked forward. Self-hosted Umami has no import, and sessions invented from v1's tables would not match live ones (docs/v9/research/r16-umami-tracker-import.md), so the only way Umami has history at the cutover is to start it on v1 now and keep the same website id afterwards. v1 sends nothing to Umami today. This is one of the two exceptions to "v1 takes fixes only" (docs/v9/PLAN.md section Rules). Contract: docs/v9/ARCHITECTURE.md section Measurement.
+      what: |-
+        apps/web/src/pages/_document.tsx or _app.tsx (the script tag), apps/web/src/env.js and apps/web/.env.tpl (two public values: the script address and the website id), v1's privacy text if it lists what is measured, docs/observability.md (one line). The website itself is created in the Umami instance the vps repo runs.
+      change: |-
+        1. Create a website for the production hostname in Umami and note its id. If no credential for Umami's API or admin screen is available through secrets-run, raise it as an errand for the owner and continue with the code behind an unset variable.
+        2. Load the script on every page with next/script after the page is interactive, only when both public values are set. Attributes: data-website-id, data-domains with the production hostname only (previews and local runs stay out), data-exclude-search, data-before-send naming a function defined before the script that rewrites a room path to /room/:slug and returns the payload.
+        3. Page views only: no umami.track call, no distinct id, no identify. v1's own page-view and event tracking stays as it is, so the two can be compared.
+        4. The script comes from the Umami instance's public address; the proxy under /api/u belongs to v9 (stage 3).
+      acceptance: |-
+        - A day after the deploy, Umami shows page views for the production hostname, and room pages appear as /room/:slug and never with a room name; the pull request or an Issue note quotes the day's page views beside v1's own count.
+        - A Playwright or DOM test shows the script tag absent without the two values and present with them, and the before-send function rewriting /room/abc to /room/:slug.
+        - document.cookie and localStorage are unchanged by the script (checked once in a browser against production, noted on the Issue).
+        - make check passes; make verify passes after the deploy.
+      scope: |-
+        No custom event, no other change to v1, no change to v1's own tracking, no v9 directory. No hostname, website id value or credential in a tracked document.
 
   - key: v9-dev-host
     title: 'Local doors for FPP v9: fpp-next.test with production''s path split, and a database fpp on the mini'
@@ -83,26 +110,32 @@ rows:
         No compose change, no route, nothing of apps/fpp. MariaDB is not touched.
 
   - key: v9-room-core
-    title: 'Room core: protocol schemas, the pure reducer, the per-seat projection and the property that no vote leaks before the reveal'
+    title: 'Room core: protocol schemas, the pure reducer with topics and final values, the per-seat projection and the property that no vote leaks before the reveal'
     kind: feature
     seat: {tier: opus, effort: high}
     after: [v9-foundation]
     after_needs: shipped
     facts:
       why: |-
-        The product's promises live in the room logic: a vote is hidden until the reveal, a seat survives a reconnect, one round cannot receive another round's vote. v1 has no test of any of it, and its server lets any socket act as any user. docs/v9/ARCHITECTURE.md sections Invariants (3, 4, 6, 7, 8, 9), Room model and Protocol are the contract; research/r01 and r02 hold the reasoning.
+        The product's promises live in the room logic: a vote is hidden until the reveal, a seat survives a reconnect, one round cannot receive another round's vote. v1 has no test of any of it, and its server lets any socket act as any user. docs/v9/ARCHITECTURE.md sections Invariants (3, 4, 6, 7, 8, 9, 13, 15), Room model, Protocol and Built for what comes next (the result contract) are the contract; research/r01, r02 and r17 hold the reasoning. Topics, the final value and the roles are in this row because they shape the protocol and the history: added later they would break both.
       what: |-
-        packages/room-core/src: the frame and command schemas (Zod 4), their TypeScript types under a separate entry that imports no Zod, reduce(state, command, ctx), project(state, seat), applyEvent(view, event) for clients, the rules of section Room model. packages/room-core/fixtures/v1: one JSON file per frame type, command and event. packages/room-core/test. docs/v9/protocol.md.
+        packages/room-core/src: the frame and command schemas (Zod 4), their TypeScript types under a separate entry that imports no Zod, reduce(state, command, ctx), project(state, seat), applyEvent(view, event) for clients, the rules of section Room model, the result contract (types and one builder per event type), the paste parser for topics. packages/room-core/fixtures/v1: one JSON file per frame type, command and event. packages/room-core/test. docs/v9/protocol.md.
       change: |-
         1. reduce is pure: time, randomness and new ids arrive in ctx. It returns the next state, the events to publish and the effects to run (persist a round, start or cancel the reveal countdown).
         2. project returns what one seat may see. While a round is in voting it holds, for every other seat, whether it has voted and never the value; the own seat's value is present.
         3. Every event is the same for all seats (voted names the seat only). applyEvent on a view gives the same result as project on the new state; the own vote is the one field a client keeps from its own command.
-        4. Properties with fast-check over generated command sequences for 1 to 30 players and 0 to 20 spectators: (a) no projection for seat A contains seat B's value while the round is voting; (b) a second reveal changes nothing; (c) a vote that names another round id changes nothing; (d) a command with an id already applied changes nothing; (e) player and spectator counts never exceed their limits; (f) folding applyEvent over the published events equals project. Add one model-based test with fc.commands.
-        5. docs/v9/protocol.md: every frame, command, event, rejection reason and close code, each with the fixture file as its example. From this row on it is the exact reference and docs/v9/ARCHITECTURE.md section Protocol is its summary; correct that summary where they differ.
+        4. Properties with fast-check over generated command sequences for 1 to 30 players and 0 to 20 spectators: (a) no projection for seat A contains seat B's value while the round is voting; (b) a second reveal changes nothing; (c) a vote that names another round id changes nothing; (d) a command with an id already applied changes nothing; (e) player and spectator counts never exceed their limits; (f) folding applyEvent over the published events equals project; (g) a room has at most one active topic and every round's topic exists; (h) a decision exists only for a topic with a revealed round; (i) no result event contains a display name or a seat index. Add one model-based test with fc.commands.
+        5. Topics: the queue with addTopics, updateTopic, moveTopic, removeTopic and nextTopic, at most 200. Every round belongs to a topic, an untitled one when none is named. Ids of topics and rounds are UUID v7 values taken from ctx. A topic carries title, url and the tracker reference (source, external id, key, site). A pure parser turns pasted lines into topics: a leading ticket key, a tracker link or plain text.
+        6. Final value: decide is accepted for a topic whose latest round is revealed; a unanimous reveal carries the decision in the same step; a later decide corrects it. The value is the card's label and its number.
+        7. Roles: the flags facilitator and admin. With the facilitator lock on, only facilitators reveal, decide, move on and edit the queue. No command sets admin; the runtime grants it.
+        8. The result contract: round.revealed and topic.decided as section Built for what comes next shows them, built by one function each, returned in the persist effect and exported for clients.
+        9. docs/v9/protocol.md: every frame, command, event, rejection reason and close code, each with the fixture file as its example. From this row on it is the exact reference and docs/v9/ARCHITECTURE.md section Protocol is its summary; correct that summary where they differ.
       acceptance: |-
         - bun test packages/room-core exits 0 with at least 1,000 runs of property (a); a failure prints its seed.
         - The pull request shows property (a) failing when the redaction in project is removed, then restored.
         - The bundled types entry contains no string zod (a test builds it and checks).
+        - Properties (g), (h) and (i) run over the same generated sessions as (a).
+        - The paste parser's fixtures pass: a line with a leading ticket key, an issue link of Jira, Linear, GitHub and Azure DevOps, and plain text.
         - A test fails when a file under packages/room-core/src outside sim/ names Date.now, Math.random, setTimeout, setInterval, WebSocket or fetch.
         - A test compares the frame, command and event names in the schemas with those in docs/v9/protocol.md and with the fixture files, and fails on any difference.
         - make check-fast stays under 60 s.
@@ -110,24 +143,28 @@ rows:
         No sockets, no server, no storage, no simulator, no React. No file under apps/web, apps/server, packages/db, packages/shared, fpp-analytics changes; packages/shared's v1 protocol is read for reference only.
 
   - key: v9-room-runtime
-    title: 'Room runtime behind ports (handshake, seat tokens, resume, presence, limits) and the deterministic simulator that tests it'
+    title: 'Room runtime behind ports (handshake, seat tokens, password, room key, resume, presence, limits) and the deterministic simulator that tests it'
     kind: feature
     seat: {tier: opus, effort: high}
     after: [v9-room-core]
     after_needs: shipped
     facts:
       why: |-
-        Between the reducer and a socket sits the part where real-time systems break: who a connection is, what a reconnect receives, when a silent seat is away, how a flood is refused. Written once behind ports, it runs unchanged under the API, under tests and under the landing page's demo. A simulator with a seeded clock and a lossy network finds the orderings no hand-written test thinks of (docs/v9/research/r09-testing-ci.md, section 5). Contract: docs/v9/ARCHITECTURE.md sections Invariants (5, 6, 8, 12), Protocol, Server (the port table), Testing.
+        Between the reducer and a socket sits the part where real-time systems break: who a connection is, what a reconnect receives, when a silent seat is away, how a flood is refused. Written once behind ports, it runs unchanged under the API, under tests and under the landing page's demo. A simulator with a seeded clock and a lossy network finds the orderings no hand-written test thinks of (docs/v9/research/r09-testing-ci.md, section 5). Contract: docs/v9/ARCHITECTURE.md sections Invariants (5, 6, 8, 12, 14), Room model, Protocol, Server (the port table), Testing.
       what: |-
-        packages/room-core/src/runtime: createRoomRuntime(ports) and the port types (send to a connection, publish to a room, close with a code, clock, id source, room store, history, telemetry). packages/room-core/src/sim, exported as @fpp/room-core/sim: in-memory transport, seeded scheduler and clock, bots, invariant checks, a command-line entry. .github/workflows/nightly.yml. Tests.
+        packages/room-core/src/runtime: createRoomRuntime(ports) and the port types (send to a connection, publish to a room, close with a code, clock, id source, room store, history, secrets, telemetry). packages/room-core/src/sim, exported as @fpp/room-core/sim: in-memory transport, seeded scheduler and clock, bots, invariant checks, a command-line entry. .github/workflows/nightly.yml. Tests.
       change: |-
         1. Runtime: hello and welcome with protocol version check (close 4001); a seat token is 32 random bytes from the id source, returned once and kept as a hash in room state; resume by token and lastSeq answers with a full view; a token bucket per connection (burst 10, refill 5 per second), one fx per 2 s per seat, close 4008 on repeated violation; application ping every 25 s and a dead connection after 60 s of silence; presence active, away, reconnecting and gone, with a seat held 120 s after its socket is lost; the auto-reveal countdown with cancel; export and import of a room as a snapshot for the store port. Everything timed goes through the clock port.
-        2. Simulator: a network that drops, delays, duplicates and reorders frames and cuts connections, all from one seed; bots that behave as a quick voter, a lurker, a phone that sleeps, a spectator and a spammer; after every step the invariants: secrecy (property (a) of v9-room-core on every frame sent), seq strictly increasing per room, at most one vote per seat per round, every acknowledged vote present after a resume in the same round, limits never exceeded.
+           Access: a hello without or with a wrong password for a protected room is closed with 4005; five attempts per minute per address and room, the sixth refused without a check; the check itself goes through the secrets port, one at a time per room, and the runtime never hashes. A room key in hello, checked through the same port, sets the admin flag. A seat minted before the room's access epoch was raised is closed with 4004.
+           Reclaim: a hello without a token whose name equals a seat that is reconnecting or gone takes that seat; it keeps its index and loses its flags and its hidden vote of the running round.
+           The device id of hello is handed to the history port with a seat's first vote of a day and appears in no frame, snapshot field sent to a client, log line or span.
+        2. Simulator: a network that drops, delays, duplicates and reorders frames and cuts connections, all from one seed; bots that behave as a quick voter, a lurker, a phone that sleeps, a spectator and a spammer; after every step the invariants: secrecy (property (a) of v9-room-core on every frame sent), seq strictly increasing per room, at most one vote per seat per round, every acknowledged vote present after a resume in the same round, limits never exceeded, no frame contains a device id, and a reclaimed seat never yields a vote cast before the reclaim.
         3. The same seed produces the same trace; a failing run prints the seed and how to replay it.
         4. Tiers: 200 seeds in make check-fast, 10,000 in the nightly workflow.
       acceptance: |-
         - The simulator's 200-seed tier exits 0 in under 30 s; a test hashes one seed's trace twice and the hashes match.
         - A test resumes a seat at 1,000 generated points of a session and each welcome view equals project(state, seat) at that moment.
+        - Tests with a fake secrets port: a protected room closes a missing and a wrong password with 4005 and refuses the sixth attempt in a minute without calling the port; a room key sets admin; a reclaim by name keeps the index and clears the hidden vote.
         - The pull request shows the simulator catching a seeded fault (the round id check on a vote switched off by a test flag) within 200 seeds.
         - nightly.yml has passed once by workflow dispatch with 10,000 seeds; its run time is in the pull request.
         - make check-fast stays under 60 s.
@@ -135,74 +172,82 @@ rows:
         No Elysia, no Bun.serve, no Postgres: only ports and in-memory adapters. No UI.
 
   - key: v9-db-schema
-    title: 'Postgres schema fpp with Drizzle: rooms, the unlogged snapshot table with its ownership epoch, rounds, daily rollups'
+    title: 'Postgres schema fpp with Drizzle: rooms, the unlogged snapshot table with its ownership epoch, topics, rounds, estimating days, daily rollups'
     kind: feature
     after: [v9-foundation, v9-dev-host]
     after_needs: shipped
     facts:
       why: |-
-        v9 keeps everything durable in Postgres: the room registry (every v1 room name must keep working), live snapshots for restore and handoff between two server versions, one row per revealed round, and the rollups behind the public statistics page. Contract: docs/v9/ARCHITECTURE.md sections Data model, Server (Ownership and handoff, Expiry) and invariant 12; reasons in research/r10-deploy-topology.md section 6 and r13-analytics-engine.md.
+        v9 keeps everything durable in Postgres: the room registry (every v1 room name must keep working), live snapshots for restore and handoff between two server versions, the topics with their agreed values, one row per revealed round, the days on which an anonymous device estimated, and the rollups behind the public statistics page. The shape is fixed for what comes after launch (webhooks, tracker import, write-back), so none of it migrates a table: read section Built for what comes next before the first migration. Contract: docs/v9/ARCHITECTURE.md sections Data model, Server (Ownership and handoff, Expiry) and invariant 12; reasons in research/r10-deploy-topology.md section 6 and r13-analytics-engine.md.
       what: |-
         apps/api/src/db (schema, client, repositories), apps/api/drizzle and its config, apps/api/test/db, a postgres:18 service on the check job of .github/workflows/ci.yml, apps/api/.env.tpl with local values only (no op:// reference, as every template of this repo).
       change: |-
-        1. Tables as in section Data model, in the Postgres schema fpp, the Drizzle journal in the same schema. room_snapshot is UNLOGGED. No table holds a display name, an IP address or a user agent.
-        2. Repositories behind the port types of packages/room-core: claim a room (epoch plus one, owner set, state returned), write a snapshot only where the epoch matches and report owned or lost, release, sweep expired snapshots, delete rooms unused for 12 months with their rounds; insert a round with its votes in one transaction; list a room's rounds; upsert a daily statistic.
+        1. Tables as in section Data model, in the Postgres schema fpp, the Drizzle journal in the same schema. room_snapshot is UNLOGGED. No table holds a display name, an IP address or a user agent. topic and round ids are uuid columns filled by the application (UUID v7), never by a sequence. visitor_day holds a day and a 16-byte keyed hash and nothing else. The tables webhook, outbox and connector are not created.
+        2. Repositories behind the port types of packages/room-core: claim a room (epoch plus one, owner set, state returned), write a snapshot only where the epoch matches and report owned or lost, release, sweep expired snapshots, delete rooms unused for 12 months with their topics and rounds; upsert topics with their order and tracker reference; record a decision; insert a round with its votes in one transaction; list a room's topics with their rounds; load a room's open topics; record an estimating day and ignore a repeat; delete estimating days older than 13 months; upsert a daily statistic.
         3. Drizzle 0.45.x pinned exactly, not the 1.0 release candidate. Driver: try drizzle-orm/bun-sql on the pinned Bun; keep it if the repository tests pass 20 runs in a row, else use the postgres driver; record the result.
         4. Local runs use the database fpp on the mini (dotfiles row v9-dev-host); CI uses the service container. Tests create and drop their own schema so parallel runs do not collide.
       acceptance: |-
         - The migrate command creates the schema on an empty database and drizzle-kit's check reports no drift.
-        - Tests on real Postgres: two clients claim one room and get different epochs, and the stale one's conditional write changes no row; the sweep deletes expired snapshots only; a round and its votes are inserted together or not at all; a query on pg_class shows room_snapshot with relpersistence u.
+        - Tests on real Postgres: two clients claim one room and get different epochs, and the stale one's conditional write changes no row; the sweep deletes expired snapshots only; a round and its votes are inserted together or not at all; importing the same tracker reference into a room twice leaves one topic; two estimating days of one device on one day leave one row; a query on pg_class shows room_snapshot with relpersistence u.
         - The check job of ci.yml runs these tests against a postgres:18 service.
         - make check passes.
       scope: |-
         No HTTP route, no WebSocket, no importer from MariaDB (stage 3). packages/db (v1) is not changed.
 
   - key: v9-api-ws
-    title: 'Room server: the WebSocket endpoint on Elysia over the room runtime, with origin check, payload cap and close codes'
+    title: 'Room server: the WebSocket endpoint on Elysia 2 over the room runtime, with origin check, payload cap, close codes and the transport contract suite'
     kind: feature
     seat: {tier: opus, effort: high}
     after: [v9-room-runtime]
     after_needs: shipped
     facts:
       why: |-
-        The runtime needs its production transport. v1's endpoint takes room, user id and name from the query string and trusts them; v9's accepts only the protocol of docs/v9/protocol.md and refuses the rest at the edge of the process. Contract: docs/v9/ARCHITECTURE.md sections Protocol and Server; Bun and Elysia specifics in research/r05-elysia-bun-backend.md sections 3 and 8 and r02-netcode-patterns.md sections 8 and 9.
+        The runtime needs its production transport. v1's endpoint takes room, user id and name from the query string and trusts them; v9's accepts only the protocol of docs/v9/protocol.md and refuses the rest at the edge of the process. Contract: docs/v9/ARCHITECTURE.md sections Protocol and Server; Bun and Elysia specifics in research/r15-elysia-2.md (read it whole: Elysia 2 is a release candidate, by the owner's ruling), r05-elysia-bun-backend.md sections 3 and 8 and r02-netcode-patterns.md sections 8 and 9.
       what: |-
-        apps/api/src/ws (the Elysia adapter of the transport port), apps/api/src/app.ts, apps/api/test/ws. In-memory adapters for store and history until v9-api-persistence.
+        apps/api/src/ws (the Elysia adapter of the transport port), apps/api/src/app.ts, apps/api/test/contract (the transport contract suite). In-memory adapters for store and history until v9-api-persistence.
       change: |-
-        1. /api/ws?room=<slug>: before the upgrade check the Origin header against an allowlist from the environment (403 otherwise) and the slug against the rule of section Room model; negotiate the subprotocol fpp.v1.
+        1. /api/ws/<slug>, through Elysia 2's websocket() plugin: before the upgrade check the Origin header against an allowlist from the environment (403 otherwise) and the slug, taken from the path, against the rule of section Room model. The protocol version is read from hello; no subprotocol is used.
         2. Bun options set on purpose: maximum payload 16 KB, per-message deflate off, an explicit idle timeout above the 25 s application ping, a backpressure limit of 256 KB with close on reaching it.
         3. One pub/sub topic per room for events; frames validated with the schemas of @fpp/room-core; an invalid frame is answered with a rejection and counted against the connection's bucket.
         4. The runtime's clock is driven by one timer in the adapter; no other timer exists in apps/api/src/ws.
-        5. Keep handler code thin: Elysia 1.4 is pinned and 2.0 is a release candidate, so the adapter is the only file that knows Elysia's WebSocket API.
+        5. Contain the release candidate: key every connection by ws.id and never by the socket object, validate outgoing frames in the adapter and set no response schema on the socket, send JSON objects only (open reports 1933, 2017, 1716 and 1911 in research/r15-elysia-2.md). The adapter is the only file that knows Elysia's WebSocket API.
+        6. The acceptance tests below are the transport contract suite; make check runs it, and every later Elysia bump must pass it. If a test fails on the pinned version because of Elysia's WebSocket path, implement the same transport port on Bun.serve's websocket handler, keep Elysia for the HTTP routes, and record the failing case in the pull request.
       acceptance: |-
         All with real sockets on an ephemeral port, under bun test:
         - Two clients join; one votes; the raw text of every frame the other receives before the reveal contains no vote value; after the reveal it does.
-        - A wrong subprotocol is closed with 4001; a foreign Origin gets 403; a 17 KB frame closes the socket with 1009; a flood is rejected and then closed with 4008.
+        - A hello with an unsupported version is closed with 4001; a foreign Origin gets 403; a 17 KB frame closes the socket with 1009; a flood is rejected and then closed with 4008.
         - A client that drops and resumes with its token keeps its seat index and receives the current view.
         - 30 players join; the 31st is refused as a player and accepted as a spectator.
+        - A protected room (the secrets port faked) closes a wrong password with 4005 and seats the right one.
+        - The pull request states which handler carries the sockets, Elysia's or Bun's, and why.
         - make check passes.
       scope: |-
         No Postgres, no drain or handoff, no HTTP route beyond health and version, no telemetry beyond the port.
 
   - key: v9-api-persistence
-    title: 'Rooms survive a restart: Postgres store with epoch fencing, round history, expiry, and the two room routes'
+    title: 'Rooms survive a restart: Postgres store with epoch fencing, topics and results written through, expiry, and the room, access and key routes'
     kind: feature
     after: [v9-api-ws, v9-db-schema]
     after_needs: shipped
     facts:
       why: |-
-        With in-memory adapters a restart loses every room. v1 writes snapshots to Valkey with a six-hour lifetime; v9 writes them to Postgres, where the same statement that loads a room also takes ownership of it, which is what makes two overlapping server versions safe (docs/v9/ARCHITECTURE.md invariant 12 and section Server).
+        With in-memory adapters a restart loses every room. v1 writes snapshots to Valkey with a six-hour lifetime; v9 writes them to Postgres, where the same statement that loads a room also takes ownership of it, which is what makes two overlapping server versions safe (docs/v9/ARCHITECTURE.md invariants 12 and 14, sections Server, Data model and HTTP API). The room password and the room key ship with 9.0.0, so their routes are here.
       what: |-
-        apps/api/src (wiring the repositories of v9-db-schema into the runtime's store and history ports, the expiry job, routes POST /api/rooms and GET /api/rooms/:slug with Eden types exported for clients), apps/api/test.
+        apps/api/src (wiring the repositories of v9-db-schema into the runtime's store and history ports, the expiry job, the secrets port on Bun.password, routes POST /api/rooms, GET /api/rooms/:slug, PUT /api/rooms/:slug/access, POST /api/rooms/:slug/key and DELETE /api/rooms/:slug with Eden types exported for clients), apps/api/test.
       change: |-
         1. A room is loaded on its first join by the claim statement; snapshots are written 250 ms after the last event and at once on request; a conditional write that reports lost closes that room's sockets with 4002 and drops the room from memory.
-        2. A reveal writes one round row and one round_vote row per voting seat.
+        2. A reveal writes one round row and one round_vote row per voting seat. Queue changes and decisions are written when they happen, one transaction per event. A seat's first vote of a day records an estimating day from its device id, as HMAC-SHA256 with a server secret, 16 bytes kept. A room without a live snapshot starts from its row and its open topics.
         3. A live snapshot expires 6 hours after the room's last event; the hourly job sweeps snapshots and, daily, rooms unused for 12 months.
-        4. POST /api/rooms with an optional slug returns the room, creating it when it does not exist (v1's behaviour for a room name); without a slug the server generates a short readable one. GET /api/rooms/:slug answers whether it exists, its settings and its seat counts, and never a name or a vote.
+        4. POST /api/rooms with an optional slug returns the room, creating it when it does not exist (v1's behaviour for a room name); without a slug the server generates a short readable one. It returns the room key once, when it creates the room, and stores only its hash. GET /api/rooms/:slug answers whether it exists and its access mode; for an open room also its name, settings and seat counts; never a participant's name or a vote.
+        5. Access: PUT sets or removes the password with Bun.password (argon2id, the async calls) and on request raises access_epoch, after which every seat minted before is closed with 4004; the room hears of the change as an event. POST key mints the key of a room that has none for a caller who holds a seat of it, and the room says who did. DELETE removes a room with its history. Seat secrets and the room key arrive in the Authorization header, never in a query string.
       acceptance: |-
         - A test plays a round up to three hidden votes, kills the API process with SIGKILL after the snapshot window, starts it again, resumes the three seats, reveals, and sees all three values.
         - A test runs two API processes on one database: after the second claims a room, the first's next write reports lost and its sockets for that room close with 4002 within 1 s.
         - After a reveal the database holds exactly one new round row and one round_vote row per voter.
+        - A queue of three topics and one decided value survive the deletion of the room's snapshot row.
+        - With a password set, GET answers exists and access only; a join without it closes with 4005, with it is seated, and after a change with sign-out the old seat token gets 4004.
+        - POST /api/rooms returns the key once; POST key on a room that has one is a typed 409; PUT access and DELETE without the key are a typed 403.
+        - After a device votes twice on one day visitor_day holds one row for it, and the stored value is not the device id.
         - POST /api/rooms twice with one slug returns the same room id; a slug that breaks the rule is a typed 400.
         - make check passes.
       scope: |-
@@ -266,11 +311,12 @@ rows:
         2. Status values as in section Client. Backoff is full jitter, base 500 ms, cap 30 s, reset after 60 s of stable connection; after close 4002 the wait is uniform 0 to 2 s; reconnect at once on online and on becoming visible. reconnecting is reported only after 3 s without a connection.
         3. Every command gets an id; the own vote is shown as pending until acknowledged; after a resume an unacknowledged vote is sent again with its id, and the own vote is re-asserted when the welcome view of the same round lacks it.
         4. A command-line entry, bun run bots, seats simulator bots in a real room through this client (flags for room, seat count, behaviour and speed), so one person can fill a local table (docs/v9/ENGINEERING.md section The development loop).
-        5. Storage keys under fpp:v9: as in section Client, each value with a schema version. On first run read v1's keys username, isPlaySound, isNotificationsEnabled, preferCardView and recentRoom once (apps/web/src/store/local-storage.store.ts shows their shapes) and write the new ones; v1's userId is not copied and no v1 key is deleted.
+        5. Storage keys under fpp:v9: as in section Client, each value with a schema version. On first run read v1's keys username, isPlaySound, isNotificationsEnabled, preferCardView, recentRoom and userId once (apps/web/src/store/local-storage.store.ts shows their shapes) and write the new ones; v1's userId becomes the device id, a device without one gets a random one, and no v1 key is deleted.
+        6. hello carries the device id, the room key when this device holds one for the room, and a password when the user gave one. Close 4005 ends in the status locked until a password is supplied. A key received from POST /api/rooms or from a link's fragment is kept under key:<slug>.
       acceptance: |-
         - Against the simulator's lossy transport, 500 seeds of connect, vote, drop and resume end with the client's view equal to the server's projection.
-        - With a fake clock: a gap of 2 s never reports reconnecting, a gap of 4 s does; 4001 ends in reload-required, 4003 in kicked with no reconnect, 4004 in a fresh join.
-        - A fixture of v1's localStorage yields the new keys, no userId, and the v1 keys still present.
+        - With a fake clock: a gap of 2 s never reports reconnecting, a gap of 4 s does; 4001 ends in reload-required, 4003 in kicked with no reconnect, 4004 in a fresh join, 4005 in locked and then, with the password, in live.
+        - A fixture of v1's localStorage yields the new keys, the device id equal to v1's userId, and the v1 keys still present.
         - One test plays a full round against a real apps/api on an ephemeral port, and one seats twelve bots through the bots entry and sees a reveal.
         - The built entry is at most 12 kB gzip and contains no string zod; the size is in the pull request.
         - make check passes.
@@ -290,8 +336,8 @@ rows:
       change: |-
         1. Routes /room (create or join, recent rooms), /room/new (creates a room through POST /api/rooms and replaces the URL), /room/$slug. Assets are built under /_room/ with hashed names.
         2. The API answers /room and /room/* with the app shell and /_room/* with the assets, cached as immutable; the shell is never cached.
-        3. /room/$slug in semantic HTML and no styling system: a name field, the seat list with each seat's state, the deck as buttons, clear, reveal with its countdown and cancel, new round, re-vote, topic, become spectator or player, kick, rename, leave, the settings auto reveal and facilitator lock, the connection status as text. One hook, useRoom(slug), binds @fpp/room-client.
-        4. Every interactive element and every seat carries a data-testid named in docs/v9/UX.md's words (seat, card, reveal, new-round, topic, invite-link). Write the list to e2e/TESTIDS.md: stage 2 keeps these ids.
+        3. /room/$slug in semantic HTML and no styling system: a name field, the seat list with each seat's state, the deck as buttons, clear, reveal with its countdown and cancel, the final value as a row of buttons after a reveal, re-vote, next topic, the topic queue (add by paste, rename, reorder, remove), become spectator or player, kick, rename, leave, the settings auto reveal and facilitator lock, a password field when the room asks for one, for a seat with the admin flag the password and the room key, the connection status as text. One hook, useRoom(slug), binds @fpp/room-client.
+        4. Every interactive element and every seat carries a data-testid named in docs/v9/UX.md's words (seat, card, reveal, final-value, next-topic, topic, topic-queue, password, invite-link). Write the list to e2e/TESTIDS.md: stage 2 keeps these ids.
         5. No design decisions: no colours, no layout beyond source order, no animation, no basalt-ui, no Tailwind.
       acceptance: |-
         - The build writes apps/room/dist; a test starts the API and gets the shell at /room/abc, a 200 with a cache-control of immutable for a hashed file under /_room/, and no-cache for the shell.
@@ -342,6 +388,8 @@ rows:
         5. The API container is replaced mid-round (stop with SIGTERM, start a new one on the same database): every seat resumes and the reveal shows every vote.
         6. Thirty players in one room vote and reveal.
         7. A 390 by 844 viewport completes a round.
+        8. Final value: a unanimous reveal shows it without a click; after a split reveal one seat sets it, every seat sees it, and it is in the summary; a pasted queue of three topics is worked through in order.
+        9. A protected room: the creator sets a password, a second context is refused without it and with a wrong one and seated with the right one; after a reload it is not asked again.
         A subset tagged smoke runs against any base URL (make e2e-beta), for the beta host.
       acceptance: |-
         - The suite passes five CI runs in a row with no retry used; the run numbers are in the pull request.
@@ -506,24 +554,24 @@ rows:
     after_needs: shipped
     facts:
       why: |-
-        Stages after the spine are planned when the stage before has reported (docs/v9/PLAN.md, section Rules): their rows in docs/v9/PLAN.md are drafts written on 2026-11-18, before any code of the rewrite existed. This row plans the Astro site, the edge routing that puts site and app on one hostname, analytics fed by the servers, the remaining HTTP API, the rollups and the importer from v1's MariaDB.
+        Stages after the spine are planned when the stage before has reported (docs/v9/PLAN.md, section Rules): their rows in docs/v9/PLAN.md are drafts written on 2026-11-18, before any code of the rewrite existed. This row plans the Astro site, the edge routing that puts site and app on one hostname, Umami's script under the site's own path, the remaining HTTP API, the rollups and the importer from v1's MariaDB.
       what: |-
         docs/plan.yaml (the rows of stage 3, written after this row; the after of the next planning row moved onto this stage's exit row in the same commit), docs/v9/PLAN.md (the stage's section rewritten to match), docs/v9/UX.md and docs/v9/ARCHITECTURE.md where the build proved them wrong or silent, the Spec at docs/v9/evidence/plan-site.md.
       change: |-
         First the read, from merged pull requests and evidence files only: what the beta deploy showed about RollHook, Traefik and the tunnel for this service; the state of basalt-ui 3 on npm (rows that need its tokens wait for v9-ui-foundation, rows that do not must not); the page inventory of v1 (apps/web/src/pages, public/sitemap.xml) with each URL's fate. Also: every place where a document did not tell a builder enough, corrected or listed; planned against actual row time.
-        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 3. Two rows are experiments and come first, each ending in a recorded answer: v9-edge-routing (on the beta hostname, a Worker with static assets on all paths and routes without a Worker for /room*, /_room/* and /api/*, WebSocket included; whether asset requests are billed on the free plan; else the Worker proxies those paths) and the Umami session join (a page view sent by the Worker and an event sent by the API, both with the visitor's IP and user agent forwarded, land in one Umami session; what the vps instance needs set for forwarded addresses). Rows in the vps repo carry repo: vps and say so in their titles. The privacy page's text is a row whose pull request the owner reads: it states a legal position (docs/v9/research/r08-umami-privacy.md).
+        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 3. Two rows are experiments and come first, each ending in a recorded answer: v9-edge-routing (on the beta hostname, a Worker with static assets on all paths and routes without a Worker for /room*, /_room/* and /api/*, WebSocket included; whether asset requests are billed on the free plan; else the Worker proxies those paths) and Umami under /api/u (the script and its collect endpoint served from the beta hostname through Traefik with TRACKER_SCRIPT_NAME and COLLECT_API_ENDPOINT; two visitors with the same browser on different addresses land in two sessions, which proves the visitor's address reaches Umami; what the vps instance needs set for CLIENT_IP_HEADER and TRUSTED_PROXIES; docs/v9/research/r16-umami-tracker-import.md). The website id is the one v9-umami-on-v1 created, so the series continues. Rows in the vps repo carry repo: vps and say so in their titles. The privacy page's text is a row whose pull request the owner reads: it states his ruling on measurement and what is counted (docs/v9/ARCHITECTURE.md section Measurement, docs/v9/research/r08-umami-privacy.md). The old backlog's inspirations for the landing page and its notes on articles are in docs/v9/PLAN.md section The old backlog, mapped; the owner's Todoist list holds the links.
         The stage's exit row is the row after which every v1 URL answers on the beta host with the new site and the activation funnel is visible in Umami.
         The Spec: the read in numbers, the rows as a table, and at most three open choices with your default and what changing each later costs.
       acceptance: |-
         - factory plan check docs/plan.yaml exits 0.
-        - Every v1 URL has a row that serves it or a redirect entry; every event name of docs/v9/ARCHITECTURE.md section Measurement is emitted by exactly one row; the importer's row names what it carries over and what it leaves, as section Data model states.
+        - Every v1 URL has a row that serves it or a redirect entry; every event name of docs/v9/ARCHITECTURE.md section Measurement is emitted by exactly one row; the importer's row names what it carries over and what it leaves, as section Data model states, including the estimating days under the same hash a returning browser produces.
         - The next planning row's after names this stage's exit row, so it is not filed when the rows are merely written.
         - Every number in the Spec names the pull request or evidence file it comes from.
       scope: |-
         Plans and documents only: no code. No row for work listed under After launch in docs/v9/PLAN.md.
 
   - key: v9-plan-launch
-    title: 'Plan stage 4, launch: budgets, rehearsals, the cutover behind the owner''s go, and the removal of v1'
+    title: 'Plan stage 4, launch: budgets, one rehearsal, the weekend cutover behind the owner''s go, and the removal of v1'
     kind: docs
     seat: {tier: opus, effort: high}
     checkpoint: spec
@@ -536,7 +584,7 @@ rows:
         docs/plan.yaml (the rows of stage 4, written after this row; the after of the next planning row moved onto this stage's exit row in the same commit), docs/v9/PLAN.md (the stage's section rewritten to match), docs/v9/UX.md and docs/v9/ARCHITECTURE.md where the build proved them wrong or silent, the Spec at docs/v9/evidence/plan-launch.md.
       change: |-
         First the read, from merged pull requests and evidence files only: the owner's verdict on the finished room; the funnel as Umami shows it on the beta host; the importer's rehearsal against a production dump; the load evidence; open findings of the polish and quality rows. Also: every place where a document did not tell a builder enough, corrected or listed; planned against actual row time.
-        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 4 and docs/v9/ARCHITECTURE.md section Cutover. The cutover runbook is docs/v9/CUTOVER.md, rehearsed twice on the beta host before the row that asks for the owner's go; that row is checkpoint: gate, and so is the row that deletes MariaDB, which comes at least 14 days after the cutover (after_days: 14) and after the final dump is archived and its restore proven. The removal of v1's directories is its own row with after_days: 14 on the cutover. Release 9.0.0 goes through release.yml with allow_major, never by hand.
+        Then the rows, by factory plan schema: one change that ships alone per row, sized for one lead session; facts with why, what, change, acceptance and scope, exact paths, the section of docs/v9 each row implements; after edges only where a row needs what another shipped; an opus seat only for novel hard logic or a design that must hold, with the reason in why. Start from the draft rows of docs/v9/PLAN.md section Stage 4 and docs/v9/ARCHITECTURE.md section Cutover. The cutover runbook is docs/v9/CUTOVER.md, rehearsed once on the beta host with a real dump before the row that asks for the owner's go; the cutover itself is planned for a weekend with a short maintenance window and carries no live room over (the owner's ruling of 2026-11-19); that row is checkpoint: gate, and so is the row that deletes MariaDB, which comes at least 14 days after the cutover (after_days: 14) and after the final dump is archived and its restore proven. The removal of v1's directories is its own row with after_days: 14 on the cutover. Release 9.0.0 goes through release.yml with allow_major, never by hand.
         The stage's exit row is the row that removes v1's containers and database in the vps repo.
         The Spec: the read in numbers, the rows as a table, and at most three open choices with your default and what changing each later costs.
       acceptance: |-

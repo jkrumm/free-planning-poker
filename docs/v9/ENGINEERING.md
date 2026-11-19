@@ -51,7 +51,7 @@ Changed from v1:
 
 ### Validation
 
-Protocol frames are Zod schemas in `packages/room-core`: the package depends on no framework, and Elysia 2 changes its bundled TypeBox major. HTTP routes in `apps/api` use Elysia's own `t`, because Eden's type inference and the OpenAPI output are native to it. The browser bundle imports types only and ships no validator.
+Protocol frames are Zod schemas in `packages/room-core`: the package depends on no framework, so the protocol does not move when Elysia does. HTTP routes in `apps/api` use Elysia's own `t` (TypeBox 1.x in Elysia 2), because Eden's type inference and the OpenAPI output are native to it; whether Eden keeps its types with Zod schemas is not documented. The browser bundle imports types only and ships no validator.
 
 ### Files and names
 
@@ -67,20 +67,21 @@ Two server versions run against one database during every deploy. A migration mu
 
 ### Dependencies
 
-Exact pins. A new runtime dependency names its reason and its size in the pull request. The versions in `ARCHITECTURE.md` are a starting point: check each with `agw web package` on the day.
+Exact pins. A pre-release such as Elysia 2 is installed by version, never by tag: `latest` on npm is still the 1.4 line, and the tags have moved before. A new runtime dependency names its reason and its size in the pull request. The versions in `ARCHITECTURE.md` are a starting point: check each with `agw web package` on the day.
 
 ## What a script enforces
 
-A rule that can be checked is a check, not a sentence. All of these run in `make check-fast`, except size-limit, which needs a build and runs in CI's `check` job.
+A rule that can be checked is a check, not a sentence. All of these run in `make check-fast`, with two exceptions: size-limit needs a build and runs in CI's `check` job, and the transport contract suite needs sockets and runs in `make check`.
 
 | Check | Enforces |
 |-|-|
 | `scripts/boundaries.ts` over a table in the repo root | The dependency arrows of the repo map; a class per module (`pure`, `adapter`, `shell`); a `pure` module does no I/O: its imports are resolved and may not reach `node:*` or `bun:*`, and its source is scanned for the globals `fetch`, `WebSocket`, the timer functions, `Date.now` and `Math.random`; no import reaches into another package past its `exports`; apps never import each other. The pattern is software-factory's `scripts/boundaries.ts` and weatherorb's `class-lint` |
-| oxlint | restricted imports (OpenTelemetry APIs outside `packages/telemetry`, `@fpp/room-client` inside `packages/table`), no explicit `any`, the React hook rules, type-only imports, unused code |
+| oxlint | restricted imports (OpenTelemetry APIs outside `packages/telemetry`, `@fpp/room-client` inside `packages/table`, `elysia` and `@elysia/*` outside `apps/api/src/http` and `apps/api/src/ws`), no explicit `any`, the React hook rules, type-only imports, unused code |
 | Type check | strict mode; the protocol types shared by server and client |
 | Core tests and 200 simulator seeds | the invariants of `ARCHITECTURE.md` |
 | Telemetry content test | no display name, slug or vote value in any exported span, log or metric |
 | Protocol drift test | schemas, fixtures and `protocol.md` name the same frames |
+| Transport contract suite | frames, close codes and the drain against the pinned Elysia; it runs on every version bump (server tier, in `make check`) |
 | size-limit (CI only) | the bundle budgets |
 | `factory plan check`, `factory project check` | the plan and project files |
 
@@ -128,7 +129,7 @@ Decisions in that table, each with its reason:
 
 A scheduled run is best effort on GitHub, so nothing depends on it having run. A red nightly is a signal to the factory, not a merge blocker.
 
-Deploys are separate workflows: `deploy-next.yml` rolls the API image to the beta host on pushes that touch v9 paths, and from stage 3 the site deploys with wrangler. Path filters are safe there because no required check lives in them.
+Deploys are separate workflows: `deploy-next.yml` rolls the API image to the beta host on pushes that touch v9 paths, and from stage 3 the site deploys with wrangler. Path filters are safe there because no required check lives in them. v1's `deploy.yml` and its Vercel build get the same kind of filter in the foundation row: until then every push to `master` redeploys v1's server and interrupts rooms in progress. SonarCloud keeps running outside the gate, with v9's sources added to its configuration.
 
 ## The development loop
 
