@@ -482,13 +482,13 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 @keyframes archify-relay-comet-7 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
   1.827% { opacity: var(--flow-peak, 0.9); }
-  18.49% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  20.927%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  10.06% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  12.497%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-7 { 
-  0%, 5.547% { opacity: 0; }
-  18.49% { opacity: var(--flow-peak, 0.3); }
-  32.195%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 3.018% { opacity: 0; }
+  10.06% { opacity: var(--flow-peak, 0.3); }
+  23.765%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-8 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
@@ -503,14 +503,14 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 }
 @keyframes archify-relay-comet-9 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.279% { opacity: var(--flow-peak, 0.9); }
-  6.395% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.832%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.827% { opacity: var(--flow-peak, 0.9); }
+  22.841% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  25.277%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-9 { 
-  0%, 1.919% { opacity: 0; }
-  6.395% { opacity: var(--flow-peak, 0.3); }
-  20.1%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  22.841% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  36.546%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-10 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
@@ -537,32 +537,21 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 @keyframes archify-relay-comet-12 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
   1.827% { opacity: var(--flow-peak, 0.9); }
-  22.841% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  25.277%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  16.906% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.343%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-12 { 
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  22.841% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  36.546%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  16.906% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  30.611%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-13 { 
-  0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.827% { opacity: var(--flow-peak, 0.9); }
-  22.841% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  25.277%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
-}
-@keyframes archify-relay-wake-13 { 
-  0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  22.841% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  36.546%, 100% { stroke-dashoffset: 0px; opacity: 0; }
-}
-@keyframes archify-relay-comet-14 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
   1.279% { opacity: var(--flow-peak, 0.9); }
   6.395% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
   8.832%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
-@keyframes archify-relay-wake-14 { 
+@keyframes archify-relay-wake-13 { 
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
   6.395% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
   20.1%, 100% { stroke-dashoffset: 0px; opacity: 0; }
@@ -611,21 +600,21 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 }
 @keyframes archify-relay-node-7 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  26.409% { filter: var(--ambient-node-base-filter, none); }
-  28.236%, 32.804% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  44.681% { filter: var(--ambient-node-base-filter, none); }
-}
-@keyframes archify-relay-node-8 { 
-  0%, 100% { filter: var(--ambient-node-base-filter, none); }
   32.695% { filter: var(--ambient-node-base-filter, none); }
   34.523%, 39.091% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
   50.968% { filter: var(--ambient-node-base-filter, none); }
 }
-@keyframes archify-relay-node-9 { 
+@keyframes archify-relay-node-8 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
   40.613% { filter: var(--ambient-node-base-filter, none); }
   42.441%, 47.009% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
   58.886% { filter: var(--ambient-node-base-filter, none); }
+}
+@keyframes archify-relay-node-9 { 
+  0%, 100% { filter: var(--ambient-node-base-filter, none); }
+  44.278% { filter: var(--ambient-node-base-filter, none); }
+  46.105%, 50.674% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  62.551% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-10 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
@@ -748,49 +737,45 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
           <path data-edge-from="tunnel" data-edge-to="traefik" data-edge-key="4" data-composition-points="450,372;760,372" data-composition-crossover="halo" data-composition-independent="true" d="M 450 372 L 760 372" class="a-emphasis" data-animate="edge" style="--step: 4;" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:5">
-          <path data-graph-role="automatic-crossover-underlay" d="M 930 372 L 1010 372" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="traefik" data-edge-to="fpp" data-edge-key="5" data-composition-points="930,372;1010,372" data-composition-crossover="halo" data-composition-independent="true" d="M 930 372 L 1010 372" class="a-emphasis" data-animate="edge" style="--step: 5;" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 930 380.05 L 1010 380.05" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="traefik" data-edge-to="fpp" data-edge-key="5" data-composition-points="930,380.05;1010,380.05" data-composition-crossover="halo" data-composition-independent="true" d="M 930 380.05 L 1010 380.05" class="a-emphasis" data-animate="edge" style="--step: 5;" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:6">
           <path data-graph-role="automatic-crossover-underlay" d="M 1088 404 L 1088 480" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
           <path data-edge-from="fpp" data-edge-to="postgres" data-edge-label="snapshots (epoch-fenced), rounds, rollups" data-edge-key="6" data-composition-points="1088,404;1088,480" data-composition-crossover="halo" data-composition-independent="true" d="M 1088 404 L 1088 480" class="a-default" data-animate="edge" style="--step: 6;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:7">
-          <path data-graph-role="automatic-crossover-underlay" d="M 670 232 L 1010 232" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="siteworker" data-edge-to="umami" data-edge-label="page view, visitor IP and user agent forwarded" data-edge-key="7" data-composition-points="670,232;1010,232" data-composition-crossover="halo" data-composition-independent="true" d="M 670 232 L 1010 232" class="a-dashed" data-animate="edge" style="--step: 7;" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 914 340 L 914 256 Q 914 248 922 248 L 1010 248" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="traefik" data-edge-to="umami" data-edge-label="/api/u/*: script and events from the browser" data-edge-key="7" data-composition-points="914,340;914,248;1010,248" data-composition-crossover="halo" data-composition-independent="true" d="M 914 340 L 914 256 Q 914 248 922 248 L 1010 248" class="a-dashed" data-animate="edge" style="--step: 7;" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:8">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1086.95 340 L 1086.95 264" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="fpp" data-edge-to="umami" data-edge-label="events, same forwarding" data-edge-key="8" data-composition-points="1086.95,340;1086.95,264" data-composition-crossover="halo" data-composition-independent="true" d="M 1086.95 340 L 1086.95 264" class="a-dashed" data-animate="edge" style="--step: 8;" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1180 379 L 1240 379" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="fpp" data-edge-to="clickstack" data-edge-label="OTLP" data-edge-key="8" data-composition-points="1180,379;1240,379" data-composition-crossover="halo" data-composition-independent="true" d="M 1180 379 L 1240 379" class="a-dashed" data-animate="edge" style="--step: 8;" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:9">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1180 379 L 1240 379" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="fpp" data-edge-to="clickstack" data-edge-label="OTLP" data-edge-key="9" data-composition-points="1180,379;1240,379" data-composition-crossover="halo" data-composition-independent="true" d="M 1180 379 L 1240 379" class="a-dashed" data-animate="edge" style="--step: 9;" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1110.05 340 L 1110.05 275 Q 1110.05 267 1118.05 267 L 1448 267 Q 1456 267 1456 259 L 1456 240 Q 1456 232 1464 232 L 1480 232" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="fpp" data-edge-to="email" data-edge-label="contact" data-edge-key="9" data-composition-points="1110.05,340;1110.05,267;1456,267;1456,232;1480,232" data-composition-crossover="halo" data-composition-independent="true" d="M 1110.05 340 L 1110.05 275 Q 1110.05 267 1118.05 267 L 1448 267 Q 1456 267 1456 259 L 1456 240 Q 1456 232 1464 232 L 1480 232" class="a-default" data-animate="edge" style="--step: 9;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:10">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1117.05 340 L 1117.05 298 Q 1117.05 290 1125.05 290 L 1448 290 Q 1456 290 1456 282 L 1456 240 Q 1456 232 1464 232 L 1480 232" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="fpp" data-edge-to="email" data-edge-label="contact" data-edge-key="10" data-composition-points="1117.05,340;1117.05,290;1456,290;1456,232;1480,232" data-composition-crossover="halo" data-composition-independent="true" d="M 1117.05 340 L 1117.05 298 Q 1117.05 290 1125.05 290 L 1448 290 Q 1456 290 1456 282 L 1456 240 Q 1456 232 1464 232 L 1480 232" class="a-default" data-animate="edge" style="--step: 10;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1102 404 L 1102 420 Q 1102 428 1110 428 L 1557 428 Q 1565 428 1565 436 L 1565 480" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="fpp" data-edge-to="factory" data-edge-label="feedback" data-edge-key="10" data-composition-points="1102,404;1102,428;1565,428;1565,480" data-composition-crossover="halo" data-composition-independent="true" d="M 1102 404 L 1102 420 Q 1102 428 1110 428 L 1557 428 Q 1565 428 1565 436 L 1565 480" class="a-default" data-animate="edge" style="--step: 10;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:11">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1102 404 L 1102 420 Q 1102 428 1110 428 L 1557 428 Q 1565 428 1565 436 L 1565 480" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="fpp" data-edge-to="factory" data-edge-label="feedback" data-edge-key="11" data-composition-points="1102,404;1102,428;1565,428;1565,480" data-composition-crossover="halo" data-composition-independent="true" d="M 1102 404 L 1102 420 Q 1102 428 1110 428 L 1557 428 Q 1565 428 1565 436 L 1565 480" class="a-default" data-animate="edge" style="--step: 11;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 690 92 L 1240 92" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="github" data-edge-to="rollhook" data-edge-label="image fpp-api" data-edge-key="11" data-composition-points="690,92;1240,92" data-composition-crossover="halo" data-composition-independent="true" d="M 690 92 L 1240 92" class="a-default" data-animate="edge" style="--step: 11;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:12">
-          <path data-graph-role="automatic-crossover-underlay" d="M 690 92 L 1240 92" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="github" data-edge-to="rollhook" data-edge-label="image fpp-api" data-edge-key="12" data-composition-points="690,92;1240,92" data-composition-crossover="halo" data-composition-independent="true" d="M 690 92 L 1240 92" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1240 107.05 L 1218 107.05 Q 1210 107.05 1210 115.05 L 1210 355.95 Q 1210 363.95 1202 363.95 L 1180 363.95" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="rollhook" data-edge-to="fpp" data-edge-label="start new, wait healthy, stop old" data-edge-key="12" data-composition-points="1240,107.05;1210,107.05;1210,363.95;1180,363.95" data-composition-crossover="halo" data-composition-independent="true" d="M 1240 107.05 L 1218 107.05 Q 1210 107.05 1210 115.05 L 1210 355.95 Q 1210 363.95 1202 363.95 L 1180 363.95" class="a-emphasis" data-animate="edge" style="--step: 12;" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:13">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1325 124 L 1325 272 Q 1325 280 1317 280 L 1110 280 Q 1102 280 1102 288 L 1102 340" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="rollhook" data-edge-to="fpp" data-edge-label="start new, wait healthy, stop old" data-edge-key="13" data-composition-points="1325,124;1325,280;1102,280;1102,340" data-composition-crossover="halo" data-composition-independent="true" d="M 1325 124 L 1325 272 Q 1325 280 1317 280 L 1110 280 Q 1102 280 1102 288 L 1102 340" class="a-emphasis" data-animate="edge" style="--step: 12;" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        </g>
-        <g data-graph-role="automatic-crossover" style="--step:14">
           <path data-graph-role="automatic-crossover-underlay" d="M 605 124 L 605 200" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="github" data-edge-to="siteworker" data-edge-label="wrangler deploy" data-edge-key="14" data-composition-points="605,124;605,200" data-composition-crossover="halo" data-composition-independent="true" d="M 605 124 L 605 200" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-edge-from="github" data-edge-to="siteworker" data-edge-label="wrangler deploy" data-edge-key="13" data-composition-points="605,124;605,200" data-composition-crossover="halo" data-composition-independent="true" d="M 605 124 L 605 200" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
 
         <!-- Components -->
-        <g id="node-marketing" data-node-id="marketing" data-node-label="Marketing pages" tabindex="0" role="button" aria-label="Focus Marketing pages, static HTML, no JavaScript, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="static HTML, no JavaScript" data-node-context="Browser">
-          <title>Marketing pages · static HTML, no JavaScript · Browser</title>
+        <g id="node-marketing" data-node-id="marketing" data-node-label="Marketing pages" tabindex="0" role="button" aria-label="Focus Marketing pages, static HTML, 4 kB analytics script, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="static HTML, 4 kB analytics script" data-node-context="Browser">
+          <title>Marketing pages · static HTML, 4 kB analytics script · Browser</title>
           <rect x="60" y="60" width="170" height="64" rx="8" class="c-mask"/>
           <rect x="60" y="60" width="170" height="64" rx="8" class="c-frontend" data-animate="node" style="--step: 0; --flow-node-name: archify-relay-node-0;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(66 66) scale(0.6875)">
@@ -800,7 +785,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-node-label="" x="145" y="90" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Marketing pages</text>
-        <text x="145" y="106" class="t-muted" font-size="9" text-anchor="middle">static HTML, no JavaScript</text>
+        <text x="145" y="106" class="t-muted" font-size="7.9" text-anchor="middle">static HTML, 4 kB analytics script</text>
         </g>
 
         <g id="node-room" data-node-id="room" data-node-label="Room app" tabindex="0" role="button" aria-label="Focus Room app, React SPA, installable, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="React SPA, installable" data-node-context="Browser">
@@ -854,7 +839,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <g id="node-github" data-node-id="github" data-node-label="GitHub Actions" tabindex="0" role="button" aria-label="Focus GitHub Actions, ci, deploy-next, Delivery" aria-pressed="false" data-node-kind="external" data-node-sublabel="ci, deploy-next" data-node-context="Delivery">
           <title>GitHub Actions · ci, deploy-next · Delivery</title>
           <rect x="520" y="60" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="520" y="60" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-2;" stroke-width="1.5"/>
+          <rect x="520" y="60" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 11; --flow-node-name: archify-relay-node-2;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(526 66) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -877,7 +862,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <g id="node-traefik" data-node-id="traefik" data-node-label="Traefik" tabindex="0" role="button" aria-label="Focus Traefik, reverse proxy, VPS" aria-pressed="false" data-node-kind="security" data-node-sublabel="reverse proxy" data-node-context="VPS">
           <title>Traefik · reverse proxy · VPS</title>
           <rect x="760" y="340" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="760" y="340" width="170" height="64" rx="8" class="c-security" data-animate="node" style="--step: 5; --flow-node-name: archify-relay-node-8;" stroke-width="1.5"/>
+          <rect x="760" y="340" width="170" height="64" rx="8" class="c-security" data-animate="node" style="--step: 5; --flow-node-name: archify-relay-node-7;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(766 346) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
@@ -886,21 +871,21 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <text x="845" y="386" class="t-muted" font-size="9" text-anchor="middle">reverse proxy</text>
         </g>
 
-        <g id="node-fpp" data-node-id="fpp" data-node-label="fpp-api" tabindex="0" role="button" aria-label="Focus fpp-api, Elysia, HTTP and WebSocket, VPS" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Elysia, HTTP and WebSocket" data-node-context="VPS">
-          <title>fpp-api · Elysia, HTTP and WebSocket · VPS</title>
+        <g id="node-fpp" data-node-id="fpp" data-node-label="fpp-api" tabindex="0" role="button" aria-label="Focus fpp-api, Elysia 2, HTTP and WebSocket, VPS" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Elysia 2, HTTP and WebSocket" data-node-context="VPS">
+          <title>fpp-api · Elysia 2, HTTP and WebSocket · VPS</title>
           <rect x="1010" y="340" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="1010" y="340" width="170" height="64" rx="8" class="c-backend" data-animate="node" style="--step: 6; --flow-node-name: archify-relay-node-9;" stroke-width="1.5"/>
+          <rect x="1010" y="340" width="170" height="64" rx="8" class="c-backend" data-animate="node" style="--step: 6; --flow-node-name: archify-relay-node-8;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1016 346) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" x="1095" y="370" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">fpp-api</text>
-        <text x="1095" y="386" class="t-muted" font-size="9" text-anchor="middle">Elysia, HTTP and WebSocket</text>
+        <text x="1095" y="386" class="t-muted" font-size="9" text-anchor="middle">Elysia 2, HTTP and WebSocket</text>
         </g>
 
         <g id="node-umami" data-node-id="umami" data-node-label="Umami" tabindex="0" role="button" aria-label="Focus Umami, analytics, VPS" aria-pressed="false" data-node-kind="external" data-node-sublabel="analytics" data-node-context="VPS">
           <title>Umami · analytics · VPS</title>
           <rect x="1010" y="200" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="1010" y="200" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 8; --flow-node-name: archify-relay-node-7;" stroke-width="1.5"/>
+          <rect x="1010" y="200" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 8; --flow-node-name: archify-relay-node-9;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1016 206) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -923,7 +908,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <g id="node-clickstack" data-node-id="clickstack" data-node-label="ClickStack" tabindex="0" role="button" aria-label="Focus ClickStack, OpenTelemetry, VPS" aria-pressed="false" data-node-kind="external" data-node-sublabel="OpenTelemetry" data-node-context="VPS">
           <title>ClickStack · OpenTelemetry · VPS</title>
           <rect x="1240" y="340" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="1240" y="340" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 10; --flow-node-name: archify-relay-node-11;" stroke-width="1.5"/>
+          <rect x="1240" y="340" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 9; --flow-node-name: archify-relay-node-11;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1246 346) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -935,7 +920,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <g id="node-email" data-node-id="email" data-node-label="email-gateway" tabindex="0" role="button" aria-label="Focus email-gateway, contact form, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="contact form" data-node-context="Architecture component">
           <title>email-gateway · contact form · Architecture component</title>
           <rect x="1480" y="200" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="1480" y="200" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 11; --flow-node-name: archify-relay-node-12;" stroke-width="1.5"/>
+          <rect x="1480" y="200" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 10; --flow-node-name: archify-relay-node-12;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1486 206) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -947,7 +932,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <g id="node-factory" data-node-id="factory" data-node-label="Factory door" tabindex="0" role="button" aria-label="Focus Factory door, in-app feedback, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="in-app feedback" data-node-context="Architecture component">
           <title>Factory door · in-app feedback · Architecture component</title>
           <rect x="1480" y="480" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="1480" y="480" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-13;" stroke-width="1.5"/>
+          <rect x="1480" y="480" width="170" height="64" rx="8" class="c-external" data-animate="node" style="--step: 11; --flow-node-name: archify-relay-node-13;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1486 486) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
@@ -979,35 +964,31 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
           <rect x="875.2" y="435" width="206.79999999999998" height="14" rx="3" class="c-mask"/>
           <text x="978.6" y="445" class="t-edge-default" font-size="8" text-anchor="middle">snapshots (epoch-fenced), rounds, rollups</text>
         </g>
-        <g data-edge-from="siteworker" data-edge-to="umami" data-edge-label="page view, visitor IP and user agent forwarded" data-edge-key="7">
-          <rect x="724.6" y="212" width="230.79999999999998" height="14" rx="3" class="c-mask"/>
-          <text x="840" y="222" class="t-edge-dashed" font-size="8" text-anchor="middle">page view, visitor IP and user agent forwarded</text>
+        <g data-edge-from="traefik" data-edge-to="umami" data-edge-label="/api/u/*: script and events from the browser" data-edge-key="7">
+          <rect x="686.8" y="287" width="221.2" height="14" rx="3" class="c-mask"/>
+          <text x="797.4" y="297" class="t-edge-dashed" font-size="8" text-anchor="middle">/api/u/*: script and events from the browser</text>
         </g>
-        <g data-edge-from="fpp" data-edge-to="umami" data-edge-label="events, same forwarding" data-edge-key="8">
-          <rect x="960.55" y="295" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
-          <text x="1020.75" y="305" class="t-edge-dashed" font-size="8" text-anchor="middle">events, same forwarding</text>
+        <g data-edge-from="fpp" data-edge-to="clickstack" data-edge-label="OTLP" data-edge-key="8">
+          <rect x="1195" y="389" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1210" y="399" class="t-edge-dashed" font-size="8" text-anchor="middle">OTLP</text>
         </g>
-        <g data-edge-from="fpp" data-edge-to="clickstack" data-edge-label="OTLP" data-edge-key="9">
-          <rect x="1195" y="359" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1210" y="369" class="t-edge-dashed" font-size="8" text-anchor="middle">OTLP</text>
+        <g data-edge-from="fpp" data-edge-to="email" data-edge-label="contact" data-edge-key="9">
+          <rect x="1261.2250000000001" y="247" width="43.6" height="14" rx="3" class="c-mask"/>
+          <text x="1283.025" y="257" class="t-edge-default" font-size="8" text-anchor="middle">contact</text>
         </g>
-        <g data-edge-from="fpp" data-edge-to="email" data-edge-label="contact" data-edge-key="10">
-          <rect x="1123.05" y="308" width="43.6" height="14" rx="3" class="c-mask"/>
-          <text x="1144.85" y="318" class="t-edge-default" font-size="8" text-anchor="middle">contact</text>
-        </g>
-        <g data-edge-from="fpp" data-edge-to="factory" data-edge-label="feedback" data-edge-key="11">
+        <g data-edge-from="fpp" data-edge-to="factory" data-edge-label="feedback" data-edge-key="10">
           <rect x="1309.3" y="408" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="1333.5" y="418" class="t-edge-default" font-size="8" text-anchor="middle">feedback</text>
         </g>
-        <g data-edge-from="github" data-edge-to="rollhook" data-edge-label="image fpp-api" data-edge-key="12">
+        <g data-edge-from="github" data-edge-to="rollhook" data-edge-label="image fpp-api" data-edge-key="11">
           <rect x="928.8" y="72" width="72.4" height="14" rx="3" class="c-mask"/>
           <text x="965" y="82" class="t-edge-default" font-size="8" text-anchor="middle">image fpp-api</text>
         </g>
-        <g data-edge-from="rollhook" data-edge-to="fpp" data-edge-label="start new, wait healthy, stop old" data-edge-key="13">
-          <rect x="1150.6" y="156" width="168.4" height="14" rx="3" class="c-mask"/>
-          <text x="1234.8" y="166" class="t-edge-emphasis" font-size="8" text-anchor="middle">start new, wait healthy, stop old</text>
+        <g data-edge-from="rollhook" data-edge-to="fpp" data-edge-label="start new, wait healthy, stop old" data-edge-key="12">
+          <rect x="1216" y="228.5" width="168.4" height="14" rx="3" class="c-mask"/>
+          <text x="1300.2" y="238.5" class="t-edge-emphasis" font-size="8" text-anchor="middle">start new, wait healthy, stop old</text>
         </g>
-        <g data-edge-from="github" data-edge-to="siteworker" data-edge-label="wrangler deploy" data-edge-key="14">
+        <g data-edge-from="github" data-edge-to="siteworker" data-edge-label="wrangler deploy" data-edge-key="13">
           <rect x="517" y="155" width="82" height="14" rx="3" class="c-mask"/>
           <text x="558" y="165" class="t-edge-default" font-size="8" text-anchor="middle">wrangler deploy</text>
         </g>

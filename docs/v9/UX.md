@@ -11,7 +11,7 @@ Free, no-signup planning poker is a crowded category: about ten new entrants in 
 | From the landing page to a seat in under 10 seconds | one click, one name field, no account, no dialog wall |
 | No cap on rounds or rooms, no ads | unlimited rounds and rooms, 30 players per room where free tiers elsewhere stop at 7 to 10, nothing paid |
 | Nobody sees a vote before the reveal, not even in the network tab | the server withholds values until the reveal |
-| We cannot recognise you across rooms, and there is no consent banner | no user id and no tracking script. The device stores your name and settings because you set them, your recent rooms and seat tokens because you joined, and nothing else |
+| No account, no cookie, no banner, and no name in any record | visits are counted by cookieless Umami; an anonymous device id counts the days you estimated and is never stored with a room or a vote. History knows seats by number, not by name |
 | A reload, a sleeping phone or a deploy never costs you your seat or your vote | seat tokens, resume, handoff between server versions |
 
 Beyond the five claims, the result view is where v9 differs in use. Estimation practice has moved from "what is the number" to "where do we disagree": the spread is the useful output, the average is not. v9's result view leads with the spread and names who should talk.
@@ -34,9 +34,11 @@ Beyond the five claims, the result view is where v9 differs in use. Estimation p
 
 ## The room
 
-A room is a URL. Opening `/room/<slug>` seats you after you give a name; the same link is the invitation. Rooms have no owner account. By default every player may reveal, start a round, change settings and remove someone, as in v1, because small teams trust each other. The person who created the room is its first facilitator and can turn on the **facilitator lock**, after which only facilitators run the round. Spectators watch and never block a reveal.
+A room is a URL. Opening `/room/<slug>` seats you after you give a name; the same link is the invitation. Rooms have no owner account. By default every player may reveal, decide, move on, change settings and remove someone, as in v1, because small teams trust each other. The person who created the room is its first facilitator and can turn on the **facilitator lock**, after which only facilitators run the round. Spectators watch and never block a reveal.
 
-A round has two states. **Voting:** players pick a card, can change it, and see only who has voted. **Revealed:** values are fixed and the result view is shown; the next step is a new round or a re-vote on the same topic.
+Two things are new and optional. A room can have a **password**: asked once per person, then the seat remembers. And a room has a **room key**, a link its creator gets once, to keep. Whoever holds it is the room's admin and decides what outlives a meeting: the password, deleting the room, later the integrations. Running a round never needs the key.
+
+What a team estimates is a **topic**: typed, pasted as a list, or left unnamed. A round is one attempt at it and has two states. **Voting:** players pick a card, can change it, and see only who has voted. **Revealed:** values are fixed and the result view is shown. From there the team settles the **final value**, votes again on the same topic, or moves on.
 
 | Seat state | Shown as |
 |-|-|
@@ -62,13 +64,17 @@ Avatars are generated from a random seed in a few shapes and token colours, re-r
 
 **A round.** The topic sits in the round bar and is editable in place. Players choose a card with a click, with the keys `1` to `9` and `0` for the first ten cards, or with the arrow keys and Enter for any card. The bar shows "7 of 9 voted" as a segmented meter. After 20 seconds it names who is missing, and any player can poke them. Reveal with the button or Enter; with auto reveal on, a three-second ring starts when the last active player votes, and any player can cancel it.
 
-**Disagreement.** The result says "Spread 3 to 13. Anna voted lowest, Ben highest." with one action: re-vote. A re-vote keeps the topic and clears the cards.
+**Agreement.** When every card is the same, that value is the topic's final value at once, and the room celebrates. Nobody clicks anything.
+
+**Disagreement.** The result says "Spread 3 to 13. Anna voted lowest, Ben highest." The distribution bar is also the decision: the card closest to the middle is marked as the suggestion, and a click on any bar settles the final value. The other action is a re-vote, which keeps the topic and clears the cards. The final value shows in the topic list and can be corrected there.
+
+**A protected room.** The link opens the table behind one password field. A wrong password says so and nothing else; the room's name and who is in it stay hidden until the password is right. The admin sets, changes or removes the password in the room's settings and can sign everyone out when it changes.
 
 **A large room.** The table steps down to smaller seats and finally to a grid (rules under "Layout by size"). Spectators stay in the rail. Auto reveal ignores away seats, so one absent person never stalls 29.
 
-**Coming back.** `/room` lists the last ten rooms on this device. v1's jump from the home page into the last room is dropped: it surprised people who wanted the home page.
+**Coming back.** `/room` lists the rooms this device has visited, newest first; each can be removed, and one unused for six months drops off by itself. The same list opens from the room's header as a switcher, so moving between two teams' rooms is two clicks. v1's jump from the home page into the last room is dropped: it surprised people who wanted the home page. The browser tab is titled with the room's name.
 
-**Ending a session.** The summary lists every topic with its agreed value, spread, number of rounds and duration, with copy as Markdown and export as CSV. A topic nobody agreed on shows its most common card, marked as open.
+**Ending a session.** The summary lists every topic with its final value, spread, number of rounds and duration, with copy as Markdown and export as CSV. A topic without a final value shows its most common card, marked as open.
 
 ## Layout by size
 
@@ -119,20 +125,22 @@ A personal record lives only on the device: rounds played, how often you matched
 
 ## Decks and facilitation
 
-- **Decks** are data: Fibonacci (default, as v1), modified Fibonacci, T-shirt, powers of two, and custom values; `?` and a break card are available in each.
-- **Topics.** Type a topic or paste a list, one per line, optionally with a link. The queue feeds the round bar. After a reveal, "Agree on 5" records the team's value and moves to the next topic.
+- **Decks** are data: Fibonacci (default, as v1), modified Fibonacci, T-shirt, powers of two, and custom values; `?` (abstain) and a break card are available in each. Every card carries a number behind its label, and T-shirt sizes map onto the Fibonacci numbers, so history and statistics compare across decks.
+- **Topics.** Type a topic or paste a list, one per line. A line that starts with a ticket key ("SHOP-123 Checkout redesign") or is a tracker link keeps that reference, so the result can find its way back later. The queue feeds the round bar, survives the weekend, and holds up to 200 topics.
 - **Timer.** Optional countdown of 30, 60 or 120 seconds as a ring on the round bar. When it runs out with auto reveal off, nothing happens. With auto reveal on, it starts the same cancellable three-second ring as the last vote does.
 
-Not at launch:
+Not at launch, in the order they are likely to come:
 
+- webhooks that send each result to an address the admin sets, including Slack and Teams
+- a route that lets a script or an automation fill a room's queue
+- a Jira app that frames the room on an issue or a board and writes the story points back
+- a wheel that picks who speaks first
 - asynchronous rounds
-- import from and sync to Jira, Linear or GitHub
 - a second language
-- adapters for Teams and Miro on top of the embed mode
 - an AI seat
 - the owner's silent observer seat for support, which needs a line in the privacy page before it exists
 
-The data model keeps a place for the external reference of a topic, so sync needs no migration.
+None of these changes a table or the protocol when it arrives: the topic already carries its tracker reference, and every result already leaves the room in one shape (`ARCHITECTURE.md`, "Built for what comes next").
 
 ## Insights
 
@@ -143,7 +151,7 @@ The data model keeps a place for the external reference of a topic, so sync need
 
 - **Phone.** The layout is the under-700 px row above. Every card is reachable with one thumb, and names in the seat grid wrap rather than truncate. The socket drops when the browser is backgrounded; coming back restores the seat without a prompt.
 - **Install.** The room app is installable. Opened from the home screen it starts at `/room`. Offline it shows the shell and says so; it never queues a vote.
-- **Embed.** `?embed=1` drops the site chrome so the room fits a Teams tab, a Miro panel or a wiki page. Teams, Miro, Slack and Atlassian Forge all run embedded apps in iframes.
+- **Embed.** `?embed=1` drops the site chrome so the room fits a Jira panel, a Teams tab, a Miro board or a wiki page; all of them run embedded apps in frames. The embedding page can hand the room its topics and receives each result, so a host can write the estimate into its own ticket. Room settings show the snippet to copy. Inside a frame the browser keeps storage apart, and Safari forgets it between launches, so a returning person may be asked for the name again and gets the old seat back by giving it.
 
 ## Accessibility
 
@@ -160,7 +168,7 @@ Product copy follows the `broad` register of the voice guide:
 
 ## The marketing site
 
-Static pages with no JavaScript, except one island: the landing page's hero is a live table played by scripted participants. "Sit down" turns the demo into a real room.
+Static pages whose only JavaScript is the 4 kB analytics script, except one island: the landing page's hero is a live table played by scripted participants. "Sit down" turns the demo into a real room. Light and dark follow the system and can be switched, on the site and in the room.
 
 | Page | Job |
 |-|-|
@@ -168,6 +176,8 @@ Static pages with no JavaScript, except one island: the landing page's hero is a
 | `/guide` and `/guides/*` | planning poker explained, then one page per practice: decks, when a spread means split the story, running a large room |
 | `/vs/*` | honest comparison pages, each fact checked on the day it is written |
 | `/analytics` | public statistics |
+| `/blog` | articles from a content collection, each closing with its questions and answers as structured data |
+| `/docs` | every feature explained for users, with a static search; the contributor's overview stays in the repository |
 | `/roadmap` | changelog from releases, and what is next; replaces the Todoist-backed page |
 | `/self-hosting` | one compose file |
 | `/privacy`, `/imprint`, `/contact` | what is measured and how, in plain words; the imprint as it stands |
@@ -179,7 +189,10 @@ Every existing URL keeps its path. Each page gets its own title, description, ca
 | v1 | v9 |
 |-|-|
 | Room by name in the URL | unchanged |
-| Fibonacci 1 to 21 only | default deck, plus three more and custom |
+| Fibonacci 1 to 21 only | default deck, plus three more and custom, with `?` to abstain |
+| A round ends at the reveal | the team settles a final value, kept per topic |
+| Anyone with the link gets in | unchanged by default; a password is optional |
+| No owner of a room | a room key for its creator, needed only for the password and for deleting the room |
 | "Show votes" only when everyone has voted | reveal any time after the first vote, with a confirmation when seats are still thinking |
 | Auto flip exists on the server without a switch | a setting, with a cancellable countdown |
 | Spectator, kick, leave, rename | unchanged, subject to the facilitator lock when it is on |
@@ -188,6 +201,6 @@ Every existing URL keeps its path. Each page gets its own title, description, ca
 | Four sounds, on by default | five sounds, off for new users |
 | Confetti on a unanimous vote | kept, joined by the streak counter |
 | Room statistics in the sidebar | the Insights panel |
-| Home page jumps into the last room | recent rooms list at `/room` |
+| Home page jumps into the last room | recent rooms at `/room` and as a switcher in the room |
 | Name and settings in localStorage | read once and kept |
 | Feedback form | unchanged |
