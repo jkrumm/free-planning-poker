@@ -1,6 +1,6 @@
 # Research behind the v9 decisions
 
-Seventeen cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19, after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
+Twenty-three cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19 and r18 to r23 from 2026-11-20, each batch after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
 
 | Run | Topic | Status | Grounded citations |
 |-|-|-|-|
@@ -21,5 +21,11 @@ Seventeen cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-
 | [r15](r15-elysia-2.md) | Elysia 2 pre-release as the server framework | ok | 46/46 |
 | [r16](r16-umami-tracker-import.md) | Umami browser tracker and importing history | ok | 39/39 |
 | [r17](r17-integrations-embed-webhooks.md) | Embedding, webhooks and tracker integrations | ok | 54/55 |
+| [r18](r18-effect.md) | Effect for a Bun room server | ok | 49/49 |
+| [r19](r19-integration-landscape.md) | The integration landscape: 22 work tools | ok | 59/59 |
+| [r20](r20-ai-search-visibility.md) | Being found by search engines and assistants | ok | 44/44 |
+| [r21](r21-freeze-v1-branch.md) | Freezing v1 on a maintenance branch | ok | 14/14 |
+| [r22](r22-invite-links-room-names.md) | Access codes in invite links, and reusing room names | partial | 16/19 |
+| [r23](r23-team-activities.md) | Team activities beyond planning poker | ok | 13/13 |
 
 Version numbers are as read on the day of the run. Check a version with `agw web package <name>` before pinning it.
