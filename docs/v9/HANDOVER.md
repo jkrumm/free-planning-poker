@@ -48,6 +48,7 @@ The format is software-factory's `docs/plan.md`; `factory issue schema` has the 
 - **`/lenses` if the owner asks for it in your session.** He named it as an option. It fits stage 3 best (content, search, assistants, languages, measurement, legal: many fields), and it costs hours and tens of millions of tokens, so confirm the scope with him first.
 - Work in small verified steps: one stage, check, commit, pull request, `/review`, merge inside `factory merge-lock`, then the next.
 - Human-facing prose (the documents, the Reports) follows `~/SourceRoot/brain/voice.md` and goes through `/prose`. Row facts are written for agents: complete, literal, no style.
+- `research/r24-i18n.md` was run with Astro 6 in its context; the stack is Astro 7. Re-check its routing findings against the current documentation before a site row relies on them.
 - The repository's `AGENTS.md` still describes v1 until the freeze. For planning, the documents above win.
 
 ## Open, for you to settle with the owner
@@ -59,7 +60,7 @@ The format is software-factory's `docs/plan.md`; `factory issue schema` has the 
 | What the importer does with v1's per-person estimates | v1 stores them without a link to a round | count them in the totals, attach none to a round |
 | Self-hosting at 9.0.0 | one compose file is promised on the landing page | a row in stage 4 that proves the compose file on a clean host |
 | The order of the first activities after launch | confidence vote, dot voting, wheel (`research/r23`) | keep; none is a row yet |
-| basalt-ui 3: wait for 3.0.0 or use a release candidate | everything with a look waits on it; six gaps are listed in `ENGINEERING.md`, "Working with basalt-ui" | ask the owner for a date; plan stage 3's content rows so they do not wait |
+| basalt-ui 3: wait for 3.0.0 or use a release candidate | everything with a look waits on it. The needs are filed in basalt-ui as Issues 2529 (motion), 2530 (seams, icons), 2531 (site profile), 2532 (marketing blocks) and 2525 (TanStack map); `ENGINEERING.md`, "Working with basalt-ui", has the table. They are not plan rows there, so a row of yours cannot wait on them with `after`: let it defer on the registry, or ask the basalt-ui session for row keys | ask the owner for a date; plan stage 3's content rows so they do not wait |
 
 Not yours to settle, because a row measures it: what Vercel does with a commit that lacks the project's root directory (`v9-freeze-v1`); which socket adapter wins (`v9-api-ws`); whether Paraglide holds the bundle budget (`v9-room-plain`); whether link scanners keep a URL fragment (stage 2, the lock's screens: test with real Teams and Outlook messages); whether one hostname can be split by path at the edge (`v9-edge-routing`).
 

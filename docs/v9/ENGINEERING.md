@@ -235,13 +235,16 @@ Four rules apply to every row that touches the interface. They exist because v9 
 - **Its agent layer is used.** The rules, the skills and the design reviewer that basalt-ui ships are installed with it, and a row for the interface runs the reviewer before it asks for review. A rule that is wrong for a game surface is changed in basalt-ui.
 - **Every interface row reports** what it filed upstream, in one line of its pull request.
 
-What v9 needs from basalt-ui 3, from a reading of its `master` on 2026-11-20. These are worth taking before 3.0.0 ships:
+What v9 needs from basalt-ui 3, from a reading of its `master` on 2026-11-20. The basalt-ui planning session confirmed the list the same day and filed it; the last column names its Issue. Motion, the seams and icons are wanted before 3.0.0, because the table arena leans on them first. The site profile can land with 3.0.0 or shortly after, the blocks in 3.x.
 
-| Area | In basalt-ui today | v9 needs |
-|-|-|-|
-| Motion | the tokens `dur-fast` (150 ms), `dur-base` (250 ms) and one easing. Its `AGENTS.md` names `MOTION_DURATION`, `MOTION_SPRING` and `MOTION_EASE_STANDARD`, which no source file defines. No motion guideline | those constants, a slow step, spring presets, a stagger helper, enter and exit presets, a reduced-motion policy, and the guideline. The table and the landing page both lean on them |
-| Marketing blocks | prose, article layout, table of contents, callout and MDX parts, as React components. Nothing named hero, bento or FAQ | hero, bento grid, feature tile, question list, comparison table, call-to-action band, footer |
-| Astro | no `./astro` export. The `tokens` profile has no lint preset. The marketing app's own guide describes the 1.x era | a documented `tokens` setup for Astro 7 with a lint preset, and article parts that render without client JavaScript |
-| A bespoke surface | `primitive-bypass` denies positioned geometry outside its seam | a sanctioned seam for a game surface, so the table passes the lint without a waiver |
-| Reporting upstream | no documented channel for what a consumer finds | one line in the shipped `AGENTS` block that says where a gap is filed |
-| Icons | none shipped | a recommended set, so site and room agree |
+| Area | In basalt-ui today | v9 needs | Filed in basalt-ui |
+|-|-|-|-|
+| Motion | the tokens `dur-fast` (150 ms), `dur-base` (250 ms) and one easing. Its `AGENTS.md` names `MOTION_DURATION`, `MOTION_SPRING` and `MOTION_EASE_STANDARD`, which no source file defines. No motion guideline | those constants, a slow step, spring presets, a stagger helper, enter and exit presets, a reduced-motion policy, and the guideline. The table and the landing page both lean on them | 2529 |
+| Marketing blocks | prose, article layout, table of contents, callout and MDX parts, as React components. Nothing named hero, bento or FAQ | hero, bento grid, feature tile, comparison table, call-to-action band, footer, and a question list that takes its questions as data, so the FAQ markup comes from the same array | 2532 |
+| A site profile | no `./astro` export. The `tokens` profile has no lint preset. The marketing app's own guide describes the 1.x era | parts that are plain React and render to static HTML in an Astro page with no client JavaScript: no provider, no hook, no router. No visible string baked in, accessible names included, because every string here comes from the message catalogue. Logical properties only. A prose part that styles raw Markdown by element. A theme switch, mobile menu and copy button built on the platform. Proven first on basalt-ui's own Astro site | 2531 |
+| A bespoke surface | `primitive-bypass` denies positioned geometry outside its seam | a sanctioned seam for a game surface, so the table passes the lint without a waiver. Primitives that work inside an island with no provider, or with one that needs no router and is cheap to mount per island | 2530 |
+| Reporting upstream | no documented channel for what a consumer finds | one line in the shipped `AGENTS` block that says where a gap is filed | 2530 |
+| Icons | none shipped | a recommended set, so site and room agree | 2530 |
+| Keys and forms | no stated choice | a wrapper or guideline for keyboard shortcuts and for forms, so the room follows basalt-ui's choice among the TanStack libraries and adds none of its own | 2525 |
+
+None of these Issues is a row of basalt-ui's plan, so a row here cannot name one in `after`. A row that needs one checks the registry for the release that carries it and defers itself until then, as `v9-ui-foundation` does.
