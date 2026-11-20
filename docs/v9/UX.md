@@ -34,11 +34,11 @@ Beyond the five claims, the result view is where v9 differs in use. Estimation p
 
 ## The room
 
-A room is a URL. Opening `/room/<slug>` seats you after you give a name; the same link is the invitation. Rooms have no owner account. By default every player may reveal, decide, move on, change settings and remove someone, as in v1, because small teams trust each other. The person who created the room is its first facilitator and can turn on the **facilitator lock**, after which only facilitators run the round. Spectators watch and never block a reveal.
+A room is a URL. Opening `/room/<slug>` seats you after you give a name; the same link is the invitation. A room has no owner. Every player may reveal, settle, move on, change settings, remove someone, lock the room and name it, as in v1, because small teams trust each other. Spectators watch and never block a reveal.
 
-Two things are new and optional. A room can be **locked**: it gets an access code of three words, and from then on the invite link carries the code. Whoever has the link is in. Whoever has only the room's name is asked for the code, which everyone at the table can read out. And a room has a **room key**, a link its creator gets once, to keep. Whoever holds it is the room's admin and decides what outlives a meeting: the lock, deleting the room, later the integrations. Running a round never needs the key.
+One thing is new and optional. A room can be **locked** with a password that someone types or lets the room generate. From then on the invite link carries it, so whoever has the link is in. Whoever has only the room's number is asked for the password once; everyone at the table can see it and read it out, and the device remembers it. It keeps strangers out and is no secret among colleagues, which the field says before anyone types a password they use elsewhere.
 
-A room's **name** is the last part of its link. "Start planning" gives a new room a name of two words, such as `brave-otter`; anyone can type their own instead and rename the room later, with the old link forwarding for 30 days. A name stays with its room while the room is used: six months after the last visit for a room with rounds, 30 days for one that never revealed a card. After that the room still opens for whoever comes back, until another team picks the name.
+A room is reached by its **number**, and by a **name** if the team books one. "Start planning" draws a six-digit number, as in v1: it reads the same in every language and is quick to type on a phone. A team that comes back books a name, `team-alpha`, at any time; the number then forwards for 30 days. A number stays with its room for three months after the last visit, a booked name for six. After that the room still opens for whoever comes back, until the address is handed to a new room, and the room says in good time when a hold is about to end and offers to book a name.
 
 What a team estimates is a **topic**: typed, pasted as a list, or left unnamed. A round is one attempt at it and has two states. **Voting:** players pick a card, can change it, and see only who has voted. **Revealed:** values are fixed and the result view is shown. From there the team settles the **final value**, votes again on the same topic, or moves on.
 
@@ -49,7 +49,6 @@ What a team estimates is a **topic**: typed, pasted as a list, or left unnamed. 
 | away (tab hidden 30 s) | dimmed; does not block auto reveal |
 | reconnecting | outline pulse, after 3 s of lost connection |
 | spectator | sits in the rail beside the table, no card slot |
-| facilitator | a small marker on the avatar |
 | you | accent ring, always at the bottom centre |
 
 Presence, vote and role combine: an away seat that has voted keeps its face-down card and is dimmed.
@@ -64,7 +63,7 @@ Avatars are generated from a random seed in a few shapes and token colours, re-r
 
 **Joining by link.** The table is visible behind a single name field. A returning visitor is seated at once with the stored name. Someone who joins mid-round sees who has voted and votes in that round.
 
-**Inviting.** One button, always in the header. It copies the link at once and opens a small panel with the QR code for the people in the same room and, on a phone, the system's share sheet. In a locked room the link and the QR code include the code, and the panel shows the three words for reading aloud. While you are alone, the invitation is the centre of the table.
+**Inviting.** One button, always in the header. It copies the link at once and opens a small panel with the QR code for the people in the same room and, on a phone, the system's share sheet. In a locked room the link and the QR code include the password, and the panel shows it for reading aloud. While you are alone, the invitation is the centre of the table.
 
 **A round.** The topic sits in the round bar and is editable in place. Players choose a card with a click, with the keys `1` to `9` and `0` for the first ten cards, or with the arrow keys and Enter for any card. The bar shows "7 of 9 voted" as a segmented meter. After 20 seconds it names who is missing, and any player can poke them. Reveal with the button or Enter; with auto reveal on, a three-second ring starts when the last active player votes, and any player can cancel it.
 
@@ -72,11 +71,11 @@ Avatars are generated from a random seed in a few shapes and token colours, re-r
 
 **Disagreement.** The result says "Spread 3 to 13. Anna voted lowest, Ben highest." The distribution bar is also the decision: the card closest to the middle is marked as the suggestion, and a click on any bar settles the final value. The other action is a re-vote, which keeps the topic and clears the cards. The final value shows in the topic list and can be corrected there.
 
-**A locked room.** With the full link there is nothing to do: the code is in it. With only the room's name, the table sits behind one field for the three words. A wrong code says so and nothing else; the room's display name and who is in it stay hidden until the code is right. The admin locks, unlocks or replaces the code in the room's settings and decides whether the people already seated stay. The device remembers the code with the room, so coming back needs no link.
+**A locked room.** With the full link there is nothing to do: the password is in it. With only the room's number or name, the table sits behind one field. A wrong password says so and nothing else; the room's display name and who is in it stay hidden until it is right. Any player locks, unlocks or changes the password in the room's settings and decides whether the people already seated stay. The device remembers the password with the room, so a bookmark without it opens the room without a question.
 
 **A large room.** The table steps down to smaller seats and finally to a grid (rules under "Layout by size"). Spectators stay in the rail. Auto reveal ignores away seats, so one absent person never stalls 29.
 
-**Coming back.** `/room` lists the rooms this device has visited, newest first, each with its name and, for an open room, how many people are in it right now. A room can be pinned to stay on top, or removed; an unpinned one drops off after six months without a visit. The same list opens from the room's header as a switcher, so moving between two teams' rooms is two clicks. The landing page shows the top three as "Back to …", which works because site and room share one origin. v1's jump from the home page into the last room is dropped: it surprised people who wanted the home page. If a remembered name has passed to another team in the meantime, the device notices and says so before it seats you. The browser tab is titled with the room's name.
+**Coming back.** `/room` lists the rooms this device has visited, newest first, each with its name and, for an open room, how many people are in it right now. A room can be pinned to stay on top, or removed; an unpinned one drops off after six months without a visit. The same list opens from the room's header as a switcher, so moving between two teams' rooms is two clicks. The landing page shows the top three as "Back to …", which works because site and room share one origin. v1's jump from the home page into the last room is dropped: it surprised people who wanted the home page. If a remembered address has been handed to another room in the meantime, the device notices and says so before it seats you. The browser tab is titled with the room's name.
 
 **Ending a session.** The summary lists every topic with its final value, spread, number of rounds and duration, with copy as Markdown and export as CSV. A topic without a final value shows its most common card, marked as open.
 
@@ -159,7 +158,7 @@ The table's look is picked from competing entries, not designed once on paper. S
 
 **Judging.** The arena runs on the beta host, so it opens on any device. It shows two entries side by side on the same scenario, in step. A scorecard per entry holds what a machine can measure: frame times during the reveal, bytes, accessibility findings, screenshots of every scenario, a recording of the reveal. The rest is judged by the owner. Does it feel like a round of cards? Does it read at 30 seats? Does it hold on a phone? The pick may take the table from one entry and the reveal from another; the row `v9-table-pick` then builds `packages/table` from the pieces.
 
-**Who enters.** The factory builds two entries with different directions. Any other model enters the same way, started by the owner with his own launchers. The brief is one file, the harness one command, an entry one directory and one pull request.
+**Who enters, and where it runs.** The factory builds the arena itself: the contract, the scenarios, the gallery and the scorecard are ordinary engineering. The entries are not factory work. They are made in sessions the owner starts when the room's interface foundation stands: several directions, several models from several labs through his launchers, as many rounds as the result needs. The brief is one file, the harness one command, an entry one directory and one pull request, so any coding agent can enter without knowing the rest of the repository.
 
 ## Decks and facilitation
 
@@ -169,13 +168,13 @@ The table's look is picked from competing entries, not designed once on paper. S
 
 Not at launch, in the order they are likely to come:
 
-- webhooks that send each result to an address the admin sets, including Slack and Teams, with recipes for Zapier, Make and n8n
+- webhooks that send each result to an address a player sets, including Slack and Teams, with recipes for Zapier, Make and n8n
 - a route that lets a script or an automation fill a room's queue
 - a Jira app that frames the room on an issue or a board and writes the story points back
 - a Teams tab; Zoom and Meet when asked for
 - further activities in the room, under "More than poker"
 - asynchronous rounds
-- a second language
+- languages beyond English and German
 - an AI seat
 - the owner's silent observer seat for support, which needs a line in the privacy page before it exists
 
@@ -220,13 +219,23 @@ Product copy follows the `broad` register of the voice guide:
 - An empty state points at the first action.
 - One word per thing everywhere: room, seat, round, card, reveal, topic.
 
+## Languages
+
+The room speaks its visitor's language from the first release: English and German in 9.0.0, further languages as someone who speaks them has reviewed them.
+
+- The language is each person's own. It follows the browser on the first visit and a switch in the settings afterwards, and a room link never carries it, so a mixed team shares one link.
+- Nothing a person reads is written into a component. Counts, dates and numbers follow the language's rules, and the layout holds German's longer labels and a right-to-left script.
+- Room numbers and generated passwords use digits and Latin letters only, so they can be read out in any language.
+- The site launches in English. A second language appears there only when every page of it is translated and reviewed: half a translated site reads worse than none.
+- Translations are files in the repository. A model drafts them and a native speaker reviews them before they ship.
+
 ## The marketing site
 
 Static pages whose only JavaScript is the 4 kB analytics script, plus islands that load when they scroll into view. Light and dark follow the system and can be switched, on the site and in the room.
 
 **The landing page**, top to bottom:
 
-1. **The hero is the product.** A live table played by scripted participants, with three ways in beside it: "Start planning" (one click, you are seated and the invite link is copied), "Join a room" (paste a link or type a name) and, on a device that has been here, "Back to …" with its last rooms.
+1. **The hero is the product.** A live table played by scripted participants, with three ways in beside it: "Start planning" (one click, you are seated and the invite link is copied), "Join a room" (paste a link or type its number or name) and, on a device that has been here, "Back to …" with its last rooms.
 2. **The five claims**, each with the one fact that backs it.
 3. **A bento grid of features, every tile the real thing.** The reveal turning cards into the spread, a hand of each deck, a table growing from 3 to 30 seats, the insights of a seeded room, a locked room's invite, the room inside a ticket. The tiles run the product's own components on the simulator. No video and no screenshot that goes stale.
 4. **How a round works**, in four steps.
@@ -260,7 +269,7 @@ By search engines, and by the assistants people now ask instead. What the eviden
 | The crawlers are let in | Cloudflare blocks AI crawlers by default on new zones; search, user-triggered and training bots are separate | an explicit `robots.txt` that allows all three kinds, and the zone's bot settings checked at launch. A model trained on pages about the product can name it without searching |
 | Something worth citing | dated, sourced claims and original figures are what gets quoted | `/data`, the live statistics, comparison pages with dates and sources |
 | One topic, covered properly | practitioner consensus, thin evidence | one pillar guide with cluster pages and a glossary, written by a person, with the product's own numbers. No generated page farms: Google's policy on scaled content names them |
-| Structured data | a cheap baseline with no measured effect on assistants. FAQ and HowTo markup produce nothing in Google any more; FAQ results ended on 2026-05-07 | Organization, WebSite, SoftwareApplication, Article, BreadcrumbList. Questions and answers stay on the page as text, without the markup |
+| Structured data | a cheap baseline with no measured effect on assistants. FAQ markup no longer produces a rich result in Google (ended 2026-05-07), but it costs one component and other engines and parsers may still read it | Organization, WebSite, SoftwareApplication, Article, BreadcrumbList, and FAQPage on the pages that hold questions. The questions and answers are on the page as text first; the markup repeats them |
 | Speed | the thresholds stand: LCP 2.5 s, INP 200 ms, CLS 0.1 | static pages, islands on visibility, budgets in CI |
 | Bing | its index feeds Copilot, and IndexNow tells it about changes | Bing Webmaster Tools and an IndexNow ping on deploy |
 | `llms.txt` and Markdown twins | 97 % of published files were not fetched once in a month; no assistant is shown to read them | one generated `llms.txt` and a `.md` twin per content page, because they cost one build step. Nothing depends on them |
@@ -277,12 +286,12 @@ Visibility is measured with what is free: Search Console, Bing's AI performance 
 | Fibonacci 1 to 21 only | default deck, plus three more and custom, with `?` to abstain |
 | A round ends at the reveal | the team settles a final value, kept per topic |
 | Anyone with the link gets in | unchanged by default; a room can be locked with a code that travels in the link |
-| No owner of a room | a room key for its creator, needed only for the lock and for deleting the room |
-| A new room is a six-digit number | a new room gets a name of two words; v1's numbers and names keep working |
-| A room keeps its name for ever | a name is released six months after the last visit, or 30 days for a room that never revealed a card |
+| No owner of a room | unchanged: every player runs the room, including its lock and its name |
+| A new room is a six-digit number | unchanged. A custom name is now a booking, and numbers and names nobody uses return to the pool |
+| A room keeps its number and its name for ever | a number is released three months after the last visit, a booked name after six. A released one still opens until it is handed to a new room |
 | "Show votes" only when everyone has voted | reveal any time after the first vote, with a confirmation when seats are still thinking |
 | Auto flip exists on the server without a switch | a setting, with a cancellable countdown |
-| Spectator, kick, leave, rename | unchanged, subject to the facilitator lock when it is on |
+| Spectator, kick, leave, rename | unchanged |
 | Table or card view | Table or Grid, chosen automatically by size, switchable |
 | Elapsed-time counter | kept, plus the optional countdown |
 | Four sounds, on by default | five sounds, off for new users |

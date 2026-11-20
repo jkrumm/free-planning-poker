@@ -1,6 +1,6 @@
 # Research behind the v9 decisions
 
-Twenty-three cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19 and r18 to r23 from 2026-11-20, each batch after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
+Twenty-four cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19 and r18 to r24 from 2026-11-20, each batch after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
 
 | Run | Topic | Status | Grounded citations |
 |-|-|-|-|
@@ -27,5 +27,6 @@ Twenty-three cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 20
 | [r21](r21-freeze-v1-branch.md) | Freezing v1 on a maintenance branch | ok | 14/14 |
 | [r22](r22-invite-links-room-names.md) | Access codes in invite links, and reusing room names | partial | 16/19 |
 | [r23](r23-team-activities.md) | Team activities beyond planning poker | ok | 13/13 |
+| [r24](r24-i18n.md) | Languages from day one: catalogue, routing, workflow | ok | 20/20 |
 
 Version numbers are as read on the day of the run. Check a version with `agw web package <name>` before pinning it.

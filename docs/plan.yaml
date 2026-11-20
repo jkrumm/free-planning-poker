@@ -1,7 +1,8 @@
 # The v9 rewrite, run by the factory (software-factory docs/plan.md). The concept is docs/v9/; this file wins over docs/v9/PLAN.md.
 # Every row waits for v9-gate-1, the owner's verdict on the concept (an Issue filed by hand with checkpoint gate: no default verdict).
-# Stage 1 (the spine, with Umami on v1, the freeze of v1 and the arena's harness), the four rows that open stage 2 and the three planning rows
-# are written out. Stages 2 to 4 are written by v9-plan-table, v9-plan-site and v9-plan-launch; their drafts are in docs/v9/PLAN.md.
+# Stage 1 (the spine, with Umami on v1, the freeze of v1, the setup for agents and the arena's harness), the two rows that open stage 2
+# (v9-ui-foundation, v9-table-pick) and the three planning rows are written out. The arena's entries are not rows: the owner runs them
+# in sessions of his own (ruling of 2026-11-20). Stages 2 to 4 are written by v9-plan-table, v9-plan-site and v9-plan-launch; their drafts are in docs/v9/PLAN.md.
 # No row carries checkpoint: spec. The gates are v9-gate-1 and v9-table-pick here, and three more that the planning rows write.
 version: 1
 rows:
@@ -79,7 +80,7 @@ rows:
         5. CI as docs/v9/ENGINEERING.md section CI describes: one workflow, a lanes job that reads .github/lanes (the lanes app and site) and the diff (weatherorb's .github/lanes and lanes.sh are the working example; the Makefile reads the same file), the job check, and a final job ci that always runs and fails when a needed job failed or was cancelled. No paths filter on the workflow itself. Concurrency cancels superseded runs on pull requests only. Hosted runners on ubuntu-24.04, actions and Bun pinned. The jobs image, e2e, e2e-report and site are added by their rows. Make ci the only required check of master's branch protection.
         6. scripts/boundaries.ts enforces the repo map's arrows and the classes pure, adapter and shell of section What a script enforces (software-factory's scripts/boundaries.ts is the working example). It also refuses an import of effect or @effect/* outside apps/api/src/app, apps/api/src/db and apps/api/src/jobs, and any import under effect/unstable. It runs in make check-fast.
         7. Measure bun install --frozen-lockfile on a hosted runner with and without a restored cache and keep whichever is faster; record both numbers.
-        8. AGENTS.md is written new, under 12,000 bytes: what the repo is, the repo map as one table, the check commands, what a lead must know before its first edit (packages/room-core is pure, where Elysia and Effect may be imported, tests take a free port and a private database, agents start no dev server, v1 is read with git show origin/v1:<path>), and shipping. README.md says what the product is, links the live site, and states that master is the rewrite in progress and v1 is on the branch v1; its full version comes in stage 3.
+        8. AGENTS.md is written new and short, under 12,000 bytes (v9-agent-setup, the next row, completes the setup for agents): what the repo is, the repo map as one table, the check commands, what a lead must know before its first edit (packages/room-core is pure, where Elysia and Effect may be imported, tests take a free port and a private database, agents start no dev server, v1 is read with git show origin/v1:<path>), and shipping. README.md says what the product is, links the live site, and states that master is the rewrite in progress and v1 is on the branch v1; its full version comes in stage 3.
         9. Ports for local development are 7738 (site), 7739 (room app), 7740 (API); add bun run dev only as far as the API exists.
         10. project.yaml: checks { fast: make check-fast, full: make check, ci: true }, budgets { fast: 60s } with the reason in a comment, a lane browser capped at 2 for rows that run Playwright, and the server test step declared so that the factory may run it on its step host (factory project schema has the exact keys; the step image has PostgreSQL 16). factory project check must pass.
         11. oxlint restricts imports of elysia and @elysia/* to apps/api/src/http and apps/api/src/ws.
@@ -95,6 +96,35 @@ rows:
       scope: |-
         No room logic beyond the decks. No database schema. No design system. Nothing on the branch v1.
 
+  - key: v9-agent-setup
+    title: 'The setup for agents: AGENTS.md, path-scoped rules, the pull request template and the README, proven by a cold read'
+    kind: docs
+    seat: {tier: opus, effort: high}
+    after: [v9-foundation]
+    after_needs: shipped
+    facts:
+      why: |-
+        The owner ruled on 2026-11-20 that the setup for agents and the factory must be thorough before any feature is built, and improved along the way. Every later row is built by a lead that starts cold and knows only what AGENTS.md, the rules and its facts tell it. v9-foundation wrote a short AGENTS.md beside the tooling; this row makes the setup complete and proves that a cold agent can work from it. An opus seat because every later lead inherits what is written here. The contract for the files is ~/SourceRoot/dotfiles/docs/agents-md.md and rules/writing-for-agents.md there; the content comes from docs/v9/ENGINEERING.md (all sections) and docs/v9/ARCHITECTURE.md (Invariants, Repo map, How a change happens).
+      what: |-
+        AGENTS.md (root), .claude/rules/*.md, .claude/settings.json, .github/pull_request_template.md, README.md, docs/README.md (an index of docs/ with one line per file), docs/development.md, docs/shipping.md, project.yaml. No CLAUDE.md anywhere.
+      change: |-
+        1. Root AGENTS.md, at most 12,000 bytes, holds what every task needs and nothing else: what the repo is in three lines; the repo map as one table with each module's class (pure, adapter, shell); the commands (install, check-fast, check, the test tiers) with their budgets; the eighteen invariants of docs/v9/ARCHITECTURE.md as one line each with a pointer; how a row ships; where v1 is read (git show origin/v1:<path>); what an agent never does here (start a dev server, listen on a fixed port, use a shared database, install by npm tag, add a visible string outside the message catalogue, import Effect or Elysia outside their folders).
+        2. Rules under .claude/rules, each with a paths: frontmatter so it loads only where it applies, each under 60 lines, each stating the rule, the reason and the check that enforces it: the pure core (decide, evolve, project; what may not be imported); a protocol change (schema, fixtures, protocol.md and the version in one pull request); Effect in the API's adapters and jobs; the transport adapter; tests (a free port, a private Postgres, no sleep, a failing seed is replayed before it is fixed); visible strings and languages; basalt-ui (a gap is filed upstream, never patched here); telemetry names and the content policy; migrations. A rule for a module that does not exist yet is still written: it is what the row that creates the module reads first.
+        3. Nested AGENTS.md files are not written here. The row that creates a module writes that module's AGENTS.md in the same pull request; state this in the root file and in the pull request template.
+        4. The loop that keeps the setup alive, stated in the root AGENTS.md: a lead that lost time to something the files did not say adds the missing line to the nearest AGENTS.md or rule in the same pull request; a lead that finds a rule wrong changes the rule and says so in the pull request; friction with the factory itself goes to factory signal file. A skill is added by the row that creates the loop it wraps (replaying a simulator seed, scoring an arena entry), not ahead of it.
+        5. .github/pull_request_template.md: what changed, the evidence (each acceptance line of the row with the command and its output), decisions taken where the facts left a choice, documents updated. No section for attribution.
+        6. .claude/settings.json without any ask rule: hard stops in deny (pushing to the branch v1, force-pushing master, reading production secrets).
+        7. README.md for a person who lands on the repository during the rewrite: what the product is, the live site, that master is the rewrite and v1 lives on the branch v1, how to run the checks, the licence. Its full version is a row of stage 3.
+        8. project.yaml reviewed against factory project schema: checks, steps with remote where the step host can run them, lanes, budgets, each with its reason in a comment.
+        9. The cold read. Start one subagent that gets no context but the repository path and these questions: which command must pass before a push and how long may it take; may packages/room-core import Effect or read the clock, and what stops it; where does a new visible string go; how is v1's code read; what does a pull request that changes a protocol frame contain; where does a test get its database; what do you do when basalt-ui lacks a component. Change the files until every answer is right and comes with the file it was read from, then repeat once with a fresh subagent. Put both sets of answers in the pull request.
+      acceptance: |-
+        - wc -c AGENTS.md prints at most 12000, and find . -name CLAUDE.md prints nothing.
+        - Every file under .claude/rules has a paths: frontmatter and at most 60 lines.
+        - The second cold read answers all seven questions correctly, each with its source file, and the answers are in the pull request.
+        - .claude/settings.json holds no ask rule.
+        - make check-fast and factory project check exit 0.
+      scope: |-
+        No product code and no change to the tooling v9-foundation built, beyond a fix this row's cold read shows to be needed. No nested AGENTS.md, no skill.
   - key: v9-dev-host
     title: 'Local doors for FPP v9: fpp-next.test with production''s path split, and a database fpp on the mini'
     repo: dotfiles
@@ -139,7 +169,7 @@ rows:
     title: 'Room core: the protocol with named activities, decide and evolve with topics and final values, the per-seat projection and the property that no vote leaks before the reveal'
     kind: feature
     seat: {tier: opus, effort: high}
-    after: [v9-foundation]
+    after: [v9-agent-setup]
     after_needs: shipped
     facts:
       why: |-
@@ -153,8 +183,8 @@ rows:
         4. Properties with fast-check over generated command sequences for 1 to 30 players and 0 to 20 spectators: (a) no projection for seat A contains seat B's value while the round is voting; (b) a second reveal changes nothing; (c) a vote that names another round id changes nothing; (d) a command with an id already applied changes nothing; (e) player and spectator counts never exceed their limits; (f) folding evolveView over the published events equals project; (g) a room has at most one active topic and every round's topic exists; (h) a decision exists only for a topic with a revealed round; (i) no result event contains a display name or a seat index; (j) check(state) holds after every step; (k) evolve never throws on an event that decide produced. Add one model-based test with fc.commands.
         5. Topics: the queue with topic.add, topic.update, topic.move, topic.remove and topic.next, at most 200. Every round belongs to a topic, an untitled one when none is named. Ids of topics and rounds are UUID v7 values taken from ctx. A topic carries title, url and the tracker reference (source, external id, key, site). A pure parser turns pasted lines into topics: a leading ticket key, a tracker link or plain text.
         6. Final value: the command poker.settle is accepted for a topic whose latest round is revealed and produces topic.decided; a unanimous reveal carries the decision in the same step; a later poker.settle corrects it. The value is the card's label and its number.
-        7. Roles: the flags facilitator and admin. With the facilitator lock on, only facilitators reveal, settle, move on and edit the queue. No command sets admin; the runtime grants it.
-        8. The result contract: round.revealed and topic.decided as section Built for what comes next shows them, built by one function each, returned in the persist effect and exported for clients.
+        7. Roles: player and spectator, and no other rank (section Room model, the paragraph Nobody owns a room). Every player may reveal, settle, move on, edit the queue, kick and change settings; a spectator may do none of these.
+        8. The result contract: poker.revealed and topic.decided as section Built for what comes next shows them, built by one function each, returned in the persist effect and exported for clients.
         9. Names and modules: every command and event type starts with its owner's name (poker., topic., seat., room.) as section Protocol lists them. The kernel (seats, roles, presence, settings, access, topics) and the activity poker are separate modules, and the view has an activity part with kind poker; no second activity and no registry is built. Value objects (Slug, SeatIndex, Card, Deck, TopicRef, AccessCode) are branded types whose schema is their only constructor. The package has the entry points /protocol, /view, /server and /sim of section How a change happens.
         10. docs/v9/protocol.md: every frame, command, event, rejection reason and close code, each with the fixture file as its example. From this row on it is the exact reference and docs/v9/ARCHITECTURE.md section Protocol is its summary; correct that summary where they differ.
       acceptance: |-
@@ -172,7 +202,7 @@ rows:
         No sockets, no server, no storage, no simulator, no React, no Effect. v1's protocol is read for reference with git show origin/v1:packages/shared/src/room.actions.ts.
 
   - key: v9-room-runtime
-    title: 'Room runtime behind ports (handshake, seat tokens, the lock, room key, resume, presence, limits) and the deterministic simulator that tests it'
+    title: 'Room runtime behind ports (handshake, seat tokens, the lock, resume, presence, limits) and the deterministic simulator that tests it'
     kind: feature
     seat: {tier: opus, effort: high}
     after: [v9-room-core]
@@ -184,7 +214,7 @@ rows:
         packages/room-core/src/runtime: createRoomRuntime(ports) and the port types (send to a connection, publish to a room, close with a code, clock, id source, room store, history, secrets, telemetry). packages/room-core/src/sim, exported as @fpp/room-core/sim: in-memory transport, seeded scheduler and clock, bots, invariant checks, a command-line entry. .github/workflows/nightly.yml. Tests.
       change: |-
         1. Runtime: hello and welcome with protocol version check (close 4001); a seat token is 32 random bytes from the id source, returned once and kept as a hash in room state (SHA-256 through the secrets port; nothing here needs a slow hash); resume by token and lastSeq answers with a full view; a token bucket per connection (burst 10, refill 5 per second), one fx per 2 s per seat, close 4008 on repeated violation; application ping every 25 s and a dead connection after 60 s of silence; presence active, away, reconnecting and gone, with a seat held 120 s after its socket is lost; the auto-reveal countdown with cancel; export and import of a room as a snapshot for the store port. Everything timed goes through the clock port.
-           Access: a hello without or with a wrong access code for a locked room is closed with 4005; ten wrong codes per minute per room and five per address, further ones refused for one minute without a comparison. The code is part of room state and of every seated seat's view, compared in constant time, and never sent to a connection that is not seated. A room key in hello is checked against its stored hash through the secrets port and sets the admin flag. A seat minted before the room's access epoch was raised is closed with 4004.
+           Access: a hello without or with a wrong access code for a locked room is closed with 4005; ten wrong codes per minute per room and five per IP address, further ones refused for one minute without a comparison. The code is part of room state and of every seated seat's view, compared in constant time, and never sent to a connection that is not seated. A seat minted before the room's access epoch was raised is closed with 4004.
            Reclaim: a hello without a token whose name equals a seat that is reconnecting or gone takes that seat; it keeps its index and loses its flags and its hidden vote of the running round.
            The device id of hello is handed to the history port with a seat's first vote of a day and appears in no frame, snapshot field sent to a client, log line or span.
         2. Simulator: a network that drops, delays, duplicates and reorders frames and cuts connections, all from one seed; bots that behave as a quick voter, a lurker, a phone that sleeps, a spectator and a spammer; after every step the invariants: secrecy (property (a) of v9-room-core on every frame sent), seq strictly increasing per room, at most one vote per seat per round, every acknowledged vote present after a resume in the same round, limits never exceeded, no frame contains a device id, no frame to an unseated connection contains an access code, and a reclaimed seat never yields a vote cast before the reclaim.
@@ -193,7 +223,7 @@ rows:
       acceptance: |-
         - The simulator's 200-seed tier exits 0 in under 30 s; a test hashes one seed's trace twice and the hashes match.
         - A test resumes a seat at 1,000 generated points of a session and each welcome view equals project(state, seat) at that moment.
-        - Tests: a locked room closes a missing and a wrong access code with 4005 and refuses the sixth attempt of one address within a minute; a seated seat's view holds the code; a room key sets admin; a reclaim by name keeps the index and clears the hidden vote.
+        - Tests: a locked room closes a missing and a wrong access code with 4005 and refuses the sixth attempt of one address within a minute; a seated seat's view holds the code; a reclaim by name keeps the index and clears the hidden vote.
         - The pull request shows the simulator catching a seeded fault (the round id check on a vote switched off by a test flag) within 200 seeds.
         - nightly.yml has passed once by workflow dispatch with 10,000 seeds; its run time is in the pull request.
         - make check-fast stays under 60 s.
@@ -201,9 +231,9 @@ rows:
         No Elysia, no Bun.serve, no Postgres: only ports and in-memory adapters. No UI.
 
   - key: v9-db-schema
-    title: 'Postgres schema fpp with Drizzle: rooms and the name table, the unlogged snapshot table with its ownership epoch, topics, rounds, estimating days, daily rollups'
+    title: 'Postgres schema fpp with Drizzle: rooms and the address table, the unlogged snapshot table with its ownership epoch, topics, rounds, estimating days, daily rollups'
     kind: feature
-    after: [v9-foundation, v9-dev-host]
+    after: [v9-agent-setup, v9-dev-host]
     after_needs: shipped
     facts:
       why: |-
@@ -211,21 +241,21 @@ rows:
       what: |-
         apps/api/src/db (schema, client, repositories as plain functions; v9-api-persistence wraps them), apps/api/drizzle and its config, apps/api/test/db, a postgres:18 service on the check job of .github/workflows/ci.yml, apps/api/.env.tpl with local values only (no op:// reference, as every template of this repo).
       change: |-
-        1. Tables as in section Data model, in the Postgres schema fpp, the Drizzle journal in the same schema. room_snapshot is UNLOGGED. No table holds a display name, an IP address or a user agent. topic and round ids are uuid columns filled by the application (UUID v7), never by a sequence. visitor_day holds a day and a 16-byte keyed hash and nothing else. room_slug is keyed by the slug, with a partial unique index that allows one current slug per room; room has no slug column. The access code is a plain text column. The tables webhook, outbox and connector are not created.
-        2. Repositories behind the port types of packages/room-core: claim a room (epoch plus one, owner set, state returned), write a snapshot only where the epoch matches and report owned or lost, release, sweep expired snapshots; claim a name (a free one is inserted, a released one changes hands and the room that held it keeps its rows, a held one returns nothing), find which of a batch of candidates can be taken in one query, rename (the old slug becomes a former name released after 30 days), resolve a slug to its room for current and former names, push a name's release date forward at most once per day; upsert topics with their order and tracker reference; record a decision; insert a round with its votes in one transaction; list a room's topics with their rounds; load a room's open topics; record an estimating day and ignore a repeat; delete estimating days older than 13 months; upsert a daily statistic.
+        1. Tables as in section Data model, in the Postgres schema fpp, the Drizzle journal in the same schema. room_snapshot is UNLOGGED. No table holds a display name, an IP address or a user agent. topic and round ids are uuid columns filled by the application (UUID v7), never by a sequence. visitor_day holds a day and a 16-byte keyed hash and nothing else. room_slug is keyed by the slug, with a kind (number or name) and a partial unique index that allows one primary address per room; room has no slug column. The access code is a plain text column. The tables webhook, outbox and connector are not created.
+        2. Repositories behind the port types of packages/room-core: claim a room (epoch plus one, owner set, state returned), write a snapshot only where the epoch matches and report owned or lost, release, sweep expired snapshots; claim an address of kind number or name (a free one is inserted, a released one changes hands and the room that held it keeps its rows, a held one returns nothing), find which of a batch of candidates can be taken in one query (never used first, then the one released longest ago), book or change a room's name (the address it replaces stays valid for 30 days), resolve an address to its room and to the room's primary address, push an address's release date forward at most once per day; upsert topics with their order and tracker reference; record a decision; insert a round with its votes in one transaction; list a room's topics with their rounds; load a room's open topics; record an estimating day and ignore a repeat; delete estimating days older than 13 months; upsert a daily statistic.
         3. Drizzle 0.45.x pinned exactly, not the 1.0 release candidate. Driver: try drizzle-orm/bun-sql on the pinned Bun; keep it if the repository tests pass 20 runs in a row, else use the postgres driver; record the result.
         4. Tests start a private Postgres cluster per run with the helper of v9-foundation, so parallel leads never share a database; CI uses the postgres:18 service. The schema uses nothing newer than PostgreSQL 16, because the factory's step image has 16 and production runs 18. The database fpp on the mini (dotfiles row v9-dev-host) is for bun run dev only.
         5. No statement deletes a room, a round or a vote by age.
       acceptance: |-
         - The migrate command creates the schema on an empty database and drizzle-kit's check reports no drift.
-        - Tests on real Postgres: two clients claim one room and get different epochs, and the stale one's conditional write changes no row; the sweep deletes expired snapshots only; a round and its votes are inserted together or not at all; importing the same tracker reference into a room twice leaves one topic; fifty concurrent claims of one free name yield exactly one owner, a held name is refused, and a released one changes hands while the previous room keeps its rounds and has no current slug; two estimating days of one device on one day leave one row; a query on pg_class shows room_snapshot with relpersistence u.
+        - Tests on real Postgres: two clients claim one room and get different epochs, and the stale one's conditional write changes no row; the sweep deletes expired snapshots only; a round and its votes are inserted together or not at all; importing the same tracker reference into a room twice leaves one topic; fifty concurrent claims of one free address yield exactly one owner, a held one is refused, and a released one changes hands while the previous room keeps its rounds; two estimating days of one device on one day leave one row; a query on pg_class shows room_snapshot with relpersistence u.
         - The check job of ci.yml runs these tests against a postgres:18 service, and they pass locally on the PostgreSQL 16 binaries.
         - make check passes.
       scope: |-
         No HTTP route, no WebSocket, no Effect, no importer from MariaDB (stage 3). v1's schema is read with git show origin/v1:packages/db/src/schema.ts.
 
   - key: v9-api-ws
-    title: 'Room server: the transport bake-off between Elysia 2 and Bun''s native handler, then the WebSocket endpoint over the room runtime with origin check, payload cap and close codes'
+    title: 'Room server: the transport bake-off between Elysia 2, Bun''s native handler and Effect''s socket server, then the WebSocket endpoint over the room runtime with origin check, payload cap and close codes'
     kind: feature
     seat: {tier: opus, effort: high}
     after: [v9-room-runtime]
@@ -234,14 +264,14 @@ rows:
       why: |-
         The runtime needs its production transport. v1's endpoint takes room, user id and name from the query string and trusts them; v9's accepts only the protocol of docs/v9/protocol.md and refuses the rest at the edge of the process. Which WebSocket path carries the rooms is decided here by measurement, not by preference (the owner asked on 2026-11-20 for a proof before the choice). Contract: docs/v9/ARCHITECTURE.md sections Protocol and Server (the candidate table); Bun and Elysia specifics in research/r15-elysia-2.md (read it whole: Elysia 2 is a release candidate, by the owner's ruling), r05-elysia-bun-backend.md sections 3 and 8 and r02-netcode-patterns.md sections 8 and 9.
       what: |-
-        apps/api/src/ws (two adapters of the transport port while the row runs, one when it ends), apps/api/src/app, apps/api/test/contract (the transport contract suite), docs/v9/evidence/transport.md (the bake-off). In-memory adapters for store and history until v9-api-persistence.
+        apps/api/src/ws (three adapters of the transport port while the row runs, one when it ends), apps/api/src/app, apps/api/test/contract (the transport contract suite), docs/v9/evidence/transport.md (the bake-off). In-memory adapters for store and history until v9-api-persistence.
       change: |-
         1. /api/ws/<slug>: before the upgrade check the Origin header against an allowlist from the environment (403 otherwise) and the slug, taken from the path, against the rule of section Room model. The protocol version is read from hello; no subprotocol is used.
         2. Bun options set on purpose: maximum payload 16 KB, per-message deflate off, an explicit idle timeout above the 25 s application ping, a backpressure limit of 256 KB with close on reaching it.
         3. One pub/sub topic per room for events; frames validated with the schemas of @fpp/room-core; an invalid frame is answered with a rejection and counted against the connection's bucket.
         4. The runtime's clock is driven by one timer in the adapter; no other timer exists in apps/api/src/ws.
-        5. Build both adapters of the transport port, each in one file: Elysia 2's websocket() plugin, and Bun.serve's websocket handler beside Elysia's fetch. In the Elysia adapter key every connection by ws.id and never by the socket object, validate outgoing frames in the adapter and set no response schema on the socket, send JSON objects only (open reports 1933, 2017, 1716 and 1911 in research/r15-elysia-2.md).
-        6. The bake-off. Run against each adapter: the acceptance tests below (the transport contract suite); a slow consumer (one client stops reading while 1,000 events are published: it is closed at the backpressure limit and no other seat is delayed); a burst of 2,000 sockets in 200 rooms that vote and reveal. Record per adapter in docs/v9/evidence/transport.md: the suite's result with any failing case, median and 99th percentile from command to last fan-out, peak memory, lines of adapter code, upstream reports hit. Keep the adapter that passes the suite; if both pass, the lower 99th percentile; within 10 % of each other, Bun's native handler, because it is the documented surface with no release-candidate code on the hot path. Delete the other adapter. Elysia keeps the HTTP routes in both outcomes. Effect's socket server is not a candidate; section Server gives the reasons.
+        5. Build three adapters of the transport port, each in one file: Elysia 2's websocket() plugin; Bun.serve's websocket handler beside Elysia's fetch; and Effect 4's socket server on Bun, from its stable modules only and nothing under effect/unstable (research/r18-effect.md says what to expect: no publish to a topic, no backpressure codes, the open report 10607 on inbound buffering). The runtime is Bun and the HTTP framework Elysia 2 in every outcome (owner ruling of 2026-11-20). In the Elysia adapter key every connection by ws.id and never by the socket object, validate outgoing frames in the adapter and set no response schema on the socket, send JSON objects only (open reports 1933, 2017, 1716 and 1911 in research/r15-elysia-2.md).
+        6. The bake-off. Run against each of the three adapters: the acceptance tests below (the transport contract suite); a slow consumer (one client stops reading while 1,000 events are published: it is closed at the backpressure limit and no other seat is delayed); a burst of 2,000 sockets in 200 rooms that vote and reveal. Record per adapter in docs/v9/evidence/transport.md: the suite's result with any failing case, median and 99th percentile from command to last fan-out, peak memory, lines of adapter code, upstream reports hit. A candidate that fails a case of the suite, cannot bound the slow consumer's memory or loses a frame is out. Among the rest keep the lowest 99th percentile; within 10 % of each other keep Elysia 2, because one framework for HTTP and sockets is the owner's preference. Delete the other adapters. Elysia keeps the HTTP routes in every outcome. If Effect's adapter wins, add apps/api/src/ws to the folders where the boundaries script and oxlint allow effect, in this row.
         7. make check runs the contract suite from now on, and every later bump of Bun or Elysia must pass it.
       acceptance: |-
         All with real sockets on an ephemeral port, under bun test:
@@ -250,36 +280,36 @@ rows:
         - A client that drops and resumes with its token keeps its seat index and receives the current view.
         - 30 players join; the 31st is refused as a player and accepted as a spectator.
         - A locked room closes a wrong access code with 4005 and seats the right one.
-        - docs/v9/evidence/transport.md holds the table for both adapters and names the winner; the losing adapter is not in the tree; docs/v9/ARCHITECTURE.md section Server states the outcome.
+        - docs/v9/evidence/transport.md holds the table for all three adapters and names the winner; the losing adapters are not in the tree; docs/v9/ARCHITECTURE.md section Server states the outcome.
         - make check passes.
       scope: |-
         No Postgres, no drain or handoff, no HTTP route beyond health and version, no telemetry beyond the port.
 
   - key: v9-api-persistence
-    title: 'Rooms survive a restart: the Postgres store on Effect with epoch fencing, topics and results written through, the fault tests, and the room, name, lock and key routes'
+    title: 'Rooms survive a restart: the Postgres store on Effect with epoch fencing, topics and results written through, the fault tests, and the routes for rooms, numbers, names and the lock'
     kind: feature
     seat: {tier: opus, effort: high}
     after: [v9-api-ws, v9-db-schema]
     after_needs: shipped
     facts:
       why: |-
-        With in-memory adapters a restart loses every room. v1 writes snapshots to Valkey with a six-hour lifetime; v9 writes them to Postgres, where the same statement that loads a room also takes ownership of it, which is what makes two overlapping server versions safe (docs/v9/ARCHITECTURE.md invariants 12 and 14, sections Server, Data model and HTTP API). The lock, the names and the room key ship with 9.0.0, so their routes are here. This row is also the first to use Effect: the store is where code waits on something that fails (section Server, the paragraph on Effect; docs/v9/research/r18-effect.md). An opus seat because the retry, outage and shutdown behaviour written here is the pattern every later adapter copies.
+        With in-memory adapters a restart loses every room. v1 writes snapshots to Valkey with a six-hour lifetime; v9 writes them to Postgres, where the same statement that loads a room also takes ownership of it, which is what makes two overlapping server versions safe (docs/v9/ARCHITECTURE.md invariants 12 and 14, sections Server, Data model and HTTP API). The lock, the room numbers and the booked names ship with 9.0.0, so their routes are here. This row is also the first to use Effect: the store is where code waits on something that fails (section Server, the paragraph on Effect; docs/v9/research/r18-effect.md). An opus seat because the retry, outage and shutdown behaviour written here is the pattern every later adapter copies.
       what: |-
-        apps/api/src/app (the composition root), apps/api/src/db (the store and history adapters as Effect programs behind the plain port interfaces of packages/room-core), apps/api/src/jobs (the expiry job), the secrets port (random bytes and SHA-256), apps/api/src/http (routes POST /api/rooms, GET /api/rooms/:slug, PUT /api/rooms/:slug/access, PUT /api/rooms/:slug/name, POST /api/rooms/:slug/key and DELETE /api/rooms/:slug with Eden types exported for clients), the word lists for names and access codes in packages/room-core, apps/api/test.
+        apps/api/src/app (the composition root), apps/api/src/db (the store and history adapters as Effect programs behind the plain port interfaces of packages/room-core), apps/api/src/jobs (the expiry job), the secrets port (random bytes and SHA-256), apps/api/src/http (routes POST /api/rooms, GET /api/rooms/:slug, PUT /api/rooms/:slug/access, PUT /api/rooms/:slug/name with Eden types exported for clients), the alphabet and generator for access codes in packages/room-core, apps/api/test.
       change: |-
         0. Effect 4, one exact version (check it with agw web package), nothing from effect/unstable. Load the library's guidance for version 4 before writing: code written for 3.x does not compile against 4. The adapters expose the port interfaces as plain functions that return promises; inside they are Effect programs: the debounced snapshot writer, retries with exponential backoff and jitter on connection errors, the wait during an outage, and release through a scope on shutdown. Wrap the repositories of v9-db-schema with Effect.tryPromise unless Drizzle's own Effect integration works with the pinned versions; record which. The runtime, the simulator and packages/room-core import no Effect.
         1. A room is loaded on its first join by the claim statement; snapshots are written 250 ms after the last event and at once on request; a conditional write that reports lost closes that room's sockets with 4002 and drops the room from memory.
         2. A reveal writes one round row and one round_vote row per voting seat. Queue changes and decisions are written when they happen, one transaction per event. A seat's first vote of a day records an estimating day from its device id, as HMAC-SHA256 with a server secret, 16 bytes kept. A room without a live snapshot starts from its row and its open topics.
         3. A live snapshot expires 6 hours after the room's last event; the hourly job sweeps snapshots. No job deletes a room, a round or a vote by age. With Postgres away, rooms play on from memory, writes are retried, the health route reports degraded, and POST /api/rooms answers a typed 503.
-        4. Names (section Room model). POST /api/rooms without a name draws eight candidates of two words and claims the first that is free or released; with a name it claims that name if it is free or released and answers a typed 409 if it is held. It returns the room key once and stores only its hash. GET /api/rooms/:slug answers free, held or released, the access mode and the room's creation time; for an open room also its display name, settings and seat counts; never a participant's name, a vote or the access code. Opening a room that exists joins it, released or not, and pushes its name's release date forward: 30 days while the room has no revealed round, six months once it has, at most one write per room and day. PUT name renames for a caller with the room key or a seat that may run the round; the old name stays a former name for 30 days and resolves to the room. The word lists are curated English words without offensive or ambiguous entries: about 1,000 adjectives and 2,000 nouns for names, 2,048 short words for codes.
-        5. Access: PUT locks (the server generates three words), unlocks or replaces the code, stored readable, and on request raises access_epoch, after which every seat minted before is closed with 4004; the room hears of the change as an event that carries the code to every seated seat. POST key mints the key of a room that has none for a caller who holds a seat of it, and the room says who did. DELETE removes a room with its history. Seat secrets and the room key arrive in the Authorization header, never in a query string.
+        4. Addresses (section Room model, the paragraph and table on numbers and names). POST /api/rooms draws eight random six-digit numbers and claims the one that was never used, else the one released longest ago; if none of the eight can be taken it draws again, and after three draws answers a typed 503 and counts it in a metric. With a name in the request it also books that name if it is free or released, and answers a typed 409 if it is held. A name has 3 to 30 characters of a-z, 0-9 and the hyphen with at least one letter, so a name is never mistaken for a number. GET /api/rooms/:slug answers free, held or released, the access mode and the room's creation time; for an open room also its display name, settings and seat counts; never a participant's name, a vote or the access code. Opening a room that exists joins it, released or not, and pushes the release date of the address used forward, at most one write per room and day: three months for a number, six months for a name. PUT name books a name for the room or changes it, for a caller with a player's seat in that room; the address it replaces (the number, or the previous name) stays valid for 30 days and resolves to the room, and every address of a room that is not its primary one answers with the primary one so the client can correct the URL. The hold periods and the number of digits are named constants in one file.
+        5. Access: PUT locks with the code the caller sends (4 to 32 characters) or, when none is sent, with a generated one (six characters from the 31 letters and digits that cannot be mistaken for each other), unlocks or replaces the code, for a caller with a player's seat in that room. The code is stored readable, and on request the call raises access_epoch, after which every seat minted before is closed with 4004; the room hears of the change as an event that carries the code to every seated seat. There is no room key, no admin and no route that deletes a room (owner ruling of 2026-11-20). Seat secrets arrive in the Authorization header, never in a query string.
       acceptance: |-
         - A test plays a round up to three hidden votes, kills the API process with SIGKILL after the snapshot window, starts it again, resumes the three seats, reveals, and sees all three values.
         - A test runs two API processes on one database: after the second claims a room, the first's next write reports lost and its sockets for that room close with 4002 within 1 s.
         - After a reveal the database holds exactly one new round row and one round_vote row per voter.
         - A queue of three topics and one decided value survive the deletion of the room's snapshot row.
         - With a lock set, GET answers the name's state, the access mode and the creation time only; a join without the code closes with 4005, with it is seated, and after a replacement with sign-out the old seat token gets 4004.
-        - POST /api/rooms returns the key once; POST key on a room that has one is a typed 409; PUT access and DELETE without the key are a typed 403.
+        - PUT access and PUT name without a player's seat of that room are a typed 403, and so with a spectator's seat; a room locked with a typed code and one locked with a generated code both open with the code in hello.
         - After a device votes twice on one day visitor_day holds one row for it, and the stored value is not the device id.
         - POST /api/rooms twice with one name: the second is a typed 409 while the name is held; once the name's release date has passed it creates a new room, and the first room keeps its rounds. A name that breaks the rule is a typed 400. A renamed room answers under its old name for 30 days.
         - Fault tests: Postgres is stopped for 60 s in the middle of a round; every command is acknowledged, the round is revealed, and after Postgres returns the round row, its votes and the latest snapshot are there. During the outage POST /api/rooms answers 503 and the health route reports degraded.
@@ -347,7 +377,7 @@ rows:
         3. Every command gets an id; the own vote is shown as pending until acknowledged; after a resume an unacknowledged vote is sent again with its id, and the own vote is re-asserted when the welcome view of the same round lacks it.
         4. A command-line entry, bun run bots, seats simulator bots in a real room through this client (flags for room, seat count, behaviour and speed), so one person can fill a local table (docs/v9/ENGINEERING.md section The development loop).
         5. Storage keys under fpp:v9: as in section Client, each value with a schema version. On first run read v1's keys username, isPlaySound, isNotificationsEnabled, preferCardView, recentRoom and userId once (git show origin/v1:apps/web/src/store/local-storage.store.ts shows their shapes) and write the new ones; v1's userId becomes the device id, a device without one gets a random one, v1's recentRoom becomes the first entry of recent, and no v1 key is deleted.
-        6. hello carries the device id, the room key when this device holds one for the room, and the access code from the link's fragment or from the room's entry in recent. Close 4005 ends in the status locked until a code is supplied. recent keeps per room its name, its creation time, its access code and whether it is pinned; before hello the client compares the creation time GET /api/rooms/:slug reports with the stored one and reports the status changed-hands when they differ, so the interface can ask before it seats anyone. A key received from POST /api/rooms or from a link's fragment is kept under key:<slug>.
+        6. hello carries the device id and the access code from the link's fragment or from the room's entry in recent; a code that opened the room is written to recent at once, so a later visit without the fragment needs no question. Close 4005 ends in the status locked until a code is supplied. recent keeps per room its address, its display name, its creation time, its access code and whether it is pinned; before hello the client compares the creation time GET /api/rooms/:slug reports with the stored one and reports the status changed-hands when they differ, so the interface can ask before it seats anyone.
       acceptance: |-
         - Against the simulator's lossy transport, 500 seeds of connect, vote, drop and resume end with the client's view equal to the server's projection.
         - With a fake clock: a gap of 2 s never reports reconnecting, a gap of 4 s does; 4001 ends in reload-required, 4003 in kicked with no reconnect, 4004 in a fresh join, 4005 in locked and then, with the code, in live; a room whose creation time differs from the stored one ends in changed-hands before any hello.
@@ -371,15 +401,17 @@ rows:
       change: |-
         1. Routes /room (create or join, recent rooms), /room/new (creates a room through POST /api/rooms and replaces the URL), /room/$slug. Assets are built under /_room/ with hashed names.
         2. The API answers /room and /room/* with the app shell and /_room/* with the assets, cached as immutable; the shell is never cached.
-        3. /room/$slug in semantic HTML and no styling system: a name field, the seat list with each seat's state, the deck as buttons, clear, reveal with its countdown and cancel, the final value as a row of buttons after a reveal, re-vote, next topic, the topic queue (add by paste, rename, reorder, remove), become spectator or player, kick, rename, leave, the settings auto reveal and facilitator lock, a field for the access code when the room asks for one, the code and the invite link that carries it for every seated seat, for a seat with the admin flag the lock and the room key, the connection status as text. One hook, useRoom(slug), binds @fpp/room-client.
+        3. /room/$slug in semantic HTML and no styling system: a name field, the seat list with each seat's state, the deck as buttons, clear, reveal with its countdown and cancel, the final value as a row of buttons after a reveal, re-vote, next topic, the topic queue (add by paste, rename, reorder, remove), become spectator or player, kick, rename, leave, the setting auto reveal, locking the room with a typed or a generated password and unlocking it, booking a name, a field for the password when the room asks for one, the password and the invite link that carries it for every seated seat, the connection status as text. One hook, useRoom(slug), binds @fpp/room-client.
         4. Every interactive element and every seat carries a data-testid named in docs/v9/UX.md's words (seat, card, reveal, final-value, next-topic, topic, topic-queue, access-code, invite-link). Write the list to e2e/TESTIDS.md: stage 2 keeps these ids.
         5. No design decisions: no colours, no layout beyond source order, no animation, no basalt-ui, no Tailwind.
+        6. Languages from the first screen (docs/v9/ARCHITECTURE.md invariant 18 and section Client, the paragraph Languages; docs/v9/research/r24-i18n.md). Every visible string of the app, placeholders and accessible names included, comes from one message catalogue with English and German. First the spike: wire Paraglide JS (pinned exactly, version checked with agw web package) into this app, build, and record the entry's gzip bytes with zero, ten and all messages and both languages; if the entry cannot stay inside its budget, if a language cannot be loaded as its own chunk, or if the tool fails on Bun and Vite as this repo uses them, use Lingui 6 and record why. The catalogue lives in a package of its own (packages/i18n or the name the tool wants) so the site can read it later. The language is the stored choice (prefs.language), else the first match of navigator.languages, else English; a switch in the plain room changes it without a reload; no URL carries it. Counts use plural messages, numbers and dates use Intl. A check in make check-fast fails on literal text in JSX and on a message key missing in one language: an existing lint rule if oxlint has one, else a script.
       acceptance: |-
         - The build writes apps/room/dist; a test starts the API and gets the shell at /room/abc, a 200 with a cache-control of immutable for a hashed file under /_room/, and no-cache for the shell.
         - A test under bun with a DOM implementation, or one Playwright smoke if v9-e2e has not merged, seats two clients, votes and reveals.
         - The entry JavaScript of this plain room is at most 130 kB gzip (the finished room's budget is 180 kB); the number is in the pull request.
         - rg finds no import of basalt-ui, tailwindcss or a CSS framework under apps/room.
         - make check passes.
+        - The plain room runs in English and in German, switched in place; a planted literal string in JSX and a planted key missing in German each fail make check-fast; the pull request holds the spike's byte table and names the catalogue tool that stayed.
       scope: |-
         No look, no PWA, no embed mode, no telemetry in the browser, no marketing page.
 
@@ -399,7 +431,7 @@ rows:
         - make v9-up brings the stack up from a clean checkout; /api/health answers 200 and /room/x returns the shell; make v9-down removes it.
         - docker inspect shows a non-root user; a SIGTERM stops the container inside 20 s with exit code 0.
         - The compressed image size is in the pull request (aim: under 150 MB).
-        - The image job runs on a pull request in lane v9 and its warm and cold build times are in the pull request.
+        - The image job runs on a pull request in lane app and its warm and cold build times are in the pull request.
         - make check passes.
       scope: |-
         No push to a registry and no rollout (v9-next-deploy). Nothing on the branch v1 changes.
@@ -419,19 +451,19 @@ rows:
         Tests, each in its own room, selecting by the ids of e2e/TESTIDS.md and by role:
         1. Three seats: vote, and before the reveal no page's DOM and no WebSocket frame received by another seat (captured with the page's websocket events) contains a vote value; reveal shows all values to all.
         2. Re-vote clears the cards and keeps the topic; a spectator does not hold up auto reveal; the countdown can be cancelled.
-        3. Kick, rename, leave; the facilitator lock stops a non-facilitator's reveal.
+        3. Kick, rename, leave; a spectator cannot reveal.
         4. A seat reloads mid-round and returns to the same seat with its vote.
         5. The API container is replaced mid-round (stop with SIGTERM, start a new one on the same database): every seat resumes and the reveal shows every vote.
         6. Thirty players in one room vote and reveal.
         7. A 390 by 844 viewport completes a round.
         8. Final value: a unanimous reveal shows it without a click; after a split reveal one seat sets it, every seat sees it, and it is in the summary; a pasted queue of three topics is worked through in order.
-        9. A locked room: the creator locks the room; the invite link carries the code in its fragment and seats a second context without a prompt; a third context that opens the bare room link is refused without the code and with a wrong one and seated with the right one; after a reload it is not asked again.
+        9. A locked room: a player locks the room; the invite link carries the code in its fragment and seats a second context without a prompt; a third context that opens the bare room link is refused without the code and with a wrong one and seated with the right one; after a reload it is not asked again.
         A subset tagged smoke runs against any base URL (make e2e-beta), for the beta host.
       acceptance: |-
         - The suite passes five CI runs in a row with no retry used; the run numbers are in the pull request.
         - CI wall time for the suite is at most 6 minutes.
         - Test 1 fails against a build whose projection leaks a value (shown once in the pull request).
-        - A pull request in lane v9 runs the suite and the gate job ci waits for it.
+        - A pull request in lane app runs the suite and the gate job ci waits for it.
       scope: |-
         Chromium only; other engines and screenshots come in stage 2. No test against production.
 
@@ -511,7 +543,7 @@ rows:
     after_needs: shipped
     facts:
       why: |-
-        How the table looks and moves is what sets v9 apart, and the owner ruled on 2026-11-20 that it is found by competition: several entries, built by different models from different briefs, measured on one harness, and he picks the pieces (docs/v9/UX.md section The table arena). The harness needs no design system, so it is built beside the spine and is ready when basalt-ui 3 is. Afterwards it stays as the playground for every table state. An opus seat because the contract and the scorecard decide what every entry can and cannot be.
+        How the table looks and moves is what sets v9 apart, and the owner ruled on 2026-11-20 that it is found by competition: several entries, built by different models from different briefs, measured on one harness, and he picks the pieces (docs/v9/UX.md section The table arena). The harness needs no design system, so it is built beside the spine and is ready when basalt-ui 3 is. The entries are not factory rows: the owner runs them in sessions of his own, with several directions and several labs' models, once v9-ui-foundation has shipped (ruling of 2026-11-20). So the brief and the harness must work for an agent that knows nothing else about this repository. Afterwards it stays as the playground for every table state. An opus seat because the contract and the scorecard decide what every entry can and cannot be.
       what: |-
         packages/table (package @fpp/table): the contract types and the scenario scripts only. apps/arena (package @fpp/arena): a Vite app with the gallery, the scenario runner and the compare mode. arena/entries/reference. e2e/arena (the scorecard run) and the Makefile targets arena and arena-score. docs/v9/TABLE-BRIEF.md.
       change: |-
@@ -559,70 +591,21 @@ rows:
       scope: |-
         No redesign of any screen. No change in basalt-ui's repo from here: a gap there is a factory Issue in basalt-ui (factory issue new --repo basalt-ui) with a minimal reproduction.
 
-  - key: v9-table-entry-a
-    title: 'Table entry A for the arena: a real card table, physical and warm'
-    kind: feature
-    seat: {tier: opus, effort: high}
-    lane: browser
-    after: [v9-ui-foundation, v9-table-arena]
-    after_needs: shipped
-    facts:
-      why: |-
-        The table is picked from several entries (docs/v9/UX.md section The table arena), and the entries are worth comparing only if they differ. This one takes the direction "a real card table under a lamp". An opus seat because this is design work judged by eye, with nothing to copy from.
-      what: |-
-        arena/entries/entry-a and nothing outside it.
-      change: |-
-        1. Read docs/v9/TABLE-BRIEF.md and build the entry it asks for, in this direction: a card table seen from above under a lamp. Felt with depth, cards that have weight and are dealt, slid and turned, seats as places at a table, a reveal that feels like hands being shown. Professional, never kitsch.
-        2. Use basalt-ui's skills, its motion tokens and its design reviewer. Look at your own work: after each pass take the scorecard's screenshots and recordings, read them, and change what does not hold. At least three such passes; the pull request says what each one changed.
-        3. Cover the hard cases on purpose: 30 seats, the 360 px phone, the split reveal, reduced motion, dark.
-        4. A gap in basalt-ui is filed there (docs/v9/ENGINEERING.md section Working with basalt-ui); the pull request names the Issues.
-      acceptance: |-
-        - make arena-score ENTRY=<this entry> exits 0: the floor passes.
-        - The pull request shows the end states at 5, 9 and 30 seats on the phone and the laptop container, links the two recordings of the reveal, and states the direction in one line.
-        - git diff against master touches only the entry's directory.
-        - make check passes.
-      scope: |-
-        One entry. No change to the contract, the scenarios, the scorecard or packages/table: a fault found there is reported on the Issue of v9-table-arena.
-
-  - key: v9-table-entry-b
-    title: 'Table entry B for the arena: paper and ink, flat and quiet, with motion doing the work'
-    kind: feature
-    seat: {tier: opus, effort: high}
-    lane: browser
-    after: [v9-ui-foundation, v9-table-arena]
-    after_needs: shipped
-    facts:
-      why: |-
-        The table is picked from several entries (docs/v9/UX.md section The table arena), and the entries are worth comparing only if they differ. This one takes the direction "paper and ink". An opus seat because this is design work judged by eye, with nothing to copy from.
-      what: |-
-        arena/entries/entry-b and nothing outside it.
-      change: |-
-        1. Read docs/v9/TABLE-BRIEF.md and build the entry it asks for, in this direction: flat, typographic and quiet. No felt and no imitation of materials: cards are sheets, hierarchy comes from type and space, and the game feel comes from motion alone: how a card lands, how the votes gather, how the spread forms. It should look like a tool a design team would ship.
-        2. Use basalt-ui's skills, its motion tokens and its design reviewer. Look at your own work: after each pass take the scorecard's screenshots and recordings, read them, and change what does not hold. At least three such passes; the pull request says what each one changed.
-        3. Cover the hard cases on purpose: 30 seats, the 360 px phone, the split reveal, reduced motion, dark.
-        4. A gap in basalt-ui is filed there (docs/v9/ENGINEERING.md section Working with basalt-ui); the pull request names the Issues.
-      acceptance: |-
-        - make arena-score ENTRY=<this entry> exits 0: the floor passes.
-        - The pull request shows the end states at 5, 9 and 30 seats on the phone and the laptop container, links the two recordings of the reveal, and states the direction in one line.
-        - git diff against master touches only the entry's directory.
-        - make check passes.
-      scope: |-
-        One entry. No change to the contract, the scenarios, the scorecard or packages/table: a fault found there is reported on the Issue of v9-table-arena.
-
   - key: v9-table-pick
     title: 'The table, picked: every arena entry scored side by side, the owner''s pick, then packages/table built from the picked pieces (gate)'
     kind: feature
     seat: {tier: opus, effort: high}
     checkpoint: gate
     lane: browser
-    after: [v9-table-entry-a, v9-table-entry-b]
+    after: [v9-table-arena, v9-ui-foundation]
     facts:
       why: |-
-        The owner picks the table (docs/v9/UX.md section The table arena). This is the second of the five stops of the whole plan and the one that sets the look of everything after it, so it is a gate with no default. Entries from other labs' models arrive as pull requests the owner starts himself; whatever is merged under arena/entries when this row runs takes part.
+        The owner picks the table (docs/v9/UX.md section The table arena). This is the second of the five stops of the whole plan and the one that sets the look of everything after it, so it is a gate with no default. The entries are made outside the factory: the owner starts them in sessions of his own, with as many directions and models as he likes, each as one directory and one pull request. Whatever is merged under arena/entries when he opens this gate takes part.
       what: |-
         arena/scores (every entry scored), the arena on the beta host, the Spec at docs/v9/evidence/table-pick.md, then packages/table (the picked table behind the arena's contract) with its tests.
       change: |-
-        1. Score every entry under arena/entries with make arena-score and make sure the arena on the beta host shows them all.
+        1. First: count the entries under arena/entries besides reference. With fewer than two, or while the Issue carries no note from the owner that the arena is closed, defer this Issue by seven days with factory issue defer and end the turn; repeat on each wake. The owner runs the arena when he chooses.
+        1a. Score every entry under arena/entries with make arena-score and make sure the arena on the beta host shows them all.
         2. The Spec for the owner: per entry its direction, three screenshots, a link into the compare mode on the beta host, and its numbers in one table; then your recommendation: whose table, whose reveal, whose cards and whose phone layout to take and what must change. He may answer with pieces from several entries. At most three open choices.
         3. After his verdict: build packages/table from the picked pieces behind the same contract. The layout is a pure function tested without a browser; every scenario's end state has a component test; the floor of the scorecard is a test. The entries stay in the arena, and the arena lists packages/table as the entry "table".
         4. basalt-ui's lint passes on packages/table with no rule switched off globally; a seam it needs is an Issue in basalt-ui.
@@ -663,7 +646,7 @@ rows:
     title: 'Plan stage 3, the marketing site, search, measurement and data, beside the spine'
     kind: docs
     seat: {tier: opus, effort: high}
-    after: [v9-foundation]
+    after: [v9-agent-setup]
     after_needs: shipped
     facts:
       why: |-
