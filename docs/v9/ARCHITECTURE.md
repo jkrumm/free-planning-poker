@@ -1,26 +1,28 @@
 # v9 architecture
 
-The technical contract of the rewrite that ships as release 9.0.0. It binds every file under the new directories listed in "Repo map". The directories of the current app (`apps/web`, `apps/server`, `packages/db`, `packages/shared`, `fpp-analytics`) are v1: they stay in production until the cutover and take fixes only. For v1 the root `AGENTS.md` governs; for v9 this file governs, `UX.md` says what the product does and `ENGINEERING.md` how code is written, checked and run. Why each choice was made, and what was rejected: `STRATEGY.md`. Evidence: `research/`.
+The technical contract of the rewrite that ships as release 9.0.0. It binds everything on `master` from the moment v1 is frozen: the current app moves to the branch `v1` and stays in production from there until the cutover, and `master` holds v9 only (`ENGINEERING.md`, "Where v1 lives"). `UX.md` says what the product does and `ENGINEERING.md` how code is written, checked and run. Why each choice was made, and what was rejected: `STRATEGY.md`. Evidence: `research/`.
 
 ## Invariants
 
 These cannot be retrofitted. A change to one is a plan change with the owner's verdict, never a side effect of a row.
 
 1. **One origin.** Marketing pages, the room app, the API and the WebSocket are served under `https://free-planning-poker.com`. Storage is per origin, so a second origin would split settings, seat tokens and the service worker.
-2. **Room URLs are `/room/<slug>`**, as in v1. Shared links and bookmarks keep working without a redirect.
+2. **Room URLs are `/room/<slug>`**, as in v1. Shared links and bookmarks keep working without a redirect. The access code of a locked room rides in the URL fragment, never in the path or the query.
 3. **The server is the only writer of room state.** Clients send commands; one pure reducer on the server decides.
 4. **A vote value leaves the server only after the reveal**, and before it only to the seat that cast it. This holds for every message, snapshot, log line, span and analytics event. One function builds each seat's view; nothing writes to a socket around it.
 5. **A seat is proven by a server-minted secret**, scoped to one room. It is the only credential a participant has. The anonymous device id that v1 already keeps is carried on for counting only: it reaches Postgres as a keyed hash in `visitor_day`, is never stored with a room, a round or a vote, never sent to another seat and never used to authorise anything.
 6. **Every server event carries the room's `seq`**; every command carries a client message id. Reconnect is "send my last `seq`, receive a snapshot".
 7. **The protocol version is negotiated at connect.** Changes are additive; clients ignore unknown fields and event types. A breaking change raises the version and old clients are told to reload.
 8. **Durable state and ephemeral events are separate classes.** Reactions and typing-like signals are never stored and never get a `seq`.
-9. **The reducer is pure.** Time, randomness and ids come in through its context argument. Nothing in `packages/room-core` reads a clock, a socket or the network.
+9. **The reducer is pure.** Time, randomness and ids come in through its context argument. Nothing in `packages/room-core` reads a clock, a socket or the network, and it imports no runtime library: no Effect, no framework.
 10. **Measurement sets no cookie and shows no banner.** Umami's cookieless script runs in the browser by the owner's ruling of 2026-11-19 and receives no identifier from us. Apart from the device id of invariant 5, nothing is stored on the device that the user did not ask for.
-11. **Telemetry carries no vote value, display name or room slug.** A room appears as its numeric id; a seat as its index.
+11. **Telemetry carries no vote value, display name, room name, topic title, tracker key or access code.** A room appears as its numeric id; a seat as its index.
 12. **One process owns a room at a time**, enforced by an epoch column in Postgres, not by routing.
 13. **The topic is the unit of estimation.** A round is one attempt at a topic, and the agreed value belongs to the topic. Topics and rounds carry ids minted by the reducer (UUID v7), so an event is published before it is stored and can be referenced from outside.
-14. **Access is decided when a seat is minted.** A room password is checked there, once; afterwards the seat secret is the credential. What outlives a session (the password, later webhooks and connectors) changes only with the room key, a second secret that is never a seat secret.
+14. **Access is decided when a seat is minted.** A locked room checks its access code there, once; afterwards the seat secret is the credential. The code keeps strangers out and is no secret among members: every seat sees it and every invite link carries it. What outlives a session (the lock, later webhooks and connectors) changes only with the room key, a second secret that is never a seat secret.
 15. **One result contract.** A revealed round and a decided topic each have one JSON shape, defined in `packages/room-core`. History rows, exports, embed messages and later webhooks carry that shape and no other.
+16. **Activities are namespaced.** Estimating is one activity, `poker`, and its commands, events and its part of the view carry that name. Seats, roles, presence, access and the topic queue belong to the room. A second activity adds a module and changes none of these.
+17. **One namespace for room names.** Every name a room has or had is one row of one table, keyed by the name. Finding a name, claiming a free one and taking over a released one are each a single statement.
 
 ## Topology
 
@@ -39,16 +41,17 @@ The API container serves the SPA it was built with, so client and server ship as
 
 ## Repo map
 
-Eight modules. The dependency arrows only point down this table.
+Nine modules. The dependency arrows only point down this table.
 
 | Path | Package | Holds | May import |
 |-|-|-|-|
 | `apps/site` | `@fpp/site` | Astro marketing site, content collections, the landing demo island | `@fpp/table`, `@fpp/room-core`, `@fpp/telemetry` |
 | `apps/room` | `@fpp/room` | Vite SPA: routes, room shell, settings, insights, PWA, embed mode | `@fpp/table`, `@fpp/room-client`, `@fpp/room-core`, `@fpp/telemetry` |
-| `apps/api` | `@fpp/api` | Elysia HTTP API, WebSocket room server, Postgres access, jobs, static serving of the SPA | `@fpp/room-core`, `@fpp/telemetry` |
+| `apps/api` | `@fpp/api` | Elysia HTTP API, WebSocket room server, Postgres access, jobs, static serving of the SPA. Effect is allowed in `src/app`, `src/db` and `src/jobs` only | `@fpp/room-core`, `@fpp/telemetry` |
+| `apps/arena` | `@fpp/arena` | The table arena, later the playground: every table entry side by side, driven by the simulator, with the scenario matrix and the scorecard (`UX.md`, "The table arena") | `@fpp/table`, `@fpp/room-core` |
 | `packages/table` | `@fpp/table` | The game surface as React components: seats, cards, reveal, results, motion, sound. Takes a room view and callbacks; knows no transport | `@fpp/room-core` (types) |
 | `packages/room-client` | `@fpp/room-client` | Headless client: connection state machine, pending commands, resume, storage of seat tokens. No React, no DOM beyond `WebSocket` and storage ports | `@fpp/room-core` |
-| `packages/room-core` | `@fpp/room-core` | Protocol schemas and types, the reducer, the per-seat projection, decks, the room runtime (handshake, seat tokens, resume, presence, limits) behind ports, and the deterministic simulator with bots (`@fpp/room-core/sim`) | nothing in the workspace |
+| `packages/room-core` | `@fpp/room-core` | Protocol schemas and types, the room kernel (seats, roles, presence, access, topics) and the activity `poker` as `decide`, `evolve` and `project`, decks, the room runtime (handshake, seat tokens, resume, presence, limits) behind ports, and the deterministic simulator with bots (`@fpp/room-core/sim`) | nothing in the workspace |
 | `packages/telemetry` | `@fpp/telemetry` | Attribute, event and metric names; the `recordError` and `recordEvent` facades for server and browser | nothing in the workspace |
 | `e2e` | `@fpp/e2e` | Playwright suite and fixtures against the built image | none at runtime |
 
@@ -62,6 +65,7 @@ Versions as read on 2026-11-18; a row that installs one checks it with `agw web 
 |-|-|-|
 | Runtime, package manager, unit test runner | Bun | 1.4.x, one exact pin for local, CI and image |
 | HTTP and WebSocket server | Elysia 2 with Eden Treaty for the typed HTTP client | `2.0.0-rc.3` exact, by the owner's ruling of 2026-11-19: 1.4 takes security fixes only, and a later move would touch every route and hook. Of the official plugins only `@elysia/eden` and `@elysia/opentelemetry`, at their `rc` tags. See "Server" for how the release candidate is contained |
+| I/O that can fail, in the API | Effect, in `apps/api`'s adapters and composition root only: the Postgres store, jobs, startup and drain, later the webhook relay and connectors | 4.1.x exact; nothing from `effect/unstable/*` |
 | Validation | Zod 4 for protocol frames in `packages/room-core`, Elysia's `t` (TypeBox 1.x) for HTTP routes. The SPA imports protocol types only and ships no validator | Zod 4.x |
 | Database | PostgreSQL on the shared VPS instance, schema `fpp` | 18 |
 | ORM and migrations | Drizzle | 0.45.x; the 1.0 line is a release candidate |
@@ -75,29 +79,32 @@ Versions as read on 2026-11-18; a row that installs one checks it with `agw web 
 | Property tests | fast-check | 4.10 |
 | Load | k6 with `k6/websockets` | 2.x |
 
-Not used, with the reason in one clause: Preact (Base UI and Motion run on it only through an unofficial compat path); TanStack Start (the room app has no server rendering to do and the marketing site needs content tooling Astro has); TanStack DB, Zero, ElectricSQL, SpacetimeDB, Yjs (they replicate rows or documents to clients, which is the opposite of invariant 4, or bring a second store); Turborepo (the whole fast tier of a repo this size is planned under 60 s without a task graph; revisit when `budgets.fast` is breached); Valkey for room snapshots (Postgres already gives the compare-and-set invariant 12 needs); a Python analytics service (rollup tables in Postgres replace it); `@hyperdx/browser` (it persists a session and offers replay, see "Measurement").
+Not used, with the reason in one clause: Preact (Base UI and Motion run on it only through an unofficial compat path); TanStack Start (the room app has no server rendering to do and the marketing site needs content tooling Astro has); TanStack DB, Zero, ElectricSQL, SpacetimeDB, Yjs (they replicate rows or documents to clients, which is the opposite of invariant 4, or bring a second store); Effect in the core, the protocol or the browser (a pure function gives a runtime nothing to manage, and the client would carry it); Effect's socket server and RPC (see "Server"); Turborepo (the whole fast tier of a repo this size is planned under 60 s without a task graph; revisit when `budgets.fast` is breached); Valkey for room snapshots (Postgres already gives the compare-and-set invariant 12 needs); a Python analytics service (rollup tables in Postgres replace it); `@hyperdx/browser` (it persists a session and offers replay, see "Measurement").
 
 ### basalt-ui
 
 basalt-ui 3.0.0 is not published on 2026-11-18 and its plan forbids installing an unpublished build. Stage 1 therefore builds everything that has no look: core, server, client, a plain HTML room, E2E, deploy. The first row of stage 2 installs basalt 3.x and starts only when npm serves it.
 
-basalt covers the chrome: dialogs, sheets, menus, forms, toasts, the settings and insights screens, charts through `basalt-ui/charts`. The game surface in `packages/table` is bespoke: it positions seats and cards from room state, which basalt's `primitive-bypass` lint denies outside its geometry seam. The table prototype row establishes how `packages/table` passes basalt's lint (an app composite, or a seam basalt adds) and files a signal to basalt-ui if it needs a change there. Colours come from basalt tokens through a small set of game tokens (felt, card face, card back, glow); no colour literal appears in a component.
+basalt covers the chrome: dialogs, sheets, menus, forms, toasts, the settings and insights screens, charts through `basalt-ui/charts`. The game surface in `packages/table` is bespoke: it positions seats and cards from room state, which basalt's `primitive-bypass` lint denies outside its geometry seam. The arena row establishes how a table entry passes basalt's lint (an app composite, or a seam basalt adds). Colours come from basalt tokens through a small set of game tokens (felt, card face, card back, glow); no colour literal appears in a component.
+
+A gap found in basalt-ui is filed in basalt-ui and fixed there, never patched here. `ENGINEERING.md`, "Working with basalt-ui", has the rule and the list of what v9 needs from 3.x.
 
 ## Room model
 
-A room has an id (bigint), a slug (2 to 30 characters of `a-z`, `0-9` and `-`; v1's 2 to 15 character names are valid slugs), a name, settings, an access mode, at most 30 players and at most 20 spectators. A player who finds the table full is offered a spectator seat.
+A room has an id (bigint), a name in its URL (the slug: 2 to 30 characters of `a-z`, `0-9` and `-`; v1's names and six-digit numbers are valid slugs), a display name, settings, an access mode, at most 30 players and at most 20 spectators. A player who finds the table full is offered a spectator seat.
 
 | Term | Meaning |
 |-|-|
 | Seat | One participant in one room: index, display name, avatar seed, role, presence, and in the current round either no vote, a hidden vote or a revealed value |
 | Role | `player`, `spectator`, plus the flags `facilitator` and `admin` |
-| Presence | `active`, `away` (tab hidden for 30 s), `reconnecting` (socket lost, seat held), `gone` (120 s after the socket was lost; the seat leaves the table but its token stays valid until the room expires) |
+| Presence | `active`, `away` (tab hidden for 30 s), `reconnecting` (socket lost, seat held), `gone` (120 s after the socket was lost; the seat leaves the table but its token stays valid until the room's live state expires) |
 | Topic | What is being estimated: a title, an optional link, an optional reference into a tracker (source, id, key, site), a place in the room's queue, a state (`queued`, `active`, `done`, `skipped`) and, once decided, the final value |
 | Round | One attempt at the active topic: `voting` → `revealed`. A re-vote starts the topic's next round; the next topic starts its own first round. A room that never names a topic still has one, untitled, per estimate |
 | Final value | The card the team settles on for a topic: a label and its number. A unanimous reveal sets it by itself; otherwise a player picks it from the result. It can be corrected for as long as the room is live |
 | Deck | Data, not code: an id and ordered cards, each with a label and a number or none (`?`, break). T-shirt sizes map onto the Fibonacci numbers (XS 1, S 2, M 3, L 5, XL 8, XXL 13), so the results of every deck compare |
 | Settings | deck, auto reveal, reveal countdown, facilitator lock, timer |
-| Access | `open` or `password`. The password is stored as an argon2id hash and checked when a seat is minted |
+| Access | `open` or `locked`. A locked room has an access code: three short words, generated, shown to every seat and carried in the fragment of every invite link. It is checked when a seat is minted |
+| Activity | What the room is doing. 9.0.0 has one, `poker`. Seats, roles, presence, access and the topic queue belong to the room and outlive any activity |
 | Room key | A secret minted with the room and shown to its creator once, as a link. Presenting it gives a seat the `admin` flag. Stored as a hash |
 
 Rules the reducer enforces:
@@ -105,12 +112,109 @@ Rules the reducer enforces:
 - A vote counts for the round id it names and is rejected for any other. It can change until the reveal and never after.
 - A reveal needs one vote. Auto reveal fires when every `active` player has voted and waits out the countdown, which any player can cancel.
 - With the facilitator lock off, every player may reveal, decide, move on, edit the queue, kick and change settings (v1's behaviour). With it on, only facilitators may. The seat that creates a room is its first facilitator and can pass the flag on.
-- `decide` is accepted for a topic whose latest round is revealed. A unanimous reveal carries the decision in the same step.
+- `poker.settle` is accepted for a topic whose latest round is revealed and produces `topic.decided`. A unanimous reveal carries the decision in the same step.
 - Moving on marks an undecided topic `done` without a value, or `skipped` if it never had a reveal. The queue holds at most 200 topics.
 
-**Admin is not the same as running a round.** The `admin` flag comes only from the room key and gates what outlives a session: the password, deleting the room, and later webhooks and connectors. In a default room nothing changes against v1: everyone runs the round, and the creator additionally sees the access settings. A room imported from v1 has no key; the first seated player who asks for one in the room's settings gets it, and the room says who did. An embedding host can keep the key for its users.
+**Admin is not the same as running a round.** The `admin` flag comes only from the room key and gates what outlives a session: the lock, deleting the room, and later webhooks and connectors. In a default room nothing changes against v1: everyone runs the round, and the creator additionally sees the access settings. A room imported from v1 has no key; the first seated player who asks for one in the room's settings gets it, and the room says who did. An embedding host can keep the key for its users.
 
 **A lost seat is taken back by name.** A cleared browser loses the seat secret, and Safari empties an embedded frame's storage between launches. Joining with the name of a seat that is `reconnecting` or `gone` gets that seat's place back: its index and its name. It does not get the seat's hidden vote of the running round or its `facilitator` and `admin` flags, and it receives a new secret. The seat secret stays the only proof of who someone is (invariant 5); a name returns a place at the table and nothing that was private or privileged.
+
+**The lock keeps strangers out; it is not a vault.** The owner ruled on 2026-11-20 that a protected room must be effortless to share and need not withstand an attacker. Hence:
+
+- The code is generated, three words from a list of 2,048 (33 bits). Nobody types a password they use elsewhere, so it can be stored readable and shown.
+- Everyone seated sees it, and every copied link and QR code carries it: `/room/team-alpha#amber-fox-lake`. The browser never sends a fragment, so the code reaches no access log, no referrer and no analytics event. The client sends it in `hello`.
+- A link without the fragment opens the table behind one field. Ten wrong codes per minute per room, five per address, then a minute's pause.
+- The admin can replace the code and choose whether the people already seated stay.
+
+**Names are held while a room is used and released afterwards.** A room nobody returns to must not keep a good name for ever, and v1 never frees one.
+
+| Rule | Value |
+|-|-|
+| A generated name | two words, `brave-otter`, from lists that give about two million names |
+| A chosen name | anything valid that is free or released |
+| Release of a room that never revealed a round | 30 days after its last visit |
+| Release of a room with history | six months after its last visit. Not three: a team that estimates once a quarter must find its room |
+| A renamed room's old name | stays as a former name and redirects for 30 days |
+
+Released does not mean deleted. Until somebody else asks for the name, the room opens as before, and opening it holds the name again. When a new room takes a released name, the old room loses the name and keeps its rows: its rounds stay in the statistics, and no URL reaches it any more. A device that remembers a room also remembers when that room was created; if the name has changed hands, it shows a notice before seating anyone at a stranger's table.
+
+The server needs no pool of free names. `room_slug` is keyed by the name, so one lookup says free, held or released. The generator draws eight candidates and asks once; the claim is one statement, so two teams never get the same name:
+
+```sql
+-- which of these generated names can be taken right now?
+SELECT c.slug
+FROM unnest($1::text[]) AS c(slug)
+LEFT JOIN fpp.room_slug s ON s.slug = c.slug
+WHERE s.slug IS NULL OR s.release_at < now();
+
+-- take one: a free name is inserted, a released one changes hands,
+-- a held one returns no row
+INSERT INTO fpp.room_slug (slug, room_id, kind, release_at)
+VALUES ($1, $2, 'current', now() + interval '30 days')
+ON CONFLICT (slug) DO UPDATE
+  SET room_id = EXCLUDED.room_id, kind = 'current', release_at = EXCLUDED.release_at
+  WHERE fpp.room_slug.release_at < now()
+RETURNING slug;
+```
+
+With 100,000 names held, one random candidate collides 5 % of the time and eight in a row practically never. The row that builds this proves the claim under concurrent requests (`research/r22-invite-links-room-names.md`).
+
+## How a change happens
+
+The room is one aggregate in the sense of domain-driven design: one consistency boundary, one writer, one step at a time. The vocabulary carries over; the building blocks are functions and plain data, not classes.
+
+| Domain-driven design | Here |
+|-|-|
+| Aggregate | the room: seats, the topic queue, the running round. Nothing outside it changes in the same step |
+| Command (use case) | an intent from one seat: `poker.vote`, `topic.add`. Its shape is validated at the edge; whether it may happen is judged against the room's state |
+| Domain event | a fact in the past tense: `poker.voted`, `poker.revealed`, `topic.decided`. Nothing else is published |
+| Invariant | enforced twice. `decide` refuses a command that would break a rule. `check(state)` asserts the whole state after every step in the tests and the simulator |
+| Value object | a branded type whose parser is its only constructor: `Slug`, `SeatIndex`, `Card`, `Deck`, `TopicRef`, `AccessCode`. Immutable, compared by value |
+| DTO | two shapes leave the server: the event, the same for every seat, and the view, built per seat. Between state and wire there is no mapping layer |
+| Repository | the room store port: claim, snapshot, release |
+
+Three pure functions in `packages/room-core` carry it:
+
+```ts
+decide(state, command, ctx): Event[] | Rejection // may this happen, and what follows?
+evolve(state, event): State                      // the only place state changes
+project(state, seat): View                       // what this seat may see
+```
+
+The client runs a fourth, `evolveView(view, event): View`. It applies the same events to its own view and needs a full view only at `welcome`.
+
+- **No classes**, because state is copied as it is into the snapshot and into the simulator's trace, and one function projects it onto the wire. Instances would need a mapper at each of those borders, and a mapper is where a hidden vote leaks. A branded type gives the guarantee that matters without the mapping: a `Card` enters the core only through its parser.
+- **Not on the client**, because a client that holds the room's state holds the hidden votes. The server decides everything. The client runs what needs no secret: the view, the layout, and optimism for its own vote.
+- **Shared and not shared** is decided by the package's four entry points:
+
+| Entry point | Holds | Runs in |
+|-|-|-|
+| `/protocol` | schemas, types, decks | server and every browser bundle |
+| `/view` | `evolveView`, selectors | the room app, the arena, the landing demo |
+| `/server` | `decide`, `evolve`, `project`, the runtime | the API, tests |
+| `/sim` | the simulator, bots, scenarios | tests, the arena and the landing demo, which play a room without a server |
+
+![One vote and one reveal, from the tap to every screen](diagrams/command-flow.svg)
+
+**Latency.** The seat that votes sees its card at once: the client marks it pending, settles it on `ack`, and takes it back on `nack` with the reason. Nothing else is optimistic. A reveal, a decision or a kick appears when its event arrives, so every screen changes in the same fan-out. The target is 100 ms from command to fan-out at the 99th percentile.
+
+**Races.** The room loop is synchronous: one command runs through `decide` and `evolve` to the end before the next starts. Commands can therefore only arrive in an order, and the rules say what each order means.
+
+| Situation | Outcome |
+|-|-|
+| A vote arrives after the reveal | `nack round_closed`: every command names its round |
+| Two people reveal at once | the first reveals; the second is acknowledged and changes nothing |
+| A vote changes during the countdown | accepted; the countdown runs on |
+| "Decide" and "vote again" cross | the first wins; the second names a round that has moved on and is refused |
+| A command is sent twice after a reconnect | the same `id` is answered again and applied once |
+| An event is missed | the client sees a gap in `seq`, reconnects, and gets a fresh view in `welcome` |
+| Two server versions run during a deploy | one owns the room, by the epoch in Postgres (invariant 12) |
+
+**Failures** come in three kinds and are never mixed.
+
+- **A refusal is a value.** A command the rules reject returns `nack` with a reason from a closed list, and the interface says what happened. Nothing is logged as an error.
+- **A bug is an exception at the command boundary.** `evolve` returns a new state and the old one is replaced only on success, so a command that throws leaves the room as it was. It is recorded once and its sender gets `nack internal`.
+- **An outage is waited out.** With Postgres away, rooms play on from memory. Snapshot and history writes are retried with backoff; health reports degraded and the alert fires; new rooms are refused until it returns. A process that dies during the outage loses what it had not written. That is the stated limit.
 
 ## Protocol
 
@@ -118,7 +222,7 @@ JSON text frames over one WebSocket at `/api/ws/<slug>`. Every frame is a JSON o
 
 | Direction | Frame | Fields |
 |-|-|-|
-| client → server | `hello` | `v`, `build`, `name`, `avatar`, `seatToken?`, `lastSeq?`, `password?`, `roomKey?`, `device?`, `embed?` |
+| client → server | `hello` | `v`, `build`, `name`, `avatar`, `seatToken?`, `lastSeq?`, `code?`, `roomKey?`, `device?`, `embed?` |
 | server → client | `welcome` | `v`, `build`, `seat`, `seatToken`, `seq`, `view` (the full projection for this seat) |
 | client → server | `cmd` | `id` (client message id), `type`, `payload`, `traceparent?` |
 | server → client | `ack` / `nack` | `id`, and for `nack` a reason from a fixed enum |
@@ -126,7 +230,16 @@ JSON text frames over one WebSocket at `/api/ws/<slug>`. Every frame is a JSON o
 | both | `fx` | ephemeral: reactions and the like; no `seq`, never stored, dropped for slow consumers |
 | both | `ping` / `pong` | application heartbeat every 25 s, under the edge's idle timeout |
 
-Commands: `vote`, `clearVote`, `reveal`, `cancelReveal`, `revote`, `decide`, `nextTopic`, `addTopics`, `updateTopic`, `moveTopic`, `removeTopic`, `setRole`, `setFacilitator`, `rename`, `setPresence`, `kick`, `leave`, `setSettings`, `renameRoom`. Access and the room key are not commands: hashing a password is I/O, so they change through the HTTP API and reach the room as an event. The server applies a command through the reducer, assigns the next `seq`, persists, and publishes one `evt` to the room topic. Every event is identical for all seats, so one publish serves the room: `voted` names the seat and never the value, and a seat reads its own hidden vote only from its own `welcome` view. A full `view` is sent only in `welcome`.
+Commands carry their owner's name:
+
+| Owner | Commands |
+|-|-|
+| `poker` | `poker.vote`, `poker.clearVote`, `poker.reveal`, `poker.cancelReveal`, `poker.revote`, `poker.settle` |
+| `topic` | `topic.add`, `topic.update`, `topic.move`, `topic.remove`, `topic.next` |
+| `seat` | `seat.rename`, `seat.setRole`, `seat.setFacilitator`, `seat.setPresence`, `seat.kick`, `seat.leave` |
+| `room` | `room.setSettings`, `room.setTitle` |
+
+Events mirror them in the past tense (`poker.voted`, `topic.decided`, `seat.left`). The lock, the room key and the name in the URL are not commands: they change the room and name tables, which is I/O, so they go through the HTTP API and reach the room as an event. The server applies a command through the reducer, assigns the next `seq`, persists, and publishes one `evt` to the room topic. Every event is identical for all seats, so one publish serves the room: `poker.voted` names the seat and never the value, and a seat reads its own hidden vote only from its own `welcome` view. A full `view` is sent only in `welcome`.
 
 Close codes (application range):
 
@@ -135,11 +248,11 @@ Close codes (application range):
 | 4001 | protocol version not supported | prompt a reload |
 | 4002 | server draining, room moves | reconnect after a uniform 0 to 2 s delay |
 | 4003 | kicked | show the notice, do not reconnect |
-| 4004 | room expired or seat token unknown | rejoin as a new seat |
-| 4005 | password required or wrong | ask for the password, connect again with it |
+| 4004 | live state expired or seat token unknown | rejoin as a new seat |
+| 4005 | access code required or wrong | ask for the code, connect again with it |
 | 4008 | rate limit exceeded | back off, reconnect |
 
-Limits from the first version: a token bucket per connection (burst 10, refill 5 per second), one `fx` per 2 s per seat, joins limited per IP at the proxy, five password attempts per minute per address and room. A password check costs an argon2id hash of 64 MiB, so checks run one at a time per room. Reconnect backoff is full jitter, base 500 ms, cap 30 s. The client resends an unacknowledged `vote` with the same `id` after resume, and re-asserts its own vote when the `welcome` view of the same round lacks it (a snapshot can trail an acknowledgement by the debounce window); the reducer treats a repeated `id` as a no-op.
+Limits from the first version: a token bucket per connection (burst 10, refill 5 per second), one `fx` per 2 s per seat, joins limited per IP at the proxy, ten wrong access codes per minute per room and five per address, then a pause of one minute. Room pages are served with `Referrer-Policy: no-referrer`. Reconnect backoff is full jitter, base 500 ms, cap 30 s. The client resends an unacknowledged `poker.vote` with the same `id` after resume, and re-asserts its own vote when the `welcome` view of the same round lacks it (a snapshot can trail an acknowledgement by the debounce window); the reducer treats a repeated `id` as a no-op.
 
 `docs/v9/protocol.md` is written by the row that builds `packages/room-core` and from then on is the exact reference; golden fixtures of every frame live beside the schemas, and the fixtures of the last released protocol version keep passing forever.
 
@@ -149,19 +262,36 @@ Limits from the first version: a token bucket per connection (burst 10, refill 5
 
 | Port | Production adapter | Test adapter |
 |-|-|-|
-| Transport (accept, send, publish to room, close) | Elysia 2's `websocket()` plugin on Bun, one pub/sub topic per room | in-memory transport from `@fpp/room-core/sim` |
+| Transport (accept, send, publish to room, close) | Elysia 2's `websocket()` plugin or Bun's native handler, decided by the bake-off below; one pub/sub topic per room | in-memory transport from `@fpp/room-core/sim` |
 | Room store (claim, snapshot, release) | Postgres | in-memory map |
 | History (topics, rounds, estimating days, rollups) | Postgres | in-memory |
 | Clock, id source | system | seeded |
 | Telemetry | OpenTelemetry | recorder |
 
-**Elysia 2 is a release candidate**, pinned at `2.0.0-rc.3`. Its WebSocket path has open reports: outgoing schema validation inverted (#1933), `ws.query` undefined (#2017), the socket object not stable across callbacks (#1716). The room server therefore keys a connection by `ws.id`, validates outgoing frames in its own code, takes the slug from the path, and keeps every Elysia import in `apps/api/src/http` and `apps/api/src/ws`. The row that builds the transport runs the frame fixtures, the close codes and the drain test against Elysia's `.ws`. If they do not pass on the pinned version, the same port is implemented on Bun's native WebSocket handler and Elysia keeps the HTTP routes. A version bump reruns that suite before it merges; `latest` on npm is the 1.4 line and tags have moved before, so nothing installs by tag.
+**Which WebSocket path carries the rooms is decided by measurement**, in the row that builds the transport (`v9-api-ws`). Elysia 2 is a release candidate, pinned exactly; it keeps the HTTP routes whatever the outcome.
 
-**Ownership and handoff.** A room is loaded on first join with `UPDATE room_snapshot SET epoch = epoch + 1, owner = $me … RETURNING`; every later snapshot write is conditional on that epoch. A write that updates no row means another process owns the room: this process closes that room's sockets with 4002 and forgets it. Snapshots are written debounced (250 ms) after each event and flushed on drain. RollHook starts the new container, waits for health, then sends the old one SIGTERM with a three-minute grace period, so two processes overlap on every deploy. On SIGTERM the old process answers `/api/health` with 503, stops claiming rooms, flushes snapshots, closes sockets with 4002 and exits when empty or after 20 s; clients reconnect, the new process claims the room, and `welcome` restores each seat. `server.stop` is always raced against a timeout.
+| Candidate | For | Against |
+|-|-|-|
+| Elysia 2 `.ws` | one framework for HTTP and sockets, typed handlers | open reports on its WebSocket path: outgoing validation inverted (#1933), `ws.query` undefined (#2017), the socket object not stable across callbacks (#1716) |
+| `Bun.serve`'s native handler | the documented surface: publish to a topic, `send()` return codes for backpressure, `drain` | a second place where a route is registered |
+| Effect's socket server | structured concurrency | excluded without a test. Its API exposes neither Bun's publish nor the backpressure codes, an open report describes unbounded buffering of inbound frames (#10607), and its RPC sits under `effect/unstable` (`research/r18-effect.md`) |
+
+Both remaining adapters implement the same port in about 150 lines each. The row runs the frame fixtures, the close codes, the drain, a slow consumer and a burst of 2,000 sockets against both, records the numbers in its pull request, keeps the winner and deletes the other. In either case the room server keys a connection by its own id, validates outgoing frames itself, takes the room's name from the path, and keeps every Elysia import in `apps/api/src/http` and `apps/api/src/ws`. A version bump reruns the suite before it merges; `latest` on npm is the 1.4 line and tags have moved before, so nothing installs by tag.
+
+**Effect, where I/O fails.** The API's adapters and its composition root are written with Effect 4:
+
+- the Postgres store: debounced snapshot writes, retries with backoff, the wait during an outage
+- the jobs: sweeps and rollups on a schedule
+- startup and the drain: resources acquired in order and released in reverse
+- later the webhook relay and the connectors, its strongest case: retry on 429 and 5xx but not on 4xx, bounded concurrency, timeouts, typed failures
+
+The ports stay plain interfaces that return promises, so the runtime, the simulator and every test double never see Effect. The room loop stays synchronous TypeScript, and so does the core: a pure function gives a runtime nothing to manage. Effect 4.0 has been stable since 2026-09-30; it is pinned exactly and nothing is imported from `effect/unstable/*`.
+
+**Ownership and handoff.** A room is loaded on first join with `UPDATE room_snapshot SET epoch = epoch + 1, owner = $me … RETURNING`; every later snapshot write is conditional on that epoch. A write that updates no row means another process owns the room: this process closes that room's sockets with 4002 and forgets it. Snapshots are written debounced (250 ms) after each event and flushed on drain. RollHook starts the new container, waits for health, then stops the old one with SIGTERM and the 30 s grace period the compose file sets, so two processes overlap on every deploy. On SIGTERM the old process answers `/api/health` with 503, stops claiming rooms, flushes snapshots, closes sockets with 4002 and exits when empty or after 20 s; clients reconnect, the new process claims the room, and `welcome` restores each seat. `server.stop` is always raced against a timeout.
 
 ![A round survives a deploy: drain, resume and epoch fencing between the old and the new API container](diagrams/handoff.svg)
 
-**Expiry.** A room's live snapshot expires after 6 hours without an event (v1's rule). The room row, its slug, its settings and its open topics stay, so a room opened again starts from them; rounds are kept 12 months; a room unused for 12 months is deleted with its history and its slug is free again. A job in the API process sweeps hourly.
+**Expiry.** A room's live snapshot expires after 6 hours without an event (v1's rule). The room, its settings, its open topics and its history stay, so a room opened again starts from them. Rounds and votes are never deleted by age: they hold no name, they are small, and the insights and the statistics are made of them. What ends is a room's hold on its name, under "Room model". A room is deleted only by its admin. A job in the API process sweeps hourly.
 
 **Scale target.** One process, 500 concurrent rooms, 5,000 sockets, p99 command-to-fan-out under 100 ms on the VPS. Horizontal scale is out of scope and invariant 12 is what would make it possible later.
 
@@ -169,11 +299,12 @@ Limits from the first version: a token bucket per connection (burst 10, refill 5
 
 Schema `fpp` in the shared Postgres, migrations by drizzle-kit, journal in the same schema.
 
-![The v9 data model: room, topic, round and vote, and the two tables behind the numbers](diagrams/datamodel.svg)
+![The v9 data model: room and its names, topic, round and vote, and the two tables behind the numbers](diagrams/datamodel.svg)
 
 | Table | Columns that matter | Purpose |
 |-|-|-|
-| `room` | `id`, `slug` unique, `name`, `settings` jsonb, `access`, `password_hash`, `access_epoch`, `room_key_hash`, `origin`, `created_at`, `last_active_at` | registry, slug reservation, and everything about a room that outlives a session |
+| `room` | `id`, `name`, `settings` jsonb, `access`, `access_code`, `access_epoch`, `room_key_hash`, `origin`, `created_at`, `last_active_at` | everything about a room that outlives a session |
+| `room_slug` | `slug` pk, `room_id`, `kind` (`current` or `former`), `release_at` | the namespace: which name leads to which room, and from when the name can be claimed |
 | `room_snapshot` (UNLOGGED) | `room_id` pk, `state` jsonb, `seq`, `epoch`, `owner`, `updated_at`, `expires_at` | live state for restore and handoff; holds hidden votes and seat-token hashes, never read by anything but the owner process |
 | `topic` | `id` (UUID v7), `room_id`, `position`, `title`, `url`, `source`, `external_id`, `external_key`, `external_site`, `state`, `final_label`, `final_value`, `decided_by`, `decided_at`, `created_at` | the queue and the agreed values. Unique on room, source, site and the tracker's id (its key where no id is known), so the same import can run twice |
 | `round` | `id` (UUID v7), `room_id`, `topic_id`, `no` (per room), `attempt` (per topic), `deck` jsonb, `started_at`, `revealed_at`, `players`, `spectators`, `distribution` jsonb, `consensus`, `auto_reveal` | one row per reveal; source of insights and exports |
@@ -186,13 +317,24 @@ What the shape decides:
 - **Topics are written through.** Queue changes, reveals and decisions are stored when they happen, one transaction per event. A backlog prepared on Friday is there on Monday although the live snapshot has expired: a cold room starts from `room` and its open topics.
 - **A value is a label and a number.** `round_vote.value` and `topic.final_value` hold the card's number, null for `?` and break; the label is what was shown. Statistics use the number, screens the label, and a tracker gets whichever its field takes.
 - **A tracker reference is complete from the first row:** the provider (`source`), the tracker's stable id, the display key (which changes when an issue moves) and the site or workspace. A pasted line such as "SHOP-123 Checkout redesign" fills the key; a tracker link also fills the provider and the site. The stable id arrives when a host, the topics route or a connector supplies it.
+- **A name is a row, not a column.** A room has one `current` name and any number of `former` ones. `release_at` moves forward when the room is visited, at most once a day, so a lookup needs no second table.
+- **Rounds are kept.** No job deletes a round or a vote by age. A room that lost its name to a new room keeps its rows and counts in the statistics.
+- **The access code is stored readable.** It is generated, shown to every seat, and guards nothing that the same row does not already hold.
 - **No participant names in history.** History names a seat by its index. Who sat there is live state and expires with it.
 - **The device id never meets a room.** `visitor_day` holds a keyed hash and a date. The key is a server secret, so a copy of the database cannot be matched to a browser.
 - **Not created yet:** `webhook`, `outbox` and `connector`. Their shape is in "Built for what comes next"; the rows that build those features create them.
 
 There is no user table, no page-view table and no event table: visits are measured in Umami, product numbers come from the tables above.
 
-**What comes over from v1.** The importer (stage 3) carries: every room, so each existing name keeps working (`origin = 'v1'`, no room key); one untitled `topic` and one `round` per v1 `votes` row, with what v1 recorded of it; the days on which each v1 user id voted, as `visitor_day` rows under the same hash a returning browser will produce; and daily aggregates of v1's traffic and event tables in `stat_daily`. v1's per-visitor rows with location and device are not imported. The final MariaDB dump is archived together with its Parquet export.
+**What comes over from v1.** The importer (stage 3) carries:
+
+- every room. Its name becomes its current name, so each existing link keeps working (`origin = 'v1'`, no room key); where a renamed room's six-digit number differs from its name, the number comes along as a former name
+- `release_at`, computed from v1's `last_used_at`. Most v1 rooms were opened once, so their names arrive released and still open for anyone who comes back
+- one untitled `topic` and one `round` per v1 `votes` row, with what v1 recorded of it
+- the days on which each v1 user id voted, as `visitor_day` rows under the same hash a returning browser will produce
+- daily aggregates of v1's traffic and event tables in `stat_daily`
+
+v1's per-visitor rows with location and device are not imported. The final MariaDB dump is archived together with its Parquet export. The importer reads v1's schema from the branch `v1`.
 
 ## HTTP API
 
@@ -200,9 +342,10 @@ Routes under `/api`, typed end to end with Eden.
 
 | Route | Does | Proof |
 |-|-|-|
-| `POST /rooms` | creates a room, optional slug; returns the room key once | none |
-| `GET /rooms/:slug` | exists and access mode; name, seat count and settings only for an open room | none |
-| `PUT /rooms/:slug/access` | sets or removes the password; on request raises `access_epoch`, which voids every seat | room key |
+| `POST /rooms` | creates a room under a generated name, or under the name asked for if it is free or released; returns the room key once | none |
+| `GET /rooms/:slug` | whether the name is free, held or released; the access mode and when the room was created; display name and seat count only for an open room | none |
+| `PUT /rooms/:slug/access` | locks, unlocks or replaces the access code; on request raises `access_epoch`, which voids every seat | room key |
+| `PUT /rooms/:slug/name` | renames the room; the old name stays a former name for 30 days | room key, or a seat that may run the round |
 | `POST /rooms/:slug/key` | mints the key of a room that has none | a seat of that room |
 | `DELETE /rooms/:slug` | removes the room and its history | room key |
 | `GET /rooms/:slug/topics`, `/summary` | history and results as JSON, CSV and Markdown | a seat of that room, or the room key |
@@ -214,13 +357,13 @@ Seat secrets and the room key travel in the `Authorization` header. A key shared
 
 ## Client
 
-`@fpp/room-client` exposes one object per room: `state` (a store with the seat's view, connection status and pending commands), `send(command)`, `dispose()`. Status is one of `connecting`, `locked` (the room wants a password), `live`, `reconnecting`, `draining`, `reload-required`, `kicked`, `gone`. It reconnects on `online` and on `visibilitychange`, shows `reconnecting` only after 3 s, and marks the own vote as pending until acknowledged; no other optimism exists.
+`@fpp/room-client` exposes one object per room: `state` (a store with the seat's view, connection status and pending commands), `send(command)`, `dispose()`. Status is one of `connecting`, `locked` (the room wants its access code), `changed-hands` (the name now leads to a different room than this device remembers), `live`, `reconnecting`, `draining`, `reload-required`, `kicked`, `gone`. It reconnects on `online` and on `visibilitychange`, shows `reconnecting` only after 3 s, and marks the own vote as pending until acknowledged; no other optimism exists.
 
 ![A seat's connection states and the close codes that move between them](diagrams/connection.svg)
 
-Not drawn: close 4005 moves `connecting` to `locked`, and the password moves it back.
+Not drawn: close 4005 moves `connecting` to `locked`, and the access code moves it back; `changed-hands` is reported before any connection is opened.
 
-Storage keys, all under the prefix `fpp:v9:` with a schema version inside each value: `profile` (name, avatar seed), `prefs` (sound, calm mode, view, theme), `seat:<slug>` (seat token), `key:<slug>` (the room key, on a device that holds one), `recent` (rooms visited, each removable, dropped after six months without a visit), `device` (the device id), `stats` (the local-only personal record). On first run the client reads v1's keys `username`, `isPlaySound`, `isNotificationsEnabled`, `preferCardView`, `recentRoom` and `userId` once and writes them into the new shape. v1's `userId` becomes the device id, so the count of returning estimators continues across the cutover. localStorage stays the store: both apps share one origin, and nothing here is worth a cookie or IndexedDB.
+Storage keys, all under the prefix `fpp:v9:` with a schema version inside each value: `profile` (name, avatar seed), `prefs` (sound, calm mode, view, theme), `seat:<slug>` (seat token), `key:<slug>` (the room key, on a device that holds one), `recent` (rooms visited: name, creation time, the access code of a locked room, pinned or not; each removable, an unpinned one dropped after six months without a visit), `device` (the device id), `stats` (the local-only personal record). On first run the client reads v1's keys `username`, `isPlaySound`, `isNotificationsEnabled`, `preferCardView`, `recentRoom` and `userId` once and writes them into the new shape. v1's `userId` becomes the device id, so the count of returning estimators continues across the cutover. localStorage stays the store: both apps share one origin, and nothing here is worth a cookie or IndexedDB.
 
 **PWA.** The service worker is served from `/_room/sw.js` with `Service-Worker-Allowed: /room` and registered with scope `/room`, so marketing pages are never intercepted. It precaches the shell and assets and shows an update prompt; it queues nothing, because a vote sent after a reveal is wrong. Close code 4001 forces the update path.
 
@@ -228,13 +371,13 @@ Storage keys, all under the prefix `fpp:v9:` with a schema version inside each v
 
 | Direction | Message | Carries |
 |-|-|-|
-| host → room | `init` | display name, theme, locale, and the room key if the host keeps it |
+| host → room | `init` | display name, theme, locale, and the access code and room key if the host keeps them |
 | host → room | `topics.set`, `topics.add` | titles, links and tracker references |
 | room → host | `ready` | protocol version and capabilities |
 | room → host | `round.revealed`, `topic.decided` | the result contract |
 | room → host | `resize` | the height the room wants |
 
-A host can therefore fill the queue and write the estimate back with its own permissions, and the room holds no tracker credential. The API sends `Content-Security-Policy: frame-ancestors` with an allowlist on the embed variant and `'none'` elsewhere. Browsers partition a frame's storage by the embedding site, and Safari empties it between launches, so an embedded seat is separate from a direct visit and can lose its secret. The reclaim rule in "Room model" covers that; the password prompt works inside the frame.
+A host can therefore fill the queue and write the estimate back with its own permissions, and the room holds no tracker credential. The API sends `Content-Security-Policy: frame-ancestors` with an allowlist on the embed variant and `'none'` elsewhere. Browsers partition a frame's storage by the embedding site, and Safari empties it between launches, so an embedded seat is separate from a direct visit and can lose its secret. The reclaim rule in "Room model" covers that; the field for the access code works inside the frame. The same route is what a Jira panel, a Teams tab, a Zoom app, a Meet add-on or a Trello Power-Up frames, so `frame-ancestors` lists those hosts.
 
 ## Measurement
 
@@ -250,9 +393,10 @@ Server metrics: `fpp.ws.connections.active`, `fpp.room.active`, `fpp.room.seats`
 
 Browser telemetry is errors and connection state only: uncaught exceptions, rejected promises and the connection state changes of `@fpp/room-client`, sent as OTLP logs to `/api/otel` with a session id that lives in memory for one page load. No replay, no field web vitals; performance is held by lab budgets in CI.
 
-**Umami.** Events are named in `@fpp/telemetry` and nowhere else, and sent with `umami.track` by the client that caused them: `landing_cta`, `room_created`, `room_joined` (seat bucket), `invite_copied`, `vote_cast` (first in room), `round_revealed` (votes bucket, consensus), `topic_decided` (how), `password_set`, `summary_exported`, `pwa_installed`, `embed_loaded`. For the person who creates a room, page views and events come from one browser session, so Umami's own funnel shows landing → room created → invite copied → first vote → first reveal without a join of ours. A person who joins by link enters at `room_joined`. Three rules keep it clean:
+**Umami.** Events are named in `@fpp/telemetry` and nowhere else, and sent with `umami.track` by the client that caused them: `landing_cta`, `room_created`, `room_joined` (seat bucket), `invite_copied`, `vote_cast` (first in room), `round_revealed` (votes bucket, consensus), `topic_decided` (how), `room_locked`, `summary_exported`, `pwa_installed`, `embed_loaded`. For the person who creates a room, page views and events come from one browser session, so Umami's own funnel shows landing → room created → invite copied → first vote → first reveal without a join of ours. A person who joins by link enters at `room_joined`. Three rules keep it clean:
 
-- A `before-send` hook rewrites room paths to `/room/:slug` and drops query strings, so no room name reaches Umami.
+- A `before-send` hook rewrites room paths to `/room/:slug` and drops query strings and fragments, so neither a room name nor an access code reaches Umami.
+- An event from inside a room names its activity, so a second activity needs no renamed event.
 - Event data never holds a vote value, a display name or a slug. A test over the event registry checks it.
 - The device id is not given to Umami as a distinct id. Returning estimators are counted in `visitor_day`; Umami keeps its session that rotates monthly.
 
@@ -264,7 +408,7 @@ The hop in front of Umami must hand it the visitor's address (`CLIENT_IP_HEADER`
 
 ## Built for what comes next
 
-Password protection and the final value ship with 9.0.0. Webhooks, tracker import and write-back come after it. What they need from the model is fixed now, so none of them migrates an existing table or breaks the protocol.
+The room lock and the final value ship with 9.0.0. Webhooks, tracker import, write-back and further activities come after it. What they need from the model is fixed now, so none of them migrates an existing table or breaks the protocol.
 
 **The result contract** is one versioned shape for every way a result leaves the room:
 
@@ -286,22 +430,45 @@ Password protection and the final value ship with 9.0.0. Webhooks, tracker impor
 
 | Feature | Fixed now | Added by its own row |
 |-|-|-|
-| Room password (9.0.0) | invariant 14, `room.access`, `password_hash`, `access_epoch`, close code 4005, the room key | nothing |
-| Final value (9.0.0) | invariant 13, `decide`, the `final_*` columns, the result contract | nothing |
-| Embedding in Jira, Teams, Miro or a wiki | the embed messages, `frame-ancestors`, seat reclaim | one host shell per platform. For Jira that is a small Forge app that frames the room and writes story points with Forge's own token. Atlassian Connect ends support on 2027-01-31 and is not used. Whether Forge passes `postMessage` to a nested frame is a spike in that row |
+| Room lock (9.0.0) | invariant 14, `room.access`, `access_code`, `access_epoch`, close code 4005, the room key | nothing |
+| Final value (9.0.0) | invariant 13, `poker.settle`, the `final_*` columns, the result contract | nothing |
+| Embedding in Jira, Teams, Zoom, Meet or Trello | the embed messages, `frame-ancestors`, seat reclaim | one host shell per platform. For Jira that is a small Forge app that frames the room and writes story points with Forge's own token. Atlassian Connect ends support on 2027-01-31 and is not used. Whether Forge passes `postMessage` to a nested frame is a spike in that row |
 | Webhooks with results | the result contract with a stable event id; the room key as the right to configure | tables `webhook` and `outbox`, a relay and three formatters; see below |
 | Tickets from a tracker | the tracker reference on `topic`, the idempotent import, the paste parser | `POST /api/rooms/:slug/topics` with the room key, so any automation can fill a queue. OAuth connectors (Linear, GitHub, Azure DevOps, Jira) only when demand shows, in a table `connector` with encrypted tokens |
 | Writing the estimate back | `topic.decided` with the tracker reference | the host shell, the user's own automation behind a webhook, or a connector |
-| A wheel that picks someone, asynchronous rounds | chance and time are injected into the reducer | their commands and events, additive under invariant 7 |
+| More activities: a confidence vote, dot voting on the queue, a wheel that picks who speaks | invariant 16: named commands and events, the activity's part of the view, seats and topics owned by the room; chance and time injected into the reducer | one module in `room-core` and one in `packages/table` per activity, and its own history table if it keeps one |
+| Asynchronous rounds | time is injected; a round already has an id and a state | its commands and events, additive under invariant 7 |
 
 Webhook delivery, when it is built:
 
 - `webhook` holds an address and a secret, both encrypted, and a kind: `generic`, `slack` or `teams`, because Slack and Teams take their own message formats.
-- `outbox` gets its row in the transaction that stores the result. A relay claims rows with `FOR UPDATE SKIP LOCKED` and a lease, so no transaction stays open across a request.
+- `outbox` gets its row in the transaction that stores the result. A relay claims rows with `FOR UPDATE SKIP LOCKED` and a lease, so no transaction stays open across a request. The relay is written with Effect: its schedule, its retry rule and its concurrency limit are declarations, not loops.
 - Requests are signed per Standard Webhooks 1.0 and retried ten times over three days.
 - Only https addresses are called; private addresses are refused and redirects are not followed.
 
-The order after launch: webhooks first, because they reach every tracker at once and need no third-party credential; then the topics route; then the Forge shell. Linear has no embed surface and its directory does not list hobby projects, so Linear is served by the webhook and the topics route (`research/r17-integrations-embed-webhooks.md`).
+**How each tool is reached.** Twenty-two tools were surveyed (`research/r19-integration-landscape.md`). Jira leads with about 62 % of agile teams; of seven planning poker tools compared, six integrate with Jira and four each with Azure DevOps, GitHub and Linear.
+
+| Tool | Path | Do we hold a secret of theirs? |
+|-|-|-|
+| Every tracker | paste a list of keys or links, or drop its CSV export; take the results out as CSV | no |
+| Every tracker with automation | a webhook; Zapier, Make or n8n write the estimate with the user's own account | no |
+| Jira Cloud | a Forge app whose page frames the room, reads the board's issues and writes the story-points field with Forge's own token | no |
+| Microsoft Teams, Zoom, Google Meet | a tab or app that frames the room. They bring a place to meet and no tickets | no |
+| Trello | a Power-Up; the open card comes from the host | no |
+| Azure DevOps | a web extension with the host's context and token; to be proven | no, if the host's token suffices |
+| Linear, GitHub, GitLab, ClickUp, Asana, monday.com, Shortcut, YouTrack, Notion | none of them frames an outside page: an OAuth connector per tool | yes, which is why they come last and only on demand |
+| Slack | no frame: results arrive as messages through a webhook | no |
+
+The order after launch follows coverage per effort:
+
+1. Webhooks, with recipes for Zapier, Make and n8n. They reach every tracker at once and need no third-party credential.
+2. The topics route, so any script can fill a queue.
+3. The Jira Forge shell, because that is where most teams are.
+4. A Teams tab; Zoom and Meet when asked for. Each is a manifest around the same embedded route.
+5. An Azure DevOps extension.
+6. OAuth connectors, one at a time, only when demand shows. They are the first step at which we would store somebody's token.
+
+Unified integration services (Merge, Unified.to) bill per connected account and assume customer accounts; they do not fit a free product without sign-up.
 
 ## Testing
 
@@ -309,22 +476,24 @@ The order after launch: webhooks first, because they reach every tracker at once
 |-|-|-|-|
 | Core | every `make check-fast` | `bun test`, fast-check | reducer rules, including topics, decisions and access; the projection property "no other seat's value before reveal" over generated command sequences; model-based sequences; frame fixtures, current and last released |
 | Simulation | nightly, 10,000 seeds | `@fpp/room-core/sim` | whole rooms with bots over a transport that drops, delays, duplicates and disconnects; invariants checked after every step; a failing seed is printed and replayable |
-| Server | `make check` | `bun test` with real sockets and real Postgres | handshake, resume, limits, close codes, epoch fencing, the two-process handoff with a kill mid-round |
+| Server | `make check` | `bun test` with real sockets and real Postgres | handshake, resume, limits, close codes, epoch fencing, the two-process handoff with a kill mid-round, name claims under concurrent requests |
+| Fault | `make check` | `bun test` with a Postgres that is stopped, slowed and restarted | a round played through a 60 s outage loses nothing that was acknowledged; a slow consumer is dropped, not buffered |
 | Component | `make check` from stage 2 | Vitest browser mode, axe | table states, hand, reveal, reduced motion, keyboard |
-| End to end | CI on pull requests that touch v9 paths | Playwright against the built image plus Postgres | multi-user flows with one browser context per seat, container restart mid-round, phone viewport, axe on the main states, about 15 screenshots in a pinned container from stage 2 |
+| Arena | on every table entry | Playwright over the scenario matrix | screenshots, a recording of the reveal, frame times, axe, bytes per entry: the scorecard the owner picks from |
+| End to end | CI on pull requests that touch the core, the API or the room app | Playwright against the built image plus Postgres | multi-user flows with one browser context per seat, container restart mid-round, phone viewport, axe on the main states, about 15 screenshots in a pinned container from stage 2 |
 | Load | nightly and before the cutover | k6 | the scale target above, never against production |
 | Budgets | CI | size-limit, Lighthouse CI | room entry JavaScript at most 180 kB gzip; landing page ships no JavaScript but the analytics script before the demo is opened; lab LCP at most 2.0 s on the landing page and the room shell |
 
-The simulator is also the engine of the landing page's demo table and of the UI playground the owner reviews, so the three never drift apart.
+The simulator is also the engine of the landing page's demo table and of the arena the owner picks the table in, so the three never drift apart.
 
 ## Checks, CI and deploy
 
-- `make check-fast`: format check, lint, types and the core tier for v9 paths. Budget 60 s. This is what a lead runs before each push.
-- `make check`: everything a pull request must pass, v1's existing gate included for as long as v1 exists. CI runs it on the pull request head on hosted runners (the repo is public); `project.yaml` declares `checks: { fast: make check-fast, full: make check, ci: true }`.
-- CI is one workflow with lanes chosen by changed paths and one required gate job: a change under v9 paths does not build v1, and the reverse. The pipeline, its timings and the local loop are in `ENGINEERING.md`.
-- v1 keeps deploying, but only when a v1 path changes. Today `deploy.yml` and the Vercel build run on every push to `master`, which restarts v1's server and interrupts rooms in progress; the foundation row gives both a path filter, so the many merges of this plan leave production alone.
-- Every push to `master` that touches v9 paths builds the API image and rolls it out to the beta host through RollHook, and deploys `apps/site` with wrangler. `make verify` probes production and the beta host.
-- Local development: `bun run dev:v9` starts site, room app and API against the mini's Postgres (database `fpp`, declared in dotfiles `config/postgres/cluster.yaml`). One host, `https://fpp-next.test`, splits paths the way production does: `/room*` and `/_room/*` to the Vite dev server on 7739, `/api/*` to the API on 7740, everything else to Astro on 7738. Agents never start dev servers.
+- `make check-fast`: format check, lint, types, boundaries and the core tier. Budget 60 s. This is what a lead runs before each push.
+- `make check`: everything a pull request must pass. CI runs it on the pull request head on hosted runners (the repo is public); `project.yaml` declares `checks: { fast: make check-fast, full: make check, ci: true }`.
+- CI is one workflow with lanes chosen by changed paths and one required gate job. The pipeline, its timings and the local loop are in `ENGINEERING.md`.
+- **v1 is not on `master`.** It deploys from the branch `v1`, by that branch's own workflow and by Vercel. Nothing merged to `master` reaches production before the cutover (`ENGINEERING.md`, "Where v1 lives").
+- Every push to `master` that touches the app (lane `app`) builds the API image and rolls it out to the beta host through RollHook; one that touches the site deploys `apps/site` with wrangler. `make verify` probes the beta host and, until the cutover, v1 in production.
+- Local development: `bun run dev` starts site, room app and API against the mini's Postgres (database `fpp`, declared in dotfiles `config/postgres/cluster.yaml`). One host, `https://fpp-next.test`, splits paths the way production does: `/room*` and `/_room/*` to the Vite dev server on 7739, `/api/*` to the API on 7740, everything else to Astro on 7738. Agents never start dev servers.
 
 ## Cutover
 
@@ -335,4 +504,4 @@ One switch on a weekend, when no room is in use, by the owner's ruling of 2026-1
 3. Point the apex at the Worker and the tunnel.
 4. Verify with `make verify` and one real round.
 
-Live rooms are not carried over, because none is running; rooms, history and counts are. v1's server and its `*.vercel.app` deployment keep running for 14 days, so rollback is the DNS and route change in reverse. After 14 days without a rollback the v1 directories, containers and the MariaDB instance go, the last behind an owner gate because it deletes data. The runbook is `docs/v9/CUTOVER.md`, written in the launch stage.
+Live rooms are not carried over, because none is running; rooms, history and counts are. v1's server and its Vercel deployment keep running for 14 days, so rollback is the DNS and route change in reverse. After 14 days without a rollback v1's containers and the MariaDB instance go, the last behind an owner gate because it deletes data; the Vercel project is removed and the branch `v1` stays as a tag. The runbook is `docs/v9/CUTOVER.md`, written in the launch stage.

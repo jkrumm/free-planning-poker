@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1444 922" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-erd-ui="cards" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" style="--flow-cycle: 3.760s; width: 1444px; height: 922px; min-width: 0px;" width="1444" height="922" xmlns="http://www.w3.org/2000/svg" data-theme="light"><style>
+<svg viewBox="0 0 1444 982" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="standard" data-erd-ui="cards" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" style="--flow-cycle: 3.800s; width: 1444px; height: 982px; min-width: 0px;" width="1444" height="982" xmlns="http://www.w3.org/2000/svg" data-theme="light"><style>
 /*
 JetBrains Mono variable WOFF2 subsets from Google Fonts service revision v24.
 These fixed bytes are shared by the viewer and its SVG/raster exports.
@@ -400,92 +400,109 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 }
 @keyframes archify-relay-ripple { 
   0% { r: 2px; opacity: var(--flow-peak, 0.6); }
-  19.947%, 100% { r: 20px; opacity: 0; }
+  19.737%, 100% { r: 20px; opacity: 0; }
 }
 @keyframes archify-relay-comet-0 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  2.242% { opacity: var(--flow-peak, 0.9); }
-  11.208% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15.464%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  3.158% { opacity: var(--flow-peak, 0.9); }
+  39.474% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  43.684%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-0 { 
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  11.208% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  35.144%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  39.474% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  63.158%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-1 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  2.234% { opacity: var(--flow-peak, 0.9); }
-  11.17% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15.426%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  2.211% { opacity: var(--flow-peak, 0.9); }
+  11.053% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  15.263%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-1 { 
-  0%, 3.351% { opacity: 0; }
-  11.17% { opacity: var(--flow-peak, 0.3); }
-  35.106%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 3.316% { opacity: 0; }
+  11.053% { opacity: var(--flow-peak, 0.3); }
+  34.737%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-2 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  2.234% { opacity: var(--flow-peak, 0.9); }
-  11.17% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15.426%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  2.211% { opacity: var(--flow-peak, 0.9); }
+  11.053% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  15.263%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-2 { 
-  0%, 3.351% { opacity: 0; }
-  11.17% { opacity: var(--flow-peak, 0.3); }
-  35.106%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 3.316% { opacity: 0; }
+  11.053% { opacity: var(--flow-peak, 0.3); }
+  34.737%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-3 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  2.234% { opacity: var(--flow-peak, 0.9); }
-  11.17% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15.426%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  2.211% { opacity: var(--flow-peak, 0.9); }
+  11.053% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  15.263%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-3 { 
-  0%, 3.351% { opacity: 0; }
-  11.17% { opacity: var(--flow-peak, 0.3); }
-  35.106%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 3.316% { opacity: 0; }
+  11.053% { opacity: var(--flow-peak, 0.3); }
+  34.737%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-4 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  2.234% { opacity: var(--flow-peak, 0.9); }
-  11.17% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15.426%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  2.211% { opacity: var(--flow-peak, 0.9); }
+  11.053% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  15.263%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-4 { 
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  11.17% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  35.106%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  11.053% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  34.737%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+}
+@keyframes archify-relay-comet-5 { 
+  0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  2.594% { opacity: var(--flow-peak, 0.9); }
+  12.97% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  17.18%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+}
+@keyframes archify-relay-wake-5 { 
+  0%, 3.891% { opacity: 0; }
+  12.97% { opacity: var(--flow-peak, 0.3); }
+  36.654%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-node-0 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
   0% { filter: var(--ambient-node-base-filter, none); }
-  3.191%, 11.17% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  31.915% { filter: var(--ambient-node-base-filter, none); }
+  3.158%, 11.053% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  31.579% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-1 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
   0% { filter: var(--ambient-node-base-filter, none); }
-  3.191%, 11.17% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  31.915% { filter: var(--ambient-node-base-filter, none); }
+  3.158%, 11.053% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  31.579% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-2 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  11.208% { filter: var(--ambient-node-base-filter, none); }
-  14.4%, 22.378% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  43.123% { filter: var(--ambient-node-base-filter, none); }
+  0% { filter: var(--ambient-node-base-filter, none); }
+  3.158%, 11.053% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  31.579% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-3 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  11.17% { filter: var(--ambient-node-base-filter, none); }
-  14.362%, 22.34% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  43.085% { filter: var(--ambient-node-base-filter, none); }
+  12.97% { filter: var(--ambient-node-base-filter, none); }
+  16.128%, 24.023% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  44.549% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-4 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  25% { filter: var(--ambient-node-base-filter, none); }
-  28.191%, 36.17% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  56.915% { filter: var(--ambient-node-base-filter, none); }
+  11.053% { filter: var(--ambient-node-base-filter, none); }
+  14.211%, 22.105% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  42.632% { filter: var(--ambient-node-base-filter, none); }
+}
+@keyframes archify-relay-node-5 { 
+  0%, 100% { filter: var(--ambient-node-base-filter, none); }
+  24.737% { filter: var(--ambient-node-base-filter, none); }
+  27.895%, 35.789% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  56.316% { filter: var(--ambient-node-base-filter, none); }
 }
 svg[data-erd-ui="cards"] .er-hue-database { --er-hue: var(--database-stroke); --er-wash: var(--database-fill); }
 svg[data-erd-ui="cards"] .er-hue-frontend { --er-hue: var(--frontend-stroke); --er-wash: var(--frontend-fill); }
@@ -533,7 +550,7 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="many"]:is(:hover, :focu
 svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :focus-within)) [data-er-ends]:not([data-er-ends~="optional"]) { opacity: 0.12; }
 svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :focus-within)) marker[id*="-optional"] { stroke: var(--database-stroke) !important; stroke-width: 2.25; }
 :root, svg { --bg: #f4f5f7; --grid: #e9edf2; --canvas-dot: #e2e7ec; --text: #111827; --text-muted: #5b6474; --text-dim: #9aa3b2; --text-faint: #6b7280; --panel: #ffffff; --panel-border: #e5e7eb; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #64748b; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; --flow-cycle: ; --flow-halo-peak: ; --flow-glow-peak: ; --flow-tail-peak: ; --flow-head-peak: ; --flow-wake-peak: ; --flow-ripple-peak: ; --flow-peak: ; --er-hue: ; --er-wash: ; }
-</style><rect x="0" y="0" width="1444" height="922" fill="#f4f5f7"/>
+</style><rect x="0" y="0" width="1444" height="982" fill="#f4f5f7"/>
         <title id="archify-diagram-title">v9 data model</title>
         <desc id="archify-diagram-description">Postgres schema fpp. The topic is the unit of estimation; a round is one attempt at it.</desc>
         <!-- Definitions -->
@@ -620,7 +637,7 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
 
         <!-- Domain bands (behind the routes so a channel is never washed out) -->
         <g data-domain-band="Room" class="er-hue-database">
-          <rect x="20" y="22" width="464" height="576" rx="12" class="c-lane er-band" stroke-width="1"/>
+          <rect x="20" y="22" width="464" height="910" rx="12" class="c-lane er-band" stroke-width="1"/>
           <rect x="28" y="15" width="39" height="15" rx="7.5" class="c-mask"/>
           <rect x="28" y="15" width="39" height="15" rx="7.5" class="er-band-pill"/>
           <text data-domain-label="" x="35" y="25.6" class="t-muted er-band-label" font-size="9" font-weight="700">Room</text>
@@ -642,20 +659,21 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
              to the shared side, so a cardinality glyph that reaches further out
              has to stay readable over it, and the ring's mask has to be able to
              punch through) -->
-        <path data-er-trunk="" data-composition-points="488,156;488,562" d="M 488 156 L 488 562" class="a-dashed" stroke-width="1.5"/>
+        <path data-er-trunk="" data-composition-points="488,146;488,562" d="M 488 146 L 488 562" class="a-dashed" stroke-width="1.5"/>
 
         <!-- Relationship paths (before entities for correct z-order) -->
-        <path data-edge-from="room_snapshot" data-edge-to="room" data-edge-label="state of" data-edge-key="0" data-edge-id="room_snapshot_room" data-er-ends="one optional" data-composition-points="252,414;252,296" d="M 252 414 L 252 296" class="a-default" data-animate="edge" style="--step: 0;" stroke-width="1.5" marker-start="url(#er-one-optional-start)" marker-end="url(#er-one-end)"/>
-        <path data-edge-from="topic" data-edge-to="room" data-edge-label="in room" data-edge-key="1" data-edge-id="topic_room" data-er-ends="many one" data-composition-points="578,208;488,208;488,156;472,156" d="M 578 208 L 488 208 M 488 156 L 472 156" class="a-dashed" data-animate="edge" style="--step: 1;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
-        <path data-edge-from="round" data-edge-to="room" data-edge-label="in room" data-edge-key="2" data-edge-id="round_room" data-er-ends="many one" data-composition-points="578,562;488,562;488,180;472,180" d="M 578 562 L 488 562 M 488 180 L 472 180" class="a-dashed" data-animate="edge" style="--step: 2;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
+        <path data-edge-from="room_snapshot" data-edge-to="room" data-edge-label="state of" data-edge-key="0" data-edge-id="room_snapshot_room" data-er-ends="one optional" data-composition-points="472,836;496,836;496,158;472,158" d="M 472 836 L 488 836 Q 496 836 496 828 L 496 166 Q 496 158 488 158 L 472 158" class="a-default" data-animate="edge" style="--step: 0;" stroke-width="1.5" marker-start="url(#er-one-optional-start)" marker-end="url(#er-one-end)"/>
+        <path data-edge-from="topic" data-edge-to="room" data-edge-label="in room" data-edge-key="1" data-edge-id="topic_room" data-er-ends="many one" data-composition-points="578,208;488,208;488,146;472,146" d="M 578 208 L 488 208 M 488 146 L 472 146" class="a-dashed" data-animate="edge" style="--step: 1;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
+        <path data-edge-from="round" data-edge-to="room" data-edge-label="in room" data-edge-key="2" data-edge-id="round_room" data-er-ends="many one" data-composition-points="578,562;488,562;488,170;472,170" d="M 578 562 L 488 562 M 488 170 L 472 170" class="a-dashed" data-animate="edge" style="--step: 2;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
         <path data-edge-from="round" data-edge-to="topic" data-edge-label="attempt at" data-edge-key="3" data-edge-id="round_topic" data-er-ends="many one" data-composition-points="798,414;798,376" d="M 798 414 L 798 376" class="a-dashed" data-animate="edge" style="--step: 3;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
         <path data-edge-from="round_vote" data-edge-to="round" data-edge-label="votes in" data-edge-key="4" data-edge-id="round_vote_round" data-er-ends="many one" data-composition-points="798,748;798,710" d="M 798 748 L 798 710" class="a-default" data-animate="edge" style="--step: 4;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
+        <path data-edge-from="room_slug" data-edge-to="room" data-edge-label="names" data-edge-key="5" data-edge-id="room_slug_room" data-er-ends="many one" data-composition-points="240,414;240,276" d="M 240 414 L 240 276" class="a-dashed" data-animate="edge" style="--step: 5;" stroke-width="1.5" marker-start="url(#er-many-start)" marker-end="url(#er-one-end)"/>
 
         <!-- Entities -->
         <g id="node-room" data-node-id="room" data-node-label="room" tabindex="0" role="button" aria-label="Focus room, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Room" data-node-context="Entity" class="er-hue-database">
           <title>room · Entity · Room</title>
-          <rect x="32" y="40" width="440" height="256" rx="8" class="c-mask"/>
-          <rect x="32" y="40" width="440" height="256" rx="8" class="c-database er-table" data-animate="node" style="--step: 1; --flow-node-name: archify-relay-node-2;" stroke-width="1.2"/>
+          <rect x="32" y="40" width="440" height="236" rx="8" class="c-mask"/>
+          <rect x="32" y="40" width="440" height="236" rx="8" class="c-database er-table" data-animate="node" style="--step: 1; --flow-node-name: archify-relay-node-3;" stroke-width="1.2"/>
           <path class="er-table-header" d="M 40 40 H 464 A 8 8 0 0 1 472 48 V 70 H 32 V 48 A 8 8 0 0 1 40 40 Z"/>
           <path class="er-table-cap" d="M 44 41.4 H 460" stroke-width="2.6" stroke-linecap="round" fill="none"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(40 47) scale(0.875)">
@@ -674,142 +692,177 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
           <g data-er-row="1">
             <line x1="32" y1="90" x2="472" y2="90" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="91" width="432" height="18" rx="4" class="er-zebra"/>
-            <rect x="42" y="95" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="uk"/><text x="53" y="105" class="t-muted" font-size="9" font-weight="600">UK</text>
-            <text x="74" y="105" class="t-primary" font-size="11">slug</text>
+
+            <text x="74" y="105" class="t-primary" font-size="11">name</text>
             <text x="460" y="105" class="er-type" font-size="10.5" text-anchor="end">text</text>
           </g>
           <g data-er-row="2">
             <line x1="32" y1="110" x2="472" y2="110" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="74" y="125" class="t-primary" font-size="11">name</text>
-            <text x="460" y="125" class="er-type" font-size="10.5" text-anchor="end">text</text>
+            <text x="74" y="125" class="t-primary" font-size="11">settings</text>
+            <text x="460" y="125" class="er-type" font-size="10.5" text-anchor="end">jsonb</text>
           </g>
           <g data-er-row="3">
             <line x1="32" y1="130" x2="472" y2="130" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="131" width="432" height="18" rx="4" class="er-zebra"/>
 
-            <text x="74" y="145" class="t-primary" font-size="11">settings</text>
-            <text x="460" y="145" class="er-type" font-size="10.5" text-anchor="end">jsonb</text>
+            <text x="74" y="145" class="t-primary" font-size="11">access</text>
+            <text x="460" y="145" class="er-type" font-size="10.5" text-anchor="end">text｜open or locked</text>
           </g>
           <g data-er-row="4">
             <line x1="32" y1="150" x2="472" y2="150" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="74" y="165" class="t-primary" font-size="11">access</text>
-            <text x="460" y="165" class="er-type" font-size="10.5" text-anchor="end">text｜open or password</text>
+            <text x="74" y="165" class="t-primary" font-size="11">access_code</text>
+            <text x="460" y="165" class="er-type" font-size="10.5" text-anchor="end">text｜shown to every seat; null when open</text>
           </g>
           <g data-er-row="5">
             <line x1="32" y1="170" x2="472" y2="170" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="171" width="432" height="18" rx="4" class="er-zebra"/>
 
-            <text x="74" y="185" class="t-primary" font-size="11">password_hash</text>
-            <text x="460" y="185" class="er-type" font-size="10.5" text-anchor="end">text｜argon2id, null when open</text>
+            <text x="74" y="185" class="t-primary" font-size="11">access_epoch</text>
+            <text x="460" y="185" class="er-type" font-size="10.5" text-anchor="end">integer｜raise to void every seat</text>
           </g>
           <g data-er-row="6">
             <line x1="32" y1="190" x2="472" y2="190" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="74" y="205" class="t-primary" font-size="11">access_epoch</text>
-            <text x="460" y="205" class="er-type" font-size="10.5" text-anchor="end">integer｜raise to void every seat</text>
+            <text x="74" y="205" class="t-primary" font-size="11">room_key_hash</text>
+            <text x="460" y="205" class="er-type" font-size="10.5" text-anchor="end">text｜null until claimed</text>
           </g>
           <g data-er-row="7">
             <line x1="32" y1="210" x2="472" y2="210" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="211" width="432" height="18" rx="4" class="er-zebra"/>
 
-            <text x="74" y="225" class="t-primary" font-size="11">room_key_hash</text>
-            <text x="460" y="225" class="er-type" font-size="10.5" text-anchor="end">text｜null until claimed</text>
+            <text x="74" y="225" class="t-primary" font-size="11">origin</text>
+            <text x="460" y="225" class="er-type" font-size="10.5" text-anchor="end">text｜v9 or v1 import</text>
           </g>
           <g data-er-row="8">
             <line x1="32" y1="230" x2="472" y2="230" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="74" y="245" class="t-primary" font-size="11">origin</text>
-            <text x="460" y="245" class="er-type" font-size="10.5" text-anchor="end">text｜v9 or v1 import</text>
+            <text x="74" y="245" class="t-primary" font-size="11">created_at</text>
+            <text x="460" y="245" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
           </g>
           <g data-er-row="9">
             <line x1="32" y1="250" x2="472" y2="250" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="251" width="432" height="18" rx="4" class="er-zebra"/>
 
-            <text x="74" y="265" class="t-primary" font-size="11">created_at</text>
+            <text x="74" y="265" class="t-primary" font-size="11">last_active_at</text>
             <text x="460" y="265" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
-          </g>
-          <g data-er-row="10">
-            <line x1="32" y1="270" x2="472" y2="270" class="c-grid er-row-rule" stroke-width="0.5"/>
-
-
-            <text x="74" y="285" class="t-primary" font-size="11">last_active_at</text>
-            <text x="460" y="285" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
           </g>
         </g>
 
-        <g id="node-room_snapshot" data-node-id="room_snapshot" data-node-label="room_snapshot" tabindex="0" role="button" aria-label="Focus room_snapshot, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Room" data-node-context="Entity" class="er-hue-database">
-          <title>room_snapshot · Entity · Room</title>
-          <rect x="32" y="414" width="440" height="176" rx="8" class="c-mask"/>
-          <rect x="32" y="414" width="440" height="176" rx="8" class="c-database er-table" data-animate="node" style="--step: 0; --flow-node-name: archify-relay-node-0;" stroke-width="1.2"/>
+        <g id="node-room_slug" data-node-id="room_slug" data-node-label="room_slug" tabindex="0" role="button" aria-label="Focus room_slug, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Room" data-node-context="Entity" class="er-hue-database">
+          <title>room_slug · Entity · Room</title>
+          <rect x="32" y="414" width="440" height="116" rx="8" class="c-mask"/>
+          <rect x="32" y="414" width="440" height="116" rx="8" class="c-database er-table" data-animate="node" style="--step: 5; --flow-node-name: archify-relay-node-2;" stroke-width="1.2"/>
           <path class="er-table-header" d="M 40 414 H 464 A 8 8 0 0 1 472 422 V 444 H 32 V 422 A 8 8 0 0 1 40 414 Z"/>
           <path class="er-table-cap" d="M 44 415.4 H 460" stroke-width="2.6" stroke-linecap="round" fill="none"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(40 421) scale(0.875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-node-label="" x="252" y="433" class="t-primary er-title" font-size="13" font-weight="700" text-anchor="middle">room_snapshot</text>
+          <text data-node-label="" x="252" y="433" class="t-primary er-title" font-size="13" font-weight="700" text-anchor="middle">room_slug</text>
           <line x1="32" y1="444" x2="472" y2="444" class="c-grid er-header-rule" stroke-width="1"/>
           <g data-er-row="0">
             <line x1="32" y1="444" x2="472" y2="444" class="c-grid er-row-rule" stroke-width="0.5"/>
 
-            <rect x="42" y="449" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="pk"/><text x="53" y="459" class="t-database" font-size="9" font-weight="600">PK</text><rect x="67" y="449" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="fk"/><text x="78" y="459" class="t-messagebus" font-size="9" font-weight="600">FK</text>
-            <text x="94" y="459" class="t-primary er-name-pk" font-size="11">room_id</text>
-            <text x="460" y="459" class="er-type" font-size="10.5" text-anchor="end">bigint</text>
+            <rect x="42" y="449" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="pk"/><text x="53" y="459" class="t-database" font-size="9" font-weight="600">PK</text>
+            <text x="74" y="459" class="t-primary er-name-pk" font-size="11">slug</text>
+            <text x="460" y="459" class="er-type" font-size="10.5" text-anchor="end">text｜the name in the URL</text>
           </g>
           <g data-er-row="1">
             <line x1="32" y1="464" x2="472" y2="464" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="465" width="432" height="18" rx="4" class="er-zebra"/>
-
-            <text x="94" y="479" class="t-primary" font-size="11">state</text>
-            <text x="460" y="479" class="er-type" font-size="10.5" text-anchor="end">jsonb｜live state, hidden votes, seat secret hashes</text>
+            <rect x="42" y="469" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="fk"/><text x="53" y="479" class="t-messagebus" font-size="9" font-weight="600">FK</text>
+            <text x="74" y="479" class="t-primary" font-size="11">room_id</text>
+            <text x="460" y="479" class="er-type" font-size="10.5" text-anchor="end">bigint</text>
           </g>
           <g data-er-row="2">
             <line x1="32" y1="484" x2="472" y2="484" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="94" y="499" class="t-primary" font-size="11">seq</text>
-            <text x="460" y="499" class="er-type" font-size="10.5" text-anchor="end">bigint</text>
+            <text x="74" y="499" class="t-primary" font-size="11">kind</text>
+            <text x="460" y="499" class="er-type" font-size="10.5" text-anchor="end">text｜current or former</text>
           </g>
           <g data-er-row="3">
             <line x1="32" y1="504" x2="472" y2="504" class="c-grid er-row-rule" stroke-width="0.5"/>
             <rect x="36" y="505" width="432" height="18" rx="4" class="er-zebra"/>
 
-            <text x="94" y="519" class="t-primary" font-size="11">epoch</text>
-            <text x="460" y="519" class="er-type" font-size="10.5" text-anchor="end">integer｜ownership fence</text>
+            <text x="74" y="519" class="t-primary" font-size="11">release_at</text>
+            <text x="460" y="519" class="er-type" font-size="10.5" text-anchor="end">timestamptz｜after this the name can be claimed</text>
+          </g>
+        </g>
+
+        <g id="node-room_snapshot" data-node-id="room_snapshot" data-node-label="room_snapshot" tabindex="0" role="button" aria-label="Focus room_snapshot, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Room" data-node-context="Entity" class="er-hue-database">
+          <title>room_snapshot · Entity · Room</title>
+          <rect x="32" y="748" width="440" height="176" rx="8" class="c-mask"/>
+          <rect x="32" y="748" width="440" height="176" rx="8" class="c-database er-table" data-animate="node" style="--step: 0; --flow-node-name: archify-relay-node-0;" stroke-width="1.2"/>
+          <path class="er-table-header" d="M 40 748 H 464 A 8 8 0 0 1 472 756 V 778 H 32 V 756 A 8 8 0 0 1 40 748 Z"/>
+          <path class="er-table-cap" d="M 44 749.4 H 460" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(40 755) scale(0.875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text data-node-label="" x="252" y="767" class="t-primary er-title" font-size="13" font-weight="700" text-anchor="middle">room_snapshot</text>
+          <line x1="32" y1="778" x2="472" y2="778" class="c-grid er-header-rule" stroke-width="1"/>
+          <g data-er-row="0">
+            <line x1="32" y1="778" x2="472" y2="778" class="c-grid er-row-rule" stroke-width="0.5"/>
+
+            <rect x="42" y="783" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="pk"/><text x="53" y="793" class="t-database" font-size="9" font-weight="600">PK</text><rect x="67" y="783" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="fk"/><text x="78" y="793" class="t-messagebus" font-size="9" font-weight="600">FK</text>
+            <text x="94" y="793" class="t-primary er-name-pk" font-size="11">room_id</text>
+            <text x="460" y="793" class="er-type" font-size="10.5" text-anchor="end">bigint</text>
+          </g>
+          <g data-er-row="1">
+            <line x1="32" y1="798" x2="472" y2="798" class="c-grid er-row-rule" stroke-width="0.5"/>
+            <rect x="36" y="799" width="432" height="18" rx="4" class="er-zebra"/>
+
+            <text x="94" y="813" class="t-primary" font-size="11">state</text>
+            <text x="460" y="813" class="er-type" font-size="10.5" text-anchor="end">jsonb｜live state, hidden votes, seat secret hashes</text>
+          </g>
+          <g data-er-row="2">
+            <line x1="32" y1="818" x2="472" y2="818" class="c-grid er-row-rule" stroke-width="0.5"/>
+
+
+            <text x="94" y="833" class="t-primary" font-size="11">seq</text>
+            <text x="460" y="833" class="er-type" font-size="10.5" text-anchor="end">bigint</text>
+          </g>
+          <g data-er-row="3">
+            <line x1="32" y1="838" x2="472" y2="838" class="c-grid er-row-rule" stroke-width="0.5"/>
+            <rect x="36" y="839" width="432" height="18" rx="4" class="er-zebra"/>
+
+            <text x="94" y="853" class="t-primary" font-size="11">epoch</text>
+            <text x="460" y="853" class="er-type" font-size="10.5" text-anchor="end">integer｜ownership fence</text>
           </g>
           <g data-er-row="4">
-            <line x1="32" y1="524" x2="472" y2="524" class="c-grid er-row-rule" stroke-width="0.5"/>
+            <line x1="32" y1="858" x2="472" y2="858" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="94" y="539" class="t-primary" font-size="11">owner</text>
-            <text x="460" y="539" class="er-type" font-size="10.5" text-anchor="end">text</text>
+            <text x="94" y="873" class="t-primary" font-size="11">owner</text>
+            <text x="460" y="873" class="er-type" font-size="10.5" text-anchor="end">text</text>
           </g>
           <g data-er-row="5">
-            <line x1="32" y1="544" x2="472" y2="544" class="c-grid er-row-rule" stroke-width="0.5"/>
-            <rect x="36" y="545" width="432" height="18" rx="4" class="er-zebra"/>
+            <line x1="32" y1="878" x2="472" y2="878" class="c-grid er-row-rule" stroke-width="0.5"/>
+            <rect x="36" y="879" width="432" height="18" rx="4" class="er-zebra"/>
 
-            <text x="94" y="559" class="t-primary" font-size="11">updated_at</text>
-            <text x="460" y="559" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
+            <text x="94" y="893" class="t-primary" font-size="11">updated_at</text>
+            <text x="460" y="893" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
           </g>
           <g data-er-row="6">
-            <line x1="32" y1="564" x2="472" y2="564" class="c-grid er-row-rule" stroke-width="0.5"/>
+            <line x1="32" y1="898" x2="472" y2="898" class="c-grid er-row-rule" stroke-width="0.5"/>
 
 
-            <text x="94" y="579" class="t-primary" font-size="11">expires_at</text>
-            <text x="460" y="579" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
+            <text x="94" y="913" class="t-primary" font-size="11">expires_at</text>
+            <text x="460" y="913" class="er-type" font-size="10.5" text-anchor="end">timestamptz</text>
           </g>
         </g>
 
         <g id="node-topic" data-node-id="topic" data-node-label="topic" tabindex="0" role="button" aria-label="Focus topic, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Estimation" data-node-context="Entity" class="er-hue-frontend">
           <title>topic · Entity · Estimation</title>
           <rect x="578" y="40" width="440" height="336" rx="8" class="c-mask"/>
-          <rect x="578" y="40" width="440" height="336" rx="8" class="c-database er-table" data-animate="node" style="--step: 1; --flow-node-name: archify-relay-node-4;" stroke-width="1.2"/>
+          <rect x="578" y="40" width="440" height="336" rx="8" class="c-database er-table" data-animate="node" style="--step: 1; --flow-node-name: archify-relay-node-5;" stroke-width="1.2"/>
           <path class="er-table-header" d="M 586 40 H 1010 A 8 8 0 0 1 1018 48 V 70 H 578 V 48 A 8 8 0 0 1 586 40 Z"/>
           <path class="er-table-cap" d="M 590 41.4 H 1006" stroke-width="2.6" stroke-linecap="round" fill="none"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(586 47) scale(0.875)">
@@ -928,7 +981,7 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
         <g id="node-round" data-node-id="round" data-node-label="round" tabindex="0" role="button" aria-label="Focus round, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Estimation" data-node-context="Entity" class="er-hue-frontend">
           <title>round · Entity · Estimation</title>
           <rect x="578" y="414" width="440" height="296" rx="8" class="c-mask"/>
-          <rect x="578" y="414" width="440" height="296" rx="8" class="c-database er-table" data-animate="node" style="--step: 2; --flow-node-name: archify-relay-node-3;" stroke-width="1.2"/>
+          <rect x="578" y="414" width="440" height="296" rx="8" class="c-database er-table" data-animate="node" style="--step: 2; --flow-node-name: archify-relay-node-4;" stroke-width="1.2"/>
           <path class="er-table-header" d="M 586 414 H 1010 A 8 8 0 0 1 1018 422 V 444 H 578 V 422 A 8 8 0 0 1 586 414 Z"/>
           <path class="er-table-cap" d="M 590 415.4 H 1006" stroke-width="2.6" stroke-linecap="round" fill="none"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(586 421) scale(0.875)">
@@ -1075,7 +1128,7 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
         <g id="node-visitor_day" data-node-id="visitor_day" data-node-label="visitor_day" tabindex="0" role="button" aria-label="Focus visitor_day, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Numbers" data-node-context="Entity" class="er-hue-backend">
           <title>visitor_day · Entity · Numbers</title>
           <rect x="1090" y="40" width="330" height="76" rx="8" class="c-mask"/>
-          <rect x="1090" y="40" width="330" height="76" rx="8" class="c-database er-table" data-animate="node" style="--step: 5;" stroke-width="1.2"/>
+          <rect x="1090" y="40" width="330" height="76" rx="8" class="c-database er-table" data-animate="node" style="--step: 6;" stroke-width="1.2"/>
           <path class="er-table-header" d="M 1098 40 H 1412 A 8 8 0 0 1 1420 48 V 70 H 1090 V 48 A 8 8 0 0 1 1098 40 Z"/>
           <path class="er-table-cap" d="M 1102 41.4 H 1408" stroke-width="2.6" stroke-linecap="round" fill="none"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1098 47) scale(0.875)">
@@ -1103,7 +1156,7 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
         <g id="node-stat_daily" data-node-id="stat_daily" data-node-label="stat_daily" tabindex="0" role="button" aria-label="Focus stat_daily, Entity" aria-pressed="false" data-node-kind="database" data-node-tag="Numbers" data-node-context="Entity" class="er-hue-backend">
           <title>stat_daily · Entity · Numbers</title>
           <rect x="1090" y="414" width="330" height="116" rx="8" class="c-mask"/>
-          <rect x="1090" y="414" width="330" height="116" rx="8" class="c-database er-table" data-animate="node" style="--step: 6;" stroke-width="1.2"/>
+          <rect x="1090" y="414" width="330" height="116" rx="8" class="c-database er-table" data-animate="node" style="--step: 7;" stroke-width="1.2"/>
           <path class="er-table-header" d="M 1098 414 H 1412 A 8 8 0 0 1 1420 422 V 444 H 1090 V 422 A 8 8 0 0 1 1098 414 Z"/>
           <path class="er-table-cap" d="M 1102 415.4 H 1408" stroke-width="2.6" stroke-linecap="round" fill="none"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1098 421) scale(0.875)">
@@ -1144,8 +1197,8 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
 
         <!-- Relationship labels -->
         <g data-edge-from="room_snapshot" data-edge-to="room" data-edge-label="state of" data-edge-key="0" data-edge-id="room_snapshot_room" data-er-ends="one optional">
-          <rect x="191.36" y="348" width="54.64" height="14" rx="3" class="c-mask"/>
-          <text x="218.68" y="358" class="t-muted" font-size="9" text-anchor="middle">state of</text>
+          <rect x="502.00000000000006" y="490" width="54.64" height="14" rx="3" class="c-mask"/>
+          <text x="529.32" y="500" class="t-muted" font-size="9" text-anchor="middle">state of</text>
         </g>
         <g data-edge-from="topic" data-edge-to="room" data-edge-label="in room" data-edge-key="1" data-edge-id="topic_room" data-er-ends="many one">
           <rect x="508.47" y="180" width="49.06" height="14" rx="3" class="c-mask"/>
@@ -1163,33 +1216,33 @@ svg[data-erd-ui="cards"]:has([data-legend-semantic-kind="optional"]:is(:hover, :
           <rect x="729.3599999999999" y="722" width="54.64" height="14" rx="3" class="c-mask"/>
           <text x="756.68" y="732" class="t-muted" font-size="9" text-anchor="middle">votes in</text>
         </g>
+        <g data-edge-from="room_slug" data-edge-to="room" data-edge-label="names" data-edge-key="5" data-edge-id="room_slug_room" data-er-ends="many one">
+          <rect x="196.10000000000002" y="338" width="37.9" height="14" rx="3" class="c-mask"/>
+          <text x="215.05" y="348" class="t-muted" font-size="9" text-anchor="middle">names</text>
+        </g>
 
         <!-- Legend -->
         <g data-legend="">
-          <text x="24" y="886" class="t-primary" font-size="12" font-weight="650">Legend</text>
-          <g data-legend-semantic-kind="pk" data-legend-x="24" data-legend-baseline="906" data-legend-width="126">
-            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Primary key" x="18" y="891" width="138" height="22" rx="11"/><rect x="24" y="896" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="pk"/><text x="35" y="906" class="t-database" text-anchor="middle" font-size="9" font-weight="600">PK</text>
-            <text x="54" y="906" class="t-primary" font-size="12" font-weight="600">Primary key</text>
+          <text x="24" y="946" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g data-legend-semantic-kind="pk" data-legend-x="24" data-legend-baseline="966" data-legend-width="126">
+            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Primary key" x="18" y="951" width="138" height="22" rx="11"/><rect x="24" y="956" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="pk"/><text x="35" y="966" class="t-database" text-anchor="middle" font-size="9" font-weight="600">PK</text>
+            <text x="54" y="966" class="t-primary" font-size="12" font-weight="600">Primary key</text>
           </g>
-          <g data-legend-semantic-kind="fk" data-legend-x="172" data-legend-baseline="906" data-legend-width="126">
-            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Foreign key" x="166" y="891" width="138" height="22" rx="11"/><rect x="172" y="896" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="fk"/><text x="183" y="906" class="t-messagebus" text-anchor="middle" font-size="9" font-weight="600">FK</text>
-            <text x="202" y="906" class="t-primary" font-size="12" font-weight="600">Foreign key</text>
+          <g data-legend-semantic-kind="fk" data-legend-x="172" data-legend-baseline="966" data-legend-width="126">
+            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Foreign key" x="166" y="951" width="138" height="22" rx="11"/><rect x="172" y="956" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="fk"/><text x="183" y="966" class="t-messagebus" text-anchor="middle" font-size="9" font-weight="600">FK</text>
+            <text x="202" y="966" class="t-primary" font-size="12" font-weight="600">Foreign key</text>
           </g>
-          <g data-legend-semantic-kind="uk" data-legend-x="320" data-legend-baseline="906" data-legend-width="118">
-            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Unique key" x="314" y="891" width="130" height="22" rx="11"/><rect x="320" y="896" width="22" height="13" rx="3" class="er-key-badge" data-er-badge="uk"/><text x="331" y="906" class="t-muted" text-anchor="middle" font-size="9" font-weight="600">UK</text>
-            <text x="350" y="906" class="t-primary" font-size="12" font-weight="600">Unique key</text>
+          <g data-legend-semantic-kind="one" data-legend-x="320" data-legend-baseline="966" data-legend-width="75">
+            <line x1="316" y1="954" x2="316" y2="970" class="er-legend-divider" stroke-width="1"/><rect class="er-legend-hit" tabindex="0" role="img" aria-label="One" x="324" y="951" width="77" height="22" rx="11"/><line x1="330" y1="962" x2="358" y2="962" class="er-legend-route" stroke-width="1.5"/><line x1="358" y1="955" x2="358" y2="969" class="er-legend-edge" stroke-width="2"/><g class="er-legend-glyph" transform="translate(336 954)" style="stroke: var(--text-muted)" stroke-width="1.75" fill="none"><path d="M 17 1 L 17 15"/></g>
+            <text x="368" y="966" class="t-primary" font-size="12" font-weight="600">One</text>
           </g>
-          <g data-legend-semantic-kind="one" data-legend-x="460" data-legend-baseline="906" data-legend-width="75">
-            <line x1="456" y1="894" x2="456" y2="910" class="er-legend-divider" stroke-width="1"/><rect class="er-legend-hit" tabindex="0" role="img" aria-label="One" x="464" y="891" width="77" height="22" rx="11"/><line x1="470" y1="902" x2="498" y2="902" class="er-legend-route" stroke-width="1.5"/><line x1="498" y1="895" x2="498" y2="909" class="er-legend-edge" stroke-width="2"/><g class="er-legend-glyph" transform="translate(476 894)" style="stroke: var(--text-muted)" stroke-width="1.75" fill="none"><path d="M 17 1 L 17 15"/></g>
-            <text x="508" y="906" class="t-primary" font-size="12" font-weight="600">One</text>
+          <g data-legend-semantic-kind="many" data-legend-x="417" data-legend-baseline="966" data-legend-width="73">
+            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Many" x="411" y="951" width="85" height="22" rx="11"/><line x1="417" y1="962" x2="445" y2="962" class="er-legend-route" stroke-width="1.5"/><line x1="445" y1="955" x2="445" y2="969" class="er-legend-edge" stroke-width="2"/><g class="er-legend-glyph" transform="translate(423 954)" style="stroke: var(--text-muted)" stroke-width="1.75" fill="none"><path d="M 8 8 L 22 1 M 8 8 L 22 8 M 8 8 L 22 15"/></g>
+            <text x="455" y="966" class="t-primary" font-size="12" font-weight="600">Many</text>
           </g>
-          <g data-legend-semantic-kind="many" data-legend-x="557" data-legend-baseline="906" data-legend-width="73">
-            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Many" x="551" y="891" width="85" height="22" rx="11"/><line x1="557" y1="902" x2="585" y2="902" class="er-legend-route" stroke-width="1.5"/><line x1="585" y1="895" x2="585" y2="909" class="er-legend-edge" stroke-width="2"/><g class="er-legend-glyph" transform="translate(563 894)" style="stroke: var(--text-muted)" stroke-width="1.75" fill="none"><path d="M 8 8 L 22 1 M 8 8 L 22 8 M 8 8 L 22 15"/></g>
-            <text x="595" y="906" class="t-primary" font-size="12" font-weight="600">Many</text>
-          </g>
-          <g data-legend-semantic-kind="optional" data-legend-x="652" data-legend-baseline="906" data-legend-width="108">
-            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Optional" x="646" y="891" width="120" height="22" rx="11"/><line x1="652" y1="902" x2="680" y2="902" class="er-legend-route" stroke-width="1.5"/><line x1="680" y1="895" x2="680" y2="909" class="er-legend-edge" stroke-width="2"/><g class="er-legend-glyph" transform="translate(658 894)" style="stroke: var(--text-muted)" stroke-width="1.75" fill="none"><circle cx="3.5" cy="8" r="2.6" class="c-mask"/><circle cx="3.5" cy="8" r="2.6"/></g>
-            <text x="690" y="906" class="t-primary" font-size="12" font-weight="600">Optional</text>
+          <g data-legend-semantic-kind="optional" data-legend-x="512" data-legend-baseline="966" data-legend-width="108">
+            <rect class="er-legend-hit" tabindex="0" role="img" aria-label="Optional" x="506" y="951" width="120" height="22" rx="11"/><line x1="512" y1="962" x2="540" y2="962" class="er-legend-route" stroke-width="1.5"/><line x1="540" y1="955" x2="540" y2="969" class="er-legend-edge" stroke-width="2"/><g class="er-legend-glyph" transform="translate(518 954)" style="stroke: var(--text-muted)" stroke-width="1.75" fill="none"><circle cx="3.5" cy="8" r="2.6" class="c-mask"/><circle cx="3.5" cy="8" r="2.6"/></g>
+            <text x="550" y="966" class="t-primary" font-size="12" font-weight="600">Optional</text>
           </g>
         </g>
       </svg>
