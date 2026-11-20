@@ -46,7 +46,7 @@ A target that is missed is reported with its number; it is never met by removing
 
 ## Code patterns
 
-Nine patterns carry the codebase. Each names the failure it prevents.
+Ten patterns carry the codebase. Each names the failure it prevents.
 
 | Pattern | Rule | Prevents |
 |-|-|-|
@@ -58,6 +58,7 @@ Nine patterns carry the codebase. Each names the failure it prevents.
 | Expected outcomes are values | A rejected command is a `nack` with a reason from a closed enum; an HTTP business error is a typed response. Exceptions mean a bug | `try` and `catch` as control flow, and user mistakes paged as errors |
 | Capture once | An exception is recorded once, at a boundary: the runtime's command boundary, Elysia's `onError`, the browser's global handlers. Code below a boundary never catches to log | double capture |
 | Injected time and chance | Nothing below an app's entry file reads the clock, a random source or the environment. They arrive as arguments | tests that sleep, and runs that cannot be replayed |
+| Messages, not strings | Everything a person reads comes from the message catalogue, with plural rules; numbers and dates go through `Intl`; spacing and alignment use logical properties (`ARCHITECTURE.md`, invariant 18) | a second pass over every component when the second language arrives |
 | One store per room on the client | `@fpp/room-client` owns room state. Components read it through selectors. TanStack Query holds HTTP data only. Preferences go through basalt-ui's `persisted`. No global store library | state in three places, which is v1's hardest bug source |
 
 Carried over from v1 because they work (`docs/observability.md`):
@@ -115,6 +116,7 @@ A rule that can be checked is a check, not a sentence. All of these run in `make
 | Telemetry content test | no display name, slug or vote value in any exported span, log or metric |
 | Protocol drift test | schemas, fixtures and `protocol.md` name the same frames |
 | Transport contract suite | frames, close codes, the drain and a slow consumer against the transport adapter; it decided the bake-off and runs on every version bump (server tier, in `make check`) |
+| Message check | no literal text in JSX, and no message key missing in a shipped language |
 | size-limit (CI only) | the bundle budgets |
 | `factory plan check`, `factory project check` | the plan and project files |
 
@@ -173,12 +175,30 @@ Rows are built by leads that run side by side, each in its own worktree, with no
 | Rows that do not collide | The repo map gives each row one module. A dependency is declared in the package that uses it. The lockfile and `docs/plan.yaml` are the only shared files, and the plan has a merge driver |
 | Many leads on one host | No test listens on a fixed port: ports come from the operating system. Each test run starts its own Postgres cluster from the binaries in `PG_BIN_DIR`, in a temporary directory. No test touches the shared database |
 | Heavy steps off the mini | `project.yaml` declares the server and fault tests as steps with `remote: true`, so the factory may run them on its Linux step host. That host's image has PostgreSQL 16 and production runs 18: the schema uses nothing newer than 16, and CI proves it on 18 |
+| Checks while a lead works | The fast and the full gate are declared in `project.yaml`, so the factory runs a lead's own format, lint, type and test steps before a pull request exists, on the mini or on its Linux step host. CI repeats the gate on GitHub's runners for the pull request (owner ruling of 2026-11-20) |
 | Steps that need Docker | The end-to-end suite and the load test run in a slot on the mini and, on every pull request, in CI. A lane `browser: 2` caps how many leads run Playwright at once |
 | A lead that knows when it is done | Every acceptance line is a command with an expected output or a number. A row for the interface attaches the arena's screenshots of the states it touched |
 | No waiting on the owner | No row carries a Spec. The plan has five gates, each a product verdict: concept, table, finished room, cutover, v1's data. Everything else a lead decides and records in its pull request |
 | A red run that explains itself | Every test target writes JUnit where the factory asks. A failing simulator seed prints the command that replays it |
 
 **CI stays on GitHub's runners.** The repository is public, and GitHub advises against self-hosted runners on public repositories: a pull request from a fork can run its code on the machine (`research/r21-freeze-v1-branch.md`). Hosted runners cost nothing here. Linux capacity outside GitHub is used through the factory's step host, which runs the steps of the factory's own leads and never a stranger's pull request.
+
+## Ready for agents before the first feature
+
+The owner ruled on 2026-11-20 that the setup for agents and the factory comes before implementation and is improved along the way. `v9-agent-setup` builds it after the foundation, and every row that builds v9's features waits for it.
+
+| Part | What it holds |
+|-|-|
+| Root `AGENTS.md`, at most 12,000 bytes | what every task needs: the repo map with each module's class, the commands and their budgets, the invariants as one line each, how a row ships, what an agent never does here |
+| A module's `AGENTS.md` | written by the row that creates the module, in the same pull request |
+| `.claude/rules/`, loaded by path | one short file per concern, each with the rule, its reason and the check that enforces it: the pure core, a protocol change, Effect in the adapters, the transport, tests, visible strings, basalt-ui, telemetry, migrations |
+| Skills | added by the row that creates the loop a skill wraps: replaying a simulator seed, scoring an arena entry |
+| The pull request template | the evidence for each acceptance line, the decisions a lead took, the documents it updated |
+| `project.yaml` | checks, remote steps, lanes and budgets, each with its reason |
+
+It is proven by a cold read. An agent that knows only the repository answers seven questions a lead must be able to answer, and the files are changed until it does.
+
+A lead that lost time to something the files did not say adds the missing line in the same pull request; friction with the factory itself is reported with `factory signal file`.
 
 ## The development loop
 
