@@ -22,6 +22,7 @@ check: ## Run the local validation CI runs (format, lint, type-check, build)
 	@bun run --filter=@fpp/web format:check
 	@SKIP_ENV_VALIDATION=1 bun run --filter=@fpp/web lint
 	@SKIP_ENV_VALIDATION=1 bun run --filter=@fpp/web type-check
+	@bun run --filter=@fpp/web test
 	@SKIP_ENV_VALIDATION=1 bun run --filter=@fpp/web build
 	@bun run --filter=@fpp/server format:check
 	@bun run --filter=@fpp/server lint
