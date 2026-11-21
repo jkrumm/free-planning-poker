@@ -76,7 +76,7 @@ The **Next.js server** handles the boring-but-necessary stuff:
 
 Check out `apps/web/src/server/api/routers/room.router.ts:102` for the room joining logic - it's a beautiful example of type-safe async mutations with Zod validation.
 
-### Server 2: Bun WebSocket Server (Port 3003)
+### Server 2: Bun WebSocket Server (Port 7721 dev, 3003 container)
 
 This is where the magic happens. The **Bun server** is a lightweight, blazing-fast WebSocket server that:
 - Maintains real-time connections to all users in all rooms
@@ -452,49 +452,19 @@ export const CActionSchema = Type.Union([
 
 This catches malformed messages before they hit the message handler, preventing runtime errors and potential exploits.
 
-## Error Handling: Sentry + Breadcrumbs
+## Error Handling: recordError + OpenTelemetry
 
-Every critical operation is wrapped in error handling that captures context to Sentry:
+Sentry is gone. Errors and domain events go to OpenTelemetry (ClickStack/HyperDX). The per-app facades (`apps/server/src/utils/app-error.ts`, `apps/web/src/utils/app-error.ts`) expose:
 
-```typescript
-// apps/web/src/utils/app-error.ts:35
-export const captureError = (
-  error: Error,
-  context: ErrorContext,
-  severity: 'low' | 'medium' | 'high'
-) => {
-  Sentry.captureException(error, {
-    level: severity,
-    tags: {
-      component: context.component,
-      action: context.action,
-    },
-    extra: context.extra,
-  });
-};
-```
-
-Before errors occur, breadcrumbs are dropped:
+- `recordError(error, context, severity)`: records the exception on the active span and emits a log record correlated by `trace_id`.
+- `recordEvent(EVENT.X, attrs)`: a typed, log-based domain event.
 
 ```typescript
-// apps/web/src/hooks/useWebSocketRoom.ts:140
-addBreadcrumb('WebSocket connected', 'websocket', { roomId, userId });
+// apps/web/src/pages/api/trpc/[trpc].ts:57
+recordError(error, error.metadata, error.metadata.severity ?? 'high');
 ```
 
-When an error happens, Sentry shows a timeline of breadcrumbs leading up to it, making debugging production issues trivial.
-
-Example breadcrumb trail for a connection error:
-```
-1. Room wrapper mounted
-2. User joined room (roomId: 1234)
-3. WebSocket connecting...
-4. WebSocket connected
-5. Heartbeat system started
-6. First room state received
-7. WebSocket disconnected (code: 1006)
-8. Attempting reconnect (attempt 1)
-9. ERROR: Failed to reconnect
-```
+Standards, severity tree and event discipline: `docs/observability.md`.
 
 ## Performance: The Little Things
 
@@ -666,7 +636,7 @@ Want to dive deeper? Check out these files:
 - `apps/web/src/components/room/room.tsx:456` - User interaction to WebSocket action
 - `apps/web/src/hooks/usePresenceTracking.ts:42` - Tab visibility tracking
 - `apps/web/src/server/api/routers/room.router.ts:172` - Recursive room creation with collision handling
-- `apps/web/src/utils/app-error.ts:35` - Sentry error capturing with breadcrumbs
+- `apps/web/src/utils/app-error.ts:112` - `recordError`: OTEL exception capture
 
 ---
 
