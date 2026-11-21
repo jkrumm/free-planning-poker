@@ -67,4 +67,11 @@ Agents never start these servers.
 
 A row that adds a lane job (`image`, `e2e`, `site`) gives it `if: needs.lanes.outputs.<lane> == 'true'` and adds it to the `needs` of `ci`; `gate.sh` needs no change.
 
-INSTALL_CACHE_PLACEHOLDER
+**No dependency cache.** `bun install --frozen-lockfile` of this workspace (320 packages) was timed on `ubuntu-24.04` on 2026-11-21, in two runs of a job with two arms: one with `~/.bun/install/cache` removed, one with it restored by `actions/cache` v6.1.0.
+
+| Run | Without a cache | With a restored cache |
+|-|-|-|
+| 1 (the cache was still empty) | 0.69 s | 0.72 s (a miss) |
+| 2 | 2.59 s | 3.08 s, plus 1 s for the restore step |
+
+A restored cache did not beat a cold install, so CI keeps none beyond the Bun binary that `setup-bun` caches. Measure again when the install passes 15 s.
