@@ -1,9 +1,0 @@
-defaults:
-  base_dir: ../worktrees/free-planning-poker
-
-hooks:
-  post_create:
-    - type: command
-      command: npm ci
-    - type: command
-      command: cd fpp-server && bun install --frozen-lockfile
