@@ -1,28 +1,35 @@
 {
   "name": "free-planning-poker",
-  "url": "https://free-planning-poker.com/",
+  "version": "8.5.0",
+  "private": true,
+  "description": "Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.",
+  "homepage": "https://free-planning-poker.com/",
+  "author": "Johannes Krumm",
   "repository": {
     "type": "git",
     "url": "https://github.com/jkrumm/free-planning-poker"
   },
-  "engines": {
-    "bun": ">=1.2.0"
-  },
-  "author": "Johannes Krumm",
-  "description": "Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.",
-  "homepage": "https://free-planning-poker.com/",
-  "version": "8.5.0",
-  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
   "scripts": {
     "prepare": "lefthook install",
-    "release": "release-it"
+    "release": "release-it",
+    "dev": "bun --filter @fpp/api dev"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.4",
-    "@commitlint/config-conventional": "^21.2.4",
-    "@release-it/conventional-changelog": "^12.0.2",
-    "lefthook": "^2.2.2",
-    "release-it": "^21.1.2",
-    "typescript": "^6.0.3"
-  }
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
+    "@release-it/conventional-changelog": "12.0.2",
+    "@types/bun": "1.4.4",
+    "lefthook": "2.2.2",
+    "oxfmt": "0.79.0",
+    "oxlint": "1.94.0",
+    "release-it": "21.1.2",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "bun@1.4.4",
+  "url": "https://free-planning-poker.com/"
 }

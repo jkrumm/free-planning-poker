@@ -1,0 +1,8 @@
+# The inputs of each CI lane (docs/v9/ENGINEERING.md, CI), one lane per line: `<lane>: <git pathspecs>`.
+# Read by .github/lanes.sh: CI's `lanes` job and `make lanes`. A job of a lane runs only when one of its inputs changed.
+# `every` is not a lane: a change to one of its paths runs every lane, because the toolchain or the pipeline moved.
+every: .github bun.lock package.json bunfig.toml tsconfig.base.json
+# app: the core, the API, the client, the table, the room app, and the end-to-end suite that drives them.
+app: packages/room-core packages/room-client packages/table packages/telemetry packages/test-kit apps/api apps/room e2e
+# site: the marketing site and its content.
+site: apps/site

@@ -1,0 +1,9 @@
+{
+  "name": "@fpp/room-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./decks": "./src/decks.ts"
+  }
+}

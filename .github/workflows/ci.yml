@@ -1,0 +1,99 @@
+name: CI
+
+# What every pull request and every master push must pass, and the one check that says so (docs/v9/ENGINEERING.md, CI).
+# Branch protection of master requires `ci` and nothing else, so adding or renaming a job never blocks merges.
+#
+# Lanes by a file and a script, not by `paths:` here: a workflow a path filter skips leaves its required check pending
+# forever, while a job skipped by a condition counts as passed. `lanes` reads .github/lanes and the diff; a lane job
+# (image, e2e, site: added by their rows) runs with `if: needs.lanes.outputs.<lane> == 'true'` and goes into the
+# `needs` of `ci`, whose script (.github/gate.sh) reads every needed job without a change.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+# A newer push to a pull request cancels its older run; pushes to master always finish (they will deploy).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Actions are pinned by commit, the tag in the comment. Bun is the version of package.json's packageManager.
+jobs:
+  lanes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      app: ${{ steps.lanes.outputs.app }}
+      site: ${{ steps.lanes.outputs.site }}
+    steps:
+      # Depth 2: a pull request is checked out as its merge commit, whose first parent is the base it merges into.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - id: lanes
+        run: .github/lanes.sh
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+
+  # make check: check-fast, the server tests against a private PostgreSQL 18 cluster per test, the build.
+  # No dependency cache: bun install --frozen-lockfile measured faster without one (docs/development.md, CI).
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: .github/postgres.sh 18
+      - run: bun install --frozen-lockfile
+      - run: make check
+        env:
+          PG_BIN_DIR: /usr/lib/postgresql/18/bin
+
+  # TEMPORARY (v9-foundation, ENGINEERING.md CI): times bun install --frozen-lockfile with and without a restored cache.
+  install-bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        mode: [cold, cached]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - if: matrix.mode == 'cached'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+      - if: matrix.mode == 'cold'
+        run: rm -rf ~/.bun/install/cache
+      - run: |
+          start=$(date +%s%N)
+          bun install --frozen-lockfile
+          echo "INSTALL_MS mode=${{ matrix.mode }} $(( ($(date +%s%N) - start) / 1000000 ))"
+
+  # The required check. It runs whatever happened before it and is red when a needed job failed or was cancelled.
+  ci:
+    needs: [lanes, check]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: .github/gate.sh
+        env:
+          NEEDS: ${{ toJSON(needs) }}
