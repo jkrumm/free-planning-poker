@@ -23,7 +23,6 @@ Release configuration is in `.release-it.json`:
 - Conventional commits preset with grouped sections
 - Auto-generates CHANGELOG.md
 - Creates GitHub release automatically
-- npm override for `conventional-changelog-conventionalcommits@^8.0.0` in package.json
 
 ---
 
@@ -143,10 +142,9 @@ git checkout -- <files>  # Restore if needed
 ```
 
 ### "whatBump is not a function"
-The `.release-it.json` config and `overrides` in package.json should prevent this. If it occurs:
+The `.release-it.json` preset config should prevent this; no npm override is needed. If it occurs:
 1. Verify `.release-it.json` exists with proper preset object format
-2. Check `overrides` in package.json has `conventional-changelog-conventionalcommits@^8.0.0`
-3. Run `rm -rf node_modules package-lock.json && npm install`
+2. Run `rm -rf node_modules package-lock.json && npm install`
 
 ### GitHub token issues
 ```bash

@@ -124,7 +124,7 @@ try {
 
 ### fpp-analytics (FastAPI)
 
-**Location:** `fpp-analytics/util/sentry_wrapper.py`
+**Location:** `fpp-analytics/util/error_capture.py`
 
 **Error format:**
 ```json
@@ -147,7 +147,7 @@ try {
 
 **Usage:**
 ```python
-from util.sentry_wrapper import ErrorContext, capture_error
+from util.error_capture import ErrorContext, capture_error
 
 try:
     # Some operation
@@ -244,7 +244,7 @@ Create `logdy.config.json` in project root:
 **To use the config:**
 ```bash
 # Update package.json dev:all:logdy script
-"dev:all:logdy": "logdy socket --port 8080 8081 8082 8083 --config logdy.config.json"
+"dev:all:logdy": "logdy socket --port 7723 7724 7725 7726 --config logdy.config.json"
 ```
 
 ---
@@ -308,8 +308,8 @@ If you see logs with empty `msg` field:
 - TypeScript: Ensure second parameter is the message: `logger.info({...}, 'message')`
 
 ### Logs Not Appearing in Logdy
-1. Check Logdy socket is running: `lsof -i :8080`
-2. Check forward connections: `lsof -i :8081,8082,8083`
+1. Check Logdy socket is running: `lsof -i :7723`
+2. Check forward connections: `lsof -i :7724-7726`
 3. Verify services are outputting JSON: `bun run dev` (check terminal)
 
 ### Log Parsing Issues
