@@ -6,7 +6,7 @@ const decks = Object.values(DECKS)
 describe('decks', () => {
   test("Fibonacci is the default and is v1's deck", () => {
     expect(DEFAULT_DECK_ID).toBe('fibonacci')
-    expect(DECKS.fibonacci.cards.map((card) => card.value)).toEqual([1, 2, 3, 5, 8, 13, 21])
+    expect(DECKS.fibonacci.cards.map((card) => card.value)).toEqual([1, 2, 3, 5, 8, 13, 22])
   })
 
   test('each deck is keyed by its own id', () => {
