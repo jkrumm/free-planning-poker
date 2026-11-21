@@ -1,6 +1,8 @@
 name: Validate
 
-on: [pull_request]
+on:
+  pull_request:
+    branches: [v1]
 
 # Caching strategy:
 # - bun: setup-bun has no built-in package cache, so we manually cache
