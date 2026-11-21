@@ -150,7 +150,7 @@ See `AGENTS.md` for detailed guide. Quick steps:
 
 ```bash
 # Test WebSocket connection
-wscat -c ws://localhost:3003/ws
+wscat -c ws://localhost:7721/ws
 
 # Send test join action
 {"action":"join","userId":"test123456789012345678","roomId":1,"username":"TestUser"}
