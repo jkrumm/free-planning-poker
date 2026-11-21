@@ -4,9 +4,9 @@
 # The arena's entries are not rows: the owner runs them in sessions of his own (ruling of 2026-11-20).
 # No row carries checkpoint: spec. The gates are v9-gate-1, v9-table-pick, v9-room-verdict, v9-cutover-runbook and v9-v1-remove.
 # v9-plan-table, v9-plan-site and v9-plan-launch are correction rows: each fixes the facts of rows not yet started from what was measured.
-# Seats: opus high where the logic is new and hard or other rows build on the design (reason in why); {role: lead} for the rest;
-# no seat line on small mechanical rows, so the factory's light rule may start them on the cheap seat and can still move them up
-# (a filed light seat is never moved up, which is why none is filed).
+# Seats, filed on every row: opus high where the logic is new and hard, other rows build on the design or production is at stake
+# (reason in why); {role: light} on eight small mechanical rows that a check proves (owner, 2026-11-21: file it; a filed light
+# seat is not moved up, and the light rule's keep-off words would have kept half of them off the seat); {role: lead} for the rest.
 version: 1
 rows:
   - key: v9-gate-1
@@ -15,6 +15,7 @@ rows:
   - key: v9-umami-on-v1
     title: 'Umami on v1: the cookieless script on the current pages, so its history starts before the rewrite ships'
     kind: feature
+    seat: {role: lead}
     after: [v9-gate-1]
     after_needs: shipped
     facts:
@@ -132,6 +133,7 @@ rows:
     title: 'Local doors for FPP v9: fpp-next.test with production''s path split, and a database fpp on the mini'
     repo: dotfiles
     kind: chore
+    seat: {role: light}
     after: [v9-gate-1]
     after_needs: shipped
     facts:
@@ -427,6 +429,7 @@ rows:
   - key: v9-api-image
     title: 'One image for API and room app, a compose file for self-hosting and tests, built in CI'
     kind: chore
+    seat: {role: lead}
     after: [v9-room-plain]
     after_needs: shipped
     facts:
@@ -927,6 +930,7 @@ rows:
   - key: v9-room-summary
     title: 'The session summary: every topic with its final value, spread, rounds and duration, copied as Markdown and exported as CSV through the API summary route'
     kind: feature
+    seat: {role: light}
     lane: ui
     after: [v9-room-topics, v9-api-read]
     after_needs: shipped
@@ -1080,6 +1084,7 @@ rows:
   - key: v9-room-errors
     title: 'Browser telemetry for the room: uncaught errors, rejected promises and connection state changes as OTLP logs to /api/otel, with the content policy test extended to the browser'
     kind: feature
+    seat: {role: lead}
     after: [v9-room-shell, v9-api-telemetry]
     after_needs: shipped
     facts:
@@ -1107,6 +1112,7 @@ rows:
   - key: v9-room-record
     title: 'The personal record: rounds played, how often you matched the most common card and whether you vote higher or lower than your teams, computed and kept on the device only'
     kind: feature
+    seat: {role: light}
     lane: ui
     after: [v9-room-shell]
     after_needs: shipped
@@ -1132,6 +1138,7 @@ rows:
   - key: v9-room-feedback
     title: 'The feedback form in the room: a short text sent through the API''s feedback route, as v1 has it'
     kind: feature
+    seat: {role: light}
     lane: ui
     after: [v9-room-shell, v9-api-contact]
     after_needs: shipped
@@ -1279,6 +1286,7 @@ rows:
   - key: v9-site-crawl
     title: 'Search plumbing for the site: robots.txt with the crawler policy, a sitemap without drafts or rooms, llms.txt and Markdown twins, the IndexNow key and ping'
     kind: feature
+    seat: {role: light}
     after: [v9-site-scaffold]
     after_needs: shipped
     facts:
@@ -1434,6 +1442,7 @@ rows:
   - key: v9-site-blog
     title: 'The blog: collection index, post layout, RSS feed, and a first post on what is new in 9.0.0 as a draft'
     kind: feature
+    seat: {role: light}
     after: [v9-site-scaffold]
     after_needs: shipped
     facts:
@@ -1458,6 +1467,7 @@ rows:
   - key: v9-site-roadmap
     title: 'The roadmap at /roadmap: the changelog read from CHANGELOG.md at build time and what is next from one data file'
     kind: feature
+    seat: {role: light}
     after: [v9-site-scaffold]
     after_needs: shipped
     facts:
@@ -1818,6 +1828,7 @@ rows:
   - key: v9-umami-proxy
     title: 'vps: Umami''s script and collect endpoint under /api/u on the Free Planning Poker beta hostname, with the visitor''s address handed through'
     kind: chore
+    seat: {role: lead}
     repo: vps
     after: [v9-edge-routing]
     after_needs: shipped
@@ -2128,6 +2139,7 @@ rows:
   - key: v9-v1-hosting-end
     title: 'End of v1''s hosting on this repository''s side: v1''s deploy workflow disabled, the branch v1 kept and tagged v1-final, the documents corrected'
     kind: chore
+    seat: {role: light}
     after: [v9-release-9]
     after_needs: shipped
     after_days: 14
