@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 846 1024" data-reader-fit="width-first" data-layout-contract="readable-v2" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="standard" data-node-ui="" style="--flow-cycle: 8.891s; width: 846px; height: 1024px; min-width: 0px;" width="846" height="1024" xmlns="http://www.w3.org/2000/svg" data-theme="light"><style>
+<svg viewBox="0 0 854 1024" data-reader-fit="width-first" data-layout-contract="readable-v2" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="standard" data-node-ui="" style="--flow-cycle: 8.891s; width: 854px; height: 1024px; min-width: 0px;" width="854" height="1024" xmlns="http://www.w3.org/2000/svg" data-theme="light"><style>
 /*
 JetBrains Mono variable WOFF2 subsets from Google Fonts service revision v24.
 These fixed bytes are shared by the viewer and its SVG/raster exports.
@@ -704,7 +704,7 @@ svg[data-node-ui] g[data-edge-from] &gt; rect.c-mask { rx: 7px; stroke: var(--la
 svg[data-node-ui][data-preset="blueprint"] :is([data-graph-role="structural-frame-label-mask"], g[data-edge-from] &gt; rect.c-mask, .phase-chip) { rx: 2px; }
 svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-frame-label-mask"], g[data-edge-from] &gt; rect.c-mask, .phase-chip) { rx: 3px; }
 :root, svg { --bg: #f4f5f7; --grid: #e9edf2; --canvas-dot: #e2e7ec; --text: #111827; --text-muted: #5b6474; --text-dim: #9aa3b2; --text-faint: #6b7280; --panel: #ffffff; --panel-border: #e5e7eb; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #64748b; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; --flow-cycle: ; --flow-halo-peak: ; --flow-glow-peak: ; --flow-tail-peak: ; --flow-head-peak: ; --flow-wake-peak: ; --flow-ripple-peak: ; --flow-peak: ; }
-</style><rect x="0" y="0" width="846" height="1024" fill="#f4f5f7"/>
+</style><rect x="0" y="0" width="854" height="1024" fill="#f4f5f7"/>
         <title id="archify-diagram-title">The work in parallel lanes</title>
         <desc id="archify-diagram-description">After the foundation up to six rows run side by side. Two owner stops in this part; three more before launch.</desc>
         <!-- Definitions -->
@@ -751,25 +751,25 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <rect width="100%" height="100%" fill="url(#grid)"/>
 
         <!-- Swimlanes -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-0" x="40" y="52" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-0" x="40" y="52" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="74" class="t-muted" font-size="10" font-weight="600">01 / Owner</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-1" x="40" y="176" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-1" x="40" y="176" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="198" class="t-muted" font-size="10" font-weight="600">02 / Ground</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="300" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="300" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="322" class="t-muted" font-size="10" font-weight="600">03 / Core</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-3" x="40" y="424" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-3" x="40" y="424" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="446" class="t-muted" font-size="10" font-weight="600">04 / Server</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-4" x="40" y="548" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-4" x="40" y="548" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="570" class="t-muted" font-size="10" font-weight="600">05 / Client and proof</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-5" x="40" y="672" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-5" x="40" y="672" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="694" class="t-muted" font-size="10" font-weight="600">06 / Table</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-6" x="40" y="796" width="790" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-6" x="40" y="796" width="798" height="104" rx="10" class="c-lane" stroke-width="1"/>
         <text x="54" y="818" class="t-muted" font-size="10" font-weight="600">07 / Site</text>
 
         <!-- Phase headers -->
@@ -784,14 +784,14 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
         <path data-edge-from="core" data-edge-to="arena" data-edge-key="2" data-edge-role="" data-composition-points="361,393;361,409;340.5,409;340.5,697;368,697;368,713" d="M 361 393 L 361 402.75 Q 361 409 354.75 409 L 346.75 409 Q 340.5 409 340.5 415.25 L 340.5 690.75 Q 340.5 697 346.75 697 L 361.75 697 Q 368 697 368 703.25 L 368 713" class="a-default" data-animate="edge" style="--step: 2;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="core" data-edge-to="client" data-edge-key="3" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="380,393;380,456;569,456;569,573;498,573;498,589" d="M 380 393 L 380 448 Q 380 456 388 456 L 561 456 Q 569 456 569 464 L 569 565 Q 569 573 561 573 L 506 573 Q 498 573 498 581 L 498 589" class="a-default" data-animate="edge" style="--step: 3;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="core" data-edge-to="server" data-edge-key="4" data-edge-role="" data-composition-points="430,367;498,367;498,465" d="M 430 367 L 490 367 Q 498 367 498 375 L 498 465" class="a-default" data-animate="edge" style="--step: 4;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="entries" data-edge-to="pick" data-edge-key="5" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="694,739;710,739;710,119;726,119" d="M 694 739 L 702 739 Q 710 739 710 731 L 710 127 Q 710 119 718 119 L 726 119" class="a-default" data-animate="edge" style="--step: 5;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="entries" data-edge-to="pick" data-edge-key="5" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="694,739;713,739;713,119;732,119" d="M 694 739 L 705 739 Q 713 739 713 731 L 713 127 Q 713 119 721 119 L 732 119" class="a-default" data-animate="edge" style="--step: 5;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="gate1" data-edge-to="ground" data-edge-key="6" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="140,112;248,112;248,217" d="M 140 112 L 240 112 Q 248 112 248 120 L 248 217" class="a-default" data-animate="edge" style="--step: 6;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="gate1" data-edge-to="infra" data-edge-key="7" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="48,119;32,119;32,243;48,243" d="M 48 119 L 40 119 Q 32 119 32 127 L 32 235 Q 32 243 40 243 L 48 243" class="a-default" data-animate="edge" style="--step: 7;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="ground" data-edge-to="core" data-edge-key="8" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="272,269;272,367;306,367" d="M 272 269 L 272 359 Q 272 367 280 367 L 306 367" class="a-default" data-animate="edge" style="--step: 8;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="ground" data-edge-to="plan3" data-edge-key="9" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="172,243;156,243;156,538;306,538;306,863;322,863" d="M 172 243 L 164 243 Q 156 243 156 251 L 156 530 Q 156 538 164 538 L 298 538 Q 306 538 306 546 L 306 855 Q 306 863 314 863 L 322 863" class="a-default" data-animate="edge" style="--step: 9;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="ground" data-edge-to="schema" data-edge-key="10" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="248,269;248,465" d="M 248 269 L 248 465" class="a-default" data-animate="edge" style="--step: 10;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="infra" data-edge-to="schema" data-edge-key="11" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="140,243;158,243;158,491;200,491" d="M 140 243 L 150 243 Q 158 243 158 251 L 158 483 Q 158 491 166 491 L 200 491" class="a-default" data-animate="edge" style="--step: 11;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="pick" data-edge-to="plan2" data-edge-key="12" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="772,145;772,713" d="M 772 145 L 772 713" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="pick" data-edge-to="plan2" data-edge-key="12" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="778,145;778,713" d="M 778 145 L 778 713" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="plan3" data-edge-to="site" data-edge-key="13" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="414,863;446,863" d="M 414 863 L 446 863" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="proof" data-edge-to="entries" data-edge-key="14" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="638,641;638,713" d="M 638 641 L 638 713" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path data-edge-from="proof" data-edge-to="plan2" data-edge-key="15" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="662,641;662,657;706,657;706,739;726,739" d="M 662 641 L 662 649 Q 662 657 670 657 L 698 657 Q 706 657 706 665 L 706 731 Q 706 739 714 739 L 726 739" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.4" marker-end="url(#arrowhead)"/>
@@ -813,14 +813,14 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
 
         <g id="node-pick" data-node-id="pick" data-node-label="Owner stop" tabindex="0" role="button" aria-label="Focus Owner stop, pick the table, Owner" aria-pressed="false" data-node-kind="security" data-node-sublabel="pick the table" data-node-context="Owner">
           <title>Owner stop · pick the table · Owner</title>
-          <rect x="726" y="93" width="92" height="52" rx="8" class="c-mask"/>
-          <rect x="726" y="93" width="92" height="52" rx="8" class="c-security" data-animate="node" style="--step: 1; --flow-node-name: archify-relay-node-12;" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(732 99) scale(0.6875)">
+          <rect x="732" y="93" width="92" height="52" rx="8" class="c-mask"/>
+          <rect x="732" y="93" width="92" height="52" rx="8" class="c-security" data-animate="node" style="--step: 1; --flow-node-name: archify-relay-node-12;" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(738 99) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-node-label="" x="778" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Owner stop</text>
-          <text x="772" y="131" class="t-muted" font-size="8" text-anchor="middle">pick the table</text>
+          <text data-node-label="" x="784" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Owner stop</text>
+          <text x="778" y="131" class="t-muted" font-size="8" text-anchor="middle">pick the table</text>
         </g>
 
         <g id="node-infra" data-node-id="infra" data-node-label="Dev host," tabindex="0" role="button" aria-label="Focus Dev host,, Postgres role, Ground" aria-pressed="false" data-node-kind="external" data-node-sublabel="Postgres role" data-node-context="Ground">
@@ -921,37 +921,37 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
           <text x="638" y="758.9" class="t-muted" font-size="8" text-anchor="middle">the table entries</text>
         </g>
 
-        <g id="node-plan2" data-node-id="plan2" data-node-label="Plan stage 2" tabindex="0" role="button" aria-label="Focus Plan stage 2, the room UI, Table" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="the room UI" data-node-context="Table">
-          <title>Plan stage 2 · the room UI · Table</title>
-          <rect x="726" y="713" width="92" height="52" rx="8" class="c-mask"/>
-          <rect x="726" y="713" width="92" height="52" rx="8" class="c-cloud" data-animate="node" style="--step: 11; --flow-node-name: archify-relay-node-13;" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(732 719) scale(0.6875)">
-            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+        <g id="node-plan2" data-node-id="plan2" data-node-label="Room shell, then" tabindex="0" role="button" aria-label="Focus Room shell, then, the room's rows, Table" aria-pressed="false" data-node-kind="backend" data-node-sublabel="the room's rows" data-node-context="Table">
+          <title>Room shell, then · the room's rows · Table</title>
+          <rect x="726" y="713" width="104" height="52" rx="8" class="c-mask"/>
+          <rect x="726" y="713" width="104" height="52" rx="8" class="c-backend" data-animate="node" style="--step: 11; --flow-node-name: archify-relay-node-13;" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(732 719) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="772" y="745.2" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Plan stage 2</text>
-          <text x="772" y="760.1" class="t-muted" font-size="8" text-anchor="middle">the room UI</text>
+          <text data-node-label="" x="778" y="744" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Room shell, then</text>
+          <text x="778" y="758.6" class="t-muted" font-size="8" text-anchor="middle">the room's rows</text>
         </g>
 
-        <g id="node-plan3" data-node-id="plan3" data-node-label="Plan stage 3" tabindex="0" role="button" aria-label="Focus Plan stage 3, site and numbers, Site" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="site and numbers" data-node-context="Site">
-          <title>Plan stage 3 · site and numbers · Site</title>
+        <g id="node-plan3" data-node-id="plan3" data-node-label="Site scaffold" tabindex="0" role="button" aria-label="Focus Site scaffold, Astro, collections, Site" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Astro, collections" data-node-context="Site">
+          <title>Site scaffold · Astro, collections · Site</title>
           <rect x="322" y="837" width="92" height="52" rx="8" class="c-mask"/>
-          <rect x="322" y="837" width="92" height="52" rx="8" class="c-cloud" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-5;" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(328 843) scale(0.6875)">
-            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+          <rect x="322" y="837" width="92" height="52" rx="8" class="c-backend" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-5;" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(328 843) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="368" y="869.2" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Plan stage 3</text>
-          <text x="368" y="884.1" class="t-muted" font-size="8" text-anchor="middle">site and numbers</text>
+          <text data-node-label="" x="368" y="868.9" class="t-primary" font-size="10.7" font-weight="600" text-anchor="middle">Site scaffold</text>
+          <text x="368" y="883.4" class="t-muted" font-size="7.7" text-anchor="middle">Astro, collections</text>
         </g>
 
-        <g id="node-site" data-node-id="site" data-node-label="Content, search," tabindex="0" role="button" aria-label="Focus Content, search,, site rows, Site" aria-pressed="false" data-node-kind="backend" data-node-sublabel="site rows" data-node-context="Site">
-          <title>Content, search, · site rows · Site</title>
+        <g id="node-site" data-node-id="site" data-node-label="Content, search," tabindex="0" role="button" aria-label="Focus Content, search,, legal, guides, Site" aria-pressed="false" data-node-kind="backend" data-node-sublabel="legal, guides" data-node-context="Site">
+          <title>Content, search, · legal, guides · Site</title>
           <rect x="446" y="837" width="104" height="52" rx="8" class="c-mask"/>
           <rect x="446" y="837" width="104" height="52" rx="8" class="c-backend" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-10;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(452 843) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" x="498" y="868" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Content, search,</text>
-          <text x="498" y="882.6" class="t-muted" font-size="8" text-anchor="middle">site rows</text>
+          <text x="498" y="882.6" class="t-muted" font-size="8" text-anchor="middle">legal, guides</text>
         </g>
 
         <!-- Edge labels -->
@@ -975,7 +975,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
 
 
         <!-- Legend -->
-        <g data-legend="">
+        <g data-legend="" style="">
           <text x="20" y="924" class="t-primary" font-size="12" font-weight="650">Legend</text>
           <g data-legend-semantic-kind="backend" data-legend-x="20" data-legend-baseline="944" data-legend-width="90">
             <rect x="20" y="936" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
@@ -985,13 +985,9 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
             <rect x="117" y="936" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
             <text x="139" y="944" class="t-muted" font-size="7.5" font-weight="500">Owner stop</text>
           </g>
-          <g data-legend-semantic-kind="cloud" data-legend-x="214" data-legend-baseline="944" data-legend-width="99">
-            <rect x="214" y="936" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
-            <text x="236" y="944" class="t-muted" font-size="7.5" font-weight="500">Planning row</text>
-          </g>
-          <g data-legend-semantic-kind="external" data-legend-x="320" data-legend-baseline="944" data-legend-width="118">
-            <rect x="320" y="936" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
-            <text x="342" y="944" class="t-muted" font-size="7.5" font-weight="500">Other repository</text>
+          <g data-legend-semantic-kind="external" data-legend-x="214" data-legend-baseline="944" data-legend-width="118">
+            <rect x="214" y="936" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+            <text x="236" y="944" class="t-muted" font-size="7.5" font-weight="500">Other repository</text>
           </g>
         </g>
       </svg>

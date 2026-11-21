@@ -16,8 +16,28 @@ The detail is in four documents and the research behind them:
 - `ENGINEERING.md`: patterns, CI and the development loop
 - `UX.md`: the product, with wireframes
 - `PLAN.md`: stages and rows
-- `research/`: twenty-four cited reports from 2026-11-18 to 2026-11-20
-- `HANDOVER.md`: the prompt for the session that plans stages 2 to 4 ahead and sets up the repository for agents
+- `research/`: twenty-six cited reports from 2026-11-18 to 2026-11-21
+
+## Your comments of 2026-11-21
+
+Six comments on the fifth revision, and the plan you asked for with them.
+
+| You said | What changed |
+|-|-|
+| The password must not break the link; maybe encode it. We will probably just set "iu" | A typed password has 2 to 32 characters of any kind, so "iu" works. The link carries it percent-encoded in its fragment and the room decodes it; Base64 would add nothing but an unreadable link. Upper and lower case count as the same, so a password read out loud works |
+| No QR code | Gone everywhere. Invite copies the link and opens the share sheet |
+| Tracker tickets are tricky without accounts: keep the keys in the browser, store ticket ids only | Taken as the rule: no tracker credential ever rests on our server. A connection lives in the browser of the person who made it; that browser fetches the tickets and hands key, title and link to the room. We keep those three, as for a pasted line, because history and the summary show them; a ticket's description is passed along during the round and not stored. Where a tracker's sign-in needs a secret of our app (Jira Cloud does, `research/r26`), a pass-through exchanges the code and stores nothing. Tracker connections stay work for after the launch (`ARCHITECTURE.md`, "Built for what comes next") |
+| Languages first-class on landing page and room? Also Spanish, French, Chinese? | Yes, both. The room ships in English, German, Spanish, French and Simplified Chinese. The landing page is built in the same five; a translation goes live when someone who speaks the language has read it, German when you have. Guides and documentation stay English at launch |
+| No unnecessary Specs; plan everything up to the marked validations | Done: all four stages are rows now, 78 in total, none with a Spec. You are asked at the five gates and nowhere else |
+| Otherwise imgcli and S3 hosting | Recorded as the fallback if Cloudflare's free plan bills asset requests: the static files move to your own bucket behind your CDN, the storage your image tool already uploads to |
+
+**The plan.** Every row names the seat its lead starts on (`PLAN.md` has the table).
+
+| Seat | Rows | Which |
+|-|-|-|
+| `opus`, effort high | 16 | New hard logic: the core, the runtime, the socket server, the store, the drain, the importer. A design others build on: the foundation, the setup for agents, the arena, the pick, the room's shell, the landing page. Production at stake: the freeze of v1, the edge routing, the cutover's runbook and its run |
+| `lead` | 50 | Everything else that is built |
+| none written | 12 | Small mechanical rows with a check that proves them. The factory's rule starts them on the `light` seat and moves them up if the lead stalls twice. A `light` seat written into a row is never moved up, so it is not written |
 
 ## Your comments of 2026-11-20
 
@@ -33,7 +53,7 @@ Eighteen comments on the second version. What each one changed:
 | Why drop rounds after 12 months? | No reason that holds. Rounds are kept: they carry no names, they are small, and the insights are made of them |
 | How do rooms open up again, and how does the server know what is free? | Every room has a number; a team can book a name. A number is released three months after the last visit, a name after six, and a released one still opens until it is handed to a new room. One table keyed by the address answers free, held or released in one lookup; the generator asks once for eight candidates |
 | The table is the key challenge: let models compete | The table arena: one harness, one brief, several entries, a scorecard, your pick. The entries run outside the factory (`UX.md`, "The table arena") |
-| Great joining, inviting and coming back | Three ways in on the landing page, one Invite button with QR code and share sheet, recent rooms with a live head count and a pin |
+| Great joining, inviting and coming back | Three ways in on the landing page, one Invite button that copies the link and opens the share sheet, recent rooms with a live head count and a pin |
 | Efficient tests, a first-class factory citizen, CI on the Linux box | `ENGINEERING.md`, "Built for the factory". CI stays on GitHub's runners because the repository is public; the Linux capacity is used through the factory's step host |
 | Did we research how other planning tools would integrate? | Now yes: 22 tools surveyed. The table and the order are in `ARCHITECTURE.md`, "Built for what comes next" |
 | We keep estimation data and insights? | All of it. See "Numbers and history" |
@@ -67,13 +87,25 @@ Your answers of 2026-11-20 to the open choices and to the points where the plan 
 | The lock | A password people type or let the room generate. It need not be secure; a device that got in once remembers it | Typed or generated, stored readable, carried in the link, kept in the device's storage |
 | Runtime and framework | Bun and Elysia 2. Which socket path, including Effect's, is still open: compare them | A bake-off of three candidates in `v9-api-ws`. Elysia wins a tie. Effect stays in the API's adapters and jobs |
 | The table arena | Not in the usual factory loop. Later, with several directions and several labs' models | The factory builds the harness. Entries are made in sessions you start; the pick is still a gate |
-| Planning of the later stages | Ahead, in a session with you, as far as it can be known today | `HANDOVER.md`. The planning rows stay as the place where a stage is corrected from what was measured |
-| Languages | From the beginning | A message catalogue from the first screen; the room ships in English and German (`research/r24`) |
+| Planning of the later stages | Ahead, as far as it can be known today; no Spec on the way (confirmed 2026-11-21) | Written out on 2026-11-21: every stage is rows in `docs/plan.yaml`. Three correction rows stay, one per stage, each fixing what the stage before measured differently |
+| Languages | From the beginning, on the landing page and in the room; more than two (2026-11-21) | A message catalogue from the first screen. The room ships in English, German, Spanish, French and Simplified Chinese; the landing page is built in the same five (`research/r24`, `r25`) |
 | Checks on the Linux box | CI on GitHub's runners, development checks through the factory | Already so: a lead's heavy steps run on the factory's step host. Now written down in `ENGINEERING.md` |
 | FAQ markup | Keep it | FAQPage markup on the pages with questions, next to the visible text. It costs one component; Google shows nothing for it since May 2026 |
 | AI crawlers | Welcome | `robots.txt` allows search, user-triggered and training bots |
 | Further activities | Inside this product | Unchanged: one product, one room, activities as modules |
+| Trackers without accounts | Keys stay in the browser; we store ticket references only (2026-11-21) | No connector table and no stored token, ever. A connection is held by the browser that made it (`ARCHITECTURE.md`, "Built for what comes next") |
+| The invite | No QR code (2026-11-21) | The link and the share sheet |
 | Before implementation | A thorough setup for agents and the factory first | A row of its own, `v9-agent-setup`, after the foundation and before every row that builds a feature of v9: `AGENTS.md`, path-scoped rules, the pull request template, the README, proven by a cold read |
+
+Five smaller questions were still open when the later stages were planned. Each is settled with the cautious default, and each is one line to overturn:
+
+| Question | Settled as | Where |
+|-|-|-|
+| The hold periods | Three months for a number, six for a booked name, 30 days for a replaced address. They are constants | `ARCHITECTURE.md`, "Room model" |
+| v1's per-person estimates, which carry no link to a round | Counted in the totals, attached to no round | `v9-importer` |
+| Self-hosting at 9.0.0 | One compose file, proven on a clean machine by a nightly run | `v9-selfhost` |
+| The first activities after launch | A confidence vote, then dot voting, then the wheel. None is a row yet | `PLAN.md`, "After launch" |
+| basalt-ui 3 | Rows with a look wait until npm serves 3.x; nothing installs an unpublished build | `v9-ui-foundation`, `v9-site-look` |
 
 ## Where the research disagrees with the brief
 
@@ -98,7 +130,7 @@ Effect 4.0 has been stable since 2026-09-30. It earns its place where code waits
 | The socket | measured | Effect's Bun server is one of three candidates in the bake-off. On paper it exposes neither Bun's publish nor its backpressure codes and has an open report of unbounded buffering; the test decides |
 | The browser client | no | Its state machine is tested by the simulator, and it would carry the runtime |
 | Postgres store, jobs, startup and drain | yes | Retries, schedules and ordered release become declarations |
-| Webhook relay and connectors, after launch | yes, the strongest case | A retry rule per status code, bounded concurrency, timeouts, typed failures |
+| Webhook relay, after launch | yes, the strongest case | A retry rule per status code, bounded concurrency, timeouts, typed failures |
 
 That is narrower than you proposed. What you want from it, stability and testability, comes here from a pure core and a simulator that replays any failure from a seed. Effect adds to it where the system touches the outside.
 
@@ -116,9 +148,9 @@ That is narrower than you proposed. What you want from it, stability and testabi
 | Results | One JSON contract for history, exports, embed messages and webhooks | high once others consume it |
 | Activities | Estimating is the activity `poker`; commands and events carry that name, and seats and topics belong to the room | a protocol break, so it is done now |
 | Identity | A server-minted seat secret per room is the only credential a participant has. v1's anonymous device id stays, for counting only | low: dropping it deletes one table |
-| Access | Open by default. A lock with a typed or generated password that travels in the link and is remembered by the device. No owner and no key | low |
+| Access | Open by default. A lock with a typed (2 to 32 characters) or generated password that travels in the link, percent-encoded, and is remembered by the device. No owner and no key | low |
 | Addresses | Every room has a six-digit number; a team can book a name. A number is held for three months after the last visit, a name for six. One table is the namespace | low: the periods are constants |
-| Languages | A compiled message catalogue from the first screen. The room ships in English and German, the site in English | high if left out: every string and layout would be touched again |
+| Languages | A compiled message catalogue from the first screen. The room ships in five languages; the landing page is built in the same five, the rest of the site in English | high if left out: every string and layout would be touched again |
 | History | Rounds and votes are never deleted by age | none |
 
 **Server**
@@ -179,9 +211,9 @@ Jira leads with about 62 % of agile teams. Of seven planning poker tools compare
 - **Every tracker with automation:** a webhook, and Zapier, Make or n8n write the estimate with the user's own account.
 - **Jira:** a Forge app whose page frames the room and writes story points with Forge's own token. Atlassian's older Connect framework takes no new apps and loses support on 2027-01-31.
 - **Teams, Zoom, Meet, Trello, Azure DevOps:** each frames the same embedded route. Teams, Zoom and Meet bring a place to meet and no tickets.
-- **Linear, GitHub and the rest** frame nothing. They need an OAuth connector, which is the first step at which we would store somebody's token. Last, and only on demand.
+- **Linear, GitHub, GitLab and the rest** frame nothing. They get a connection that lives in the browser of the person who made it: that browser signs in, fetches the tickets and hands them to the room, and later writes the estimate back. We store the ticket's reference and title, never a token. GitLab and Linear document a sign-in for exactly this kind of app; whether each tracker's API answers a browser on our origin is still to be tested (`research/r26`). Last, and only on demand.
 
-The order after launch: webhooks, the route that fills a queue, the Jira shell, a Teams tab, an Azure DevOps extension, then connectors. The data model and the full table are in `ARCHITECTURE.md`, sections "Data model" and "Built for what comes next".
+The order after launch: webhooks, the route that fills a queue, the Jira shell, a Teams tab, an Azure DevOps extension, then browser-held connections. The data model and the full table are in `ARCHITECTURE.md`, sections "Data model" and "Built for what comes next".
 
 ## Numbers and history
 
@@ -200,7 +232,7 @@ The order after launch: webhooks, the route that fills a queue, the Jira shell, 
 - It installs as an app (a PWA), and it runs inside another page as a frame: that page can hand in the topics and receives each result.
 - A room can be locked with a password. It travels in the invite link, so a colleague with the link never types it, and a device that got in once remembers it.
 - A new room gets a six-digit number. A team that comes back books a name. A number nobody uses for three months and a name nobody uses for six become free again.
-- The room speaks English and German at launch, and each person reads it in their own language.
+- The room speaks English, German, Spanish, French and Chinese at launch, and each person reads it in their own language.
 - No ads, no banner, no cap on rounds or rooms, and a vote that not even the network tab shows early.
 
 `UX.md` has the flows, the layout rules, the arena and the list of what changes for a v1 user.
@@ -217,11 +249,13 @@ The order after launch: webhooks, the route that fills a queue, the Jira shell, 
 
 ![The first stages as parallel lanes with the two owner stops](diagrams/lanes.svg)
 
-A row is one factory Issue: one change that ships alone, sized for one lead session of at most a day. Filed now: 21 rows of stage 1, two that open stage 2, and three planning rows.
+A row is one factory Issue: one change that ships alone, sized for one lead session of at most a day. All four stages are written out: 78 rows, each with the seat its lead starts on (`PLAN.md`). The factory files a row when the rows it reads have shipped.
 
-- **Up to six rows run at once.** After the core, the server, the client, the arena's harness and the site's planning need nothing from each other.
+- **Width before depth.** After the core, the server, the client, the arena's harness and the site need nothing from each other. Once the room's shell stands, thirteen rows of the interface follow, each in its own directory, as many at once as the host carries.
 - **No Spec on the way.** A lead decides and records its decision in the pull request. You are asked five times in the whole program; the five are under "Only you can".
-- **Stages 2 to 4 are planned ahead** in a session with you, as far as they can be known today (`HANDOVER.md`). Each stage keeps a planning row, which corrects its rows from what was measured before it. The site does not wait for the spine: content and search work start after the foundation.
+- **Stages 2 to 4 are planned ahead.** Their rows were written on 2026-11-21, before any code existed, so each stage has one correction row: it reads what was measured, fixes the facts of the rows not yet started, and changes nothing that still holds. The site does not wait for the spine: content and search work start after the setup for agents.
+- **Seats by need.** Sixteen rows start on `opus`: new hard logic, a design others build on, or production at stake. Twelve small mechanical rows carry no seat, so the factory starts them on its `light` seat and can still move them up.
+- **Text you must read is held back, not held up.** Guides, glossary, comparison pages, the yearly data page and the translated landing pages are merged as drafts. The beta host shows them; production does not until you remove the flag. No row waits for it.
 - **The arena's entries run outside the factory.** The factory builds the harness. The entries come from sessions you start, with several directions and several labs' models, when the interface foundation stands.
 - **The setup for agents comes before features.** Once the tooling stands, one row writes what every later lead reads (`AGENTS.md`, the rules, the pull request template, the README) and proves it with an agent that starts cold. Every later row keeps it current in its own pull request.
 
@@ -233,7 +267,7 @@ Every merged row deploys to the beta host, so "what does it look like now" alway
 
 | Risk | Guard |
 |-|-|
-| The rewrite grows: game feel has no natural end | The cutover bar is the table "What changes for a v1 user" in `UX.md` plus decks, the final value, the lock, the new result view and reactions. Your pick in the arena comes before any other UI row is planned. |
+| The rewrite grows: game feel has no natural end | The cutover bar is the table "What changes for a v1 user" in `UX.md` plus decks, the final value, the lock, the new result view and reactions. Stage 2 is twenty-two rows with a polish row that is measured, not felt, and your verdict on the finished room ends it. |
 | The arena yields five tables and no decision | Every entry is measured on the same scenarios. The pick is a gate that arrives with a scorecard and a recommendation, and it may combine pieces. Nothing but the table's look waits for it. |
 | basalt-ui 3.0.0 slips | Stage 1 and the arena's harness do not need it. The entries wait on npm. |
 | Elysia 2 is a release candidate with open WebSocket reports | One exact pin, every Elysia import in two folders, and the bake-off: if Elysia's socket path fails it, another candidate carries the rooms and Elysia keeps HTTP. |
@@ -248,9 +282,9 @@ Every merged row deploys to the beta host, so "what does it look like now" alway
 
 No new paid service is planned. One billing question is open.
 
-- **Site:** the Workers free tier. The pages are static assets with no Worker code; whether the free plan bills asset requests is checked in stage 3.
+- **Site:** the Workers free tier. The pages are static assets with no Worker code; whether the free plan bills asset requests is measured in stage 3 (`v9-edge-routing`). If it does, the static files move to your own bucket behind your CDN, the one your image tool already uses.
 - **Servers:** the API, Postgres, Umami and ClickStack are on the VPS already. The rewrite removes four containers (MariaDB, v1's server, the analytics service and its updater) and Vercel, and adds one.
-- **Work:** 23 build rows now and about 30 drafted for stages 2 to 4. The arena's entries cost what the sessions you start for them cost.
+- **Work:** 78 rows. Sixteen start on `opus`, fifty on `lead`, twelve are small enough for `light`. The arena's entries cost what the sessions you start for them cost.
 
 ## Only you can
 
@@ -259,6 +293,8 @@ No new paid service is planned. One billing question is open.
 - Publish basalt-ui 3.0.0, ideally with the six items of `ENGINEERING.md`, "Working with basalt-ui".
 - Run the arena when its time has come: start the entries, with as many directions and labs as you like. The brief and the harness are the same for all.
 - Get the product mentioned: a demo video, tool directories, launch posts, answers where teams ask. On the evidence so far, this matters more for being recommended by an assistant than anything the site itself can do.
-- Sign off the privacy page: it states your ruling on measurement.
+- Read the privacy page before the cutover: it states your ruling on measurement. The cutover gate links it.
+- Publish what is held back as a draft: the cluster guides, the glossary, the comparison pages, the yearly data page, the first blog post and the translated landing pages. German after you have read it, Spanish, French and Chinese after someone who speaks them has.
+- Try what a lead cannot: a locked room's link pasted into Teams and Outlook, a round with real colleagues, the install on your phone. The gate for the finished room lists them.
 - From your old list, what needs a person or an account: the UX review with a colleague (best timed at the arena), a Buy Me a Coffee account, Search Console and Bing Webmaster access.
 - After the cutover: check Search Console, remove the Vercel project.

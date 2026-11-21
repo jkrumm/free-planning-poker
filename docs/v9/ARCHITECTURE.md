@@ -23,7 +23,7 @@ These cannot be retrofitted. A change to one is a plan change with the owner's v
 15. **One result contract.** A revealed round and a decided topic each have one JSON shape, defined in `packages/room-core`. History rows, exports, embed messages and later webhooks carry that shape and no other.
 16. **Activities are namespaced.** Estimating is one activity, `poker`, and its commands, events and its part of the view carry that name. Seats, roles, presence, access and the topic queue belong to the room. A second activity adds a module and changes none of these.
 17. **One namespace for addresses.** Every number and every name that leads to a room is one row of one table, keyed by the address. Finding one, claiming a free one and taking over a released one are each a single statement.
-18. **No visible string lives in a component.** Everything a person reads comes from the message catalogue, numbers and dates go through `Intl`, layout uses logical properties, and a room's URL carries no language. 9.0.0 ships the room in English and German to prove it.
+18. **No visible string lives in a component.** Everything a person reads comes from the message catalogue, numbers and dates go through `Intl`, layout uses logical properties, and a room's URL carries no language. 9.0.0 ships the room in five languages to prove it.
 
 ## Topology
 
@@ -66,7 +66,7 @@ Versions as read on 2026-11-18; a row that installs one checks it with `agw web 
 |-|-|-|
 | Runtime, package manager, unit test runner | Bun | 1.4.x, one exact pin for local, CI and image |
 | HTTP and WebSocket server | Elysia 2 with Eden Treaty for the typed HTTP client | `2.0.0-rc.3` exact, by the owner's ruling of 2026-11-19: 1.4 takes security fixes only, and a later move would touch every route and hook. Of the official plugins only `@elysia/eden` and `@elysia/opentelemetry`, at their `rc` tags. See "Server" for how the release candidate is contained |
-| I/O that can fail, in the API | Effect, in `apps/api`'s adapters and composition root only: the Postgres store, jobs, startup and drain, later the webhook relay and connectors | 4.1.x exact; nothing from `effect/unstable/*` |
+| I/O that can fail, in the API | Effect, in `apps/api`'s adapters and composition root only: the Postgres store, jobs, startup and drain, later the webhook relay | 4.1.x exact; nothing from `effect/unstable/*` |
 | Validation | Zod 4 for protocol frames in `packages/room-core`, Elysia's `t` (TypeBox 1.x) for HTTP routes. The SPA imports protocol types only and ships no validator | Zod 4.x |
 | Languages | a compiled message catalogue shared by the room app and the site: Paraglide JS, which compiles each message to a typed function and drops the unused ones, if its spike in `v9-room-plain` holds the bundle budget; Lingui 6 otherwise (`research/r24-i18n.md`) | pinned exactly |
 | Database | PostgreSQL on the shared VPS instance, schema `fpp` | 18 |
@@ -123,9 +123,9 @@ Rules the reducer enforces:
 
 **The lock keeps strangers out; it is not a vault.** The owner ruled on 2026-11-20 that a protected room must be effortless to share and need not withstand an attacker. Hence:
 
-- Whoever locks the room types a password or takes a generated one: six characters from 31 letters and digits that cannot be mistaken for each other (about 30 bits), the same in every language. A typed one has 4 to 32 characters.
+- Whoever locks the room types a password or takes a generated one: six characters from 31 letters and digits that cannot be mistaken for each other (about 30 bits), the same in every language. A typed one has 2 to 32 characters of any kind, trimmed of surrounding white space. Upper and lower case count as the same (both sides are compared after Unicode NFKC normalisation and case folding), so a password read out loud works.
 - It is stored readable and shown to everyone seated, so the field says so before anyone types a password they use elsewhere.
-- Every copied link and QR code carries it: `/room/482913#k7m2qx`. The browser never sends a fragment to a server, so the password is in no access log and no referrer, and a test asserts that no analytics event carries it. The client sends it in `hello`.
+- Every copied link carries it as its fragment, percent-encoded: `/room/482913#k7m2qx`, and `#caf%C3%A9%20au%20lait` for a typed "café au lait". Percent-encoding is what a fragment allows; the client writes it with `encodeURIComponent` and reads it with `decodeURIComponent`. Base64 would add nothing but an unreadable link. The browser never sends a fragment to a server, so the password is in no access log and no referrer, and a test asserts that no analytics event carries it. The client sends it in `hello`.
 - A device that got in once keeps the password with the room in its storage. A bookmark without the fragment then opens the room without a question.
 - A link without the fragment on a new device opens the table behind one field. After ten wrong attempts within a minute on one room, or five from one IP address, further attempts are refused for a minute.
 - Any player can change the password or remove the lock, and chooses whether the people already seated stay.
@@ -301,7 +301,7 @@ Each adapter implements the same port in about 150 lines. The row runs the frame
 - the Postgres store: debounced snapshot writes, retries with backoff, the wait during an outage
 - the jobs: sweeps and rollups on a schedule
 - startup and the drain: resources acquired in order and released in reverse
-- later the webhook relay and the connectors, its strongest case: retry on 429 and 5xx but not on 4xx, bounded concurrency, timeouts, typed failures
+- later the webhook relay, its strongest case: retry on 429 and 5xx but not on 4xx, bounded concurrency, timeouts, typed failures
 
 The ports stay plain interfaces that return promises, so the runtime, the simulator and every test double never see Effect. The room loop stays synchronous TypeScript, and so does the core: a pure function gives a runtime nothing to manage. Effect 4.0 has been stable since 2026-09-30; it is pinned exactly and nothing is imported from `effect/unstable/*`.
 
@@ -334,13 +334,13 @@ What the shape decides:
 
 - **Topics are written through.** Queue changes, reveals and decisions are stored when they happen, one transaction per event. A backlog prepared on Friday is there on Monday although the live snapshot has expired: a cold room starts from `room` and its open topics.
 - **A value is a label and a number.** `round_vote.value` and `topic.final_value` hold the card's number, null for `?` and break; the label is what was shown. Statistics use the number, screens the label, and a tracker gets whichever its field takes.
-- **A tracker reference is complete from the first row:** the provider (`source`), the tracker's stable id, the display key (which changes when an issue moves) and the site or workspace. A pasted line such as "SHOP-123 Checkout redesign" fills the key; a tracker link also fills the provider and the site. The stable id arrives when a host, the topics route or a connector supplies it.
+- **A tracker reference is complete from the first row:** the provider (`source`), the tracker's stable id, the display key (which changes when an issue moves) and the site or workspace. A pasted line such as "SHOP-123 Checkout redesign" fills the key; a tracker link also fills the provider and the site. The stable id arrives when a host, the topics route or a browser-held connection supplies it.
 - **An address is a row, not a column.** A room has one primary address (its name if it has one, else its number); any other row of the room redirects to it. `release_at` moves forward when the room is visited, at most once a day, so a lookup needs no second table.
 - **Rounds are kept.** No job deletes a round or a vote by age. A room that lost its name to a new room keeps its rows and counts in the statistics.
 - **The access code is stored readable.** It is shown to every seat, the interface says so where it is typed, and it guards nothing that the same row does not already hold.
 - **No participant names in history.** History names a seat by its index. Who sat there is live state and expires with it.
 - **The device id never meets a room.** `visitor_day` holds a keyed hash and a date. The key is a server secret, so a copy of the database cannot be matched to a browser.
-- **Not created yet:** `webhook`, `outbox` and `connector`. Their shape is in "Built for what comes next"; the rows that build those features create them.
+- **Not created yet:** `webhook` and `outbox`. There will be no table for tracker connections: their tokens stay in the browser. Their shape is in "Built for what comes next"; the rows that build those features create them.
 
 There is no user table, no page-view table and no event table: visits are measured in Umami, product numbers come from the tables above.
 
@@ -383,7 +383,7 @@ What happens before a seat is live has its own figure:
 
 Storage keys, all under the prefix `fpp:v9:` with a schema version inside each value: `profile` (name, avatar seed), `prefs` (sound, calm mode, view, theme, language), `seat:<slug>` (seat token), `recent` (rooms visited: address, display name, creation time, the access code of a locked room, pinned or not; each removable, an unpinned one dropped after six months without a visit), `device` (the device id), `stats` (the local-only personal record). On first run the client reads v1's keys `username`, `isPlaySound`, `isNotificationsEnabled`, `preferCardView`, `recentRoom` and `userId` once and writes them into the new shape. v1's `userId` becomes the device id, so the count of returning estimators continues across the cutover. localStorage stays the store: both apps share one origin, and nothing here is worth a cookie or IndexedDB.
 
-**Languages.** Every string comes from one message catalogue, compiled at build time so a screen ships only the messages it uses. Each person's language is their stored choice, else the browser's, else English. A room URL never carries it, so one link serves a mixed team and each person reads the room in their own language. Counts use ICU plurals, numbers and dates use `Intl`, and layout uses logical properties, so a right-to-left language is a catalogue and not a rewrite. 9.0.0 ships English and German; a pseudo-locale with lengthened strings runs in the screenshot tests to catch clipped labels. The site keeps its default language at the root and others under a prefix, and gets a second language only when every page of it is translated and reviewed.
+**Languages.** Every string comes from one message catalogue, compiled at build time so a screen ships only the messages it uses. Each person's language is their stored choice, else the browser's, else English. A room URL never carries it, so one link serves a mixed team and each person reads the room in their own language. Counts use ICU plurals, numbers and dates use `Intl`, and layout uses logical properties, so a right-to-left language is a catalogue and not a rewrite. 9.0.0 ships English, German, Spanish, French and Simplified Chinese. English and German are complete in every change and are what the missing-key check enforces while the room is built; the other three fall back to English until one row fills them, after which the check covers all five. A language no native speaker has read is marked "beta" in the switch. A pseudo-locale with lengthened strings runs in the screenshot tests to catch clipped labels. The site keeps English at the root and other languages under a prefix (`/de/`), with no fallback configured: a page exists in a language only when it was translated whole, and a missing translation is a 404, not an English page at a translated address (`research/r25-astro7-i18n.md`). At launch that is the landing page.
 
 **PWA.** The service worker is served from `/_room/sw.js` with `Service-Worker-Allowed: /room` and registered with scope `/room`, so marketing pages are never intercepted. It precaches the shell and assets and shows an update prompt; it queues nothing, because a vote sent after a reveal is wrong. Close code 4001 forces the update path.
 
@@ -397,7 +397,7 @@ Storage keys, all under the prefix `fpp:v9:` with a schema version inside each v
 | room → host | `poker.revealed`, `topic.decided` | the result contract |
 | room → host | `resize` | the height the room wants |
 
-A host can therefore fill the queue and write the estimate back with its own permissions, and the room holds no tracker credential. The API sends `Content-Security-Policy: frame-ancestors` with an allowlist on the embed variant and `'none'` elsewhere. Browsers partition a frame's storage by the embedding site, and Safari empties it between launches, so an embedded seat is separate from a direct visit and can lose its secret. The reclaim rule in "Room model" covers that; the field for the access code works inside the frame. The same route is what a Jira panel, a Teams tab, a Zoom app, a Meet add-on or a Trello Power-Up frames, so `frame-ancestors` lists those hosts.
+A host can therefore fill the queue and write the estimate back with its own permissions, and the room holds no tracker credential. The API sends `Content-Security-Policy: frame-ancestors https:` on the embed variant, so any site may frame it, as `UX.md` promises, and `'none'` elsewhere, so the direct room can never be framed. The room listens only to the window that frames it, and from the first valid `init` only to that origin. A self-hoster can narrow the value with one setting. Browsers partition a frame's storage by the embedding site, and Safari empties it between launches, so an embedded seat is separate from a direct visit and can lose its secret. The reclaim rule in "Room model" covers that; the field for the access code works inside the frame. The same route is what a Jira panel, a Teams tab, a Zoom app, a Meet add-on or a Trello Power-Up frames.
 
 ## Measurement
 
@@ -452,10 +452,10 @@ The room lock and the final value ship with 9.0.0. Webhooks, tracker import, wri
 |-|-|-|
 | Room lock (9.0.0) | invariant 14, the columns `access`, `access_code` and `access_epoch` of `room`, close code 4005 | nothing |
 | Final value (9.0.0) | invariant 13, `poker.settle`, the `final_*` columns, the result contract | nothing |
-| Embedding in Jira, Teams, Zoom, Meet or Trello | the embed messages, `frame-ancestors`, seat reclaim | one host shell per platform. For Jira that is a small Forge app that frames the room and writes story points with Forge's own token. Atlassian Connect ends support on 2027-01-31 and is not used. Whether Forge passes `postMessage` to a nested frame is a spike in that row |
+| Embedding in Jira, Teams, Zoom, Meet or Trello | the embed messages, a room that any https page may frame, seat reclaim | one host shell per platform. For Jira that is a small Forge app that frames the room and writes story points with Forge's own token. Atlassian Connect ends support on 2027-01-31 and is not used. Whether Forge passes `postMessage` to a nested frame is a spike in that row |
 | Webhooks with results | the result contract with a stable event id; any player may configure them, as with everything else in a room | tables `webhook` and `outbox`, a relay and three formatters; see below |
-| Tickets from a tracker | the tracker reference on `topic`, the idempotent import, the paste parser | `POST /api/rooms/:slug/topics` with a token that any player mints and any player revokes in the room, so any automation can fill a queue. OAuth connectors (Linear, GitHub, Azure DevOps, Jira) only when demand shows, in a table `connector` with encrypted tokens |
-| Writing the estimate back | `topic.decided` with the tracker reference | the host shell, the user's own automation behind a webhook, or a connector |
+| Tickets from a tracker | the tracker reference on `topic`, the idempotent import, the paste parser | `POST /api/rooms/:slug/topics` with a token that any player mints and any player revokes in the room, so any automation can fill a queue. A tracker connection held by the browser of the person who made it (see below), only when demand shows; no table and no stored token |
+| Writing the estimate back | `topic.decided` with the tracker reference | the host shell, the user's own automation behind a webhook, or the browser that holds the connection |
 | More activities: a confidence vote, dot voting on the queue, a wheel that picks who speaks | invariant 16: named commands and events, the activity's part of the view, seats and topics owned by the room; chance and time injected into the reducer | one module in `room-core` and one in `packages/table` per activity, and its own history table if it keeps one |
 | Asynchronous rounds | time is injected; a round already has an id and a state | its commands and events, additive under invariant 7 |
 
@@ -476,7 +476,7 @@ Webhook delivery, when it is built:
 | Microsoft Teams, Zoom, Google Meet | a tab or app that frames the room. They bring a place to meet and no tickets | no |
 | Trello | a Power-Up; the open card comes from the host | no |
 | Azure DevOps | a web extension with the host's context and token; to be proven | no, if the host's token suffices |
-| Linear, GitHub, GitLab, ClickUp, Asana, monday.com, Shortcut, YouTrack, Notion | none of them frames an outside page: an OAuth connector per tool | yes, which is why they come last and only on demand |
+| Linear, GitHub, GitLab, ClickUp, Asana, monday.com, Shortcut, YouTrack, Notion | none of them frames an outside page: a connection held in the browser, per tool | no; at most our app's own client secret for the sign-in of a tool that demands one |
 | Slack | no frame: results arrive as messages through a webhook | no |
 
 The order after launch follows coverage per effort:
@@ -486,7 +486,15 @@ The order after launch follows coverage per effort:
 3. The Jira Forge shell, because that is where most teams are.
 4. A Teams tab; Zoom and Meet when asked for. Each is a manifest around the same embedded route.
 5. An Azure DevOps extension.
-6. OAuth connectors, one at a time, only when demand shows. They are the first step at which we would store somebody's token.
+6. Browser-held connections, one tool at a time, only when demand shows.
+
+**A connection without an account.** The owner ruled on 2026-11-21 that a tracker's key stays with the person and never rests on our server, because a product without accounts has nobody to hold it for. So a connection belongs to one browser:
+
+- That browser signs in at the tracker, keeps the token in its own storage, fetches the tickets and hands key, title and link to the room as topics, through the same command a pasted list uses. The server stores what it stores for a pasted line: the reference and the title, which history and the summary show. A ticket's description, if a team wants to see it, is passed along during the round and not stored.
+- When a topic is decided, the same browser writes the estimate back. If that person has left, the result stays in the room and in the export, and the tracker is updated when someone with a connection does it; the server retries nothing.
+- What a sign-in needs differs by tool (`research/r26-tracker-browser.md`). GitLab and Linear document a sign-in for an app without a secret; GitHub offers its device flow; Trello hands a token to the browser. Jira Cloud, Asana and ClickUp want a secret of our app in the exchange: for those a route exchanges the code and passes the token straight back, storing nothing, and Jira is better reached through its Forge app anyway.
+- Not verified: whether each tracker's API answers a browser on another origin. One request per tool settles it, in the row that builds the first connection. A tool that refuses is reached through the same stateless pass-through or not at all.
+- A token in a browser's storage can be read by any script on our origin. The room loads no third-party script, the token is asked for with the narrowest scope the tool offers, and "forget this connection" removes it.
 
 Unified integration services (Merge, Unified.to) bill per connected account and assume customer accounts; they do not fit a free product without sign-up.
 
@@ -502,7 +510,7 @@ Unified integration services (Merge, Unified.to) bill per connected account and 
 | Arena | on every table entry | Playwright over the scenario matrix | screenshots, a recording of the reveal, frame times, axe, bytes per entry: the scorecard the owner picks from |
 | End to end | CI on pull requests that touch the core, the API or the room app | Playwright against the built image plus Postgres | multi-user flows with one browser context per seat, container restart mid-round, phone viewport, axe on the main states, about 15 screenshots in a pinned container from stage 2 |
 | Load | nightly and before the cutover | k6 | the scale target above, never against production |
-| Budgets | CI | size-limit, Lighthouse CI | room entry JavaScript at most 180 kB gzip; landing page ships no JavaScript but the analytics script before the demo is opened; lab LCP at most 2.0 s on the landing page and the room shell |
+| Budgets | CI | size-limit, Lighthouse CI | room entry JavaScript at most 180 kB gzip; landing page ships no JavaScript but the analytics script before an island is visible, and a site page at most 12 kB gzip outside islands; lab LCP at most 2.0 s on the landing page and the room shell |
 
 The simulator is also the engine of the landing page's demo table and of the arena the owner picks the table in, so the three never drift apart.
 
@@ -524,4 +532,4 @@ One switch on a weekend, when no room is in use, by the owner's ruling of 2026-1
 3. Point the apex at the Worker and the tunnel.
 4. Verify with `make verify` and one real round.
 
-Live rooms are not carried over, because none is running; rooms, history and counts are. v1's server and its Vercel deployment keep running for 14 days, so rollback is the DNS and route change in reverse. After 14 days without a rollback v1's containers and the MariaDB instance go, the last behind an owner gate because it deletes data; the Vercel project is removed and the branch `v1` stays as a tag. The runbook is `docs/v9/CUTOVER.md`, written in the launch stage.
+Live rooms are not carried over, because none is running; rooms, history and counts are. Production is the instance that served the beta host: one service, one schema. Its test rooms are removed in the window before the import, because v1's numbers and names would collide with them, and the beta hostname stays as a second name of the same service that search engines are told not to index. v1's server and its Vercel deployment keep running for 14 days, so rollback is the DNS and route change in reverse. After 14 days without a rollback v1's containers and the MariaDB instance go, the last behind an owner gate because it deletes data; the Vercel project is removed, and the branch `v1` is kept and tagged `v1-final`. The runbook is `docs/v9/CUTOVER.md`, written in the launch stage.
