@@ -257,7 +257,7 @@ heartbeatTimeoutRef.current = setTimeout(() => {
 }, WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL); // 30 seconds
 ```
 
-**Server-side** (`apps/server/src/room.state.ts:142`):
+**Server-side** (`apps/server/src/room.state.ts:438`):
 ```typescript
 cleanupInactiveState(): void {
   const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
