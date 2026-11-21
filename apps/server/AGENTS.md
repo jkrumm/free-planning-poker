@@ -16,7 +16,7 @@ This service is part of the **free-planning-poker** monorepo. Use global SourceR
 
 ## Project Overview
 
-Bun-powered WebSocket server managing real-time planning poker room state. Runs independently on port 3003.
+Bun-powered WebSocket server managing real-time planning poker room state. Runs independently on port 3003 (container); 7721 in dev.
 
 ### Tech Stack
 
@@ -59,7 +59,7 @@ This service is the **AUTHORITATIVE source for real-time room state**. All room 
 
 ### 🚨 Heartbeat System
 
-- Client heartbeat: Every 5 minutes
+- Client heartbeat: Every 30 seconds (`WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL`)
 - Server cleanup: Every 30 minutes (cron job)
 - Users inactive >30min are removed automatically
 - Gap is intentional (prevents premature removal on network hiccups)
@@ -178,13 +178,13 @@ ws.send(room.toStringifiedJson());
 
 ### 3. Heartbeat Timing Gap
 
-- Client heartbeat: **5 minutes**
+- Client heartbeat: **30 seconds**
 - Server cleanup: **30 minutes**
 
 Gap is intentional:
 
 - Avoids premature removal on network hiccups
-- Gives users 25 minutes of grace period
+- Gives users 30 minutes to reconnect
 - Reconnection works seamlessly within this window
 
 ### 4. Cron Job Schedule
