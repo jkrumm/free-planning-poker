@@ -6,67 +6,23 @@
     "url": "https://github.com/jkrumm/free-planning-poker"
   },
   "engines": {
-    "bun": ">=1.2.0",
-    "node": "24.x"
+    "bun": ">=1.2.0"
   },
   "author": "Johannes Krumm",
   "description": "Estimate your story points faster and easier with this free agile scrum sprint planning poker app. Open source and privacy focused.",
   "homepage": "https://free-planning-poker.com/",
   "version": "8.5.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "build": "bun run --filter=@fpp/web build",
-    "dev": "concurrently bun:dev:all:*",
-    "dev:web": "bun run --filter=@fpp/web dev",
-    "dev:all:logdy": "./scripts/kill-ports.sh 7723 7724 7725 7726 && logdy socket --port 7723 7724 7725 7726 --config logdy.config.json",
-    "dev:all:nextjs": "sleep 2 && bun run --filter=@fpp/web dev 2>&1 | logdy forward 7724",
-    "dev:all:server": "sleep 2 && bun run --filter=@fpp/server dev 2>&1 | logdy forward 7725",
-    "dev:all:analytics": "sleep 2 && ./scripts/kill-ports.sh 7722 && cd fpp-analytics && secrets-run run --env-file=.env.tpl -- uv run uvicorn main:app --reload --port 7722 2>&1 | logdy forward 7726",
-    "start": "bun run --filter=@fpp/web start",
-    "lint": "bun run --filter=@fpp/web lint",
-    "lint:fix": "bun run --filter=@fpp/web lint:fix",
-    "format": "bun run --filter=@fpp/web format",
-    "format:check": "bun run --filter=@fpp/web format:check",
-    "type-check": "bun run --filter=@fpp/web type-check",
     "prepare": "lefthook install",
-    "pre": "bun run --filter=@fpp/web pre",
-    "validate": "concurrently --names \"web,server,db,shared,analytics\" --prefix-colors \"cyan,magenta,blue,green,yellow\" \"bun run --filter=@fpp/web pre\" \"bun run --filter=@fpp/server validate\" \"bun run --filter=@fpp/db validate\" \"bun run --filter=@fpp/shared validate\" \"bun run fpp-analytics:validate\"",
-    "validate:web": "bun run --filter=@fpp/web pre",
-    "validate:server": "bun run --filter=@fpp/server validate",
-    "validate:db": "bun run --filter=@fpp/db validate",
-    "validate:shared": "bun run --filter=@fpp/shared validate",
-    "validate:analytics": "bun run fpp-analytics:validate",
-    "fpp-analytics:format": "cd fpp-analytics && uv run ruff format .",
-    "fpp-analytics:format:check": "cd fpp-analytics && uv run ruff format --check .",
-    "fpp-analytics:lint": "cd fpp-analytics && uv run ruff check .",
-    "fpp-analytics:lint:fix": "cd fpp-analytics && uv run ruff check --fix .",
-    "fpp-analytics:type-check": "cd fpp-analytics && uv run mypy .",
-    "fpp-analytics:validate": "bun run fpp-analytics:format && bun run fpp-analytics:lint && bun run fpp-analytics:type-check",
-    "release": "release-it",
-    "db:generate": "bun run --filter=@fpp/db generate",
-    "db:migrate": "bun run --filter=@fpp/db migrate",
-    "db:studio": "bun run --filter=@fpp/db studio",
-    "db:check": "bun run --filter=@fpp/db check"
+    "release": "release-it"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
     "@release-it/conventional-changelog": "^12.0.2",
-    "concurrently": "^10.0.7",
     "lefthook": "^2.2.2",
     "release-it": "^21.1.2",
     "typescript": "^6.0.3"
-  },
-  "ct3aMetadata": {
-    "initVersion": "7.30.2"
-  },
-  "overrides": {
-    "eslint-plugin-react-hooks": "7.1.1",
-    "@opentelemetry/sdk-node": "0.222.0",
-    "@grpc/grpc-js": "^1.14.7"
   }
 }

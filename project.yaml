@@ -2,12 +2,12 @@
 apiVersion: factory/v2
 name: free-planning-poker
 deploy:
-  mode: auto # a push to master deploys: Vercel (web) + deploy.yml → RollHook (fpp-server, fpp-analytics); `make deploy` is a no-op
+  mode: auto # nothing on master deploys to production: v1 deploys from the branch v1 (Vercel + its deploy.yml); `make deploy` is a no-op and verify probes v1
   targets:
     - { name: prod, host: vps, verify: make verify } # probes web, server and analytics health
-  hold: 10m # Vercel build + RollHook rollout finish before the verify counts
+  hold: 10m # kept for the v9 deploys v9-foundation wires; a master push changes nothing in production today
 ship:
-  - { via: pr } # master branch protection requires a PR, see AGENTS.md §Shipping & Release
+  - { via: pr } # master branch protection requires a PR, see AGENTS.md §Shipping
 lanes:
   browser: 2 # v9 rows that run Playwright (docs/plan.yaml: end-to-end suite, table arena); two Chromium suites beside other leads is what the mini's memory carries
   ui: 4 # v9 rows of the room's interface (component tests and screenshots in one Chromium each); a first guess, replaced by v9-plan-table with what v9-ui-foundation's run measured

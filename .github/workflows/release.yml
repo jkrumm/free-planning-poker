@@ -1,9 +1,8 @@
 name: Release
 
 # Bumps version, generates CHANGELOG, creates a tag + GitHub release. The chore
-# commit it pushes to master triggers deploy.yml automatically (the redeploy is
-# idempotent — same source, same image digest, no rollout). Vercel picks up the
-# same commit through its GitHub integration and deploys NextJS.
+# commit it pushes to master deploys nothing: v1 runs from the branch v1
+# (docs/shipping.md).
 #
 # Run via `gh workflow run release.yml` (or `/release-fpp` for AI-enhanced notes).
 
