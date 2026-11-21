@@ -1,254 +1,70 @@
-# Development reference
+# Development
 
-Read the section a task needs. `AGENTS.md` names each one. Order: commands and env, cross-service, key files, lint, code patterns.
+How the v9 workspace is built and checked. The rules every change follows are in `AGENTS.md`; the reasons behind them in `docs/v9/ENGINEERING.md`.
 
-## Build & Development Commands
+## Toolchain
 
-**IMPORTANT**: Always use `SKIP_ENV_VALIDATION=1` for local Next.js builds — env vars are injected by `secrets-run run --env-file=apps/web/.env.tpl` at runtime, not at build time.
+Every version is pinned exactly and was checked with `agw web package` on 2026-11-21.
 
-All scripts run from the workspace root unless noted. The root `package.json` delegates to workspace members via `bun run --filter=@fpp/<pkg>`.
+| Tool | Version | Where it is pinned | Note |
+|-|-|-|-|
+| Bun | 1.4.4 | `packageManager` in `package.json` | CI's `setup-bun` and the factory's step image read it. `make check-fast` warns when the local Bun differs. 1.4.5 was two days old and inside the cooldown |
+| TypeScript | 7.0.2 | root `package.json` | the newest stable major, the native compiler. `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax` in `tsconfig.base.json` |
+| oxlint | 1.94.0 | root | `.oxlintrc.json`: correctness and suspicious as errors, no `any`, type-only imports, no default export, the import restrictions below |
+| oxfmt | 0.79.0 | root | `.oxfmtrc.json` copies basalt-ui's settings, so the switch to its presets in `v9-ui-foundation` reformats nothing |
+| lefthook | 2.2.2 | root | pre-commit: oxfmt check and oxlint on staged files; commit-msg: commitlint |
+| Elysia | 2.0.0-rc.3 | `apps/api` | by the owner's ruling; never installed by tag. Its peers `typebox` 1.4.7, `exact-mirror` 1.2.7 and `openapi-types` 12.1.3 are pinned beside it |
 
-```bash
-# Development (suggest to user — don't run yourself)
-bun run dev                              # All services + Logdy UI (7720 / 7721 / 7722 / 7723)
-bun run dev:web                          # Next.js only (port 7720)
+`bunfig.toml` sets the isolated linker (a package resolves only what it declares), exact pins for `bun add`, and a 3-day release-age cooldown. CI installs with `bun install --frozen-lockfile`.
 
-# Building
-SKIP_ENV_VALIDATION=1 bun run build      # Next.js production build
-bun run --filter=@fpp/server build       # Server: bun build --target bun --outdir ./dist
+## Check tiers
 
-# Validation (all workspaces in parallel)
-bun run validate                         # Validate everything
-bun run validate:web                     # @fpp/web only
-bun run validate:server                  # @fpp/server only
-bun run validate:db                      # @fpp/db only
-bun run validate:shared                  # @fpp/shared only
-bun run validate:analytics               # fpp-analytics only
-
-# Per-service shortcuts
-bun run --filter=@fpp/web format         # / lint / lint:fix / type-check / pre
-bun run --filter=@fpp/server format      # / lint / lint:fix / type-check / validate
-bun run fpp-analytics:format             # / :lint / :lint:fix / :type-check / :validate
-
-# Database (@fpp/db package — drizzle-kit lives here)
-bun run db:generate                      # Generate migration from schema changes - suggest to user
-bun run db:migrate                       # Apply pending migrations - suggest to user
-bun run db:studio                        # Drizzle Studio - suggest to user
-bun run db:check                         # Verify schema/db are in sync
-
-# Local rehydrate from prod data (in order — db-sync drops + recreates schema)
-make db-sync-from-prod                   # MariaDB sync via SSH from VPS
-make db-setup-local                      # Re-grant fpp user (no SSL — local has no TLS)
-make analytics-update-local              # Regenerate parquet files for /analytics
-```
-
-### Local env (no 1Password needed)
-
-Each service has its own `.env.tpl` resolved at dev-script time by `secrets-run run --env-file=.env.tpl --` (a faithful `op run` drop-in: passthrough to `op` on the MacBook, encrypted-cache resolution on the mini).
-
-**No `.env.tpl` contains an `op://` reference.** Every local value is a literal, so `bun run dev` needs no 1Password access and runs on any machine — including the headless Mac mini. The three values that once came from `op://vps/*` (`MARIADB_FPP_PASSWORD`, `FPP_SERVER_SECRET`, `ANALYTICS_SECRET_TOKEN`) never needed prod values: the DB is a localhost container (`:13306`), and the two shared secrets only need the local services to agree with each other. Sourcing them from prod bought automatic rotation-propagation and cost the ability to develop on the mini, where the only way to resolve an `op://` ref is to cache it — and prod refs must never enter that cache (`dotfiles-private/headless.refs`).
-
-Values that must agree across files (all local-only, none are secrets):
-
-| Value | Defined in |
+| Target | Steps |
 |-|-|
-| `fpp-local-dev` | `apps/web/.env.tpl` + `LOCAL_FPP_DB_PASSWORD` in root `Makefile` |
-| `local-dev-server-secret` | `apps/web/.env.tpl` + `apps/server/.env.tpl` |
-| `local-dev-analytics-token` | `apps/web/.env.tpl` + `fpp-analytics/.env.tpl` |
+| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
+| `make check` | `check-fast`, then `make test-server` (the `*.server.test.ts` files), then `make build` |
 
-**No local target needs 1Password — including `make db-sync-from-prod`.** It does reach the real production database, but the prod credential never touches this machine: the script's remote half is `ssh vps 'op run ...'`, so the VPS resolves `MARIADB_ROOT_PASSWORD` itself via its own op service account and only the dump comes back over SSH. Its local half reads the dev container's own env, as do `make db-setup-local` (root password from the container, grants the local-only password) and `make analytics-update-local` (reads the local DB). All three run on the headless mini; `db-sync-from-prod` needs only SSH access to the VPS over Tailscale. Vercel manages prod env directly.
+Each step prints `==> <step>`; a failure prints `==> FAILED: <step>` and stops the target. Measured on the mini on 2026-11-21: `make check-fast` 2.9 s wall clock. A test step writes JUnit to `$FACTORY_JUNIT_DIR/<step>.xml` only when that variable is set.
 
-### Local URLs
+`make check` runs the server tier through `factory slot run` where the factory CLI exists; `project.yaml` declares it as the step `test-server` with `remote: true`, so the factory may run it on its Linux step host (PostgreSQL 16 there, 18 in CI).
 
-Browser hits Caddy at `https://fpp.test` / `fpp-server.test` / `fpp-analytics.test` / `fpp-logdy.test`. Node server-side fetches bypass Caddy and use `http://localhost:7721|7722` directly (Node doesn't trust Caddy's local CA).
+## Tests
 
-## Cross-service changes
+- **A port** comes from `freePort()` (`@fpp/test-kit/port`): the OS hands one out on 127.0.0.1.
+- **A database** comes from `startPostgres()` (`@fpp/test-kit/postgres`): `initdb` into a new temporary directory, `pg_ctl start` on a free port, TCP on 127.0.0.1 only, no Unix socket, durability off. `stop()` stops the cluster and deletes the directory. Binaries come from `PG_BIN_DIR`, else from the directory of the `initdb` on PATH. Startup retries on a port another process took meanwhile. Twenty parallel runs of its test pass on the mini.
+- A file that starts Postgres is named `*.server.test.ts`. `@fpp/test-kit` may be imported by test files only.
 
-### When to Modify Which Service
+## Boundaries
 
-**Next.js (this service):**
-- UI components, pages, routing
-- tRPC API endpoints (non-realtime)
-- Database operations via Drizzle
-- SEO, analytics tracking, auth
+`scripts/boundaries.ts` reads `boundaries.toml`, the repo map as data, and checks every source file under `apps/`, `packages/` and `e2e/`:
 
-**fpp-server (WebSocket):**
-- Real-time room state (votes, users, flip status)
-- WebSocket action handlers
-- In-memory room state management
-- Broadcast logic
+- an import of `@fpp/<x>` only where the table draws the arrow, type-only where it says `types`, and only through `<x>`'s `exports` map; no relative path into another module; no module directory the table does not list
+- a pure file: no `node:*`, `bun` or `bun:*` import, relative imports only to pure files, and no `fetch`, `WebSocket`, timers, `Date.now`, `new Date()`, `performance.now`, `Math.random`, crypto randomness, `process` or `Bun`
+- an adapter: no `process.env`, `Bun.env` or `import.meta.env`
+- `effect` and `@effect/*` only in `apps/api/src/app`, `src/db` and `src/jobs`; `effect/unstable` nowhere
 
-**fpp-analytics (FastAPI):**
-- Read-only analytics calculations
-- Parquet file processing
-- Analytics page dashboard endpoints
+Test files are exempt from the class rules, not from the arrows. `scripts/boundaries.test.ts` plants one violation of each kind. oxlint repeats the Elysia and Effect restrictions so an editor shows them as you type.
 
-### Cross-Service Change Patterns
+## Ports
 
-#### Pattern 1: Add New Room Action
-1. Define Action type in `packages/shared/src/room.actions.ts`
-2. Add handler in `apps/server/src/message.handler.ts`
-3. Update client to send action via `triggerAction()`
-4. Update Zustand store to reflect state changes (if new state needed)
+| Port | What |
+|-|-|
+| 7738 | the Astro site (from stage 3) |
+| 7739 | the room app (Vite) |
+| 7740 | the API; `bun run dev` starts it with `--watch` |
 
-#### Pattern 2: Add Database Tracking
-1. Add column/table in `packages/db/src/schema.ts`
-2. Generate migration !HumanInTheLoop!: `bun run db:generate`
-3. Update tRPC router to persist data
-4. Update analytics if needed (`fpp-analytics/calculations/`)
+Agents never start these servers.
 
-#### Pattern 3: Add Analytics Metric
-1. Update `fpp-analytics/update_readmodel.py` to sync table
-2. Create calculation in `fpp-analytics/calculations/`
-3. Add endpoint in `fpp-analytics/routers/`
-4. Consume from Next.js via tRPC proxy
+## CI
 
-### Critical Cross-Service Rules
+`.github/workflows/ci.yml`, on pull requests and pushes to `master`, on `ubuntu-24.04`:
 
-#### State Synchronization
-Room state exists in THREE places:
-1. **MySQL database** - Persistent, historical (Next.js writes via Drizzle)
-2. **Bun server memory** - Authoritative, real-time (fpp-server manages)
-3. **Client Zustand store** - Local, synced via WebSocket
+| Job | Does |
+|-|-|
+| `lanes` | `.github/lanes.sh` reads `.github/lanes` and the diff and outputs `app` and `site` as booleans; a change on the `every` line (`.github/`, `bun.lock`, `package.json`, `bunfig.toml`, `tsconfig.base.json`) selects every lane |
+| `check` | installs the PostgreSQL 18 server binaries from PGDG (`.github/postgres.sh`, no cluster), `bun install --frozen-lockfile`, `make check` with `PG_BIN_DIR` set |
+| `ci` | `if: always()`; `.github/gate.sh` reads `toJSON(needs)` and fails when a needed job failed or was cancelled, or was skipped while `lanes` did not succeed. The only required check of `master` |
 
-**Rule:** Always update authoritative source first, then propagate.
+A row that adds a lane job (`image`, `e2e`, `site`) gives it `if: needs.lanes.outputs.<lane> == 'true'` and adds it to the `needs` of `ci`; `gate.sh` needs no change.
 
-#### Communication Protocols
-
-| From → To | Protocol | Use Case | Example |
-|-----------|----------|----------|---------|
-| Client → Next.js | tRPC | Room creation, joining, name changes | `api.room.joinRoom.useMutation()` |
-| Client → fpp-server | WebSocket | Real-time actions (vote, flip, reset) | `triggerAction({ action: 'selectEstimation' })` |
-| fpp-server → Next.js | HTTP | Persist vote after flip | `fetch('/api/trpc/room.trackFlip')` |
-| Next.js → fpp-analytics | None | Analytics runs independently | - |
-
-#### Error Handling Responsibilities
-
-| Service | Error Handling | Context attributes |
-|---------|----------------|--------------------|
-| Next.js | `recordError()` → OTEL span exception + log record | component, action, userId, roomId |
-| fpp-server | `recordError()` → OTEL span exception + log record | roomId, userId, action |
-| fpp-analytics | `capture_error()` → OTEL span exception + log record | endpoint, calculation |
-
-## Key Files & Their Purpose
-
-### State Management
-- `apps/web/src/store/room.store.ts` - Real-time room state (users, votes, connection status)
-- `apps/web/src/store/local-storage.store.ts` - Persistent client data (userId, username)
-
-### Core Hooks
-- `apps/web/src/hooks/useWebSocketRoom.ts` - WebSocket connection + action queue system
-- `apps/web/src/hooks/useHeartbeat.ts` - Dual heartbeat (5min client, 30min server)
-- `apps/web/src/hooks/usePresenceTracking.ts` - Tab visibility tracking
-- `apps/web/src/hooks/use-has-mounted.hook.ts` - SSR hydration safety
-
-### Room Components
-- `apps/web/src/components/room/room-wrapper.tsx` - Room initialization & validation
-- `apps/web/src/components/room/room.tsx` - Main room component (900 lines)
-
-### WebSocket Server
-- `apps/server/src/index.ts` - Elysia WebSocket server
-- `apps/server/src/room.state.ts` - In-memory Map<roomId, RoomServer>
-- `apps/server/src/message.handler.ts` - Handle WebSocket actions
-
-### Database
-- `packages/db/src/schema.ts` - Drizzle schema (rooms, users, votes, estimations)
-- `packages/db/src/client.ts` - Drizzle/mysql2 client factory (`createClient`, `Db` type) — exposed as `@fpp/db/client` subpath so client code never bundles mysql2
-- `apps/web/src/server/db/db.ts` - Singleton `db` instance built from `createClient(env.DATABASE_URL)`, dev-mode HMR caching
-- `apps/web/src/server/api/routers/room.router.ts` - Room tRPC endpoints
-
-## ESLint & React 19 Linting
-
-We use **ESLint flat config** (`eslint.config.mjs`) with React 19's strict rules.
-
-### Valid Suppression Patterns
-
-React 19 introduced stricter linting. Some patterns require suppression for **valid use cases**:
-
-#### 1. `react-hooks/set-state-in-effect` - Valid for:
-- SSR hydration safety (mount detection)
-- Timer initialization
-- One-time initialization flags
-
-```tsx
-useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid pattern: SSR hydration safety
-  setHasMounted(true);
-}, []);
-```
-
-#### 2. `react-hooks/error-boundaries` - Valid for:
-- Event log emission via `recordEvent` (not error handling)
-- Component-level logging
-
-#### 3. `react-hooks/purity` - Valid for:
-- `Date.now()` in refs for timestamp tracking
-
-#### 4. `react-hooks/immutability` - Valid for:
-- Recursive callbacks (self-scheduling timers)
-
-**Format**:
-```tsx
-// eslint-disable-next-line rule-name -- Brief explanation of why this is valid
-```
-
-## Code Style Guidelines
-
-### TypeScript
-- Use strict mode
-- Prefer type inference over explicit types
-- Use `type` for objects, `interface` for extensible contracts
-- Use `satisfies` for type narrowing
-
-### React Components
-- Functional components with hooks
-- Use `type` for component props
-- Keep components small and focused
-- Extract complex logic into custom hooks
-
-### Zustand Patterns
-**Selective subscriptions** - only subscribe to needed state:
-```tsx
-// ✅ Good - re-renders only when users change
-const users = useRoomStore((state) => state.users);
-
-// ❌ Bad - re-renders on ANY state change
-const roomState = useRoomStore();
-```
-
-### Import Order (enforced by Prettier)
-1. React imports
-2. Next.js imports
-3. Third-party libraries
-4. Internal imports (using `fpp/*` alias)
-5. Types
-
-## Common Patterns
-
-### tRPC Mutations
-```typescript
-const mutation = api.room.joinRoom.useMutation({
-  onSuccess: (data) => { /* handle success */ },
-  onError: (error) => {
-    recordError(error, { component: 'X', action: 'Y' }, 'high');
-  },
-});
-```
-
-### WebSocket Actions
-All WebSocket messages go through `triggerAction()`:
-```typescript
-triggerAction({
-  action: 'selectEstimation',
-  userId,
-  roomId,
-  estimation: '5',
-});
-```
-
-### Error Handling
-Use the facade verbs (emit OTEL log records correlated by trace_id):
-```typescript
-recordEvent(EVENT.WS_RECONNECTED); // typed, client-only domain event
-recordError(error, { component: 'ComponentName', action: 'actionName' }, 'high');
-```
+INSTALL_CACHE_PLACEHOLDER
