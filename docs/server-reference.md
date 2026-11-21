@@ -289,7 +289,7 @@ log.warn(
 # Install dependencies
 bun install
 
-# Run dev server (port 3003) USUALLY RUN BY HUMAN
+# Run dev server (port 7721) USUALLY RUN BY HUMAN
 bun dev
 
 # Check TypeScript types

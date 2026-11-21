@@ -128,9 +128,9 @@ docker logs -f fpp-server
 
 ### Health Checks
 
-- Health: `GET http://localhost:3003/health` (returns 503 during SIGTERM drain)
-- Analytics: `GET http://localhost:3003/analytics` (room/user counts + DTOs)
-- WebSocket: `ws://localhost:3003/ws?roomId=…&userId=…&username=…`
+- Health: `GET http://localhost:7721/health` (dev; the container listens on 3003 and returns 503 during SIGTERM drain)
+- Analytics: `GET http://localhost:7721/analytics` (room/user counts + DTOs)
+- WebSocket: `ws://localhost:7721/ws?roomId=…&userId=…&username=…`
 - Production: `GET https://server.free-planning-poker.com/health`
 
 ---
