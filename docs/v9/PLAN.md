@@ -22,8 +22,8 @@ Every row names the seat its lead starts on.
 | Seat | Rows | For |
 |-|-|-|
 | `opus`, effort high | 16 | new hard logic, or a design other rows build on. The reason is in the row's `why` |
-| `lead` | 50 | everything else that is built |
-| none written | 12 | small mechanical rows with a check that proves them. The factory's rule starts them on its `light` seat and moves them up if the lead stalls twice or its ship is refused twice. A `light` seat written into a row is never moved up, so it is not written |
+| `lead` | 54 | everything else that is built |
+| `light` | 8 | small mechanical rows that a check proves: the development host, the crawl files, the blog and roadmap pages, the session summary, the personal record, the feedback form, the end of v1's hosting. Filed, so the factory does not move them up: a lead that gets stuck there asks |
 
 Two lanes cap what runs at once on the development host: `browser` (2) for rows that run Playwright suites, `ui` (4, a first guess that `v9-plan-table` replaces with a measured number) for rows that run the room's component tests and screenshots.
 
@@ -33,11 +33,11 @@ Exit: Playwright passes against the shipped image on a pull request, including a
 
 | Row | Builds | Seat | After |
 |-|-|-|-|
-| `v9-umami-on-v1` | Umami's script on v1's pages, so its history starts now | by size | `v9-gate-1` |
+| `v9-umami-on-v1` | Umami's script on v1's pages, so its history starts now | lead | `v9-gate-1` |
 | `v9-freeze-v1` | v1 on its own branch with its own deploys; `master` cleared | opus | umami-on-v1 |
 | `v9-foundation` | tooling, check tiers, CI, decks, the API's health route on Elysia 2, a short AGENTS.md | opus | freeze-v1 |
 | `v9-agent-setup` | the complete setup for agents: AGENTS.md, path-scoped rules, the pull request template, the README, proven by a cold read | opus | foundation |
-| `v9-dev-host` (dotfiles) | `fpp-next.test` with production's path split, database `fpp` on the mini | by size | gate |
+| `v9-dev-host` (dotfiles) | `fpp-next.test` with production's path split, database `fpp` on the mini | light | gate |
 | `v9-vps-postgres` (vps) | schema and role `fpp`, secret | lead | gate |
 | `v9-room-core` | protocol with named activities, `decide`, `evolve` and `project` with topics, final value and roles, the result contract, property tests, `protocol.md` | opus | agent-setup |
 | `v9-room-runtime` | handshake, seat tokens, the lock, reclaim by name, resume, presence, limits; the deterministic simulator, bots, nightly seeds | opus | room-core |
@@ -48,7 +48,7 @@ Exit: Playwright passes against the shipped image on a pull request, including a
 | `v9-api-telemetry` | OpenTelemetry on Bun, the names package with Umami's event registry, metrics, the content policy test | lead | api-ws |
 | `v9-room-client` | headless client against the simulator's transport: connection machine, resume, storage | lead | room-runtime |
 | `v9-room-plain` | Vite SPA with a plain HTML room in English and German, five languages registered, served by the API | lead | room-client, api-persistence |
-| `v9-api-image` | image with API and SPA, compose file, CI build | by size | room-plain |
+| `v9-api-image` | image with API and SPA, compose file, CI build | lead | room-plain |
 | `v9-e2e` | Playwright harness, multi-seat flows, restart test, CI lane | lead | api-image, api-drain |
 | `v9-vps-next` (vps) | beta service, route, registry entries | lead | api-image, vps-postgres |
 | `v9-next-deploy` | rollout on push, beta target, verify | lead | vps-next |
@@ -72,14 +72,14 @@ Exit: the owner's verdict on the finished room on the beta host.
 | `v9-room-address` | booking and changing a name, the notice before a hold ends, the notice for an address that changed hands | lead | room-shell |
 | `v9-room-home` | `/room` with the recent rooms, head counts, pin and remove; the switcher in the header | lead | room-shell |
 | `v9-room-topics` | the topic queue: type, paste, CSV, tracker references, reorder, the final value per topic | lead | room-shell |
-| `v9-room-summary` | the session summary with Markdown and CSV, and the round badges | by size | room-topics, api-read |
+| `v9-room-summary` | the session summary with Markdown and CSV, and the round badges | light | room-topics, api-read |
 | `v9-room-insights` | the Insights panel with basalt-ui's charts | lead | room-shell, api-read |
-| `v9-room-record` | the personal record, computed and kept on the device only | by size | room-shell |
-| `v9-room-feedback` | the feedback form in the room, as v1 has it | by size | room-shell, api-contact |
+| `v9-room-record` | the personal record, computed and kept on the device only | light | room-shell |
+| `v9-room-feedback` | the feedback form in the room, as v1 has it | light | room-shell, api-contact |
 | `v9-table-feel` | what the picked table still lacks: sounds, haptics, reactions, the streak, calm mode | lead | table-pick |
 | `v9-room-pwa` | manifest, service worker scoped to `/room`, the update between rounds, the install hint, offline shell | lead | room-home |
 | `v9-room-embed` | `?embed=1` that any https page may frame, the message protocol with its host, the snippet, a test host page | lead | room-shell |
-| `v9-room-errors` | browser errors and connection states as OTLP logs, with the content policy | by size | room-shell, api-telemetry |
+| `v9-room-errors` | browser errors and connection states as OTLP logs, with the content policy | lead | room-shell, api-telemetry |
 | `v9-room-translations` | the glossary, then Spanish, French and Simplified Chinese complete, checked by back-translation; the "beta" mark | lead | every feature row above |
 | `v9-room-polish` | the measured pass on a phone and with thirty seats, in five languages | lead | room-translations, room-errors |
 | `v9-room-verdict` (gate) | the finished room on the beta host, with its numbers and the list of what only the owner can try | lead | room-polish, e2e, next-deploy, load |
@@ -93,14 +93,14 @@ Starts after the setup for agents and runs beside stages 1 and 2. Exit: every v1
 | Row | Builds | Seat | After |
 |-|-|-|-|
 | `v9-site-scaffold` | `apps/site` on Astro, content collections, the draft rule, a page for every v1 URL, routing ready for languages, no look | lead | agent-setup |
-| `v9-site-crawl` | `robots.txt` with the bot policy, sitemap, `llms.txt` and Markdown twins, IndexNow | by size | site-scaffold |
+| `v9-site-crawl` | `robots.txt` with the bot policy, sitemap, `llms.txt` and Markdown twins, IndexNow | light | site-scaffold |
 | `v9-site-schema` | structured data as components, FAQPage from the visible questions, social images, complete head tags | lead | site-scaffold |
 | `v9-site-legal` | `/privacy` in plain words, `/imprint` as it stands, `/contact` | lead | site-scaffold |
 | `v9-site-guide` | the pillar guide ported from v1; three cluster pages as drafts | lead | site-scaffold |
 | `v9-site-glossary` | up to fifteen term pages as drafts | lead | site-scaffold |
 | `v9-site-vs` | up to five comparison pages as drafts, every fact dated and sourced on the day | lead | site-scaffold |
-| `v9-site-blog` | the blog collection, its feed, a first post as a draft | by size | site-scaffold |
-| `v9-site-roadmap` | `/roadmap` from the changelog and a list of what is next | by size | site-scaffold |
+| `v9-site-blog` | the blog collection, its feed, a first post as a draft | light | site-scaffold |
+| `v9-site-roadmap` | `/roadmap` from the changelog and a list of what is next | light | site-scaffold |
 | `v9-site-look` | basalt-ui's site profile: tokens, header, footer with the donation link, theme switch, prose; waits until npm serves it | lead | site-scaffold, ui-foundation |
 | `v9-site-landing` | the landing page: live table, three ways in, the claims, the bento grid of live tiles, the questions | opus | site-look, site-schema, table-pick |
 | `v9-site-landing-i18n` | the landing page in German, Spanish, French and Chinese as drafts, with hreflang among the published ones | lead | site-landing |
@@ -114,7 +114,7 @@ Starts after the setup for agents and runs beside stages 1 and 2. Exit: every v1
 | `v9-site-stats` | `/analytics`: public statistics, live, with the last known figures when the API is silent | lead | site-look, stats-rollups |
 | `v9-site-data` | `/data` as a draft: what a year of rounds shows, every figure with its query | lead | site-stats, importer |
 | `v9-edge-routing` | the site on a Worker with static assets, one hostname split by path on the beta host, three measured answers | opus | next-deploy, site-scaffold |
-| `v9-umami-proxy` (vps) | Umami under `/api/u` on the beta host, the visitor's address passed through | by size | edge-routing |
+| `v9-umami-proxy` (vps) | Umami under `/api/u` on the beta host, the visitor's address passed through | lead | edge-routing |
 | `v9-umami-events` | the script on site and room, the path rewrite, the remaining events, the funnel on the beta host | lead | umami-proxy, room-plain |
 | `v9-vps-observability` (vps) | dashboards and alerts for the new services | lead | api-telemetry, vps-next |
 | `v9-readme` | the README as the repository's landing page | lead | site-landing, selfhost |
@@ -131,7 +131,7 @@ Exit: v1 is gone.
 | `v9-cutover-runbook` (gate) | `CUTOVER.md` with a rollback for every step, one timed rehearsal, the owner's go | opus | plan-launch, importer, budgets, selfhost, readme, site-data, site-landing-i18n, vps-observability |
 | `v9-cutover` (vps) | executes the runbook on the weekend the owner starts it; rolls back at the first failed check | opus | cutover-runbook |
 | `v9-release-9` | production targets, canonical URLs, the noindex header gone, release 9.0.0 | lead | cutover |
-| `v9-v1-hosting-end` | 14 days later: the branch's deploy workflows off, the branch tagged | by size | release-9 |
+| `v9-v1-hosting-end` | 14 days later: the branch's deploy workflows off, the branch tagged | light | release-9 |
 | `v9-v1-archive` (vps) | 14 days later: the final dump archived and its restore proven | lead | cutover |
 | `v9-v1-remove` (vps, gate) | v1's containers and MariaDB removed after the owner's yes | lead | v1-archive, v1-hosting-end |
 

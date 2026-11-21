@@ -36,8 +36,8 @@ Six comments on the fifth revision, and the plan you asked for with them.
 | Seat | Rows | Which |
 |-|-|-|
 | `opus`, effort high | 16 | New hard logic: the core, the runtime, the socket server, the store, the drain, the importer. A design others build on: the foundation, the setup for agents, the arena, the pick, the room's shell, the landing page. Production at stake: the freeze of v1, the edge routing, the cutover's runbook and its run |
-| `lead` | 50 | Everything else that is built |
-| none written | 12 | Small mechanical rows with a check that proves them. The factory's rule starts them on the `light` seat and moves them up if the lead stalls twice. A `light` seat written into a row is never moved up, so it is not written |
+| `lead` | 54 | Everything else that is built |
+| `light` | 8 | Small mechanical rows that a check proves: the development host, the crawl files, the blog and roadmap pages, the session summary, the personal record, the feedback form, the end of v1's hosting. The seat is filed, so the factory does not move such a row up; a lead that gets stuck there asks you |
 
 ## Your comments of 2026-11-20
 
@@ -254,7 +254,7 @@ A row is one factory Issue: one change that ships alone, sized for one lead sess
 - **Width before depth.** After the core, the server, the client, the arena's harness and the site need nothing from each other. Once the room's shell stands, thirteen rows of the interface follow, each in its own directory, as many at once as the host carries.
 - **No Spec on the way.** A lead decides and records its decision in the pull request. You are asked five times in the whole program; the five are under "Only you can".
 - **Stages 2 to 4 are planned ahead.** Their rows were written on 2026-11-21, before any code existed, so each stage has one correction row: it reads what was measured, fixes the facts of the rows not yet started, and changes nothing that still holds. The site does not wait for the spine: content and search work start after the setup for agents.
-- **Seats by need.** Sixteen rows start on `opus`: new hard logic, a design others build on, or production at stake. Twelve small mechanical rows carry no seat, so the factory starts them on its `light` seat and can still move them up.
+- **Seats by need.** Sixteen rows start on `opus`: new hard logic, a design others build on, or production at stake. Eight small mechanical rows are filed on `light`; the factory does not move a filed seat up.
 - **Text you must read is held back, not held up.** Guides, glossary, comparison pages, the yearly data page and the translated landing pages are merged as drafts. The beta host shows them; production does not until you remove the flag. No row waits for it.
 - **The arena's entries run outside the factory.** The factory builds the harness. The entries come from sessions you start, with several directions and several labs' models, when the interface foundation stands.
 - **The setup for agents comes before features.** Once the tooling stands, one row writes what every later lead reads (`AGENTS.md`, the rules, the pull request template, the README) and proves it with an agent that starts cold. Every later row keeps it current in its own pull request.
@@ -284,7 +284,7 @@ No new paid service is planned. One billing question is open.
 
 - **Site:** the Workers free tier. The pages are static assets with no Worker code; whether the free plan bills asset requests is measured in stage 3 (`v9-edge-routing`). If it does, the static files move to your own bucket behind your CDN, the one your image tool already uses.
 - **Servers:** the API, Postgres, Umami and ClickStack are on the VPS already. The rewrite removes four containers (MariaDB, v1's server, the analytics service and its updater) and Vercel, and adds one.
-- **Work:** 78 rows. Sixteen start on `opus`, fifty on `lead`, twelve are small enough for `light`. The arena's entries cost what the sessions you start for them cost.
+- **Work:** 78 rows. Sixteen start on `opus`, fifty-four on `lead`, eight on `light`. The arena's entries cost what the sessions you start for them cost.
 
 ## Only you can
 
