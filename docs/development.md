@@ -11,7 +11,7 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 | Bun | 1.4.4 | `packageManager` in `package.json` | CI's `setup-bun` and the factory's step image read it. `make check-fast` warns when the local Bun differs. 1.4.5 was two days old and inside the cooldown |
 | TypeScript | 7.0.2 | root `package.json` | the newest stable major, the native compiler. `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax` in `tsconfig.base.json` |
 | oxlint | 1.94.0 | root | `.oxlintrc.json`: correctness and suspicious as errors, no `any`, type-only imports, no default export, the import restrictions below |
-| oxfmt | 0.79.0 | root | `.oxfmtrc.json` copies basalt-ui's settings, so the switch to its presets in `v9-ui-foundation` reformats nothing |
+| oxfmt | 0.79.0 | root | `.oxfmtrc.json` copies basalt-ui's settings, so the switch to its presets in `v9-ui-foundation` reformats nothing. Markdown is left out: oxfmt pads tables, and the docs keep the minimal `|-|-|` separator |
 | lefthook | 2.2.2 | root | pre-commit: oxfmt check and oxlint on staged files; commit-msg: commitlint |
 | Elysia | 2.0.0-rc.3 | `apps/api` | by the owner's ruling; never installed by tag. Its peers `typebox` 1.4.7, `exact-mirror` 1.2.7 and `openapi-types` 12.1.3 are pinned beside it |
 
