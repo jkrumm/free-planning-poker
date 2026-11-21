@@ -34,14 +34,14 @@ Release configuration is in `.release-it.json`:
 # Verify branch and clean state
 git branch --show-current  # Must be master
 git status --porcelain     # Must be empty
-git describe --tags --abbrev=0  # Show last tag
+git describe --tags --abbrev=0 --match '[0-9]*.[0-9]*.[0-9]*'  # Show last release tag (skips v1-freeze)
 ```
 
 ### Phase 2: Analyze Commits
 
 ```bash
 # Get commits since last tag
-git log --oneline $(git describe --tags --abbrev=0)..HEAD
+git log --oneline $(git describe --tags --abbrev=0 --match '[0-9]*.[0-9]*.[0-9]*')..HEAD
 ```
 
 Categorize by type for AI summary:
