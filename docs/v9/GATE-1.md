@@ -1,5 +1,7 @@
 # Owner gate 1: the v9 rewrite concept
 
+**Closed on 2026-11-21:** your verdict was "Looks good", on the concept as it stood on `master` that day.
+
 **What you accept with "Looks good":** Free Planning Poker is rewritten on `master` as release 9.0.0, on the architecture in `docs/v9/ARCHITECTURE.md` and the product in `docs/v9/UX.md`, in the stages of `docs/v9/PLAN.md`. v1 moves to its own branch and stays in production from there, untouched, until one reversible cutover on a weekend. The whole plan is written out: 78 rows in four stages (`docs/plan.yaml`). With "Looks good" the factory files three rows at once (Umami on v1, the development host, the Postgres role) and every later row when the rows it reads have shipped. Nothing with a look is built before basalt-ui 3 is on npm.
 
 **Read first:** the Report "v9 strategy" (12 minutes). It opens with what each of your comments of 2026-11-21, 2026-11-20 and 2026-11-19 changed, and with your rulings on the open choices. The Reports on UX, architecture, engineering and the plan are the detail behind it. All are in the collection "Free Planning Poker v9" and take comments.

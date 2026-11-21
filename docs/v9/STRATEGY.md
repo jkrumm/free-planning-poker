@@ -78,7 +78,7 @@ Eighteen comments on the second version. What each one changed:
 
 ## Rulings of gate 1
 
-Your answers of 2026-11-20 to the open choices and to the points where the plan went against you. The gate itself is still open: its verdict is go, or what to change first.
+Your answers of 2026-11-20 to the open choices and to the points where the plan went against you. The gate closed on 2026-11-21 with your verdict "Looks good".
 
 | Question | Your ruling | What it changed |
 |-|-|-|
