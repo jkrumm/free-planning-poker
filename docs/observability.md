@@ -85,6 +85,10 @@ All services use structured JSON logging (Pino format):
 - Middleware: Filters debug logs (level < 30) and noisy compile logs
 - Error column: Displays `error.message` field in red for easy spotting
 
+### Umami page views (web only)
+
+The cookieless Umami script is loaded by `apps/web/src/components/umami-script.tsx` only when `NEXT_PUBLIC_UMAMI_SCRIPT_URL` and `NEXT_PUBLIC_UMAMI_WEBSITE_ID` are both set (Vercel production). It sends page views only, rewrites room paths to `/room/:slug` (`apps/web/src/utils/umami.ts`), and runs beside, not instead of, the `/api/track-page-view` tracking above.
+
 ### Production Logging
 
 All services emit production-ready Pino JSON to stdout (captured by Docker/Vercel),

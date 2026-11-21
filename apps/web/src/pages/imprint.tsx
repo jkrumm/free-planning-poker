@@ -99,6 +99,17 @@ const Imprint: NextPage = () => {
             linked to your name, email, or IP address.
             <br />
             <br />
+            <strong>Visit statistics (Umami).</strong> We also run a
+            self-hosted, cookie-free page-view counter (Umami) on our own
+            servers in Germany. For each page view it receives the page path,
+            the referring page, the page title, your screen size and your
+            browser language. Your IP address is used in memory to derive a
+            coarse location and an anonymous session value, and is not stored.
+            Umami sets no cookie and writes nothing to your local storage. Room
+            names never reach it: every room address is reported as{' '}
+            <code>/room/:slug</code>, and query strings are left out.
+            <br />
+            <br />
             <strong>Approximate location.</strong> The country, region, and city
             are derived from Vercel edge headers at the moment your request
             arrives. Your IP address is resolved to a coarse location at the

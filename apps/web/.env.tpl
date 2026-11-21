@@ -27,6 +27,12 @@ NEXT_PUBLIC_HYPERDX_URL=https://fpp.test
 # no proxy needed. Prod: clickstack:4319 via Docker monitoring-net.
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 
+# --- Umami page views (production only) ---
+# Both stay empty locally: the script is not loaded without them. Set in Vercel
+# for production: the script URL of the Umami instance and the website id.
+NEXT_PUBLIC_UMAMI_SCRIPT_URL=
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+
 # --- Disabled-in-local dummies (satisfy zod, no real connection) ---
 TODOIST_SECRET=local-dev-noop
 EMAIL_GATEWAY_URL=https://dev-disabled.local

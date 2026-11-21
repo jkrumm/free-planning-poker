@@ -23,6 +23,9 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_VERSION: z.string().min(1),
     NEXT_PUBLIC_HYPERDX_API_KEY: z.string().min(1),
     NEXT_PUBLIC_HYPERDX_URL: z.string().url({ error: 'Invalid HyperDX URL' }),
+    // Umami page-view script; both unset means no script (previews, local).
+    NEXT_PUBLIC_UMAMI_SCRIPT_URL: z.string().url().optional(),
+    NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().min(1).optional(),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -39,6 +42,8 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     NEXT_PUBLIC_HYPERDX_API_KEY: process.env.NEXT_PUBLIC_HYPERDX_API_KEY,
     NEXT_PUBLIC_HYPERDX_URL: process.env.NEXT_PUBLIC_HYPERDX_URL,
+    NEXT_PUBLIC_UMAMI_SCRIPT_URL: process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL,
+    NEXT_PUBLIC_UMAMI_WEBSITE_ID: process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID,
   },
   skipValidation:
     !!process.env.SKIP_ENV_VALIDATION ||

@@ -31,7 +31,7 @@ Room state lives in three places: MySQL (persistent), Bun server memory (authori
 ## Commands
 
 - Install: `bun install --frozen-lockfile`.
-- Validate: `make check` mirrors `validate.yml` (format:check, lint, type-check, build) and does not mutate. Run it before the first push and after every change. `bun run validate[:web|:server|:db|:shared|:analytics]` formats in place.
+- Validate: `make check` mirrors `validate.yml` (format:check, lint, type-check, web `bun test`, build) and does not mutate. Run it before the first push and after every change. `bun run validate[:web|:server|:db|:shared|:analytics]` formats in place.
 - Dev: `bun run dev` starts all services plus Logdy; `bun run dev:web` starts Next.js only. Suggest these to the user; do not start dev servers yourself.
 - **IMPORTANT:** local Next.js builds need `SKIP_ENV_VALIDATION=1 bun run build`. Env is injected at runtime by `secrets-run run --env-file=apps/web/.env.tpl`, not at build time.
 - No `.env.tpl` holds an `op://` ref, so `bun run dev` needs no 1Password and runs on the headless mini. Never `op read` or `op run` on the mini (it hangs); use `secrets-run`.

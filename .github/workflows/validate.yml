@@ -27,6 +27,7 @@ jobs:
       - run: bun run --filter=@fpp/web type-check
         env:
           SKIP_ENV_VALIDATION: '1'
+      - run: bun run --filter=@fpp/web test
 
   validate-web-formatting:
     name: Web - Formatting
