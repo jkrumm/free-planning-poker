@@ -4,6 +4,8 @@
 # The arena's entries are not rows: the owner runs them in sessions of his own (ruling of 2026-11-20).
 # No row carries checkpoint: spec. The gates are v9-gate-1, v9-table-pick, v9-room-verdict, v9-cutover-runbook and v9-v1-remove.
 # v9-plan-table, v9-plan-site and v9-plan-launch are correction rows: each fixes the facts of rows not yet started from what was measured.
+# Priority: every row not yet filed carries prio 1 (owner, 2026-11-21: the rewrite ranks above the other projects' default 0;
+# basalt-ui's Issues rank above it and are raised by hand, because the factory has no priority per project).
 # Seats, filed on every row: opus high where the logic is new and hard, other rows build on the design or production is at stake
 # (reason in why); {role: light} on eight small mechanical rows that a check proves (owner, 2026-11-21: file it; a filed light
 # seat is not moved up, and the light rule's keep-off words would have kept half of them off the seat); {role: lead} for the rest.
@@ -67,6 +69,7 @@ rows:
   - key: v9-foundation
     title: 'v9 foundation on the cleared master: tooling, check tiers, CI with lanes, decks, the API health route on Elysia 2, a new AGENTS.md'
     kind: chore
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-freeze-v1]
     after_needs: shipped
@@ -103,6 +106,7 @@ rows:
   - key: v9-agent-setup
     title: 'The setup for agents: AGENTS.md, path-scoped rules, the pull request template and the README, proven by a cold read'
     kind: docs
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-foundation]
     after_needs: shipped
@@ -174,6 +178,7 @@ rows:
   - key: v9-room-core
     title: 'Room core: the protocol with named activities, decide and evolve with topics and final values, the per-seat projection and the property that no vote leaks before the reveal'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-agent-setup]
     after_needs: shipped
@@ -210,6 +215,7 @@ rows:
   - key: v9-room-runtime
     title: 'Room runtime behind ports (handshake, seat tokens, the lock, resume, presence, limits) and the deterministic simulator that tests it'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-room-core]
     after_needs: shipped
@@ -239,6 +245,7 @@ rows:
   - key: v9-db-schema
     title: 'Postgres schema fpp with Drizzle: rooms and the address table, the unlogged snapshot table with its ownership epoch, topics, rounds, estimating days, daily rollups'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-agent-setup, v9-dev-host]
     after_needs: shipped
@@ -264,6 +271,7 @@ rows:
   - key: v9-api-ws
     title: 'Room server: the transport bake-off between Elysia 2, Bun''s native handler and Effect''s socket server, then the WebSocket endpoint over the room runtime with origin check, payload cap and close codes'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-room-runtime]
     after_needs: shipped
@@ -295,6 +303,7 @@ rows:
   - key: v9-api-persistence
     title: 'Rooms survive a restart: the Postgres store on Effect with epoch fencing, topics and results written through, the fault tests, and the routes for rooms, numbers, names and the lock'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-api-ws, v9-db-schema]
     after_needs: shipped
@@ -328,6 +337,7 @@ rows:
   - key: v9-api-drain
     title: 'Zero-loss deploys: drain on SIGTERM, hand rooms to the next container, proven by killing a server mid-round'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-api-persistence]
     after_needs: shipped
@@ -348,6 +358,7 @@ rows:
   - key: v9-api-telemetry
     title: 'Telemetry for the new API: names package, spans per command, the room server metrics, and a test that no name, slug or vote is exported'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-api-ws]
     after_needs: shipped
@@ -373,6 +384,7 @@ rows:
   - key: v9-room-client
     title: 'Headless room client: connection state machine, resume with backoff, pending commands, seat tokens and v1 settings adoption'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-room-runtime]
     after_needs: shipped
@@ -401,6 +413,7 @@ rows:
   - key: v9-room-plain
     title: 'A plain room: the Vite app with every command reachable in unstyled HTML, served by the API'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-room-client, v9-api-persistence]
     after_needs: shipped
@@ -429,6 +442,7 @@ rows:
   - key: v9-api-image
     title: 'One image for API and room app, a compose file for self-hosting and tests, built in CI'
     kind: chore
+    prio: 1
     seat: {role: lead}
     after: [v9-room-plain]
     after_needs: shipped
@@ -451,6 +465,7 @@ rows:
   - key: v9-e2e
     title: 'End-to-end suite: one browser context per seat against the shipped image, including a container replaced mid-round'
     kind: chore
+    prio: 1
     seat: {role: lead}
     lane: browser
     after: [v9-api-image, v9-api-drain]
@@ -484,6 +499,7 @@ rows:
     title: 'Beta host for the Free Planning Poker rewrite: the fpp-api service, its route, and its telemetry registry entries'
     repo: vps
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-api-image, v9-vps-postgres]
     after_needs: shipped
@@ -508,6 +524,7 @@ rows:
   - key: v9-next-deploy
     title: 'Every push that touches v9 rolls out to the beta host, and make verify probes it'
     kind: chore
+    prio: 1
     seat: {role: lead}
     after: [v9-vps-next]
     after_needs: shipped
@@ -530,6 +547,7 @@ rows:
   - key: v9-load
     title: 'Load test with k6: 5,000 sockets in 500 rooms, a handoff under load, and a nightly guard'
     kind: chore
+    prio: 1
     seat: {role: lead}
     after: [v9-api-image, v9-api-drain]
     after_needs: shipped
@@ -553,6 +571,7 @@ rows:
   - key: v9-table-arena
     title: 'The table arena: the table''s contract, the scenario matrix, the side-by-side gallery, the scorecard, the brief every entry gets and the owner''s runbook'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     lane: browser
     after: [v9-room-runtime]
@@ -586,6 +605,7 @@ rows:
   - key: v9-ui-foundation
     title: 'Install basalt-ui 3 in the room app and the arena: profile app, its lint, format and tsconfig presets for the whole repo, component test setup'
     kind: chore
+    prio: 1
     seat: {role: lead}
     after: [v9-room-plain]
     after_needs: shipped
@@ -613,6 +633,7 @@ rows:
   - key: v9-table-pick
     title: 'The table, picked: every arena entry scored side by side, the owner''s pick, then packages/table built from the picked pieces (gate)'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     checkpoint: gate
     lane: browser
@@ -641,6 +662,7 @@ rows:
   - key: v9-plan-table
     title: 'Correct the stage 2 rows against what the spine and the arena''s harness actually built, before the room''s interface rows are filed'
     kind: docs
+    prio: 1
     seat: {role: lead}
     after: [v9-ui-foundation, v9-table-arena, v9-api-ws]
     after_needs: shipped
@@ -670,6 +692,7 @@ rows:
   - key: v9-room-ui-tests
     title: 'The interface test harness: component tests with axe, screenshots of named room states in a pinned container, a pseudo-locale that fails on clipped text, and make ui-shots'
     kind: chore
+    prio: 1
     seat: {role: lead}
     lane: browser
     after: [v9-ui-foundation]
@@ -703,6 +726,7 @@ rows:
   - key: v9-room-shell
     title: 'The room on basalt-ui: layout by size, header, people rail, connection states, themes, the settings surface and the feature registry every later room row plugs into'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     lane: ui
     after: [v9-room-ui-tests, v9-plan-table]
@@ -738,6 +762,7 @@ rows:
   - key: v9-room-round
     title: 'The round bar and the keys: the topic in place, the voted meter with who is missing and a poke, reveal with a confirmation, the auto reveal ring, the countdown and the shortcut sheet'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -775,6 +800,7 @@ rows:
   - key: v9-room-settings
     title: 'Room and personal settings: profile with a generated avatar, decks with custom values, auto reveal, the timer, sounds, calm mode, haptics, the view, the theme and the language switch'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -806,6 +832,7 @@ rows:
   - key: v9-room-access
     title: 'Inviting and the lock: the Invite button and panel with the share sheet, the invitation at the centre of an empty table, locking with a typed or generated password, and the locked room''s screen'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -836,6 +863,7 @@ rows:
   - key: v9-room-address
     title: 'Numbers and names in the room: booking and changing a name with a live answer, the display name, the notice before a hold ends, and the screen for an address that changed hands'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -867,6 +895,7 @@ rows:
   - key: v9-room-home
     title: '/room as the way back: the rooms this device visited with live head counts, pin and remove, create a room and join by link, number or name, and the room switcher in the header'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -899,6 +928,7 @@ rows:
   - key: v9-room-topics
     title: 'The topic queue: type, paste a list or drop a tracker''s CSV export, ticket references as links, reorder, rename and remove up to 200 topics, final values shown and corrected in the list'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -930,6 +960,7 @@ rows:
   - key: v9-room-summary
     title: 'The session summary: every topic with its final value, spread, rounds and duration, copied as Markdown and exported as CSV through the API summary route'
     kind: feature
+    prio: 1
     seat: {role: light}
     lane: ui
     after: [v9-room-topics, v9-api-read]
@@ -960,6 +991,7 @@ rows:
   - key: v9-room-insights
     title: 'The Insights panel: rounds per session, share of consensus, typical spread, time to reveal and how often each card wins, from the room''s history with basalt-ui''s charts'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell, v9-api-read]
@@ -987,6 +1019,7 @@ rows:
   - key: v9-table-feel
     title: 'Game feel in packages/table: five sounds off by default, the haptic tick, reactions and the poke, the streak counter and the celebration on a unanimous vote, calm mode and reduced motion everywhere'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: browser
     after: [v9-table-pick]
@@ -1020,6 +1053,7 @@ rows:
   - key: v9-room-pwa
     title: 'The room as an installable app: the manifest, a service worker scoped to /room that precaches the shell and queues nothing, updates offered between rounds, the install offer, offline recent rooms'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-home]
@@ -1051,6 +1085,7 @@ rows:
   - key: v9-room-embed
     title: 'The embedded room: ?embed=1 without site chrome down to a side panel, the versioned postMessage protocol with origin checks, frame-ancestors per variant, the snippet to copy and a test host page'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-shell]
@@ -1084,6 +1119,7 @@ rows:
   - key: v9-room-errors
     title: 'Browser telemetry for the room: uncaught errors, rejected promises and connection state changes as OTLP logs to /api/otel, with the content policy test extended to the browser'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-room-shell, v9-api-telemetry]
     after_needs: shipped
@@ -1112,6 +1148,7 @@ rows:
   - key: v9-room-record
     title: 'The personal record: rounds played, how often you matched the most common card and whether you vote higher or lower than your teams, computed and kept on the device only'
     kind: feature
+    prio: 1
     seat: {role: light}
     lane: ui
     after: [v9-room-shell]
@@ -1138,6 +1175,7 @@ rows:
   - key: v9-room-feedback
     title: 'The feedback form in the room: a short text sent through the API''s feedback route, as v1 has it'
     kind: feature
+    prio: 1
     seat: {role: light}
     lane: ui
     after: [v9-room-shell, v9-api-contact]
@@ -1163,6 +1201,7 @@ rows:
   - key: v9-room-translations
     title: 'Spanish, French and Simplified Chinese for the room from a glossary, each checked by back-translation, with plural forms, CJK in the screenshot tests and the missing-key check on all five'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: ui
     after: [v9-room-round, v9-room-settings, v9-room-access, v9-room-address, v9-room-home, v9-room-topics, v9-room-summary, v9-room-insights, v9-room-record, v9-room-feedback, v9-room-pwa, v9-room-embed, v9-table-feel]
@@ -1193,6 +1232,7 @@ rows:
   - key: v9-room-polish
     title: 'Polish the finished room by measurement: every arena scenario in the real shell, one-thumb reach and five languages at 360 px, axe, the keyboard path, the entry budget and reveal frame times'
     kind: feature
+    prio: 1
     seat: {role: lead}
     lane: browser
     after: [v9-room-translations, v9-room-errors]
@@ -1225,6 +1265,7 @@ rows:
   - key: v9-room-verdict
     title: 'The owner''s verdict on the finished room on the beta host: one session walked through, the numbers with their sources, and what only he can try (gate)'
     kind: feature
+    prio: 1
     seat: {role: lead}
     checkpoint: gate
     lane: browser
@@ -1253,6 +1294,7 @@ rows:
   - key: v9-site-scaffold
     title: 'The marketing site''s scaffold: apps/site on Astro, static and unstyled, typed content collections with the draft rule, one head layout, every v1 page ported, locale routing ready'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-agent-setup]
     after_needs: shipped
@@ -1286,6 +1328,7 @@ rows:
   - key: v9-site-crawl
     title: 'Search plumbing for the site: robots.txt with the crawler policy, a sitemap without drafts or rooms, llms.txt and Markdown twins, the IndexNow key and ping'
     kind: feature
+    prio: 1
     seat: {role: light}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1312,6 +1355,7 @@ rows:
   - key: v9-site-schema
     title: 'Structured data and social images for every page: typed schema.org components, FAQPage from the visible questions, social images built per page, and a head test over the built site'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1338,6 +1382,7 @@ rows:
   - key: v9-site-legal
     title: 'Legal pages: /privacy in plain words for the owner to read, /imprint as v1 has it, and /contact with its form'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1365,6 +1410,7 @@ rows:
   - key: v9-site-guide
     title: 'The pillar guide at /guide ported to Markdown with every v1 anchor, and three cluster guides under /guides/ as drafts'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1391,6 +1437,7 @@ rows:
   - key: v9-site-glossary
     title: 'The glossary: at most fifteen short term pages under /glossary/ as drafts, each opening with its definition and carrying DefinedTerm data, and an index'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1417,6 +1464,7 @@ rows:
   - key: v9-site-vs
     title: 'Comparison pages under /vs/ as drafts: at most five honest comparisons, every fact about another product dated and linked to its own page'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1442,6 +1490,7 @@ rows:
   - key: v9-site-blog
     title: 'The blog: collection index, post layout, RSS feed, and a first post on what is new in 9.0.0 as a draft'
     kind: feature
+    prio: 1
     seat: {role: light}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1467,6 +1516,7 @@ rows:
   - key: v9-site-roadmap
     title: 'The roadmap at /roadmap: the changelog read from CHANGELOG.md at build time and what is next from one data file'
     kind: feature
+    prio: 1
     seat: {role: light}
     after: [v9-site-scaffold]
     after_needs: shipped
@@ -1492,6 +1542,7 @@ rows:
   - key: v9-site-look
     title: 'The site takes basalt-ui''s site profile: tokens and static parts, header, navigation, footer with the donation link, theme switch, prose styling, light and dark'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-scaffold, v9-ui-foundation]
     after_needs: shipped
@@ -1523,6 +1574,7 @@ rows:
   - key: v9-site-landing
     title: 'The landing page: a live table as the hero with three ways in, the five claims, a bento grid of live tiles, how a round works, open source, and the questions'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     lane: browser
     after: [v9-site-look, v9-site-schema, v9-table-pick]
@@ -1557,6 +1609,7 @@ rows:
   - key: v9-site-docs
     title: 'User documentation at /docs: one page per feature of the room, written from the product on the beta host, with screenshots and a static search'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-look, v9-room-polish]
     after_needs: shipped
@@ -1583,6 +1636,7 @@ rows:
   - key: v9-selfhost
     title: 'Self-hosting in one compose file: the published image with Postgres, a documented example env file, the /self-hosting page, and a workflow that follows the page on a clean runner'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-e2e, v9-site-scaffold]
     after_needs: shipped
@@ -1610,6 +1664,7 @@ rows:
   - key: v9-plan-site
     title: 'Correct the rows of stage 3 from what was built: the store''s schema, the routes and the site''s collections'
     kind: docs
+    prio: 1
     seat: {role: lead}
     after: [v9-api-persistence, v9-site-scaffold]
     after_needs: shipped
@@ -1636,6 +1691,7 @@ rows:
   - key: v9-api-read
     title: 'A room''s history over HTTP: GET /api/rooms/:slug/topics and /summary as JSON, CSV and Markdown, for a seat of that room, typed with Eden'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-plan-site]
     after_needs: shipped
@@ -1664,6 +1720,7 @@ rows:
   - key: v9-api-contact
     title: 'POST /api/contact and POST /api/feedback on the new API, with v1''s fields, limits and upstreams, and their secrets kept out of the repository'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-plan-site]
     after_needs: shipped
@@ -1692,6 +1749,7 @@ rows:
   - key: v9-stats-rollups
     title: 'Rollups behind the public numbers: a daily job that fills stat_daily from rounds and estimating days, and a cached GET /api/stats with the week-over-week comparison by working days'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-plan-site]
     after_needs: shipped
@@ -1718,6 +1776,7 @@ rows:
   - key: v9-importer
     title: 'The one-time import of v1''s MariaDB into Postgres: rooms with their numbers and names, rounds as summaries, daily counts and estimating days, with a dry run and a rehearsal on a real dump'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-stats-rollups]
     after_needs: shipped
@@ -1748,6 +1807,7 @@ rows:
   - key: v9-site-stats
     title: 'The public statistics page at /analytics: figures in the HTML from a build-time snapshot, live islands with basalt-ui''s charts over GET /api/stats, the last known figures when the API is away'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-look, v9-stats-rollups]
     after_needs: shipped
@@ -1773,6 +1833,7 @@ rows:
   - key: v9-site-data
     title: 'The yearly data page /data as a draft: what a year of anonymous rounds shows, every figure from a query in the repository, a dated methods paragraph, Dataset data'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-stats, v9-importer]
     after_needs: shipped
@@ -1799,6 +1860,7 @@ rows:
   - key: v9-edge-routing
     title: 'One hostname split by path on the beta host: the site as a Worker with static assets, routes without a Worker for /room*, /_room/* and /api/*, and three measured answers'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     after: [v9-next-deploy, v9-site-scaffold]
     after_needs: shipped
@@ -1828,6 +1890,7 @@ rows:
   - key: v9-umami-proxy
     title: 'vps: Umami''s script and collect endpoint under /api/u on the Free Planning Poker beta hostname, with the visitor''s address handed through'
     kind: chore
+    prio: 1
     seat: {role: lead}
     repo: vps
     after: [v9-edge-routing]
@@ -1855,6 +1918,7 @@ rows:
   - key: v9-umami-events
     title: 'Umami on the new site and room: the script from /api/u on every page, the before-send rewrite, the room''s funnel events, and a test that no event carries a vote, a name, a slug or a code'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-umami-proxy, v9-room-plain]
     after_needs: shipped
@@ -1881,6 +1945,7 @@ rows:
   - key: v9-vps-observability
     title: 'vps: dashboards and alerts for the Free Planning Poker rewrite (fpp-api, fpp-room, fpp-site), and v1''s dashboards and monitors marked for removal at the cutover'
     kind: chore
+    prio: 1
     seat: {role: lead}
     repo: vps
     after: [v9-api-telemetry, v9-vps-next]
@@ -1906,6 +1971,7 @@ rows:
   - key: v9-readme
     title: 'The README rewritten as the repository''s landing page: the product in one sentence, a recording of a round, the live link, the five claims, self-hosting in one command, licence and contributing'
     kind: docs
+    prio: 1
     seat: {role: lead}
     after: [v9-site-landing, v9-selfhost]
     after_needs: shipped
@@ -1935,6 +2001,7 @@ rows:
   - key: v9-site-landing-i18n
     title: 'The landing page in German, Spanish, French and Simplified Chinese as drafts, with hreflang among published versions, the sitemap''s i18n entries and a visible language list'
     kind: feature
+    prio: 1
     seat: {role: lead}
     after: [v9-site-landing]
     after_needs: shipped
@@ -1962,6 +2029,7 @@ rows:
   - key: v9-site-parity
     title: 'Stage 3''s exit: make parity proves on the beta host every v1 URL, the room paths, the noindex header, the crawl files and the funnel'
     kind: chore
+    prio: 1
     seat: {role: lead}
     after: [v9-site-landing, v9-site-stats, v9-site-legal, v9-site-guide, v9-site-glossary, v9-site-vs, v9-site-blog, v9-site-roadmap, v9-site-docs, v9-site-crawl, v9-umami-events, v9-api-contact]
     after_needs: shipped
@@ -1988,6 +2056,7 @@ rows:
   - key: v9-budgets
     title: 'Budgets as CI gates: size-limit on the room''s entry and on the site''s page JavaScript, Lighthouse lab runs on the site and the room shell, each proven by a planted regression'
     kind: chore
+    prio: 1
     seat: {role: lead}
     lane: browser
     after: [v9-site-landing, v9-room-polish]
@@ -2018,6 +2087,7 @@ rows:
   - key: v9-plan-launch
     title: 'Correct the launch rows from what stages 2 and 3 built: the verdict on the room, site parity, the edge routing, the importer''s rehearsal and the load evidence'
     kind: docs
+    prio: 1
     seat: {role: lead}
     after: [v9-room-verdict, v9-site-parity]
     after_needs: shipped
@@ -2046,6 +2116,7 @@ rows:
   - key: v9-cutover-runbook
     title: 'The cutover runbook docs/v9/CUTOVER.md, one timed rehearsal on the beta host with a real production dump, and the owner''s go for the weekend switch (gate)'
     kind: feature
+    prio: 1
     seat: {tier: opus, effort: high}
     checkpoint: gate
     after: [v9-plan-launch, v9-importer, v9-budgets, v9-selfhost, v9-readme, v9-site-data, v9-site-landing-i18n, v9-vps-observability]
@@ -2077,6 +2148,7 @@ rows:
   - key: v9-cutover
     title: 'Cutover of Free Planning Poker in the vps repo: execute docs/v9/CUTOVER.md step by step in the window the owner chose, a check per step, rollback at the first failure'
     kind: chore
+    prio: 1
     seat: {tier: opus, effort: high}
     repo: vps
     after: [v9-cutover-runbook]
@@ -2108,6 +2180,7 @@ rows:
   - key: v9-release-9
     title: 'This repository after the switch: production as the deploy target, the canonical host, noindex only on the beta host, the documents without beta, and release 9.0.0 through release.yml'
     kind: chore
+    prio: 1
     seat: {role: lead}
     after: [v9-cutover]
     after_needs: shipped
@@ -2139,6 +2212,7 @@ rows:
   - key: v9-v1-hosting-end
     title: 'End of v1''s hosting on this repository''s side: v1''s deploy workflow disabled, the branch v1 kept and tagged v1-final, the documents corrected'
     kind: chore
+    prio: 1
     seat: {role: light}
     after: [v9-release-9]
     after_needs: shipped
@@ -2169,6 +2243,7 @@ rows:
   - key: v9-v1-archive
     title: 'Archive of Free Planning Poker v1 in the vps repo: the final MariaDB dump and the analytics Parquet export in the backup storage, checksummed, with a restore proven in a scratch container'
     kind: chore
+    prio: 1
     seat: {role: lead}
     repo: vps
     after: [v9-cutover]
@@ -2198,6 +2273,7 @@ rows:
   - key: v9-v1-remove
     title: 'Removal of Free Planning Poker v1 in the vps repo after the owner''s verdict: its server, analytics service, updater, MariaDB and every route, monitor and dashboard of theirs (gate)'
     kind: chore
+    prio: 1
     seat: {role: lead}
     checkpoint: gate
     repo: vps
