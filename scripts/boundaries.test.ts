@@ -48,6 +48,7 @@ const CLEAN = {
   'apps/api/src/main.ts':
     "import { DECKS } from '@fpp/room-core/decks'\nconsole.log(DECKS, process.env.PORT, Date.now())\n",
   'apps/api/src/db/store.ts': "import { Effect } from 'effect'\nexport const store = Effect\n",
+  'apps/api/src/http/app.ts': "import { Elysia } from 'elysia'\nexport const app = new Elysia()\n",
   'apps/api/src/http/app.test.ts': "import { freePort } from '@fpp/test-kit/port'\n",
 }
 
@@ -86,6 +87,19 @@ describe('checkBoundaries', () => {
       }),
     ).toEqual([
       'apps/api/src/db/rpc.ts: nothing is imported from effect/unstable (effect/unstable/rpc)',
+    ])
+  })
+
+  test('elysia outside apps/api/src/http and src/ws fails', async () => {
+    expect(
+      await rules({
+        ...CLEAN,
+        'apps/api/src/db/route.ts': "import { Elysia } from 'elysia'\n",
+        'apps/api/src/main.ts': "import { cors } from '@elysia/cors'\n",
+      }),
+    ).toEqual([
+      'apps/api/src/db/route.ts: elysia is imported in apps/api/src/http and src/ws only (elysia)',
+      'apps/api/src/main.ts: elysia is imported in apps/api/src/http and src/ws only (@elysia/cors)',
     ])
   })
 

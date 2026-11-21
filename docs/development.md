@@ -41,7 +41,7 @@ Each step prints `==> <step>`; a failure prints `==> FAILED: <step>` and stops t
 - an import of `@fpp/<x>` only where the table draws the arrow, type-only where it says `types`, and only through `<x>`'s `exports` map; no relative path into another module; no module directory the table does not list
 - a pure file: no `node:*`, `bun` or `bun:*` import, relative imports only to pure files, and no `fetch`, `WebSocket`, timers, `Date.now`, `new Date()`, `performance.now`, `Math.random`, crypto randomness, `process` or `Bun`
 - an adapter: no `process.env`, `Bun.env` or `import.meta.env`
-- `effect` and `@effect/*` only in `apps/api/src/app`, `src/db` and `src/jobs`; `effect/unstable` nowhere
+- `elysia` and `@elysia/*` only in `apps/api/src/http` and `src/ws`; `effect` and `@effect/*` only in `apps/api/src/app`, `src/db` and `src/jobs`; `effect/unstable` nowhere
 
 Test files are exempt from the class rules, not from the arrows. `scripts/boundaries.test.ts` plants one violation of each kind. oxlint repeats the Elysia and Effect restrictions so an editor shows them as you type.
 

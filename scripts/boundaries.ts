@@ -31,6 +31,10 @@ const EFFECT_ALLOWED = ['apps/api/src/app/', 'apps/api/src/db/', 'apps/api/src/j
 const EFFECT = /^(effect|@effect\/[^/]+)(\/|$)/
 const EFFECT_UNSTABLE = /^effect\/unstable(\/|$)/
 
+/** Where Elysia, a pinned release candidate, may be imported (docs/v9/ARCHITECTURE.md, Server). */
+const ELYSIA_ALLOWED = ['apps/api/src/http/', 'apps/api/src/ws/']
+const ELYSIA = /^(elysia|@elysia\/[^/]+)(\/|$)/
+
 const NODE_BUILTINS = new Set(builtinModules)
 const isIoModule = (specifier: string) =>
   specifier === 'bun' ||
@@ -228,6 +232,9 @@ export async function checkBoundaries(root: string): Promise<Violation[]> {
         !EFFECT_ALLOWED.some((prefix) => rel.startsWith(prefix))
       ) {
         flag('effect is imported in apps/api/src/app, src/db and src/jobs only', specifier)
+      }
+      if (ELYSIA.test(specifier) && !ELYSIA_ALLOWED.some((prefix) => rel.startsWith(prefix))) {
+        flag('elysia is imported in apps/api/src/http and src/ws only', specifier)
       }
 
       if (cls === 'pure' && isIoModule(specifier)) {
