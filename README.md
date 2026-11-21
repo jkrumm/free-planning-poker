@@ -2,6 +2,8 @@
 
 Straightforward planning poker. Create a room, share the link, vote instantly. No fuzz.
 
+> **Where the code is.** The app running at free-planning-poker.com is v1, frozen on the branch [`v1`](https://github.com/jkrumm/free-planning-poker/tree/v1) and deployed from there. `master` holds the rewrite (v9): its plan and documents under `docs/v9/`, and no application code yet. Everything below this paragraph describes v1 and is true on the branch `v1`; read a v1 file with `git show origin/v1:<path>`.
+
 ## Why Free Planning Poker?
 
 - **Free forever** - No limits, no premium tiers, no hidden costs
@@ -15,7 +17,7 @@ Straightforward planning poker. Create a room, share the link, vote instantly. N
 
 **[Start Planning](https://free-planning-poker.com/?source=github)**
 
-![demo](https://raw.githubusercontent.com/jkrumm/planning-poker/master/apps/web/public/recording.gif)
+![demo](https://raw.githubusercontent.com/jkrumm/free-planning-poker/v1/apps/web/public/recording.gif)
 
 ---
 
