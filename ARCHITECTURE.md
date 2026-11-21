@@ -240,7 +240,7 @@ The `useWebSocketRoom` hook (`apps/web/src/hooks/useWebSocketRoom.ts:1`) manages
 
 1. **Connect** - Opens WebSocket to Bun server
 2. **Join** - Sends join action with userId, roomId, username
-3. **Heartbeat** - Sends ping every 5 minutes to keep connection alive
+3. **Heartbeat** - Sends ping every 30 seconds to keep connection alive
 4. **Message** - Receives room state updates and applies them
 5. **Disconnect** - Sends leave action, cleans up connection
 6. **Reconnect** - Automatically retries with exponential backoff
@@ -249,12 +249,12 @@ The `useWebSocketRoom` hook (`apps/web/src/hooks/useWebSocketRoom.ts:1`) manages
 
 WebSocket connections are fragile. Networks drop, browsers throttle background tabs, mobile devices switch networks. To combat this, I implemented a **dual heartbeat system**:
 
-**Client-side** (`apps/web/src/hooks/useHeartbeat.ts:66`):
+**Client-side** (`apps/web/src/hooks/useHeartbeat.ts:62`):
 ```typescript
 heartbeatTimeoutRef.current = setTimeout(() => {
   sendHeartbeat();
   scheduleNextHeartbeat(); // Recursive scheduling
-}, 5 * 60 * 1000); // 5 minutes
+}, WEBSOCKET_CONSTANTS.HEARTBEAT_INTERVAL); // 30 seconds
 ```
 
 **Server-side** (`apps/server/src/room.state.ts:142`):
@@ -272,7 +272,7 @@ cleanupInactiveState(): void {
 }
 ```
 
-Clients send heartbeats every 5 minutes. The server runs a cron job every 30 minutes to clean up stale users. This prevents memory leaks and zombie connections.
+Clients send heartbeats every 30 seconds. The server runs a cron job every 30 minutes to clean up stale users. This prevents memory leaks and zombie connections.
 
 ### Presence Tracking
 
@@ -670,7 +670,7 @@ Want to dive deeper? Check out these files:
 
 ---
 
-**Built with**: Next.js 16, React 19, Bun, tRPC 11, Zustand, Drizzle ORM, Elysia, TypeBox, Zod, Tailwind 4, Mantine 8
+**Built with**: Next.js 16, React 19, Bun, tRPC 11, Zustand, Drizzle ORM, Elysia, TypeBox, Zod, Tailwind 4, Mantine 9
 
 **Repository**: [Free Planning Poker](https://github.com/jkrumm/free-planning-poker)
 **Live Demo**: [https://free-planning-poker.com](https://free-planning-poker.com)

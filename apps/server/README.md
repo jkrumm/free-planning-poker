@@ -7,7 +7,7 @@ Real-time planning poker room state management via Bun + Elysia + WebSocket. Wor
 ```bash
 # From repo root
 bun install                            # install workspace deps
-bun run --filter=@fpp/server dev       # run on port 3003
+bun run --filter=@fpp/server dev       # run on port 7721
 
 # Or from this dir
 cd apps/server && bun dev
@@ -39,7 +39,6 @@ Create `.env` file:
 ```bash
 TRPC_URL=http://localhost:3001/api/trpc  # Next.js tRPC endpoint for persistence
 FPP_SERVER_SECRET=dev-secret-token       # Auth token for callbacks
-SENTRY_DSN=...                           # Error tracking
 NODE_ENV=development
 ```
 
@@ -47,7 +46,7 @@ NODE_ENV=development
 
 ```bash
 bun install   # Install dependencies
-bun dev       # Start dev server (port 3003)
+bun dev       # Start dev server (port 7721)
 ```
 
 ---
@@ -57,13 +56,13 @@ bun dev       # Start dev server (port 3003)
 ```
 apps/server/
 ├── src/
-│   ├── index.ts           # Elysia app + WebSocket route + Sentry + SIGTERM drain
+│   ├── index.ts           # Elysia app + WebSocket route + OpenTelemetry + SIGTERM drain
 │   ├── room.state.ts      # In-memory room state manager
 │   ├── room.entity.ts     # RoomServer & UserServer classes
 │   ├── message.handler.ts # Action handler switch
 │   ├── types.ts           # Local utility types (Analytics)
 │   ├── utils.ts           # Helper functions
-│   ├── utils/app-error.ts # Sentry wrapper (captureError, addBreadcrumb)
+│   ├── utils/app-error.ts # error recording (recordError, recordEvent)
 │   └── websocket.constants.ts
 ├── Dockerfile             # Bun monorepo build → self-contained binary
 ├── tsconfig.json
@@ -115,9 +114,9 @@ docker logs -f fpp-server
 
 ## Monitoring
 
-### Sentry
+### OpenTelemetry
 
-- Error tracking enabled via `@sentry/bun`
+- Errors recorded via `recordError` (`src/utils/app-error.ts`), exported over OTLP
 - Captures WebSocket errors, message handler errors, broadcast failures
 - Context: roomId, userId, action type
 
@@ -180,7 +179,7 @@ bun --inspect src/index.ts
 ### WebSocket won't connect
 
 - Check CORS (same-origin only)
-- Verify port 3003 is not in use
+- Verify port 7721 is not in use
 - Check firewall rules
 
 ### State not persisting across restarts
