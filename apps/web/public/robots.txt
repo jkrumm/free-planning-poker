@@ -1,4 +1,0 @@
-User-agent: *
-Disallow:
-
-Sitemap: https://free-planning-poker.com/sitemap.xml
