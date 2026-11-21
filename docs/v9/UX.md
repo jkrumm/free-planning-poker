@@ -59,11 +59,11 @@ Avatars are generated from a random seed in a few shapes and token colours, re-r
 
 ## Flows
 
-**First visit.** Landing page → "Start planning" → the table appears with your seat already there and its name field focused, prefilled with a suggestion → Enter. That first click also copies the invite link where the browser allows it, and the centre of the empty table says so and shows the link and a QR code. No modal stands between the click and the table.
+**First visit.** Landing page → "Start planning" → the table appears with your seat already there and its name field focused, prefilled with a suggestion → Enter. That first click also copies the invite link where the browser allows it, and the centre of the empty table says so and shows the link. No modal stands between the click and the table.
 
 **Joining by link.** The table is visible behind a single name field. A returning visitor is seated at once with the stored name. Someone who joins mid-round sees who has voted and votes in that round.
 
-**Inviting.** One button, always in the header. It copies the link at once and opens a small panel with the QR code for the people in the same room and, on a phone, the system's share sheet. In a locked room the link and the QR code include the password, and the panel shows it for reading aloud. While you are alone, the invitation is the centre of the table.
+**Inviting.** One button, always in the header. It copies the link at once and opens a small panel with the link and, where the device has one, the system's share sheet. In a locked room the link includes the password, and the panel shows it for reading aloud. While you are alone, the invitation is the centre of the table.
 
 **A round.** The topic sits in the round bar and is editable in place. Players choose a card with a click, with the keys `1` to `9` and `0` for the first ten cards, or with the arrow keys and Enter for any card. The bar shows "7 of 9 voted" as a segmented meter. After 20 seconds it names who is missing, and any player can poke them. Reveal with the button or Enter; with auto reveal on, a three-second ring starts when the last active player votes, and any player can cancel it.
 
@@ -174,7 +174,7 @@ Not at launch, in the order they are likely to come:
 - a Teams tab; Zoom and Meet when asked for
 - further activities in the room, under "More than poker"
 - asynchronous rounds
-- languages beyond English and German
+- languages beyond the five of 9.0.0, chosen by what Umami shows visitors speak
 - an AI seat
 - the owner's silent observer seat for support, which needs a line in the privacy page before it exists
 
@@ -221,13 +221,15 @@ Product copy follows the `broad` register of the voice guide:
 
 ## Languages
 
-The room speaks its visitor's language from the first release: English and German in 9.0.0, further languages as someone who speaks them has reviewed them.
+The room speaks its visitor's language from the first release: English, German, Spanish, French and Simplified Chinese in 9.0.0. The landing page is built in the same five.
 
 - The language is each person's own. It follows the browser on the first visit and a switch in the settings afterwards, and a room link never carries it, so a mixed team shares one link.
 - Nothing a person reads is written into a component. Counts, dates and numbers follow the language's rules, and the layout holds German's longer labels and a right-to-left script.
 - Room numbers and generated passwords use digits and Latin letters only, so they can be read out in any language.
-- The site launches in English. A second language appears there only when every page of it is translated and reviewed: half a translated site reads worse than none.
-- Translations are files in the repository. A model drafts them and a native speaker reviews them before they ship.
+- Translations are files in the repository. English and German are complete in every change and are the two the checks insist on. Spanish, French and Chinese are filled in one pass when the room is whole, against a glossary of the fixed terms, and each is checked by translating it back.
+- A language nobody who speaks it has read yet is marked "beta" in the switch, with a link to its file, so a native speaker who spots a wrong word can correct it in the repository. The mark goes when one has read it through.
+- The landing page exists in all five languages, each a whole page at its own address (`/de/`, `/es/`, `/fr/`, `/zh/`), each listing the others for search engines. A translated landing page goes live when someone who speaks the language has read it; until then it is a draft that only the beta host shows. Nothing redirects by browser language: the page offers the other languages as links.
+- Guides, documentation and the blog launch in English. An article is translated whole or not at all, and a missing translation is a missing page, never an English page under a translated address (`research/r25`).
 
 ## The marketing site
 
@@ -256,7 +258,7 @@ Static pages whose only JavaScript is the 4 kB analytics script, plus islands th
 | `/self-hosting` | one compose file |
 | `/privacy`, `/imprint`, `/contact` | what is measured and how, in plain words; the imprint as it stands |
 
-Every existing URL keeps its path. Each page gets its own title, description, canonical link, social image and structured data, none of which v1 has. Room pages stay out of every index.
+Every existing URL keeps its path. A page that states an opinion or makes a claim about another product (the cluster guides, the glossary, the comparison pages, `/data`, blog posts, a translated landing page) is merged as a draft: the beta host shows it, production does not until the owner has read it and removes the flag. Each page gets its own title, description, canonical link, social image and structured data, none of which v1 has. Room pages stay out of every index.
 
 ### Being found
 

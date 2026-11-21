@@ -10,3 +10,4 @@ ship:
   - { via: pr } # master branch protection requires a PR, see AGENTS.md §Shipping & Release
 lanes:
   browser: 2 # v9 rows that run Playwright (docs/plan.yaml: end-to-end suite, table arena); two Chromium suites beside other leads is what the mini's memory carries
+  ui: 4 # v9 rows of the room's interface (component tests and screenshots in one Chromium each); a first guess, replaced by v9-plan-table with what v9-ui-foundation's run measured
