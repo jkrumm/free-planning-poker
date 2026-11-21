@@ -46,12 +46,12 @@ Tooling is centralised: `tsconfig.base.json` + `prettier.config.cjs` + `.prettie
 
 ### Services
 
-| Service          | Runtime          | Local port | `.test` host        | Workspace     | Entry           |
-| ---------------- | ---------------- | ---------- | ------------------- | ------------- | --------------- |
-| Next.js App      | Node 24          | 7720       | `fpp.test`          | `@fpp/web`    | `apps/web`      |
-| WebSocket Server | Bun              | 7721       | `fpp-server.test`   | `@fpp/server` | `apps/server`   |
-| Analytics API    | Python 3.14 (uv) | 7722       | `fpp-analytics.test`| n/a           | `fpp-analytics` |
-| Logdy (logs UI)  | Go               | 7723       | `fpp-logdy.test`    | n/a           | -               |
+| Service          | Runtime          | Local port | `.test` host         | Workspace     | Entry           |
+| ---------------- | ---------------- | ---------- | -------------------- | ------------- | --------------- |
+| Next.js App      | Node 24          | 7720       | `fpp.test`           | `@fpp/web`    | `apps/web`      |
+| WebSocket Server | Bun              | 7721       | `fpp-server.test`    | `@fpp/server` | `apps/server`   |
+| Analytics API    | Python 3.14 (uv) | 7722       | `fpp-analytics.test` | n/a           | `fpp-analytics` |
+| Logdy (logs UI)  | Go               | 7723       | `fpp-logdy.test`     | n/a           | -               |
 
 Container ports stay 3003 (server) and 5100 (analytics); the local `PORT` env override lives in each service's `.env.tpl`.
 

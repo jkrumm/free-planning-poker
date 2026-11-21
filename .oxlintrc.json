@@ -1,0 +1,85 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "unicorn", "promise", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-var": "error",
+    "no-unused-vars": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "error",
+    "import/no-default-export": "error",
+    "import/no-duplicates": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["effect/unstable", "effect/unstable/*"],
+            "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+          },
+          {
+            "group": ["elysia", "elysia/*", "@elysia/*"],
+            "message": "Elysia is imported in apps/api/src/http and apps/api/src/ws only (docs/v9/ARCHITECTURE.md, Server)."
+          },
+          {
+            "group": ["effect", "effect/*", "@effect/*"],
+            "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
+          }
+        ]
+      }
+    ]
+  },
+  "ignorePatterns": ["node_modules", "dist", ".claude/**", "docs/**"],
+  "overrides": [
+    {
+      "files": ["apps/api/src/http/**", "apps/api/src/ws/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["effect/unstable", "effect/unstable/*"],
+                "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+              },
+              {
+                "group": ["effect", "effect/*", "@effect/*"],
+                "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/app/**", "apps/api/src/db/**", "apps/api/src/jobs/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["effect/unstable", "effect/unstable/*"],
+                "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+              },
+              {
+                "group": ["elysia", "elysia/*", "@elysia/*"],
+                "message": "Elysia is imported in apps/api/src/http and apps/api/src/ws only (docs/v9/ARCHITECTURE.md, Server)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["commitlint.config.ts"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ]
+}

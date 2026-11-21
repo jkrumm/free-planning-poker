@@ -4,12 +4,12 @@
 
 `master` holds the v9 rewrite: its documents and no application code yet. `v9-foundation` (a row of `docs/plan.yaml`) builds the root on it: workspaces, tooling, CI, the first packages.
 
-| Path | What |
-|-|-|
-| `docs/v9/` | the rewrite: `STRATEGY.md`, `UX.md`, `ARCHITECTURE.md`, `ENGINEERING.md`, `PLAN.md`, `GATE-1.md`, `research/` |
-| `docs/plan.yaml` | the rows the factory builds, in order |
-| other `docs/` files | v1's reference docs, kept until the row that replaces each one |
-| `package.json`, `bun.lock` | commitlint, lefthook (commit-msg only) and release-it, nothing else |
+| Path                       | What                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `docs/v9/`                 | the rewrite: `STRATEGY.md`, `UX.md`, `ARCHITECTURE.md`, `ENGINEERING.md`, `PLAN.md`, `GATE-1.md`, `research/` |
+| `docs/plan.yaml`           | the rows the factory builds, in order                                                                         |
+| other `docs/` files        | v1's reference docs, kept until the row that replaces each one                                                |
+| `package.json`, `bun.lock` | commitlint, lefthook (commit-msg only) and release-it, nothing else                                           |
 
 ## Where v1 lives
 

@@ -1,0 +1,6 @@
+[install]
+# Exact pins on `bun add`, and no package version younger than 3 days (seconds): the estate's supply-chain cooldown.
+exact = true
+minimumReleaseAge = 259200
+# A package resolves only the dependencies it declares, so a missing declaration fails here and not in production.
+linker = "isolated"

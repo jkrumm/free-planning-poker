@@ -1,4 +1,18 @@
+# On commit: format check and lint of the staged files (budget 2 s); the commit message by commitlint.
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: '*.{ts,tsx,mts,js,mjs,json,jsonc,yml,yaml,toml}'
+      exclude:
+        - 'docs/**'
+        - 'bun.lock'
+      run: bunx --no-install oxfmt --check {staged_files}
+    lint:
+      glob: '*.{ts,tsx,mts,js,mjs}'
+      run: bunx --no-install oxlint --deny-warnings {staged_files}
+
 commit-msg:
   commands:
     commitlint:
-      run: bunx commitlint --edit {1}
+      run: bunx --no-install commitlint --edit {1}

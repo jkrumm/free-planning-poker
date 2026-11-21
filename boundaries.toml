@@ -1,0 +1,77 @@
+# The repo map of docs/v9/ARCHITECTURE.md (Repo map) and the module classes of docs/v9/ENGINEERING.md (What a script
+# enforces), as data. scripts/boundaries.ts reads it in `make check-fast`. A directory under apps/, packages/ or e2e/
+# that is not listed here fails the check: a new module states its arrows when it is created.
+#
+# imports: workspace packages the module may import. types: packages it may import types from, and nothing else.
+# tests_only: only test files may import the package.
+
+[[module]]
+path = "apps/site"
+package = "@fpp/site"
+imports = ["@fpp/table", "@fpp/room-core", "@fpp/telemetry"]
+
+[[module]]
+path = "apps/room"
+package = "@fpp/room"
+imports = ["@fpp/table", "@fpp/room-client", "@fpp/room-core", "@fpp/telemetry"]
+
+[[module]]
+path = "apps/api"
+package = "@fpp/api"
+imports = ["@fpp/room-core", "@fpp/telemetry"]
+
+[[module]]
+path = "apps/arena"
+package = "@fpp/arena"
+imports = ["@fpp/table", "@fpp/room-core"]
+
+[[module]]
+path = "packages/table"
+package = "@fpp/table"
+imports = []
+types = ["@fpp/room-core"]
+
+[[module]]
+path = "packages/room-client"
+package = "@fpp/room-client"
+imports = ["@fpp/room-core"]
+
+[[module]]
+path = "packages/room-core"
+package = "@fpp/room-core"
+imports = []
+
+[[module]]
+path = "packages/telemetry"
+package = "@fpp/telemetry"
+imports = []
+
+[[module]]
+path = "packages/test-kit"
+package = "@fpp/test-kit"
+imports = []
+tests_only = true
+
+[[module]]
+path = "e2e"
+package = "@fpp/e2e"
+imports = []
+
+# A file takes the class of the first list whose glob matches it; a file no glob matches has no class rule.
+# pure: no I/O. Its imports may not reach node:*, bun or bun:*, a relative import may reach only another pure file,
+#   and its source may not use fetch, WebSocket, the timer functions, the clock, a random source, process or Bun.
+# adapter: does I/O, but reads no environment: values arrive from the app's entry file.
+# shell: an app's entry file; it reads the environment and the clock and wires the rest.
+[classes]
+shell = ["apps/api/src/main.ts", "apps/room/src/main.tsx"]
+pure = [
+  "packages/room-core/src/**",
+  "packages/telemetry/src/names.ts",
+  "packages/table/src/layout.ts",
+]
+adapter = [
+  "apps/api/src/ws/**",
+  "apps/api/src/db/**",
+  "packages/room-client/src/**",
+  "packages/telemetry/src/facade*.ts",
+]
