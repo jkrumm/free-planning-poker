@@ -56,6 +56,20 @@ describe('umamiBeforeSend', () => {
     });
   });
 
+  test('rewrites the absolute url Umami sends, and the room title', () => {
+    expect(
+      umamiBeforeSend('event', {
+        url: 'https://free-planning-poker.com/room/abc',
+        title: 'Free Planning Poker - abc',
+        referrer: '',
+      }),
+    ).toEqual({
+      url: 'https://free-planning-poker.com/room/:slug',
+      title: 'Room',
+      referrer: '',
+    });
+  });
+
   test('rewrites a room referrer, relative or absolute', () => {
     expect(
       umamiBeforeSend('event', { url: '/', referrer: '/room/abc' })?.referrer,

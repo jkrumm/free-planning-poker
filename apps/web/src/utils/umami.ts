@@ -12,9 +12,16 @@ export const UMAMI_PRODUCTION_HOSTNAME = 'free-planning-poker.com';
 /** Global the tracker looks up by name (the `data-before-send` value). */
 export const UMAMI_BEFORE_SEND_GLOBAL = 'fppUmamiBeforeSend';
 
-const ROOM_PATH = /^\/room\/[^/?#]+/;
+// Umami sends `url` as an absolute URL and a same-origin `referrer` as a path.
 const ROOM_URL = /^(https?:\/\/[^/]+)?\/room\/[^/?#]+/;
 const ROOM_PATH_TEMPLATE = '/room/:slug';
+
+function maskRoom(value: string): string {
+  return value.replace(
+    ROOM_URL,
+    (_, origin = '') => `${origin}${ROOM_PATH_TEMPLATE}`,
+  );
+}
 
 export interface UmamiPayload {
   url?: string;
@@ -33,17 +40,11 @@ export function umamiBeforeSend(
 ): UmamiPayload | null {
   if (type !== 'event') return null;
 
-  const isRoomPage = !!payload.url && ROOM_PATH.test(payload.url);
+  const isRoomPage = !!payload.url && ROOM_URL.test(payload.url);
   return {
     ...payload,
-    ...(payload.url && {
-      url: payload.url.replace(ROOM_PATH, ROOM_PATH_TEMPLATE),
-    }),
-    ...(payload.referrer && {
-      referrer: payload.referrer.replace(ROOM_URL, (_, origin = '') => {
-        return `${origin}${ROOM_PATH_TEMPLATE}`;
-      }),
-    }),
+    ...(payload.url && { url: maskRoom(payload.url) }),
+    ...(payload.referrer && { referrer: maskRoom(payload.referrer) }),
     ...(isRoomPage && { title: 'Room' }),
   };
 }
