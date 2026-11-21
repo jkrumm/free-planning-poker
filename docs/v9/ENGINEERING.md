@@ -139,7 +139,7 @@ One workflow, `ci.yml`, on pull requests and on pushes to `master`. Hosted runne
 | Job | Runs when | Does | Expected |
 |-|-|-|-|
 | `lanes` | always | reads `.github/lanes` and the diff, outputs one boolean per lane | 20 s |
-| `check` | always | `make check` against a `postgres:18` service, then size-limit | 3 min |
+| `check` | always | `make check`, whose server tests each start a private PostgreSQL 18 cluster from the PGDG binaries (`.github/postgres.sh`), then size-limit | 3 min |
 | `image` | lane `app` | builds the API image with the GitHub cache backend, one scope per image; hands it on as an artifact | 3 min warm, up to 10 cold |
 | `e2e` (2 shards) | lane `app` | loads the image, starts `deploy/compose.yml`, runs Playwright in Chromium with blob reports and a trace on first retry | 4 min |
 | `e2e-report` | after `e2e` | merges the blobs into one HTML report and writes annotations | 1 min |
@@ -153,7 +153,7 @@ Decisions in that table, each with its reason:
 - **Cancel superseded runs on pull requests only.** The concurrency group is the workflow plus the pull request number; pushes to `master` always finish, because they deploy.
 - **No dependency cache beyond the Bun binary, unless measurement says otherwise.** Bun's own benchmark puts a frozen install of a 220-package app at about one second without a cache and 0.2 s with one, so a restore step has under a second to win. The foundation row measures both on a hosted runner and keeps the faster; it is revisited if the install passes 15 s.
 - **The suite tests the compose file users self-host with.** It runs on the runner itself, not in a container, because one test replaces the API container mid-round and needs Docker. Chromium only on pull requests keeps the browser install small.
-- **Actions are pinned** to the majors current on 2026-11-18 (`checkout` v7, `cache` v6, `setup-bun` v2, `build-push-action` v7), Bun to one exact version from a file every workflow reads, runners to `ubuntu-24.04`.
+- **Actions are pinned** to the majors current on 2026-11-18 (`checkout` v7, `cache` v6, `setup-bun` v2, `build-push-action` v7), Bun to one exact version from a file every workflow reads (`packageManager` in `package.json`, which the factory's step image reads too), runners to `ubuntu-24.04`. Each action is pinned by commit, its tag in a comment.
 
 `nightly.yml` starts at a minute that is not on the hour and runs:
 

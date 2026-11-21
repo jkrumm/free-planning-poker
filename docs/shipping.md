@@ -8,8 +8,8 @@ Read this before changing CI workflows, branch settings, releases or deploy wiri
 |-|-|-|
 | Holds | the v9 rewrite | v1, frozen; tag `v1-freeze` is its last commit shared with `master` |
 | Production | nothing deploys | Vercel (web) and `deploy.yml` → RollHook (fpp-server, fpp-analytics, fpp-analytics-updater) |
-| Workflows | `release.yml` (`workflow_dispatch` only) | `deploy.yml` and `sonarcloud.yml` on push to `v1`; `validate.yml`, `sonarcloud.yml` and `comment.yml` on pull requests into `v1` |
-| Gate | `make check` (`factory plan check`, `factory project check`) | `validate.yml`, lefthook pre-commit |
+| Workflows | `ci.yml` on pull requests and pushes to `master`; `release.yml` (`workflow_dispatch` only) | `deploy.yml` and `sonarcloud.yml` on push to `v1`; `validate.yml`, `sonarcloud.yml` and `comment.yml` on pull requests into `v1` |
+| Gate | the check `ci` of `ci.yml`, which runs `make check` | `validate.yml`, lefthook pre-commit |
 
 A workflow started by a push runs from the pushed branch's own file, so `v1` keeps its pipeline with none of it on `master`. A workflow is dispatched by hand (`workflow_dispatch`) or run on a schedule only while its file is on the default branch, so none of `v1`'s workflows can be started from the Actions tab or with `gh workflow run`.
 
@@ -44,13 +44,13 @@ So `git.deploymentEnabled` on `v1` cannot stop a `master` commit, which has no `
 | Rule | `master` | `v1` |
 |-|-|-|
 | Pull request required | yes, 0 approvals, stale reviews dismissed | no |
-| Required status checks | none (strict mode on, empty list) | none |
+| Required status checks | `ci` only, from GitHub Actions (strict mode on) | none |
 | Linear history | yes; the repo allows rebase merges only | no |
 | Conversation resolution | yes | no |
 | Force push, deletion | refused | refused |
 | Admins | not enforced; the owner can push directly | not enforced |
 
-The ruleset `protect-default-branch` adds pull request, non-fast-forward, deletion and linear history on `master`, with the repository admin role as bypass. `master` has no required check because no workflow reports on its pull requests after the freeze; `v9-foundation`'s `ci.yml` brings the next ones.
+The ruleset `protect-default-branch` adds pull request, non-fast-forward, deletion and linear history on `master`, with the repository admin role as bypass. `ci` is the one required check: `ci.yml`'s last job, which fails when any job it needs failed or was cancelled, so adding or renaming a job never touches branch protection. Read it with `gh api repos/jkrumm/free-planning-poker/branches/master/protection/required_status_checks`.
 
 ## Releases
 
