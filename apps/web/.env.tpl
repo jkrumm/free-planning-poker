@@ -30,6 +30,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 # --- Umami page views (production only) ---
 # Both stay empty locally: the script is not loaded without them. Set in Vercel
 # for production: the script URL of the Umami instance and the website id.
+# Inlined at build time, so a change in Vercel needs a new production build.
 NEXT_PUBLIC_UMAMI_SCRIPT_URL=
 NEXT_PUBLIC_UMAMI_WEBSITE_ID=
 
