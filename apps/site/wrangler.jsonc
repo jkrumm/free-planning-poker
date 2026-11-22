@@ -1,0 +1,22 @@
+// The site on the beta host as a Worker with static assets and no Worker code (docs/shipping.md, Site; docs/v9/ARCHITECTURE.md,
+// Topology). make site-deploy runs it from CI (deploy-site.yml), after scripts/edge-routes.ts has made the routes with no
+// Worker for /room*, /_room/* and /api/*, which win over this one because they are more specific. The production Worker
+// on the apex is added at the cutover, with the production build.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fpp-site-beta",
+  "compatibility_date": "2026-11-18",
+  // No workers.dev address and no public version URLs (preview URLs): the beta host is the only way in.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "next.free-planning-poker.com/*", "zone_name": "free-planning-poker.com" },
+  ],
+  "assets": {
+    "directory": "./dist/beta",
+    // guide.html answers /guide with no redirect, index.html answers /; /guide.html redirects to /guide.
+    "html_handling": "auto-trailing-slash",
+    // An unknown path gets the site's 404.html with status 404.
+    "not_found_handling": "404-page",
+  },
+}

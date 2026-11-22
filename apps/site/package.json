@@ -18,5 +18,8 @@
     "@resvg/resvg-js": "2.6.2",
     "astro": "7.4.13",
     "satori": "0.63.2"
+  },
+  "devDependencies": {
+    "wrangler": "4.165.0"
   }
 }

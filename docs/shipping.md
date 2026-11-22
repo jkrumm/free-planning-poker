@@ -117,6 +117,26 @@ The tag `v1-freeze` is not a version: `.release-it.json` sets `git.tagMatch` to 
 - **Image modes:** the runtime user is not the owner of `/app`, so every directory needs the execute bit for others; the Dockerfile sets modes with `chmod` in the build stage and `make v9-image-perms` (CI job `image`) fails on a directory it cannot search. A symbolic `COPY --chmod` left nested directories closed under the daemon's own BuildKit, which RollHook's `docker build` uses and buildx does not.
 - **Rollback:** a revert of the commit on `master`; nothing deploys from a checkout (`make deploy` is a no-op).
 
+## Site
+
+`apps/site` runs on the beta host as the Worker `fpp-site-beta`: Workers static assets with the beta build and no Worker code (`apps/site/wrangler.jsonc`). The split by path and the three measured answers are `docs/v9/evidence/edge-routing.md`.
+
+| Route on the zone | Worker | Served by |
+|-|-|-|
+| `next.free-planning-poker.com/*` | `fpp-site-beta` | the site's static assets |
+| `next.free-planning-poker.com/room*`, `/_room/*`, `/api/*` | none | the tunnel, Traefik and `fpp-api` |
+
+The most specific route wins, so the three routes with no Worker take their paths away from `/*`. `apps/site/scripts/edge-routes.ts` keeps them: it creates a missing one and detaches a Worker set on one, and leaves every other route alone.
+
+- **When:** a push to `master` that touches lane `site` of `.github/lanes` (plus the root manifests), the workflow itself, or a dispatch (`gh workflow run deploy-site.yml`). The path list copies the lane: change both together.
+- **What runs:** `.github/workflows/deploy-site.yml`: `make site` (both targets built and tested), `make site-deploy` (`edge-routes.ts` first, so `/*` never exists without the routes beside it, then `wrangler deploy`), `make indexnow` (skips on the beta target), `make verify-next`.
+- **Queue:** concurrency group `deploy-site` with `cancel-in-progress: false`.
+- **Auth:** two repository secrets. `CLOUDFLARE_API_TOKEN` is the token `fpp-site-deploy` (Account: Workers Scripts edit; zone `free-planning-poker.com`: Workers Routes edit), `CLOUDFLARE_ACCOUNT_ID` the account. Both live in 1Password item `common/cloudflare` (`FPP_SITE_DEPLOY_TOKEN`, `ACCOUNT_ID`) and are seeded without printing them: `ssh vps "op read 'op://common/cloudflare/FPP_SITE_DEPLOY_TOKEN'" | gh secret set CLOUDFLARE_API_TOKEN --repo jkrumm/free-planning-poker`, the same for the account id.
+- **Headers:** each build writes its own `_headers` (`apps/site/src/lib/headers.ts`): the security headers Traefik's `security-headers` middleware sets on the API's route, and on the beta build `X-Robots-Tag: noindex` on every path. `_headers` never reaches a response of Worker code; if Worker code is ever added, it sets these headers itself.
+- **No other way in:** `workers_dev` and `preview_urls` are false, so the Worker has no `workers.dev` address and no public version URLs.
+- **Rollback:** a revert on `master` deploys the previous build; `wrangler rollback` from a machine with the token is quicker. Removing the `/*` route hands the whole host back to `fpp-api`.
+- **Cutover:** the apex needs the same three routes with no Worker (`edge-routes.ts --host free-planning-poker.com`), a production Worker with the production build, and the zone settings `docs/v9/evidence/edge-routing.md` lists.
+
 ## Verify and monitor
 
-`make verify` probes production, which is v1 until the cutover, and the beta host. `make verify-production` and `make verify-next` probe one each; `project.yaml` lists the beta host as the deploy target `next`. Uptime Kuma monitors `FPP - Server - HTTP` and `FPP - Analytics - HTTP`. Probe URLs live in the root `Makefile` (`SERVER_URL`, `ANALYTICS_URL`, `WEB_URL`, `NEXT_URL`).
+`make verify` probes production, which is v1 until the cutover, and the beta host: `/api/health`, and `/` and `/guide` for 200 with `X-Robots-Tag: noindex`. `make verify-production` and `make verify-next` probe one each; `project.yaml` lists the beta host as the deploy target `next`. Uptime Kuma monitors `FPP - Server - HTTP` and `FPP - Analytics - HTTP`. Probe URLs live in the root `Makefile` (`SERVER_URL`, `ANALYTICS_URL`, `WEB_URL`, `NEXT_URL`).
