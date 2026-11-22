@@ -22,6 +22,13 @@
       "when": 1795366788717,
       "tag": "0002_round_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795367114468,
+      "tag": "0003_jsonb_unwrap_strings",
+      "breakpoints": true
     }
   ]
 }
