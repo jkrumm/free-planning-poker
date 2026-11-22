@@ -30,9 +30,15 @@ const pages = [
   { path: '/roadmap', file: 'roadmap.html', title: prefix + 'Roadmap', ids: [] },
   { path: '/contact', file: 'contact.html', title: prefix + 'Contact', ids: [] },
   {
+    path: '/privacy',
+    file: 'privacy.html',
+    title: prefix + 'Privacy',
+    ids: ['contact-form', 'deletion'],
+  },
+  {
     path: '/imprint',
     file: 'imprint.html',
-    title: prefix + 'Imprint & Privacy Policy',
+    title: prefix + 'Imprint',
     ids: ['license'],
   },
   { path: '/404', file: '404.html', title: prefix + '404 - Page Not Found', ids: [] },
@@ -60,7 +66,7 @@ describe.each(realOutputs)('every v1 page, build %s', (output) => {
   test('the page text is in the HTML', async () => {
     const root = outputRoot(output)
     expect(await readText(root, 'guide.html')).toContain('<td>At least one week</td>')
-    expect(await readText(root, 'imprint.html')).toContain(
+    expect(await readText(root, 'privacy.html')).toContain(
       'Bayerisches Landesamt für Datenschutzaufsicht',
     )
   })

@@ -22,7 +22,8 @@ export const strings = {
   ],
   footerLegal: [
     { title: 'Roadmap', href: '/roadmap' },
-    { title: 'Imprint & Privacy Policy', href: '/imprint' },
+    { title: 'Privacy', href: '/privacy' },
+    { title: 'Imprint', href: '/imprint' },
     { title: 'Donate', href: 'https://paypal.me/johanneskrum' },
     { title: 'GitHub', href: 'https://github.com/jkrumm/free-planning-poker' },
   ],
