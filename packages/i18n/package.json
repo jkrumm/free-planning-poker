@@ -1,0 +1,22 @@
+{
+  "name": "@fpp/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "extract": "lingui extract --clean"
+  },
+  "dependencies": {
+    "@lingui/core": "6.12.0"
+  },
+  "devDependencies": {
+    "@lingui/cli": "6.12.0",
+    "@lingui/conf": "6.12.0",
+    "@lingui/format-po": "6.12.0",
+    "esbuild": "0.28.1",
+    "rolldown": "1.2.18"
+  }
+}

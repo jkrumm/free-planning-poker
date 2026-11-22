@@ -1,0 +1,60 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-22 17:36+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Last visit {visited}"
+msgstr "Last visit {visited}"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Start planning"
+msgstr "Start planning"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Open room"
+msgstr "Open room"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Estimate together"
+msgstr "Estimate together"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Rooms you open on this device show up here."
+msgstr "Rooms you open on this device show up here."
+
+#: ../../apps/room/src/features/lobby/new-room-page.tsx
+msgid "Try again"
+msgstr "Try again"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Open a room, share the link and estimate. No account needed."
+msgstr "Open a room, share the link and estimate. No account needed."
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Remove from list"
+msgstr "Remove from list"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Your rooms"
+msgstr "Your rooms"
+
+#: ../../apps/room/src/features/lobby/new-room-page.tsx
+msgid "Creating your room…"
+msgstr "Creating your room…"
+
+#: ../../apps/room/src/features/lobby/new-room-page.tsx
+msgid "The room could not be created. Check your connection and try again."
+msgstr "The room could not be created. Check your connection and try again."
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Room number or name"
+msgstr "Room number or name"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "That is not a room number or name. Check it and try again."
+msgstr "That is not a room number or name. Check it and try again."
