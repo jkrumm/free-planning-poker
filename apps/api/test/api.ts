@@ -70,7 +70,8 @@ export async function startApi(
 }
 
 export async function spawnApi(url: string, port: number) {
-  const child = Bun.spawn(['bun', MAIN], {
+  // The Bun that runs the test runs the API too, so a test proves the pinned release where the runner is pinned.
+  const child = Bun.spawn([process.execPath, MAIN], {
     env: { ...process.env, ...envFor(url, port) },
     stdout: 'pipe',
     stderr: 'inherit',
@@ -87,9 +88,10 @@ export async function spawnApi(url: string, port: number) {
   return {
     ...endpoint(port),
     child,
-    kill: async (signal: 'SIGKILL' | 'SIGTERM' = 'SIGKILL') => {
+    /** Sends the signal; resolves with the exit code once the process has exited. */
+    kill: (signal: 'SIGKILL' | 'SIGTERM' = 'SIGKILL') => {
       child.kill(signal)
-      await child.exited
+      return child.exited
     },
   }
 }

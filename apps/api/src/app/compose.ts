@@ -22,13 +22,15 @@ export const FLUSH_WAIT = '5 seconds'
 
 export type Api = {
   readonly options: RoomServerOptions
+  /** From now on `/api/health` answers 503: the first step of the drain on SIGTERM. */
+  readonly drain: () => void
   /** Releases everything `composeApi` acquired, in reverse. Call it after the server has stopped. */
   readonly close: () => Promise<void>
 }
 
 type Deps = { readonly now: () => number; readonly telemetry: ApiTelemetry }
 
-const compose = (env: Env, deps: Deps) =>
+const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
   Effect.gen(function* () {
     const now = () => new Date(deps.now())
     const { server, port: telemetry } = deps.telemetry
@@ -73,7 +75,7 @@ const compose = (env: Env, deps: Deps) =>
         return createApp({
           build: { version: env.version, commit: env.commit },
           rooms: rooms.api,
-          health: rooms.health,
+          health: () => (state.draining ? Promise.resolve('draining') : rooms.health()),
         })
       },
       rooms: rooms.directory,
@@ -86,6 +88,13 @@ const compose = (env: Env, deps: Deps) =>
 /** Builds the room server's options on Postgres. */
 export async function composeApi(env: Env, deps: Deps): Promise<Api> {
   const scope = Scope.makeUnsafe()
-  const options = await Effect.runPromise(compose(env, deps).pipe(Scope.provide(scope)))
-  return { options, close: () => Effect.runPromise(Scope.close(scope, Exit.void)) }
+  const state = { draining: false }
+  const options = await Effect.runPromise(compose(env, deps, state).pipe(Scope.provide(scope)))
+  return {
+    options,
+    drain: () => {
+      state.draining = true
+    },
+    close: () => Effect.runPromise(Scope.close(scope, Exit.void)),
+  }
 }

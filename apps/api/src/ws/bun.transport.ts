@@ -26,6 +26,13 @@ type Data = { readonly id: ConnectionId; readonly room: RoomKey; readonly ip: st
 export async function serveBun(options: RoomServerOptions): Promise<RoomServer> {
   const sockets = new Map<ConnectionId, ServerWebSocket<Data>>()
   const origins = new Set(options.origins)
+  const emptied: (() => void)[] = []
+  const empty = () =>
+    sockets.size === 0
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          emptied.push(resolve)
+        })
 
   const transport: Transport = {
     send(conn, frame) {
@@ -77,6 +84,7 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
       close(ws) {
         sockets.delete(ws.data.id)
         runtime.closed(ws.data.id)
+        if (sockets.size === 0) for (const resolve of emptied.splice(0)) resolve()
       },
     },
   })
@@ -86,8 +94,15 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
     runtime,
     transport,
     async stop(timeoutMs = STOP_TIMEOUT_MS) {
-      await within(runtime.drain(), timeoutMs, options.ports.clock)
-      await within(server.stop(true), timeoutMs, options.ports.clock)
+      const { clock } = options.ports
+      const deadline = clock.now() + timeoutMs
+      const left = () => Math.max(0, deadline - clock.now())
+      await within(runtime.drain(), left(), clock)
+      // The clients answer the 4002 with their own close; a socket that never does is cut below.
+      await within(empty(), left(), clock)
+      // Bun 1.4.4 resolves a stop after server-side closes (issue 36223, docs/v9/evidence/transport.md); the race stays.
+      await within(server.stop(), left(), clock)
+      void server.stop(true)
     },
   }
 }
