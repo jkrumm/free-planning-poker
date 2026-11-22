@@ -68,6 +68,13 @@ describe('parseChangelog', () => {
     expect(releases[0]?.sections[0]?.items[0]?.commit?.href).toStartWith('https://github.com/')
   })
 
+  test('a release heading whose compare link is not http(s) fails the parse with its line number', () => {
+    const unsafe = '## [2.0.0](javascript:alert(1)) (2026-02-01)\n'
+    expect(() => parseChangelog(unsafe)).toThrow(
+      'CHANGELOG.md line 1: unrecognised release heading',
+    )
+  })
+
   test('a malformed release heading fails the parse and names its line', () => {
     const malformed =
       '## [2.0.0](https://example.com/compare) (2026-02-01)\n\n## 1.0 (2026-01-01)\n'
