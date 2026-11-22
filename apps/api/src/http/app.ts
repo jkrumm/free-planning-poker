@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia'
+import { historyRoutes } from './history.ts'
 import { type RoomsApi, roomRoutes } from './rooms.ts'
 import { type StatsApi, statsRoutes } from './stats.ts'
 
@@ -40,6 +41,7 @@ export function createApp(deps: {
       commit: deps.build.commit,
     }))
     .use(roomRoutes(deps.rooms))
+    .use(historyRoutes(deps.rooms))
     .use(statsRoutes(deps.stats))
 }
 

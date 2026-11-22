@@ -58,18 +58,36 @@ export async function roundCounters(
 
 export type TopicWithRounds = TopicRow & { rounds: (RoundRow & { votes: RoundVoteRow[] })[] }
 
-/** A room's topics in queue order, each with its rounds (by number) and their votes (by seat). */
-export async function listTopics(
+export type TopicHistory = TopicRow & { rounds: RoundRow[] }
+
+/**
+ * A room's topics in queue order, each with its rounds (by number): what the history routes serve. It reads no vote,
+ * so no single seat's card can leave through it.
+ */
+export async function listHistory(
   db: Executor,
   args: { readonly roomId: number },
-): Promise<TopicWithRounds[]> {
-  const [topics, rounds, votes] = await Promise.all([
+): Promise<TopicHistory[]> {
+  const [topics, rounds] = await Promise.all([
     db
       .select()
       .from(topic)
       .where(eq(topic.roomId, args.roomId))
       .orderBy(asc(topic.position), asc(topic.createdAt), asc(topic.id)),
     db.select().from(round).where(eq(round.roomId, args.roomId)).orderBy(asc(round.no)),
+  ])
+  const roundsOf = new Map<string, RoundRow[]>()
+  for (const row of rounds) roundsOf.set(row.topicId, [...(roundsOf.get(row.topicId) ?? []), row])
+  return topics.map((row) => ({ ...row, rounds: roundsOf.get(row.id) ?? [] }))
+}
+
+/** A room's topics in queue order, each with its rounds (by number) and their votes (by seat). */
+export async function listTopics(
+  db: Executor,
+  args: { readonly roomId: number },
+): Promise<TopicWithRounds[]> {
+  const [history, votes] = await Promise.all([
+    listHistory(db, args),
     db
       .select({ vote: roundVote })
       .from(roundVote)
@@ -80,10 +98,8 @@ export async function listTopics(
   const votesOf = new Map<string, RoundVoteRow[]>()
   for (const { vote } of votes)
     votesOf.set(vote.roundId, [...(votesOf.get(vote.roundId) ?? []), vote])
-  const roundsOf = new Map<string, TopicWithRounds['rounds']>()
-  for (const row of rounds) {
-    const entry = { ...row, votes: votesOf.get(row.id) ?? [] }
-    roundsOf.set(row.topicId, [...(roundsOf.get(row.topicId) ?? []), entry])
-  }
-  return topics.map((row) => ({ ...row, rounds: roundsOf.get(row.id) ?? [] }))
+  return history.map((row) => ({
+    ...row,
+    rounds: row.rounds.map((entry) => ({ ...entry, votes: votesOf.get(entry.id) ?? [] })),
+  }))
 }

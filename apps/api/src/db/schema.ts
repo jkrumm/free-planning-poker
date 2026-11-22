@@ -157,6 +157,11 @@ export const round = fpp.table(
     distribution: jsonb('distribution').notNull(),
     consensus: boolean('consensus').notNull(),
     autoReveal: boolean('auto_reveal').notNull(),
+    /**
+     * Only a round imported from v1: what v1 kept of it ({average, lowest, highest, count}). It has no distribution, so
+     * `distribution` holds `[]` and `deck` the Fibonacci id; null for every round played in v9.
+     */
+    summary: jsonb('summary'),
   },
   (t) => [
     uniqueIndex('round_room_no_unique').on(t.roomId, t.no),

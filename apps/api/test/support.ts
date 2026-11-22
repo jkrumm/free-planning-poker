@@ -7,6 +7,8 @@ export const NO_ROOMS: RoomsApi = {
   lookup: async () => ({ ok: true, room: { state: 'free' } }),
   setAccess: async () => ({ ok: false, error: 'unknown_room' }),
   setName: async () => ({ ok: false, error: 'unknown_room' }),
+  topics: async () => ({ ok: false, error: 'unknown_room' }),
+  summary: async () => ({ ok: false, error: 'unknown_room' }),
 }
 
 /** A stats API that has nothing to say, for servers that test other routes. */

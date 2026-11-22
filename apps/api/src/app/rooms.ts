@@ -18,15 +18,19 @@ import {
   bookName,
   claimAddress,
   findClaimable,
+  primaryAddress,
   resolveAddress,
   touchAddress,
 } from '../db/addresses.ts'
+import { summaryBody, topicsBody } from './history.ts'
 import { NUMBER_CANDIDATES, NUMBER_DIGITS, NUMBER_DRAWS } from '../db/holds.ts'
 import type { Db } from '../db/client.ts'
 import { type Database, DbDefect, retryBriefly } from '../db/resilience.ts'
 import { createRoom, findRoom, setRoomName } from '../db/rooms.ts'
+import { listHistory } from '../db/rounds.ts'
 import type { Health } from '../http/app.ts'
-import type { Failure, RoomsApi, SeatError } from '../http/rooms.ts'
+import type { TopicsBody } from '../http/history.ts'
+import type { Failure, ReadError, RoomsApi, SeatError } from '../http/rooms.ts'
 import type { RoomDirectory } from '../ws/edge.ts'
 
 const NUMBER_ONLY = /^\d+$/
@@ -139,7 +143,46 @@ export function postgresRooms(deps: RoomsDeps): {
     return seat.ok ? { ok: true as const, key, seat: seat.seat } : seat
   }
 
+  /** A room's history for a seat of that room: any role, proven by the token the live room knows. */
+  async function readHistory(
+    slug: string,
+    token: string | undefined,
+  ): Promise<{ ok: true; body: TopicsBody } | Failure<ReadError>> {
+    const address = parseSlug(slug)
+    if (address === undefined || address !== slug) return { ok: false, error: 'invalid_slug' }
+    const key = await keyOf(address)
+    if (key === 'unavailable') return { ok: false, error: 'unavailable' }
+    if (key === null) return { ok: false, error: 'unknown_room' }
+    const runtime = deps.runtime()
+    if (token === undefined || runtime?.seatOf(key, token) === undefined)
+      return { ok: false, error: 'not_seated' }
+    const roomId = Number(key)
+    const read = await run(async (db) => ({
+      row: await findRoom(db, roomId),
+      primary: await primaryAddress(db, roomId),
+      topics: await listHistory(db, { roomId }),
+    }))
+    if (Result.isFailure(read)) return unavailable(read.failure)
+    const { row, primary, topics } = read.success
+    if (row === null) return { ok: false, error: 'unknown_room' }
+    const live = runtime.inspect(key)?.state.room
+    const shown = parseSlug(live?.slug ?? primary ?? address) ?? address
+    return {
+      ok: true,
+      body: topicsBody({ room: { slug: shown, name: live?.name ?? row.name }, topics }),
+    }
+  }
+
   const api: RoomsApi = {
+    async topics(input) {
+      return readHistory(input.slug, input.token)
+    },
+
+    async summary(input) {
+      const read = await readHistory(input.slug, input.token)
+      return read.ok ? { ok: true, body: summaryBody(read.body) } : read
+    },
+
     async create(input) {
       const name = input.name === undefined ? undefined : parseName(input.name)
       if (input.name !== undefined && name === undefined)
