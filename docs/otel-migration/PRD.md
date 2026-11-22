@@ -5,6 +5,8 @@
 **Target completion:** ~3 weeks elapsed, ~12-15 active engineer-days
 **Last updated:** 2026-05-19
 
+> **Note (2026-11-22):** §4.1 is the pre-migration plan and no longer describes the code. The current producers are `apps/api` (service `fpp-api`, the `@fpp/telemetry/server` facade over `@opentelemetry/*`, endpoint from `OTEL_EXPORTER_OTLP_ENDPOINT`) and the room and site browsers (`@fpp/telemetry/browser`). Service names are in `packages/telemetry/src/names.ts`.
+
 ---
 
 ## 1. Why
