@@ -524,7 +524,9 @@ describe('commands', () => {
     expect(t.client.state.getSnapshot().ownVote).toEqual({ round, card: '8', pending: true })
     const event = t.room.run(0, vote(round, '8'))[0]!
     t.sockets.last.serve({ frame: 'evt', seq: 2, ...event })
-    expect(t.client.state.getSnapshot().view!.activity.rounds[0]!.votes[0]!.card).toBeNull()
+    expect(t.client.state.getSnapshot().view!.activity.rounds[0]!.votes[0]!.card).toMatchObject({
+      label: '8',
+    })
     t.sockets.last.serve({ frame: 'ack', id: t.sockets.last.commands()[0]!['id'] })
     await result
     const state = t.client.state.getSnapshot()
@@ -642,6 +644,56 @@ describe('commands', () => {
     const waiting = t.client.send(vote(t.room.round().id))
     t.sockets.last.end(4004)
     expect(await waiting).toEqual({ ok: false, reason: 'lost' })
+  })
+})
+
+describe('the own vote after events', () => {
+  test('a vote the room dropped is not shown or asserted again', async () => {
+    const t = start()
+    t.join(1)
+    const round = t.room.round().id
+    const result = t.client.send(vote(round, '3'))
+    t.sockets.last.serve({ frame: 'ack', id: t.sockets.last.commands()[0]!['id'] })
+    await result
+    const voted = t.room.run(0, vote(round, '3'))[0]!
+    t.sockets.last.serve({ frame: 'evt', seq: 2, ...voted })
+    expect(t.client.state.getSnapshot().ownVote).toMatchObject({ card: '3' })
+    // The seat becomes a spectator, which drops its vote, and a player again.
+    const spectator = t.room.run(0, {
+      type: 'seat.setRole',
+      payload: { seat: t.room.indexes[0]!, role: 'spectator' },
+    })[0]!
+    t.sockets.last.serve({ frame: 'evt', seq: 3, ...spectator })
+    expect(t.client.state.getSnapshot().ownVote).toBeNull()
+    const player = t.room.run(0, {
+      type: 'seat.setRole',
+      payload: { seat: t.room.indexes[0]!, role: 'player' },
+    })[0]!
+    t.sockets.last.serve({ frame: 'evt', seq: 4, ...player })
+    expect(t.client.state.getSnapshot().ownVote).toBeNull()
+    t.sockets.last.end(1006)
+    t.clock.advance(500)
+    t.sockets.last.open()
+    t.sockets.last.serve(welcomeFrame(t.room.view(0), 4))
+    expect(t.sockets.last.commands()).toHaveLength(0)
+  })
+
+  test('a new vote whose event comes before its ack shows its own card, not the old one', async () => {
+    const t = start()
+    t.join(1)
+    const round = t.room.round().id
+    const first = t.client.send(vote(round, '3'))
+    t.sockets.last.serve({ frame: 'ack', id: t.sockets.last.commands()[0]!['id'] })
+    await first
+    t.sockets.last.serve({ frame: 'evt', seq: 2, ...t.room.run(0, vote(round, '3'))[0]! })
+    const second = t.client.send(vote(round, '8'))
+    t.sockets.last.serve({ frame: 'evt', seq: 3, ...t.room.run(0, vote(round, '8'))[0]! })
+    expect(t.client.state.getSnapshot().view!.activity.rounds[0]!.votes[0]!.card).toMatchObject({
+      label: '8',
+    })
+    t.sockets.last.serve({ frame: 'ack', id: t.sockets.last.commands()[1]!['id'] })
+    await second
+    expect(t.client.state.getSnapshot().ownVote).toEqual({ round, card: '8', pending: false })
   })
 })
 
