@@ -6,6 +6,7 @@
  */
 import type { Settings } from '@fpp/room-core/types'
 import { Elysia, t } from 'elysia'
+import type { SummaryBody, TopicsBody } from './history.ts'
 
 export type RoomCreated = {
   readonly slug: string
@@ -34,6 +35,9 @@ type Outcome<T, E extends string> = ({ readonly ok: true } & T) | Failure<E>
 /** Who may change a room: a player seated in it. */
 export type SeatError = 'unknown_room' | 'not_seated' | 'not_player'
 
+/** Who may read a room's history: any seat of that room, a spectator's included. */
+export type ReadError = 'invalid_slug' | 'unknown_room' | 'not_seated' | 'unavailable'
+
 export type RoomsApi = {
   readonly create: (input: {
     readonly name?: string
@@ -53,6 +57,14 @@ export type RoomsApi = {
       SeatError | 'invalid_code' | 'unavailable'
     >
   >
+  readonly topics: (input: {
+    readonly slug: string
+    readonly token: string | undefined
+  }) => Promise<Outcome<{ body: TopicsBody }, ReadError>>
+  readonly summary: (input: {
+    readonly slug: string
+    readonly token: string | undefined
+  }) => Promise<Outcome<{ body: SummaryBody }, ReadError>>
   readonly setName: (input: {
     readonly slug: string
     readonly token: string | undefined
@@ -60,7 +72,7 @@ export type RoomsApi = {
   }) => Promise<Outcome<{ slug: string }, SeatError | 'invalid_name' | 'name_held' | 'unavailable'>>
 }
 
-const Err = <const E extends string>(error: E) => t.Object({ error: t.Literal(error) })
+export const Err = <const E extends string>(error: E) => t.Object({ error: t.Literal(error) })
 
 const NotSeated = t.Object({ error: t.Union([t.Literal('not_seated'), t.Literal('not_player')]) })
 
