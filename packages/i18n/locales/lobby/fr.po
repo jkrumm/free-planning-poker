@@ -12,6 +12,14 @@ msgid "Last visit {visited}"
 msgstr ""
 
 #: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Free Planning Poker"
+msgstr ""
+
+#: ../../apps/room/src/features/lobby/not-found.tsx
+msgid "This page does not exist"
+msgstr ""
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
 msgid "Start planning"
 msgstr ""
 
@@ -33,6 +41,10 @@ msgstr ""
 
 #: ../../apps/room/src/features/lobby/lobby-page.tsx
 msgid "Open a room, share the link and estimate. No account needed."
+msgstr ""
+
+#: ../../apps/room/src/features/lobby/not-found.tsx
+msgid "Back to your rooms"
 msgstr ""
 
 #: ../../apps/room/src/features/lobby/lobby-page.tsx

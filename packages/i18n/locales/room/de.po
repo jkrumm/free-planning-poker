@@ -39,10 +39,6 @@ msgstr "Platz nehmen"
 msgid "Lock and address"
 msgstr "Sperre und Adresse"
 
-#: ../../apps/room/src/features/room/access.tsx
-msgid "That is not allowed. Use letters, digits and hyphens."
-msgstr "Das ist nicht erlaubt. Nutze Buchstaben, Ziffern und Bindestriche."
-
 #: ../../apps/room/src/features/room/settings.tsx
 msgid "T-shirt sizes"
 msgstr "T-Shirt-Größen"
@@ -237,6 +233,10 @@ msgstr "Spieler"
 msgid "Next topic"
 msgstr "Nächstes Thema"
 
+#: ../../apps/room/src/features/room/access.tsx
+msgid "That password is not allowed. Use 2 to 32 characters, no control characters."
+msgstr "Dieses Passwort ist nicht erlaubt. Nimm 2 bis 32 Zeichen, keine Steuerzeichen."
+
 #: ../../apps/room/src/features/room/invite.tsx
 msgid "Invite"
 msgstr "Einladen"
@@ -276,6 +276,10 @@ msgstr "Titel speichern"
 #: ../../apps/room/src/features/room/access.tsx
 msgid "The room could not be reached. Try again."
 msgstr "Der Raum war nicht erreichbar. Versuche es noch einmal."
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "That name is not allowed. Use letters, digits and hyphens."
+msgstr "Dieser Name ist nicht erlaubt. Nutze Buchstaben, Ziffern und Bindestriche."
 
 #: ../../apps/room/src/features/room/round.tsx
 msgid "{secondsLeft, plural, one {Revealing in # second} other {Revealing in # seconds}}"

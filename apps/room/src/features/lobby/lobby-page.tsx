@@ -1,7 +1,7 @@
 import { parseSlug } from '@fpp/room-core/types'
 import { useLingui } from '@lingui/react/macro'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useAppEnv } from '../../app-env.tsx'
 
 /** `/room`: start a room, open one by its number or name, or go back to one this device has visited. */
@@ -12,6 +12,10 @@ export function LobbyPage() {
   const [address, setAddress] = useState('')
   const [invalid, setInvalid] = useState(false)
   const [recent, setRecent] = useState(() => env.store.recent.list())
+  const title = t`Free Planning Poker`
+  useEffect(() => {
+    document.title = title
+  }, [title])
 
   const join = (event: FormEvent) => {
     event.preventDefault()

@@ -5,20 +5,14 @@
 import { createLocalStore, httpLookup, type ClientPorts } from '@fpp/room-client'
 import { pickLanguage } from '@fpp/i18n'
 import { I18nProvider } from '@lingui/react'
-import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AppEnvProvider, type AppEnv } from './app-env.tsx'
 import { activatorOf, i18n } from './i18n.ts'
-import { routeTree } from './routeTree.gen.ts'
+import { createAppRouter } from './router.ts'
 
-const router = createRouter({ routeTree })
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
-}
+const router = createAppRouter()
 
 const origin = window.location.origin
 const randomFloat = (): number => crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32

@@ -1,5 +1,8 @@
 import { afterAll, beforeAll, expect, test } from 'bun:test'
 import { freePort } from '@fpp/test-kit/port'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { startPostgres, type PostgresCluster } from '@fpp/test-kit/postgres'
 import { ENV } from '../../test/support.ts'
 import { startUpstream } from '../../test/upstream.ts'
@@ -103,5 +106,20 @@ test('behind the edge the limits count the clients the edge names, through the c
     await server.stop()
     await api.close()
     await door.stop()
+  }
+})
+
+test('the built room app reaches the room server, and a missing build leaves it out', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'fpp-compose-'))
+  writeFileSync(join(dir, 'index.html'), '<!doctype html>')
+  const served = await compose({ ROOM_APP_DIR: dir })
+  const absent = await compose({ ROOM_APP_DIR: join(dir, 'no-build') })
+  try {
+    expect(served.options.spa).toBeDefined()
+    expect(absent.options.spa).toBeUndefined()
+  } finally {
+    await served.close()
+    await absent.close()
+    rmSync(dir, { recursive: true, force: true })
   }
 })

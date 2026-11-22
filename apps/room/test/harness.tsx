@@ -22,14 +22,14 @@ import {
 } from '@fpp/room-core/sim'
 import { parseAccessCode, parseSlug } from '@fpp/room-core/types'
 import { I18nProvider } from '@lingui/react'
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
+import { createMemoryHistory, RouterProvider } from '@tanstack/react-router'
 import { readdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { AppEnvProvider, type AppEnv } from '../src/app-env.tsx'
 import { activatorOf, i18n, type Catalogues } from '../src/i18n.ts'
-import { routeTree } from '../src/routeTree.gen.ts'
+import { createAppRouter } from '../src/router.ts'
 
 export const ADDRESS = '482913'
 const ROOM = '1'
@@ -219,7 +219,7 @@ export async function openSeat(
   }
   await act(async () => env.activate('en'))
   const history = createMemoryHistory({ initialEntries: [options.path] })
-  const router = createRouter({ routeTree, history })
+  const router = createAppRouter(history)
   const container = document.createElement('div')
   document.body.append(container)
   const root: Root = createRoot(container)
