@@ -1,13 +1,14 @@
+import { pillarEntry } from '../lib/entries.ts'
 import { siteOrigin } from '../lib/site.ts'
 import { twinMarkdown } from '../lib/twin.ts'
-import { guideTwin } from '../twins/guide.ts'
 
-export function GET(): Response {
+export async function GET(): Promise<Response> {
+  const entry = await pillarEntry()
   const body = twinMarkdown({
-    title: guideTwin.title,
+    title: entry.data.title,
     address: `${siteOrigin}/guide`,
-    updated: guideTwin.updated,
-    body: guideTwin.body,
+    updated: entry.data.updated ?? entry.data.published,
+    body: entry.body ?? '',
   })
   return new Response(body, { headers: { 'Content-Type': 'text/markdown; charset=utf-8' } })
 }

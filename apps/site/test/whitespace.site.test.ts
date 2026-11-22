@@ -12,8 +12,10 @@ test.each(realOutputs)(
   'white space between text and an inline element survives, build %s',
   async (output) => {
     const guide = await readText(outputRoot(output), 'guide.html')
-    expect(guide).toMatch(/methodologies like\s<b>Scrum, Kanban, and Jira<\/b>\semphasize/)
-    expect(guide).toMatch(/combines\s<b>team collaboration, game mechanics<\/b>, and the/)
-    expect(guide).toMatch(/promotes a\s<b>diversity of viewpoints<\/b>\.\sThe/)
+    expect(guide).toMatch(
+      /methodologies like\s<strong>Scrum, Kanban, and Jira<\/strong>\semphasize/,
+    )
+    expect(guide).toMatch(/combines\s<strong>team collaboration, game mechanics<\/strong>, and the/)
+    expect(guide).toMatch(/promotes a\s<strong>diversity of viewpoints<\/strong>\.\sThe/)
   },
 )

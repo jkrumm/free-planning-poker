@@ -1,6 +1,6 @@
 import { defineCollection } from 'astro:content'
 import { glob } from 'astro/loaders'
-import { contentRoot } from './lib/content-root.ts'
+import { contentRoot, pillarRoot } from './lib/content-root.ts'
 import { entrySchema, glossarySchema, vsSchema } from './lib/entry-schema.ts'
 
 // The tests build against test/fixtures/content; a real build reads src/content.
@@ -13,6 +13,11 @@ const section = (name: string, schema: typeof entrySchema = entrySchema) =>
   })
 
 export const collections = {
+  // One entry, the pillar guide at /guide: src/content/pillar/guide.md. Read through pillarEntry in lib/entries.ts.
+  pillar: defineCollection({
+    loader: glob({ pattern: 'guide.md', base: pillarRoot }),
+    schema: entrySchema,
+  }),
   guides: section('guides'),
   glossary: section('glossary', glossarySchema),
   vs: section('vs', vsSchema),

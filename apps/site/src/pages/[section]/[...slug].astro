@@ -8,6 +8,7 @@ import ComparisonTable from '../../components/comparison-table.astro'
 import Questions from '../../components/questions.astro'
 import type { VsData } from '../../lib/entry-schema.ts'
 import { sectionEntries, sections, visibleEntry } from '../../lib/entries.ts'
+import { guideClusters } from '../../lib/entry-schema.ts'
 import { strings } from '../../strings.en.ts'
 
 const glossaryIndex = {
@@ -32,11 +33,12 @@ export const getStaticPaths = (async () => {
         ? found.toSorted((a, b) => a.data.title.localeCompare(b.data.title, 'en'))
         : found
     if (entries.length === 0) continue
-    paths.push({ params: { section, slug: undefined }, props: { section, entry: undefined, entries, related: [], cluster: undefined } })
+    paths.push({ params: { section, slug: undefined }, props: { section, entry: undefined, entries, related: [], cluster: undefined, siblings: [] } })
     for (const entry of entries) {
       // Links between entries are built only for targets this build shows, so no published page links a draft.
       const related: Link[] = []
       let cluster: Link | undefined
+      const siblings: Link[] = []
       if (section === 'glossary') {
         for (const id of (await visibleEntry('glossary', entry.id))?.data.related ?? []) {
           const target = await visibleEntry('glossary', id)
@@ -46,13 +48,19 @@ export const getStaticPaths = (async () => {
         const guide = guideId ? await visibleEntry('guides', guideId) : undefined
         if (guide) cluster = { title: guide.data.title, href: `/guides/${guide.id}` }
       }
-      paths.push({ params: { section, slug: entry.id }, props: { section, entry, entries, related, cluster } })
+      if (section === 'guides') {
+        for (const id of guideClusters) {
+          const sibling = id === entry.id ? undefined : await visibleEntry('guides', id)
+          if (sibling) siblings.push({ title: sibling.data.title, href: `/guides/${id}` })
+        }
+      }
+      paths.push({ params: { section, slug: entry.id }, props: { section, entry, entries, related, cluster, siblings } })
     }
   }
   return paths
 }) satisfies GetStaticPaths
 
-const { section, entry, entries, related, cluster } = Astro.props
+const { section, entry, entries, related, cluster, siblings } = Astro.props
 const Content = entry ? (await render(entry)).Content : undefined
 const isoDay = (date: Date) => date.toISOString().slice(0, 10)
 const vs = section === 'vs' && entry ? (entry.data as VsData) : undefined
@@ -122,6 +130,23 @@ const vs = section === 'vs' && entry ? (entry.data as VsData) : undefined
                     <a href={cluster.href}>{cluster.title}</a>
                   </li>
                 )}
+              </ul>
+            </nav>
+          )
+        }
+        {
+          section === 'guides' && (
+            <nav aria-label={strings.inTheGuide}>
+              <h2>{strings.inTheGuide}</h2>
+              <ul>
+                <li>
+                  <a href="/guide">{strings.pillarGuide}</a>
+                </li>
+                {siblings.map((link) => (
+                  <li>
+                    <a href={link.href}>{link.title}</a>
+                  </li>
+                ))}
               </ul>
             </nav>
           )

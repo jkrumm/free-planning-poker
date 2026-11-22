@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, sep } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { contentRoot } from './content-root.ts'
 import { parseFrontmatter } from './frontmatter.ts'
 import { type Section, sections } from './sections.ts'
@@ -22,6 +23,16 @@ export function readContentIndex(root: string = contentRoot): IndexedEntry[] {
     if (!existsSync(dir)) return []
     return entryFiles(dir).map((rel) => indexed(section, dir, rel))
   })
+}
+
+/** The date the pillar guide's sitemap entry carries: its updated date, else its published date. */
+export function readPillarDate(
+  file: string = fileURLToPath(new URL('../content/pillar/guide.md', import.meta.url)),
+): Date {
+  const { fields } = parseFrontmatter(readFileSync(file, 'utf8'))
+  const date = fields.updated ?? fields.published
+  if (date === undefined) throw new Error(`${file}: no published date`)
+  return new Date(date)
 }
 
 // The glob loader's pattern: Markdown or MDX, the file name not starting with an underscore.

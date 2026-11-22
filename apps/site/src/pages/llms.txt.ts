@@ -1,19 +1,19 @@
-import { sectionEntries, sections } from '../lib/entries.ts'
+import { pillarEntry, sectionEntries, sections } from '../lib/entries.ts'
 import { type LlmsSection, llmsTxt } from '../lib/llms.ts'
 import { siteOrigin } from '../lib/site.ts'
 import { strings } from '../strings.en.ts'
-import { guideTwin } from '../twins/guide.ts'
 
 // The index for assistants: the product in one line, then the pillar and every content page this build shows.
 export async function GET(): Promise<Response> {
+  const pillar = await pillarEntry()
   const groups: LlmsSection[] = [
     {
       heading: strings.llms.startHeading,
       pages: [
         {
-          title: guideTwin.title,
+          title: pillar.data.title,
           address: `${siteOrigin}/guide`,
-          description: guideTwin.description,
+          description: pillar.data.description,
         },
       ],
     },

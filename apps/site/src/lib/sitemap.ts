@@ -1,7 +1,6 @@
 import type { SitemapOptions } from '@astrojs/sitemap'
 import type { IndexedEntry } from './content-index.ts'
 import { visibleEntries } from './drafts.ts'
-import { guideTwin } from '../twins/guide.ts'
 import { siteOrigin } from './site.ts'
 import type { Target } from './target.ts'
 
@@ -17,12 +16,13 @@ const addressOf = (entry: IndexedEntry) => `/${entry.section}/${entry.id}`
 export function sitemapOptions(
   target: Target,
   entries: IndexedEntry[],
+  pillarDate: Date,
 ): NonNullable<SitemapOptions> {
   const visible = new Set(visibleEntries(entries, target).map(addressOf))
   const known = new Set(entries.map(addressOf))
-  // The pillar is not a collection entry: its updated date comes from the same source as its twin.
+  // The pillar is the one entry of its own collection, not of a section: its date is passed in.
   const dated = new Map<string, Date>([
-    ['/guide', guideTwin.updated],
+    ['/guide', pillarDate],
     ...entries.map(
       (entry) => [addressOf(entry), entry.data.updated ?? entry.data.published] as const,
     ),

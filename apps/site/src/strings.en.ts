@@ -10,6 +10,7 @@ export const strings = {
   updatedLabel: 'Updated',
   relatedTerms: 'Related terms',
   inTheGuide: 'In the guide',
+  moreGuides: 'Go deeper',
   pillarGuide: 'Planning poker explained: the guide',
   nav: [
     { title: 'Home', href: '/' },
