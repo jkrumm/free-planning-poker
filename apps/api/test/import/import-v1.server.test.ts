@@ -10,6 +10,7 @@ import { sql } from 'drizzle-orm'
 import type { DbClient } from '../../src/db/client.ts'
 import { NAME_HOLD, NUMBER_HOLD } from '../../src/db/holds.ts'
 import { computeDay } from '../../src/db/rollups.ts'
+import { METRIC } from '../../src/db/stat-metrics.ts'
 import { at, interval } from '../../src/db/sql.ts'
 import type { StatsBody } from '../../src/http/stats.ts'
 import {
@@ -326,6 +327,14 @@ describe('the API over the imported database', () => {
   test("GET /api/stats shows v1's own totals", async () => {
     const api = await startApi(cluster.url, await freePort(), { now: () => NOW.getTime() })
     try {
+      // The v9 room counts once a rollup of its day runs, and the first tick of this process does that. Polling /stats
+      // would not see it: its answer is kept for STATS_MAX_AGE_SECONDS and the test's clock does not move.
+      await until(
+        async () =>
+          (await one(sql`SELECT 1 FROM fpp.stat_daily
+            WHERE day = '2026-11-20' AND metric = ${METRIC.roomsCreated} AND dimension = '' AND value = 1`)) !==
+          undefined,
+      )
       const stats = (await (await api.http('/stats')).json()) as StatsBody
       // v1's own counting: 7 votes rows, 12 estimates in them, 13 rooms, 4 reveals with lowest equal to highest; plus the
       // room v9 opened above, whose vote was never revealed.
