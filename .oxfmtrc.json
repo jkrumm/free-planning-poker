@@ -6,5 +6,12 @@
   "singleQuote": true,
   "trailingComma": "all",
   "semi": false,
-  "ignorePatterns": ["**/*.md", "docs/**", "bun.lock", ".claude/**"]
+  "ignorePatterns": [
+    "**/*.md",
+    "docs/**",
+    "bun.lock",
+    ".claude/**",
+    "**/routeTree.gen.ts",
+    "packages/i18n/locales/**"
+  ]
 }

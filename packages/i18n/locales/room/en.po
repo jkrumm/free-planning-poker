@@ -1,0 +1,403 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-22 17:36+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "{votes, plural, one {# vote} other {# votes}}"
+msgstr "{votes, plural, one {# vote} other {# votes}}"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "voted"
+msgstr "voted"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "That password is not right."
+msgstr "That password is not right."
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Address {slug}"
+msgstr "Address {slug}"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Remove topic"
+msgstr "Remove topic"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Reveal automatically when everyone has voted"
+msgstr "Reveal automatically when everyone has voted"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Take a seat"
+msgstr "Take a seat"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Lock and address"
+msgstr "Lock and address"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "That is not allowed. Use letters, digits and hyphens."
+msgstr "That is not allowed. Use letters, digits and hyphens."
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "T-shirt sizes"
+msgstr "T-shirt sizes"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "left"
+msgstr "left"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Rename"
+msgstr "Rename"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Deck"
+msgstr "Deck"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Move down"
+msgstr "Move down"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "(you)"
+msgstr "(you)"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "The room is locked."
+msgstr "The room is locked."
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "away"
+msgstr "away"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Custom"
+msgstr "Custom"
+
+#: ../../apps/room/src/features/room/access.tsx
+#: ../../apps/room/src/features/room/invite.tsx
+msgid "Password"
+msgstr "Password"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "watching"
+msgstr "watching"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "That name is taken. Try another."
+msgstr "That name is taken. Try another."
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "skipped"
+msgstr "skipped"
+
+#: ../../apps/room/src/features/room/my-seat.tsx
+msgid "Become a spectator"
+msgstr "Become a spectator"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Off"
+msgstr "Off"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Remove everyone who is seated now"
+msgstr "Remove everyone who is seated now"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "being estimated"
+msgstr "being estimated"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "The room did not accept that."
+msgstr "The room did not accept that."
+
+#: ../../apps/room/src/features/room/my-seat.tsx
+msgid "Change name"
+msgstr "Change name"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Book name"
+msgstr "Book name"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Powers of two"
+msgstr "Powers of two"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "This address now leads to a different room than the one you remember."
+msgstr "This address now leads to a different room than the one you remember."
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Everyone at the table sees the password. It keeps strangers out; it is no secret among colleagues, so do not reuse one you use elsewhere."
+msgstr "Everyone at the table sees the password. It keeps strangers out; it is no secret among colleagues, so do not reuse one you use elsewhere."
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Paste topics, one per line"
+msgstr "Paste topics, one per line"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "thinking"
+msgstr "thinking"
+
+#: ../../apps/room/src/features/room/my-seat.tsx
+msgid "Leave the room"
+msgstr "Leave the room"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Estimate this next"
+msgstr "Estimate this next"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "The server is restarting. Reconnecting…"
+msgstr "The server is restarting. Reconnecting…"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Connected."
+msgstr "Connected."
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "spectator"
+msgstr "spectator"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Reveal cards"
+msgstr "Reveal cards"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Unlock the room"
+msgstr "Unlock the room"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "The room is open to anyone with the link."
+msgstr "The room is open to anyone with the link."
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "Seats"
+msgstr "Seats"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "You are offline. Try again when the connection is back."
+msgstr "You are offline. Try again when the connection is back."
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Add topics"
+msgstr "Add topics"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "Remove {name}"
+msgstr "Remove {name}"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Reload"
+msgstr "Reload"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Vote again"
+msgstr "Vote again"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "{seconds, plural, one {# second} other {# seconds}}"
+msgstr "{seconds, plural, one {# second} other {# seconds}}"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "{players, plural, one {{voted} of # player voted} other {{voted} of # players voted}}"
+msgstr "{players, plural, one {{voted} of # player voted} other {{voted} of # players voted}}"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "This room is locked."
+msgstr "This room is locked."
+
+#: ../../apps/room/src/features/room/round.tsx
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Untitled topic"
+msgstr "Untitled topic"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Book a name for this room"
+msgstr "Book a name for this room"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Lock with a generated password"
+msgstr "Lock with a generated password"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Set the final value"
+msgstr "Set the final value"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "player"
+msgstr "player"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Next topic"
+msgstr "Next topic"
+
+#: ../../apps/room/src/features/room/invite.tsx
+msgid "Invite"
+msgstr "Invite"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Title"
+msgstr "Title"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Connection lost. Reconnecting…"
+msgstr "Connection lost. Reconnecting…"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Final value {finalLabel}"
+msgstr "Final value {finalLabel}"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Saved."
+msgstr "Saved."
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Clear my vote"
+msgstr "Clear my vote"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "You are watching. Become a player to vote."
+msgstr "You are watching. Become a player to vote."
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "here"
+msgstr "here"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Save title"
+msgstr "Save title"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "The room could not be reached. Try again."
+msgstr "The room could not be reached. Try again."
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "{secondsLeft, plural, one {Revealing in # second} other {Revealing in # seconds}}"
+msgstr "{secondsLeft, plural, one {Revealing in # second} other {Revealing in # seconds}}"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Room title"
+msgstr "Room title"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Join the room at this address"
+msgstr "Join the room at this address"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "done"
+msgstr "done"
+
+#: ../../apps/room/src/features/room/my-seat.tsx
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Your name"
+msgstr "Your name"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "queued"
+msgstr "queued"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Round {roundNo}"
+msgstr "Round {roundNo}"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Cancel the reveal"
+msgstr "Cancel the reveal"
+
+#: ../../apps/room/src/features/room/invite.tsx
+msgid "Invite link"
+msgstr "Invite link"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Round timer"
+msgstr "Round timer"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Move up"
+msgstr "Move up"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "reconnecting"
+msgstr "reconnecting"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Fibonacci"
+msgstr "Fibonacci"
+
+#: ../../apps/room/src/features/room/seats.tsx
+msgid "no vote"
+msgstr "no vote"
+
+#: ../../apps/room/src/features/room/topics.tsx
+msgid "Topics"
+msgstr "Topics"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Settings"
+msgstr "Settings"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Join the room"
+msgstr "Join the room"
+
+#: ../../apps/room/src/features/room/round.tsx
+msgid "Your cards"
+msgstr "Your cards"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Modified Fibonacci"
+msgstr "Modified Fibonacci"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Take a seat again"
+msgstr "Take a seat again"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Connecting to the room…"
+msgstr "Connecting to the room…"
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Only players seated in this room can change this."
+msgstr "Only players seated in this room can change this."
+
+#: ../../apps/room/src/features/room/my-seat.tsx
+msgid "Your seat"
+msgstr "Your seat"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "You have no seat in this room."
+msgstr "You have no seat in this room."
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "Lock with this password"
+msgstr "Lock with this password"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Enter room"
+msgstr "Enter room"
+
+#: ../../apps/room/src/features/room/my-seat.tsx
+msgid "Become a player"
+msgstr "Become a player"
+
+#: ../../apps/room/src/features/room/settings.tsx
+msgid "Wait before an automatic reveal"
+msgstr "Wait before an automatic reveal"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "This page is out of date. Reload it to continue."
+msgstr "This page is out of date. Reload it to continue."
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "Room password"
+msgstr "Room password"
+
+#: ../../apps/room/src/features/room/room-page.tsx
+msgid "You were removed from the room."
+msgstr "You were removed from the room."

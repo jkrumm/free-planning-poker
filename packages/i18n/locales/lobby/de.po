@@ -1,0 +1,60 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-22 17:36+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: de\n"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Last visit {visited}"
+msgstr "Letzter Besuch {visited}"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Start planning"
+msgstr "Planung starten"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Open room"
+msgstr "Raum öffnen"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Estimate together"
+msgstr "Gemeinsam schätzen"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Rooms you open on this device show up here."
+msgstr "Räume, die du auf diesem Gerät öffnest, erscheinen hier."
+
+#: ../../apps/room/src/features/lobby/new-room-page.tsx
+msgid "Try again"
+msgstr "Noch einmal versuchen"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Open a room, share the link and estimate. No account needed."
+msgstr "Öffne einen Raum, teile den Link und schätzt los. Ein Konto brauchst du nicht."
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Remove from list"
+msgstr "Aus der Liste entfernen"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Your rooms"
+msgstr "Deine Räume"
+
+#: ../../apps/room/src/features/lobby/new-room-page.tsx
+msgid "Creating your room…"
+msgstr "Dein Raum wird erstellt …"
+
+#: ../../apps/room/src/features/lobby/new-room-page.tsx
+msgid "The room could not be created. Check your connection and try again."
+msgstr "Der Raum konnte nicht erstellt werden. Prüfe deine Verbindung und versuche es noch einmal."
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "Room number or name"
+msgstr "Raumnummer oder -name"
+
+#: ../../apps/room/src/features/lobby/lobby-page.tsx
+msgid "That is not a room number or name. Check it and try again."
+msgstr "Das ist keine Raumnummer und kein Raumname. Prüfe die Eingabe und versuche es noch einmal."
