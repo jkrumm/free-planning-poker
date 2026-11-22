@@ -24,6 +24,7 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 - **Links and budgets.** Every internal link and anchor must resolve (`/room*`, `/_room/*`, `/api/*` belong to other apps); a page is at most 12 kB gzip.
 - **Strings.** Navigation and footer text is in `src/strings.en.ts`; page bodies are content in the `.astro` files.
 - **Legal pages.** Every figure `/privacy` prints is a fact in `src/lib/privacy-facts.ts`, backed by a constant in `apps/api/src/db/holds.ts` or a quoted sentence of `docs/v9/ARCHITECTURE.md`; `privacy-facts.test.ts` fails when either moves, so change the page's number there, not in the page. `/imprint` is v1's text (`test/fixtures/v1-imprint.ts`) and publishes no address or e-mail on purpose. The contact form's limits are v1's (`src/lib/contact.ts`); it posts to `POST /api/contact`, whose answers (`v9-api-contact`: 400, 429, 503, 502) `answerFor` maps to four messages.
+- **Blog.** `src/pages/blog/` builds `/blog` and `/blog/rss.xml` only while `sectionEntries('blog')` is non-empty; the footer links `/blog` on the same condition. The generic `[section]` route skips blog. `updated` is set by hand, when the body changes.
 
 ## Where the later rows plug in
 

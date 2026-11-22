@@ -1,5 +1,6 @@
 ---
 import { canonicalPath } from '../lib/canonical.ts'
+import { sectionEntries } from '../lib/entries.ts'
 import { strings } from '../strings.en.ts'
 
 interface Props {
@@ -17,6 +18,8 @@ const pageTitle = title ? strings.titlePrefix + title : strings.homeTitle
 const canonical = new URL(canonicalPath(Astro.url.pathname), Astro.site).href
 const robots = draft || noindex ? 'noindex, nofollow' : 'index, follow'
 const year = new Date().getFullYear()
+// /blog exists only while this build shows a post (src/pages/blog), so the footer links it on the same condition.
+const blogVisible = (await sectionEntries('blog')).length > 0
 ---
 
 <!doctype html>
@@ -53,6 +56,7 @@ const year = new Date().getFullYear()
       <nav aria-label={strings.footerLabel}>
         <ul>
           {strings.footerPages.map((item) => <li><a href={item.href}>{item.title}</a></li>)}
+          {blogVisible && <li><a href={strings.blog.href}>{strings.blog.title}</a></li>}
         </ul>
         <ul>
           {strings.footerLegal.map((item) => <li><a href={item.href}>{item.title}</a></li>)}

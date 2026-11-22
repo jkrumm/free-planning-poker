@@ -1,0 +1,45 @@
+---
+import { render } from 'astro:content'
+import type { GetStaticPaths } from 'astro'
+import Post from '../../layouts/post.astro'
+import Base from '../../layouts/base.astro'
+import { sectionEntries } from '../../lib/entries.ts'
+import { strings } from '../../strings.en.ts'
+
+// /blog is the index and /blog/<slug> a post. While this build shows no post, nothing is built here: no index, no post,
+// and the footer, the feed and the index stay off together.
+export const getStaticPaths = (async () => {
+  const entries = await sectionEntries('blog')
+  if (entries.length === 0) return []
+  return [
+    { params: { slug: undefined }, props: { entry: undefined, entries } },
+    ...entries.map((entry) => ({ params: { slug: entry.id }, props: { entry, entries } })),
+  ]
+}) satisfies GetStaticPaths
+
+const { entry, entries } = Astro.props
+const Content = entry ? (await render(entry)).Content : undefined
+const day = (value: Date) => value.toISOString().slice(0, 10)
+---
+
+{
+  entry && Content ? (
+    <Post data={entry.data}>
+      <Content />
+    </Post>
+  ) : (
+    <Base title="Blog" description="Articles from the Free Planning Poker project.">
+      <h1>Blog</h1>
+      <ul>
+        {entries.map((item) => (
+          <li>
+            <a href={`/blog/${item.id}`}>{item.data.title}</a>
+            <time datetime={item.data.published.toISOString()}> {day(item.data.published)}</time>
+            {item.data.draft && ` (${strings.draftLine})`}
+            <p>{item.data.description}</p>
+          </li>
+        ))}
+      </ul>
+    </Base>
+  )
+}

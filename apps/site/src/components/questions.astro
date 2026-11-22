@@ -1,0 +1,26 @@
+---
+import type { EntryData } from '../lib/entry-schema.ts'
+import { strings } from '../strings.en.ts'
+
+interface Props {
+  questions: EntryData['questions']
+}
+
+const { questions } = Astro.props
+---
+
+{
+  questions.length > 0 && (
+    <section>
+      <h2>{strings.questionsHeading}</h2>
+      <dl>
+        {questions.map((item) => (
+          <>
+            <dt>{item.question}</dt>
+            <dd>{item.answer}</dd>
+          </>
+        ))}
+      </dl>
+    </section>
+  )
+}

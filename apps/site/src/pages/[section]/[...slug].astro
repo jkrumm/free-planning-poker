@@ -4,6 +4,7 @@ import type { GetStaticPaths } from 'astro'
 import DefinedTerm from '../../components/schema/defined-term.astro'
 import DefinedTermSet from '../../components/schema/defined-term-set.astro'
 import Base from '../../layouts/base.astro'
+import Questions from '../../components/questions.astro'
 import { sectionEntries, sections, visibleEntry } from '../../lib/entries.ts'
 import { strings } from '../../strings.en.ts'
 
@@ -15,11 +16,13 @@ const glossaryIndex = {
 
 type Link = { title: string; href: string }
 
-// One route file for every collection: /guides/x, /glossary/x, /vs/x, /blog/x, /docs/x. A section with nothing to
-// show in this build gets no index page either (an empty list is a thin page), and a draft has a route on beta only.
+// One route file for the collections: /guides/x, /glossary/x, /vs/x, /docs/x. The blog has its own routes in
+// src/pages/blog. A section with nothing to show in this build gets no index page either (an empty list is a thin
+// page), and a draft has a route on beta only.
 export const getStaticPaths = (async () => {
   const paths = []
   for (const section of sections) {
+    if (section === 'blog') continue
     // The glossary lists alphabetically, every other section newest first.
     const found = await sectionEntries(section)
     const entries =
@@ -109,21 +112,7 @@ const isoDay = (date: Date) => date.toISOString().slice(0, 10)
             </nav>
           )
         }
-        {
-          entry.data.questions.length > 0 && (
-            <section>
-              <h2>{strings.questionsHeading}</h2>
-              <dl>
-                {entry.data.questions.map((item) => (
-                  <>
-                    <dt>{item.question}</dt>
-                    <dd>{item.answer}</dd>
-                  </>
-                ))}
-              </dl>
-            </section>
-          )
-        }
+        <Questions questions={entry.data.questions} />
       </article>
     </Base>
   ) : section === 'glossary' ? (
