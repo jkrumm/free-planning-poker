@@ -1,14 +1,16 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify logs import-v1 v1-mariadb v9-image v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
-# cutover. Overridable so `verify` can be pointed at another host.
+# cutover, and the beta host, where every push that touches lane app rolls out (deploy-next.yml).
+# Overridable so `verify` can be pointed at another host.
 WEB_URL ?= https://free-planning-poker.com/
 SERVER_URL ?= https://server.free-planning-poker.com/health
 ANALYTICS_URL ?= https://analytics.free-planning-poker.com/health
+NEXT_URL ?= https://next.free-planning-poker.com/api/health
 
-# Compose service whose logs `make logs` tails. Server by default; override for
-# another container, e.g. `make logs SERVICE=fpp-analytics`.
+# Compose service whose logs `make logs` tails. v1's server by default; override for
+# another container, e.g. `make logs SERVICE=fpp-analytics`, or the beta host's: `make logs SERVICE=fpp-api`.
 SERVICE ?= fpp-server
 
 # A step prints its name, and on failure the step that failed, then stops the target.
@@ -175,17 +177,23 @@ import-v1: ## Import a v1 dump: make import-v1 DUMP=<file.sql[.gz]> [APPLY=1] [R
 v1-mariadb: ## One-shot scratch MariaDB 11.4: DUMP=<file.sql[.gz]> restores, SQL=<file> runs, OUT=<file> DB=<db> dumps; then removed
 	@scripts/v1-mariadb.sh
 
-# Nothing on master deploys to production. v1 deploys from the branch v1
-# (docs/shipping.md section v1).
-deploy: ## No-op: nothing on master deploys
-	@echo "nothing on master deploys; v1 deploys from the branch v1"
+# Nothing on master deploys to production: v1 deploys from the branch v1 (docs/shipping.md section v1). The beta host
+# is rolled by CI (.github/workflows/deploy-next.yml), never from a checkout.
+deploy: ## No-op: CI rolls the beta host, v1 deploys from the branch v1
+	@echo "nothing deploys from a checkout; CI rolls the beta host, v1 deploys from the branch v1"
 
-# Probe production (v1). Exits non-zero if any endpoint is down or unhealthy.
-verify: ## Probe production health (web + server + analytics)
+# Probe production (v1) and the beta host (v9). Exits non-zero if any endpoint is down or unhealthy.
+verify: verify-production verify-next ## Probe health: production (web + server + analytics) and the beta host
+
+verify-production: ## Probe production health (v1: web + server + analytics)
 	@curl -fsS $(SERVER_URL) >/dev/null
 	@curl -fsS $(ANALYTICS_URL) >/dev/null
 	@curl -fsS $(WEB_URL) >/dev/null
 	@echo "production healthy"
+
+verify-next: ## Probe the beta host (v9): /api/health answers 200
+	@curl -fsS $(NEXT_URL) >/dev/null
+	@echo "beta host healthy: $(NEXT_URL)"
 
 # The production URLs new or changed since the last deploy go to IndexNow (apps/site/scripts/indexnow.ts). The beta
 # target skips; DRY_RUN=1 prints the list and sends nothing.

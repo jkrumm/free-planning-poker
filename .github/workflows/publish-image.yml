@@ -6,7 +6,7 @@ name: Publish image
 #   latest              the newest build of master, from a push to master and from a release
 #   <version>, <major>.<minor>   a release (release.yml calls this workflow with the tag it made)
 # The package is public: selfhost.yml pulls it with no login. amd64 only; the arm64 build is a row of nightly.yml's own.
-# Nothing here deploys anything: the beta host's roll-out is v9-next-deploy's.
+# Nothing here deploys anything: the beta host's roll-out is deploy-next.yml's, which builds its own image.
 on:
   push:
     branches: [master]

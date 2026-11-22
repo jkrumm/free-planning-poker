@@ -107,7 +107,7 @@ jobs:
 
   # The image (apps/api/Dockerfile): the API with the room app it serves, built with BuildKit's GitHub cache backend, one scope
   # per image, and started from deploy/compose.yml as a smoke test. The image goes on as an artifact for the end-to-end suite.
-  # No registry push: nothing is rolled out from here (v9-next-deploy). Runs only when lane app changed.
+  # No registry push: the beta host is rolled by deploy-next.yml, which builds its own image. Runs only when lane app changed.
   image:
     needs: lanes
     if: needs.lanes.outputs.app == 'true'

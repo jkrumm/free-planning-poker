@@ -3,10 +3,11 @@
 apiVersion: factory/v2
 name: free-planning-poker
 deploy:
-  mode: auto # nothing on master deploys to production: v1 deploys from the branch v1 (Vercel + its deploy.yml); `make deploy` is a no-op and verify probes v1
+  mode: auto # CI owns the deploys (.github/workflows/deploy-next.yml rolls the beta host); v1 deploys from the branch v1 (Vercel + its deploy.yml); `make deploy` is a no-op
   targets:
-    - { name: prod, host: vps, verify: make verify } # probes web, server and analytics health
-  hold: 10m # kept for the v9 deploys of the beta host; a master push changes nothing in production today
+    - { name: prod, host: vps, verify: make verify } # v1 (web, server, analytics) and the beta host
+    - { name: next, host: vps, verify: make verify-next } # the beta host, next.free-planning-poker.com: /api/health
+  hold: 10m # a master push changes nothing in production today; the beta host is rolled by CI
 ship:
   - { via: pr } # master branch protection requires a PR and the check `ci`, see AGENTS.md §Deploy
 # A lead runs check-fast before each push; CI's `check` job runs `make check` on the pull request head (hosted runners: the repo is public).
