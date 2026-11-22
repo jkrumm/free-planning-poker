@@ -66,6 +66,26 @@ The API serves the built room app from `apps/room/dist` (`ROOM_APP_DIR` names an
 
 Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port. Behind a proxy, `CLIENT_IP_HEADER` names the single-valued header the edge overwrites with the client's address (`cf-connecting-ip` behind Cloudflare, never `x-forwarded-for`), so the per-address limit on wrong access codes counts clients and not the proxy; unset, the socket's peer address counts. `POST /api/contact` and `POST /api/feedback` need the same `Origin` list and send through `EMAIL_GATEWAY_URL` with `EMAIL_GATEWAY_SECRET_KEY`, and `FACTORY_FEEDBACK_URL` with `FACTORY_FEEDBACK_TOKEN`; a route whose two variables are not both set answers 503, so a local API sends nothing unless you set them (`apps/api/.env.tpl`).
 
+## Image
+
+`apps/api/Dockerfile` builds the one image of the API and the room app it serves (docs/v9/ARCHITECTURE.md, Topology); `deploy/compose.yml` runs it with PostgreSQL 18. The build context is the repository root, trimmed by `.dockerignore`.
+
+| Target | Does |
+|-|-|
+| `make v9-image` | builds `fpp-api:local` |
+| `make v9-up` | builds if needed, starts the stack, waits until both containers are healthy. `FPP_PORT` (default 7740) is the host port on loopback, `FPP_BIND=0.0.0.0` publishes it; `V9_UP_FLAGS=--no-build` starts a loaded image, `V9_PROJECT` names the Compose project |
+| `make v9-smoke` | `/api/health` answers 200 and `/room/x` returns the shell |
+| `make v9-size` | the image's size, uncompressed and as a gzipped `docker save` |
+| `make v9-down` | removes the stack **and its database volume** |
+
+A lead starts the stack inside a slot, on a port from the OS and a project name of its own: `factory slot run -- make v9-up V9_PROJECT=<name> FPP_PORT=<port>`; the factory's Docker hook refuses a bare `v9-up` from a worktree.
+
+- **Stages.** `oven/bun:<packageManager version>-alpine` builds: `bun install --frozen-lockfile` for the room app and the API only (every workspace manifest is copied first, because Bun checks the whole graph against `bun.lock`: a new workspace member needs its `COPY` line, and the image job says so when it is missing), the Vite build, and `bun build` of the API into one file, never minified (span names come from function names). The runtime stage holds only `main.js`, `drizzle/` and the built room app, owned by root, and runs as the base image's `bun` user.
+- **Moving Bun.** `BUN_VERSION` in the Dockerfile is the `packageManager` version; change both together.
+- **Environment.** `DATABASE_URL` and `VISITOR_KEY` come from the compose file with local defaults; a real deployment sets `VISITOR_KEY`, `POSTGRES_PASSWORD` and `ALLOWED_ORIGINS`. `OTEL_SERVICE_VERSION` is a build argument (the commit; `local` without one) and reaches the API as `GIT_SHA`.
+- **Migrations** run on start where `MIGRATE_ON_START=true` (the image sets it; development and tests leave it off, so a process still starts without a database) (`migrateOnStart` in `src/db/client.ts`, called by `src/main.ts`): a session advisory lock on a connection of its own makes two starting containers apply them one after the other. `MIGRATIONS_DIR` names the folder (`/app/drizzle` in the image). A failed migration, or a database that is not there, stops the process: the container never serves on an old schema, and the restart policy (or the orchestrator's health wait) tries again.
+- **Health and stop.** The health check is `/api/health` (503 while draining, so a stopping container is unhealthy). SIGTERM reaches Bun as PID 1; the drain exits 0 well inside the compose `stop_grace_period` of 30 s.
+
 ## CI
 
 `.github/workflows/ci.yml`, on pull requests and pushes to `master`, on `ubuntu-24.04`:
@@ -74,6 +94,7 @@ Agents never start these servers. The API opens a room socket only for an `Origi
 |-|-|
 | `lanes` | `.github/lanes.sh` reads `.github/lanes` and the diff and outputs `app` and `site` as booleans; a change on the `every` line (`.github/`, `bun.lock`, `package.json`, `bunfig.toml`, `tsconfig.base.json`) selects every lane |
 | `check` | installs the PostgreSQL 18 server binaries from PGDG (`.github/postgres.sh`, no cluster), `bun install --frozen-lockfile`, `make check` with `PG_BIN_DIR` set |
+| `image` | lane `app`: builds `apps/api/Dockerfile` with BuildKit's GitHub cache backend (scope `fpp-api`), prints the image size to the job summary, starts `deploy/compose.yml` from the built image, runs `make v9-smoke`, removes the stack, and hands the image on as the artifact `fpp-api-image` (a tar, one day). No registry push: nothing rolls out from here (`v9-next-deploy`) |
 | `site` | lane `site`: `make site` builds `apps/site` for production and beta and tests the output (scripts, links, page budgets, the draft rule); apps/site/AGENTS.md |
 | `ci` | `if: always()`; `.github/gate.sh` reads `toJSON(needs)` and fails when a needed job failed or was cancelled, or was skipped while `lanes` did not succeed. The only required check of `master` |
 

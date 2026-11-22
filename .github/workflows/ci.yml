@@ -105,9 +105,47 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+  # The image (apps/api/Dockerfile): the API with the room app it serves, built with BuildKit's GitHub cache backend, one scope
+  # per image, and started from deploy/compose.yml as a smoke test. The image goes on as an artifact for the end-to-end suite.
+  # No registry push: nothing is rolled out from here (v9-next-deploy). Runs only when lane app changed.
+  image:
+    needs: lanes
+    if: needs.lanes.outputs.app == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          build-args: OTEL_SERVICE_VERSION=${{ github.sha }}
+          tags: fpp-api:local
+          cache-from: type=gha,scope=fpp-api
+          cache-to: type=gha,scope=fpp-api,mode=max
+          outputs: type=docker,dest=${{ runner.temp }}/fpp-api.tar
+      - run: docker load --input "${{ runner.temp }}/fpp-api.tar"
+      - run: make v9-size | tee -a "$GITHUB_STEP_SUMMARY"
+      - run: make v9-up V9_UP_FLAGS=--no-build
+      - run: make v9-smoke
+      - if: failure()
+        run: docker compose -f deploy/compose.yml logs --no-color
+      - if: always()
+        run: make v9-down
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fpp-api-image
+          path: ${{ runner.temp }}/fpp-api.tar
+          retention-days: 1
+          compression-level: 0
+
   # The required check. It runs whatever happened before it and is red when a needed job failed or was cancelled.
   ci:
-    needs: [lanes, check, site, arena]
+    needs: [lanes, check, site, arena, image]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score indexnow factory-files bun-version lanes deploy verify logs import-v1 v1-mariadb
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score indexnow factory-files bun-version lanes deploy verify logs import-v1 v1-mariadb v9-image v9-up v9-down v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover. Overridable so `verify` can be pointed at another host.
@@ -25,6 +25,15 @@ SERVER_TESTS = **/*.server.test.ts
 
 # Effect's type-aware lint rules (effecttsgo/*) run only through effect-tsgo's patched oxlint, over the three folders where Effect lives.
 EFFECT_DIRS = apps/api/src/app apps/api/src/db apps/api/src/jobs
+
+# The v9 stack (deploy/compose.yml): the API image with the room app, and PostgreSQL 18. Docker is driven from these
+# targets only. A lead starts the stack inside a slot (`factory slot run -- make v9-up`), never from a bare shell.
+V9_PROJECT ?= fpp-v9
+V9_COMPOSE = docker compose -p $(V9_PROJECT) -f deploy/compose.yml
+# CI loads the built image and starts it with V9_UP_FLAGS=--no-build; locally the stack builds its own.
+V9_UP_FLAGS ?= --build
+export FPP_PORT ?= 7740
+export OTEL_SERVICE_VERSION ?= $(shell git rev-parse --short=7 HEAD 2>/dev/null || echo local)
 
 # Site tests read the built output, so they run in `make site` only.
 SITE_TESTS = **/*.site.test.ts
@@ -69,6 +78,26 @@ site: ## Build apps/site for production and beta, then test the output (lane sit
 site-run:
 	@$(call step,site build (production, beta, fixtures),ASTRO_TELEMETRY_DISABLED=1 bun run --filter '@fpp/site' build)
 	@$(call step,site tests,bun test apps/site $(call JUNIT,site))
+
+v9-image: ## Build the API image (apps/api/Dockerfile) as fpp-api:local
+	@$(V9_COMPOSE) build api
+
+v9-up: ## Start the v9 stack (API with the room app, PostgreSQL 18) and wait until it is healthy
+	@$(V9_COMPOSE) up -d --wait $(V9_UP_FLAGS)
+	@echo "==> v9 stack up on http://127.0.0.1:$(FPP_PORT)"
+
+v9-size: ## Print the image's size, uncompressed and as a gzipped `docker save` (what a registry would hold, near enough)
+	@docker image inspect fpp-api:local --format 'uncompressed: {{.Size}} bytes'
+	@echo "compressed: $$(docker save fpp-api:local | gzip -c | wc -c | tr -d ' ') bytes"
+
+v9-down: ## Remove the v9 stack with its database volume
+	@$(V9_COMPOSE) down --volumes --remove-orphans
+
+v9-smoke: ## Probe the running stack: /api/health answers 200 and /room/x returns the shell
+	@curl -fsS http://127.0.0.1:$(FPP_PORT)/api/health
+	@echo
+	@curl -fsS http://127.0.0.1:$(FPP_PORT)/room/x | grep -q '/_room/' || { echo "==> /room/x is not the room app's shell"; exit 1; }
+	@echo "==> v9 smoke passed"
 
 # The table arena (docs/v9/ARENA.md): the gallery with every entry under arena/entries, and one entry's scorecard.
 arena: ## Build the table arena's gallery (apps/arena/dist) and render every entry through every scenario

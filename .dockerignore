@@ -1,0 +1,16 @@
+# The build context is the repository root (apps/api/Dockerfile). Only sources go in: no install, no build output.
+**/node_modules
+**/dist
+.git
+.claude
+.github
+.astro
+docs
+**/*.test.ts
+**/*.test.tsx
+**/*.server.test.ts
+arena/scores
+test-results
+.env
+.env*.local
+**/.DS_Store

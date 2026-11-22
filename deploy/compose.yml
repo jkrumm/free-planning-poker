@@ -1,0 +1,51 @@
+# The API with the room app it serves, and PostgreSQL 18: the way to self-host Free Planning Poker, and the system the
+# end-to-end suite runs against (docs/development.md, Image). Every value has a local default, so nothing needs a
+# secret store. `make v9-up` builds the image and starts the stack; `make v9-down` removes it with its data.
+#
+# For a real deployment set VISITOR_KEY (32 characters or more, secret: the key of the visitor hash), the database
+# password and ALLOWED_ORIGINS (the origin the browser sees, e.g. https://poker.example.com).
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: fpp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fpp-local}
+      POSTGRES_DB: fpp
+    # PostgreSQL 18 images keep the cluster in a version directory below /var/lib/postgresql.
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fpp -d fpp']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    init: true
+    mem_limit: 512m
+    restart: unless-stopped
+
+  api:
+    image: ${FPP_IMAGE:-fpp-api:local}
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      args:
+        OTEL_SERVICE_VERSION: ${OTEL_SERVICE_VERSION:-local}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://fpp:${POSTGRES_PASSWORD:-fpp-local}@postgres:5432/fpp
+      VISITOR_KEY: ${VISITOR_KEY:-local-visitor-key-change-it-0000000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:7740,http://127.0.0.1:7740}
+    # Loopback by default: put a reverse proxy in front, or set FPP_BIND=0.0.0.0 to publish the port.
+    ports:
+      - '${FPP_BIND:-127.0.0.1}:${FPP_PORT:-7740}:7740'
+    init: true
+    mem_limit: 512m
+    # The app drains in 20 s; the rest is slack for the runtime.
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

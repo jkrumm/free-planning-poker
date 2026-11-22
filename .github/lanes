@@ -3,7 +3,7 @@
 # `every` is not a lane: a change to one of its paths runs every lane, because the toolchain or the pipeline moved.
 every: .github bun.lock package.json bunfig.toml tsconfig.base.json
 # app: the core, the API, the client, the table, the room app, and the end-to-end suite that drives them.
-app: packages/room-core packages/room-client packages/table packages/telemetry packages/test-kit packages/i18n apps/api apps/room e2e
+app: packages/room-core packages/room-client packages/table packages/telemetry packages/test-kit packages/i18n apps/api apps/room e2e deploy .dockerignore
 # site: the marketing site, its content and the changelog that /roadmap reads at build time.
 site: apps/site CHANGELOG.md
 # arena: the table's contract and scenarios, the gallery, the entries, the scorecard, and the scenario helper they play through.
