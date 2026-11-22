@@ -88,7 +88,10 @@ export class Seat {
           errors.add(0)
           resolve()
         },
-        reject,
+        reject: (error) => {
+          clearTimeout(giveUp)
+          reject(error)
+        },
       }
       this.open()
     })
