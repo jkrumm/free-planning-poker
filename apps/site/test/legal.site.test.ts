@@ -1,3 +1,4 @@
+import { BEFORE_SEND_GLOBAL, UMAMI_SCRIPT_SRC } from '@fpp/telemetry/umami-script'
 import { describe, expect, test } from 'bun:test'
 import { privacyFacts } from '../src/lib/privacy-facts.ts'
 import { v1ImprintSections } from './fixtures/v1-imprint.ts'
@@ -83,7 +84,11 @@ describe.each(realOutputs)('legal pages, build %s', (output) => {
   test('only the contact page carries an executable script', async () => {
     const withScript: string[] = []
     for (const page of (await listFiles(root)).filter((file) => file.endsWith('.html'))) {
-      if (executableIn(page, await readText(root, page)).length > 0) withScript.push(page)
+      // Umami's two tags are on every page of a build that has a website id (umami.site.test.ts), and no page's own script.
+      const own = executableIn(page, await readText(root, page)).filter(
+        (found) => !found.includes(BEFORE_SEND_GLOBAL) && !found.includes(UMAMI_SCRIPT_SRC),
+      )
+      if (own.length > 0) withScript.push(page)
     }
     expect(withScript).toEqual(['contact.html'])
   })
