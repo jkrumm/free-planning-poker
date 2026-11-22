@@ -11,7 +11,6 @@ export const REGISTERED: ReadonlySet<string> = new Set([
   ...Object.values(SPAN),
   ...Object.values(SERVICE),
   ...Object.values(METRIC).map((metric) => metric.name),
-  ...Object.keys(UMAMI),
 ])
 
 /** Blanks comments, keeping line breaks. */
@@ -19,6 +18,16 @@ const stripComments = (source: string) =>
   source
     .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '))
     .replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1')
+
+/** An Umami event name is a common word of other vocabularies (a nack reason, a runtime event): it is refused only as the event of a `track(` call. */
+export function trackLiteralsOf(source: string): Finding[] {
+  const found: Finding[] = []
+  const code = stripComments(source)
+  for (const match of code.matchAll(/\btrack\s*\(\s*['"`]([a-z_]+)['"`]/g))
+    if (match[1] !== undefined && match[1] in UMAMI)
+      found.push({ line: code.slice(0, match.index).split('\n').length, text: match[1] })
+  return found
+}
 
 export type Finding = { readonly line: number; readonly text: string }
 
