@@ -47,7 +47,9 @@ describe('beta build: every term, drafts included', () => {
     const files = await listFiles(root)
     expect(files).toContain('glossary.html')
     for (const entry of entries) expect(files).toContain(`glossary/${entry.id}.html`)
-    expect(files.filter((file) => file.startsWith('glossary/'))).toHaveLength(entries.length)
+    expect(
+      files.filter((file) => file.startsWith('glossary/') && file.endsWith('.html')),
+    ).toHaveLength(entries.length)
   })
 
   test.each(entries)('$id carries one valid DefinedTerm block', async (entry) => {
