@@ -118,6 +118,11 @@ export const METRIC = {
     unit: '{command}',
     description: 'Commands refused, by reason',
   },
+  NUMBERS_EXHAUSTED: {
+    name: 'fpp.room.numbers_exhausted',
+    unit: '{request}',
+    description: 'New rooms refused because no drawn number could be taken',
+  },
 } as const satisfies Record<string, MetricDef>
 
 /** What each metric may carry besides nothing: a view drops every other attribute before export. */
@@ -131,4 +136,5 @@ export const METRIC_LABELS = {
   [METRIC.WS_RESUMED.name]: [ATTR.BUILD],
   [METRIC.HANDOFF_DURATION.name]: [ATTR.BUILD],
   [METRIC.COMMAND_REJECTED.name]: [ATTR.BUILD, ATTR.NACK_REASON],
+  [METRIC.NUMBERS_EXHAUSTED.name]: [ATTR.BUILD],
 } as const satisfies Record<string, readonly AttrKey[]>

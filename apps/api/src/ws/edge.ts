@@ -51,8 +51,8 @@ export type RoomServerOptions = {
    * `cf-connecting-ip`); without it the socket's peer address counts, which behind a proxy is the proxy's.
    */
   readonly clientIpHeader?: string
-  /** The HTTP routes; Elysia keeps them whichever adapter carries the sockets. */
-  readonly http: App
+  /** The HTTP routes, given the runtime they act on; Elysia keeps them whichever adapter carries the sockets. */
+  readonly http: (runtime: RoomRuntime) => App
   readonly rooms: RoomDirectory
   readonly ports: Omit<RuntimePorts, 'transport'>
   readonly runtime: RuntimeOptions

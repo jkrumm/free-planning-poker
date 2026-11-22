@@ -11,6 +11,7 @@ import { createApp } from '../../src/http/app.ts'
 import { timerClock } from '../../src/ws/clock.ts'
 import type { RoomServer, RoomServerOptions } from '../../src/ws/edge.ts'
 import { serveBun } from '../../src/ws/bun.transport.ts'
+import { NO_ROOMS } from '../support.ts'
 import { ORIGIN } from './client.ts'
 
 /**
@@ -43,7 +44,12 @@ export async function startServer(
     hostname: '127.0.0.1',
     origins: [ORIGIN],
     ...(options.clientIpHeader === undefined ? {} : { clientIpHeader: options.clientIpHeader }),
-    http: createApp({ build: { version: 'contract', commit: 'contract' } }),
+    http: () =>
+      createApp({
+        build: { version: 'contract', commit: 'contract' },
+        rooms: NO_ROOMS,
+        health: async () => 'ok',
+      }),
     rooms: rooms.directory,
     ports: {
       clock,

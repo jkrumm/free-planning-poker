@@ -24,6 +24,7 @@ import { parseEnv } from '../../src/env.ts'
 import { createApiTelemetry } from '../../src/telemetry.ts'
 import { hello, join, TestClient } from '../contract/client.ts'
 import { startServer, type Started } from '../contract/harness.ts'
+import { ENV } from '../support.ts'
 
 const MARK = {
   alice: 'Zq7AliceMark',
@@ -54,6 +55,7 @@ const deck = parseDeck({
 if (slug === undefined || code === undefined || deck === undefined) throw new Error('bad markers')
 
 const env = parseEnv({
+  ...ENV,
   NODE_ENV: 'production',
   GIT_SHA: 'abcdef1234567890',
   APP_VERSION: 'contract',
@@ -76,6 +78,8 @@ async function playRound(): Promise<Exported> {
   const telemetry = createApiTelemetry(env, { exporters: memory.exporters, lines: memory.line })
   const room: Started = await startServer('bun', await freePort(), { telemetry: telemetry.port })
   telemetry.server.observeLoad(room.server.runtime.stats)
+  // No room is created over HTTP here; the count POST /api/rooms keeps when its draws run out is taken as it would be.
+  telemetry.server.numbersExhausted()
   room.rooms.put(slug!, {
     settings: { ...DEFAULT_SETTINGS, deck: deck!, revealCountdown: 0 },
     access: 'locked',

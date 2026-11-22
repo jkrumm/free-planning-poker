@@ -11,6 +11,7 @@ import { parseEnv } from '../../src/env.ts'
 import { createApiTelemetry } from '../../src/telemetry.ts'
 import { join as joinRoom } from '../contract/client.ts'
 import { SETTINGS, startServer } from '../contract/harness.ts'
+import { ENV } from '../support.ts'
 
 /** A collector that records the path of every request it receives. */
 async function stubCollector() {
@@ -77,7 +78,9 @@ afterEach(async () => {
 })
 
 test('control: with an endpoint the same round reaches the collector as traces, metrics and logs', async () => {
-  const { exporting } = await playAndFlush(parseEnv({ OTEL_EXPORTER_OTLP_ENDPOINT: collector.url }))
+  const { exporting } = await playAndFlush(
+    parseEnv({ ...ENV, OTEL_EXPORTER_OTLP_ENDPOINT: collector.url }),
+  )
   expect(exporting).toBe(true)
   expect(collector.paths).toContain('/v1/traces')
   expect(collector.paths).toContain('/v1/metrics')
@@ -86,7 +89,7 @@ test('control: with an endpoint the same round reaches the collector as traces, 
 
 test('with no endpoint the same round builds no SDK, sends nothing and writes no line', async () => {
   const written = [spyOn(console, 'error'), spyOn(console, 'warn')]
-  const { exporting, lines } = await playAndFlush(parseEnv({}))
+  const { exporting, lines } = await playAndFlush(parseEnv(ENV))
   expect(exporting).toBe(false)
   expect(collector.paths).toEqual([])
   expect(lines).toEqual([])
@@ -100,7 +103,13 @@ test('the API process with no endpoint starts, answers and writes nothing but it
   const port = await freePort()
   const entry = join(import.meta.dir, '..', '..', 'src', 'main.ts')
   const child = Bun.spawn([process.execPath, entry], {
-    env: { PATH: process.env['PATH'] ?? '', PORT: String(port) },
+    // A database nobody listens on: the process starts and plays on without one, so no test touches a shared one.
+    env: {
+      PATH: process.env['PATH'] ?? '',
+      PORT: String(port),
+      DATABASE_URL: `postgres://postgres@127.0.0.1:${await freePort()}/none`,
+      VISITOR_KEY: ENV.VISITOR_KEY,
+    },
     stdout: 'pipe',
     stderr: 'pipe',
   })

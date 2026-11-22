@@ -10,6 +10,9 @@ export type PostgresCluster = {
   /** the temporary directory that holds the cluster; removed by `stop` */
   readonly dir: string
   stop(): Promise<void>
+  /** Stops the server and keeps its data, for a test of an outage; `resume` starts it again on the same port. */
+  halt(): Promise<void>
+  resume(): Promise<void>
 }
 
 /** Attempts at a free port: another process can take the port between `freePort` and the postmaster's bind. */
@@ -51,17 +54,28 @@ export async function startPostgres(
         '-c synchronous_commit=off',
         '-c full_page_writes=off',
       ].join(' ')
-      const started = await run(
-        join(binDir, 'pg_ctl'),
-        ['-D', data, '-l', log, '-o', settings, '-w', '-t', '60', 'start'],
-        { check: false },
-      )
+      const start = () =>
+        run(
+          join(binDir, 'pg_ctl'),
+          ['-D', data, '-l', log, '-o', settings, '-w', '-t', '60', 'start'],
+          {
+            check: false,
+          },
+        )
+      const started = await start()
       if (started.ok) {
         return {
           url: `postgres://postgres@127.0.0.1:${port}/postgres`,
           port,
           dir,
           stop: () => stopCluster(binDir, data, dir),
+          halt: async () => {
+            await run(join(binDir, 'pg_ctl'), ['-D', data, '-m', 'fast', '-w', 'stop'])
+          },
+          resume: async () => {
+            const resumed = await start()
+            if (!resumed.ok) throw new Error(`postgres did not start again: ${resumed.output}`)
+          },
         }
       }
       const text = await readFile(log, 'utf8').catch(() => '')
