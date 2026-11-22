@@ -341,6 +341,17 @@ describe('limits', () => {
     expect(room.closes.get(conn)).toBe(4008)
   })
 
+  test('a pong costs a token like any frame', async () => {
+    const room = harness()
+    const conn = await room.connect()
+    for (let i = 0; i < 10; i += 1)
+      await room.runtime.receive(conn, JSON.stringify({ frame: 'pong' }))
+    expect((await room.send(conn, vote(room.current())))?.frame).toBe('nack')
+    for (let i = 0; i < 9; i += 1)
+      await room.runtime.receive(conn, JSON.stringify({ frame: 'pong' }))
+    expect(room.closes.get(conn)).toBe(4008)
+  })
+
   test('the bucket refills at five per second', async () => {
     const room = harness()
     const conn = await room.connect()
@@ -446,6 +457,16 @@ describe('snapshots', () => {
     expect(room.closes.get(ada)).toBe(4004)
     const fresh = await room.connect()
     expect(room.welcome(fresh).view.room.name).toBe('Team Alpha')
+    expect(room.telemetry.failures.map((failure) => failure.action)).toEqual(['store'])
+  })
+
+  test('a snapshot whose state check cannot even read also starts the room cold', async () => {
+    const store = memoryStore()
+    const room = harness({ store })
+    const odd = { v: 1, state: { seats: [] }, seq: 3, accessEpoch: 0, seats: [] }
+    store.snapshots.set(ROOM, odd as unknown as RoomSnapshot)
+    const fresh = await room.connect()
+    expect(room.welcome(fresh).seq).toBe(1)
     expect(room.telemetry.failures.map((failure) => failure.action)).toEqual(['store'])
   })
 
