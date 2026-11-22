@@ -17,6 +17,9 @@ import type { App } from '../http/app.ts'
 
 export const WS_PREFIX = '/api/ws/'
 
+/** The largest HTTP request body the server reads: the longest message (feedback, 2,000 characters) fits many times over. */
+export const MAX_BODY_BYTES = 64 * 1024
+
 /** Bun's WebSocket options, the same for every adapter. */
 export const SOCKET_OPTIONS = {
   /**
@@ -122,10 +125,20 @@ export async function admit(
  * address the edge overwrites (`cf-connecting-ip`); a list a client can prepend to, such as `x-forwarded-for`, is
  * no source for it.
  */
-function clientIp(request: Request, header: string | undefined, peer: string): string {
+export function clientIp(request: Request, header: string | undefined, peer: string): string {
   const named = header === undefined ? undefined : request.headers.get(header)?.trim()
   return named === undefined || named === '' ? peer : named
 }
+
+/**
+ * The peer address of each HTTP request the adapter hands to Elysia, which sees no socket. The composition root reads
+ * it with `clientIp` for the limits on messages.
+ */
+export const peers = new WeakMap<Request, string>()
+
+/** The client of an HTTP request for the limits on messages: the edge's header, else the peer the adapter recorded. */
+export const clientOf = (header: string | undefined) => (request: Request) =>
+  clientIp(request, header, peers.get(request) ?? '')
 
 /** A frame as the text a socket sends; one that the protocol's schemas refuse is a bug and throws. */
 export function encode(frame: ServerFrame): string {

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { NO_ROOMS, NO_STATS } from '../../test/support.ts'
+import { NO_MESSAGES, NO_ROOMS, NO_STATS } from '../../test/support.ts'
 import { createApp, type Health } from './app.ts'
 
 const app = (health: Health) =>
@@ -7,6 +7,9 @@ const app = (health: Health) =>
     build: { version: '9.0.0', commit: 'abc123' },
     rooms: NO_ROOMS,
     stats: NO_STATS,
+    messages: NO_MESSAGES,
+    origins: new Set(),
+    client: () => 'test',
     health: async () => health,
   })
 

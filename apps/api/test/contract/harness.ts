@@ -8,10 +8,11 @@ import { DECKS } from '@fpp/room-core/types'
 import { memoryRooms } from '../../src/app/memory-rooms.ts'
 import { systemIds, systemSecrets } from '../../src/app/system.ts'
 import { createApp } from '../../src/http/app.ts'
+import type { MessagesApi } from '../../src/http/messages.ts'
 import { timerClock } from '../../src/ws/clock.ts'
-import type { RoomServer, RoomServerOptions } from '../../src/ws/edge.ts'
+import { clientOf, type RoomServer, type RoomServerOptions } from '../../src/ws/edge.ts'
 import { serveBun } from '../../src/ws/bun.transport.ts'
-import { NO_ROOMS, NO_STATS } from '../support.ts'
+import { NO_MESSAGES, NO_ROOMS, NO_STATS } from '../support.ts'
 import { ORIGIN } from './client.ts'
 
 /**
@@ -30,7 +31,11 @@ export const SETTINGS = { ...DEFAULT_SETTINGS, deck: DECKS['t-shirt'], revealCou
 export async function startServer(
   adapter: AdapterName,
   port: number,
-  options: { readonly clientIpHeader?: string; readonly telemetry?: RuntimeTelemetry } = {},
+  options: {
+    readonly clientIpHeader?: string
+    readonly telemetry?: RuntimeTelemetry
+    readonly messages?: MessagesApi
+  } = {},
 ) {
   const rooms = memoryRooms()
   const recorder = telemetryRecorder()
@@ -49,6 +54,9 @@ export async function startServer(
         build: { version: 'contract', commit: 'contract' },
         rooms: NO_ROOMS,
         stats: NO_STATS,
+        messages: options.messages ?? NO_MESSAGES,
+        origins: new Set([ORIGIN]),
+        client: clientOf(options.clientIpHeader),
         health: async () => 'ok',
       }),
     rooms: rooms.directory,

@@ -1,4 +1,5 @@
 /** What the API's tests share that is not a port: a room API that serves no room, for servers that test sockets only. */
+import type { MessagesApi } from '../src/http/messages.ts'
 import type { RoomsApi } from '../src/http/rooms.ts'
 import type { StatsApi } from '../src/http/stats.ts'
 
@@ -13,6 +14,11 @@ export const NO_ROOMS: RoomsApi = {
 
 /** A stats API that has nothing to say, for servers that test other routes. */
 export const NO_STATS: StatsApi = { read: async () => ({ ok: false, error: 'unavailable' }) }
+/** A messages API that sends nothing, for servers that test rooms only. */
+export const NO_MESSAGES: MessagesApi = {
+  contact: async () => ({ ok: false, error: 'unavailable' }),
+  feedback: async () => ({ ok: false, error: 'unavailable' }),
+}
 
 /** An environment `parseEnv` accepts; tests add what they test. */
 export const ENV = {
