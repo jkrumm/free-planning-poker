@@ -101,7 +101,7 @@ Two server versions run against one database during every deploy. A migration mu
 
 Exact pins. A pre-release such as Elysia 2 is installed by version, never by tag: `latest` on npm is still the 1.4 line, and the tags have moved before. A new runtime dependency names its reason and its size in the pull request. The versions in `ARCHITECTURE.md` are a starting point: check each with `agw web package` on the day.
 
-Effect is pinned at one 4.1.x version, and lint refuses imports from `effect/unstable/*`. A lead that writes Effect loads the library's own guidance for version 4 and runs its type-aware lint rules, which work under oxlint: models trained on 3.x otherwise mix the two (`research/r18-effect.md`).
+Effect is pinned at one 4.1.x version, and lint refuses imports from `effect/unstable/*`. A lead that writes Effect loads the library's own guidance for version 4 and runs its type-aware lint rules, which `make check-fast` runs through `effect-tsgo oxlint` (`.claude/rules/effect.md`): models trained on 3.x otherwise mix the two (`research/r18-effect.md`).
 
 ## What a script enforces
 
@@ -111,6 +111,7 @@ A rule that can be checked is a check, not a sentence. All of these run in `make
 |-|-|
 | `scripts/boundaries.ts` over a table in the repo root | The dependency arrows of the repo map; a class per module (`pure`, `adapter`, `shell`); a `pure` module does no I/O: its imports are resolved and may not reach `node:*` or `bun:*`, and its source is scanned for the globals `fetch`, `WebSocket`, the timer functions, `Date.now` and `Math.random`; no import reaches into another package past its `exports`; apps never import each other. The pattern is software-factory's `scripts/boundaries.ts` and weatherorb's `class-lint` |
 | oxlint | restricted imports (OpenTelemetry APIs outside `packages/telemetry`, `@fpp/room-client` inside `packages/table`, `elysia` and `@elysia/*` outside `apps/api/src/http` and `apps/api/src/ws`, `effect` and `@effect/*` outside `apps/api/src/app`, `src/db` and `src/jobs`, anything under `effect/unstable`), no explicit `any`, the React hook rules, type-only imports, unused code |
+| Effect lint (`effect-tsgo oxlint`) | Effect's type-aware rules (`effecttsgo/*`: floating effects, missing context, v3 APIs in a v4 program) over `apps/api/src/app`, `src/db` and `src/jobs` |
 | Type check | strict mode; the protocol types shared by server and client |
 | Core tests and 200 simulator seeds | the invariants of `ARCHITECTURE.md` |
 | Telemetry content test | no display name, slug or vote value in any exported span, log or metric |

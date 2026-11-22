@@ -23,6 +23,9 @@ slot = $(if $(shell command -v factory 2>/dev/null),factory slot run --name "fre
 # Server-tier tests start Postgres and run in `make check` only.
 SERVER_TESTS = **/*.server.test.ts
 
+# Effect's type-aware lint rules (effecttsgo/*) run only through effect-tsgo's patched oxlint, over the three folders where Effect lives.
+EFFECT_DIRS = apps/api/src/app apps/api/src/db apps/api/src/jobs
+
 # Site tests read the built output, so they run in `make site` only.
 SITE_TESTS = **/*.site.test.ts
 
@@ -30,10 +33,11 @@ help: ## List available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-check-fast: ## Before every push: format, lint, types, boundaries, unit tests, factory files (budget 60 s)
+check-fast: ## Before every push: format, lint, Effect lint, types, boundaries, unit tests, factory files (budget 60 s)
 	@$(MAKE) --no-print-directory bun-version
 	@$(call step,format (oxfmt --check),bunx --no-install oxfmt --check >/dev/null || bunx --no-install oxfmt --check)
 	@$(call step,lint (oxlint),bunx --no-install oxlint --deny-warnings)
+	@$(call step,effect lint (effect-tsgo oxlint),bunx --no-install effect-tsgo oxlint --type-aware -c .oxlintrc.effect.json --deny-warnings $(EFFECT_DIRS))
 	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json && bunx --no-install tsc --noEmit -p tsconfig.dom.json && bunx --no-install tsc --noEmit -p e2e/tsconfig.json)
 	@$(call step,boundaries (scripts/boundaries.ts),bun scripts/boundaries.ts)
 	@$(call step,unit tests (bun test),bun test $(call JUNIT,unit) --path-ignore-patterns='$(SERVER_TESTS)' --path-ignore-patterns='$(SITE_TESTS)')
