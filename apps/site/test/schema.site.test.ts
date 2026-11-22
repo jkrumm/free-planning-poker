@@ -67,13 +67,14 @@ describe('the pages of the production build', () => {
     expect(typesOf(jsonLdBlocks(html))).toEqual(['Organization', 'WebSite', 'SoftwareApplication'])
   })
 
-  test('/guide carries Article and BreadcrumbList', async () => {
+  test('/guide carries Article and BreadcrumbList, and FAQPage for the questions it prints', async () => {
     const html = await readText(outputRoot('production'), 'guide.html')
     expect(typesOf(jsonLdBlocks(html))).toEqual([
       'Organization',
       'WebSite',
       'Article',
       'BreadcrumbList',
+      'FAQPage',
     ])
   })
 })

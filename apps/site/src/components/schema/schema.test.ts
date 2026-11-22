@@ -60,7 +60,10 @@ test('the organization and the website name the production origin', () => {
 test('FAQPage enters a page only through questions.astro', () => {
   const src = join(import.meta.dir, '..', '..')
   const files = (readdirSync(src, { recursive: true, encoding: 'utf8' }) as string[]).filter(
-    (file) => /\.(?:astro|ts|mdx?)$/.test(file) && !file.endsWith('.test.ts'),
+    (file) =>
+      /\.(?:astro|ts|mdx?)$/.test(file) &&
+      !file.endsWith('.test.ts') &&
+      !file.endsWith('AGENTS.md'),
   )
   const mentions = files.filter((file) =>
     /FAQPage|faq-page/.test(readFileSync(join(src, file), 'utf8')),
