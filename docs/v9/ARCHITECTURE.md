@@ -42,18 +42,19 @@ The API container serves the SPA it was built with, so client and server ship as
 
 ## Repo map
 
-Ten modules. The dependency arrows only point down this table.
+Eleven modules. The dependency arrows only point down this table.
 
 | Path | Package | Holds | May import |
 |-|-|-|-|
 | `apps/site` | `@fpp/site` | Astro marketing site, content collections, the landing demo island | `@fpp/table`, `@fpp/room-core`, `@fpp/telemetry` |
-| `apps/room` | `@fpp/room` | Vite SPA: routes, room shell, settings, insights, PWA, embed mode | `@fpp/table`, `@fpp/room-client`, `@fpp/room-core`, `@fpp/telemetry` |
+| `apps/room` | `@fpp/room` | Vite SPA: routes, room shell, settings, insights, PWA, embed mode | `@fpp/table`, `@fpp/room-client`, `@fpp/room-core`, `@fpp/telemetry`, `@fpp/i18n` |
 | `apps/api` | `@fpp/api` | Elysia HTTP API, WebSocket room server, Postgres access, jobs, static serving of the SPA. Effect is allowed in `src/app`, `src/db` and `src/jobs` only | `@fpp/room-core`, `@fpp/telemetry` |
 | `apps/arena` | `@fpp/arena` | The table arena, later the playground: every table entry side by side, driven by the simulator, with the scenario matrix and the scorecard (`UX.md`, "The table arena"; `TABLE-BRIEF.md`, `ARENA.md`) | `@fpp/table`, `@fpp/room-core` |
 | `arena` | `@fpp/arena-entries` | The arena's entries, one directory each under `arena/entries`, in one workspace package so a new entry needs no install | `@fpp/table`, `@fpp/room-core` |
 | `packages/table` | `@fpp/table` | The game surface as React components: seats, cards, reveal, results, motion, sound. Takes a room view and callbacks; knows no transport | `@fpp/room-core` (types) |
 | `packages/room-client` | `@fpp/room-client` | Headless client: connection state machine, pending commands, resume, storage of seat tokens. No React, no DOM beyond `WebSocket` and storage ports | `@fpp/room-core` |
 | `packages/room-core` | `@fpp/room-core` | Protocol schemas and types, the room kernel (seats, roles, presence, access, topics) and the activity `poker` as `decide`, `evolve` and `project`, decks, the room runtime (handshake, seat tokens, resume, presence, limits) behind ports, and the deterministic simulator with bots (`@fpp/room-core/sim`) | nothing in the workspace |
+| `packages/i18n` | `@fpp/i18n` | The five languages and the message catalogues, one file per feature and language; the app and later the site read them | nothing in the workspace |
 | `packages/telemetry` | `@fpp/telemetry` | Attribute, event and metric names; the `recordError` and `recordEvent` facades for server and browser | nothing in the workspace |
 | `e2e` | `@fpp/e2e` | Playwright suite and fixtures against the built image | none at runtime |
 
@@ -69,7 +70,7 @@ Versions as read on 2026-11-18; a row that installs one checks it with `agw web 
 | HTTP and WebSocket server | Elysia 2 with Eden Treaty for the typed HTTP client | `2.0.0-rc.3` exact, by the owner's ruling of 2026-11-19: 1.4 takes security fixes only, and a later move would touch every route and hook. Of the official plugins only `@elysia/eden` and `@elysia/opentelemetry`, at their `rc` tags. See "Server" for how the release candidate is contained |
 | I/O that can fail, in the API | Effect, in `apps/api`'s adapters and composition root only: the Postgres store, jobs, startup and drain, later the webhook relay | 4.1.x exact; nothing from `effect/unstable/*` |
 | Validation | Zod 4 for protocol frames in `packages/room-core`, Elysia's `t` (TypeBox 1.x) for HTTP routes. The SPA imports protocol types only and ships no validator | Zod 4.x |
-| Languages | a compiled message catalogue shared by the room app and the site: Paraglide JS, which compiles each message to a typed function and drops the unused ones, if its spike in `v9-room-plain` holds the bundle budget; Lingui 6 otherwise (`research/r24-i18n.md`) | pinned exactly |
+| Languages | a compiled message catalogue shared by the room app and the site: Lingui 6, whose catalogue files each become a chunk loaded for the language in use. Paraglide JS lost the spike of `v9-room-plain`: its message functions hold every language, so no language is a chunk of its own and the entry grew by 18 kB gzip for 150 messages in five languages (`research/r24-i18n.md`) | 6.12.0 exact |
 | Database | PostgreSQL on the shared VPS instance, schema `fpp` | 18 |
 | ORM and migrations | Drizzle | drizzle-orm 0.45.x on `drizzle-orm/bun-sql`, drizzle-kit 0.31.x; the 1.0 line is a release candidate |
 | Room app | React with the React Compiler, Vite, TanStack Router (file routes, client only) | React 19.3, Vite 8, Router 1.170 |

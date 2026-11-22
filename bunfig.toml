@@ -4,3 +4,7 @@ exact = true
 minimumReleaseAge = 259200
 # A package resolves only the dependencies it declares, so a missing declaration fails here and not in production.
 linker = "isolated"
+
+[test]
+# Lingui macros and .po catalogues for the room app's component tests (apps/room/test/lingui-bun.ts); lazy, so other tests pay nothing.
+preload = ["./apps/room/test/lingui-bun.ts"]

@@ -33,10 +33,11 @@ help: ## List available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-check-fast: ## Before every push: format, lint, Effect lint, types, boundaries, unit tests, factory files (budget 60 s)
+check-fast: ## Before every push: format, lint, messages, Effect lint, types, boundaries, unit tests, factory files (budget 60 s)
 	@$(MAKE) --no-print-directory bun-version
 	@$(call step,format (oxfmt --check),bunx --no-install oxfmt --check >/dev/null || bunx --no-install oxfmt --check)
 	@$(call step,lint (oxlint),bunx --no-install oxlint --deny-warnings)
+	@$(call step,messages (packages/i18n/scripts/messages.ts),bun packages/i18n/scripts/messages.ts)
 	@$(call step,effect lint (effect-tsgo oxlint),bunx --no-install effect-tsgo oxlint --type-aware -c .oxlintrc.effect.json --deny-warnings $(EFFECT_DIRS))
 	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json && bunx --no-install tsc --noEmit -p tsconfig.dom.json && bunx --no-install tsc --noEmit -p e2e/tsconfig.json)
 	@$(call step,boundaries (scripts/boundaries.ts),bun scripts/boundaries.ts)
@@ -55,7 +56,9 @@ fmt: ## Format every file in place
 test-server: ## Server-tier tests: each starts its own Postgres from PG_BIN_DIR
 	@bun test $(call JUNIT,server) server.test
 
-build: ## Build the API bundle
+build: ## Build the room app (apps/room/dist) and the API bundle
+	@bun run --filter '@fpp/room' build
+	@bun apps/room/scripts/budget.ts
 	@bun run --filter '@fpp/api' build
 
 # The marketing site (lane site): both targets plus the fixture content, then the tests over the built output.

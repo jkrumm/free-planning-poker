@@ -10,6 +10,10 @@
     "apps/arena/scripts",
     "apps/arena/vite.config.ts",
     "packages/table/src",
-    "arena"
+    "arena",
+    "apps/room/src",
+    "apps/room/test",
+    "apps/room/vite.config.ts",
+    "packages/i18n"
   ]
 }

@@ -46,7 +46,7 @@
       }
     ]
   },
-  "ignorePatterns": ["node_modules", "dist", ".claude/**", "docs/**"],
+  "ignorePatterns": ["node_modules", "dist", ".claude/**", "docs/**", "**/routeTree.gen.ts"],
   "overrides": [
     {
       "files": ["apps/api/src/http/**", "apps/api/src/ws/**"],
@@ -128,7 +128,9 @@
         "e2e/arena/playwright.config.ts",
         "e2e/arena/setup.ts",
         "e2e/arena/report.ts",
-        "arena/css-modules.d.ts"
+        "arena/css-modules.d.ts",
+        "apps/room/vite.config.ts",
+        "packages/i18n/lingui.config.ts"
       ],
       "rules": {
         "import/no-default-export": "off"
@@ -197,6 +199,12 @@
             ]
           }
         ]
+      }
+    },
+    {
+      "files": ["apps/room/src/**/*.tsx"],
+      "rules": {
+        "react/jsx-no-literals": "error"
       }
     }
   ]
