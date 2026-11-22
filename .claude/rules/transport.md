@@ -7,7 +7,7 @@ paths:
 
 # The transport adapter and Elysia
 
-Elysia 2 is a pinned release candidate (`2.0.0-rc.3`, owner ruling of 2026-11-19). Its API may still move, so it is contained in two folders. The rooms ride `Bun.serve`'s native WebSocket handler (`apps/api/src/ws/bun.transport.ts`), the winner of the bake-off in `v9-api-ws` against Elysia's `websocket()` and Effect's socket server (`docs/v9/evidence/transport.md`); Elysia serves every HTTP route through its fetch.
+Elysia 2 is a pinned release candidate (`2.0.0-rc.3`, owner ruling of 2026-11-19). Its API may still move, so it is contained in two folders. The rooms ride `Bun.serve`'s native WebSocket handler (`apps/api/src/ws/bun.transport.ts`), the winner of the bake-off in `v9-api-ws` against Elysia's `websocket()` and Effect's socket server (`docs/v9/evidence/transport.md`); Elysia serves every `/api` route through its fetch, and the same fetch hands `/room*` and `/_room/*` to the built room app first (`apps/api/src/http/spa.ts`, a plain handler with no framework: it only reads files).
 
 ## The rule
 

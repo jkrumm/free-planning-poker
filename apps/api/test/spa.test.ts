@@ -24,7 +24,8 @@ beforeAll(async () => {
   writeFileSync(join(dir, 'assets', 'index-AbCd1234.js'), 'export const room = 1')
   writeFileSync(join(dir, 'sw.js'), 'self.skipWaiting()')
   writeFileSync(join(dir, '..secret'), 'no')
-  const spa = createSpa(dir)
+  // A trailing separator in the directory, as an operator may write it, serves as well.
+  const spa = createSpa(`${dir}/`)
   if (spa === undefined) throw new Error('the fixture build has no shell')
   const port = await freePort()
   server = await startServer('bun', port, { spa })
