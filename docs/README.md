@@ -21,6 +21,7 @@ One line per file under `docs/`. v9 is the contract for `master`; the files mark
 | `v9/diagrams/` | the SVG figures `ARCHITECTURE.md` embeds: command flow, connection, data model, entry, handoff, lanes, stages, topology |
 | `v9/img/` | the SVG figures `UX.md` embeds: layouts, reveal, table sizes |
 | `v9/evidence/transport.md` | the transport bake-off: three WebSocket adapters measured, `Bun.serve`'s native handler kept |
+| `v9/evidence/load.md` | 500 rooms and 5,000 sockets under k6, a handoff under load, the nightly guard: the numbers and how to read them |
 | `v9/evidence/import-rehearsal.md` | the v1 import: how names, rounds and daily counts come over, and its timed run on a production dump against v1's own counts |
 | `v9/research/README.md` | the index of the 26 research runs with their status; `STRATEGY.md` and `ARCHITECTURE.md` win where a report disagrees |
 | `v9/research/r01-sync-engines.md` | sync engines and multiplayer backends |
