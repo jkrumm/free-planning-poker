@@ -4,7 +4,7 @@
   "build": "9.0.0+3f2c1a7",
   "seat": 0,
   "seatToken": "st_9c1e4b7a2f0d4e8b",
-  "seq": 42,
+  "seq": 41,
   "view": {
     "self": 0,
     "room": {
@@ -92,16 +92,16 @@
           "label": "5",
           "value": 5,
           "decidedBy": "settled",
-          "round": "01a1f340-3da0-7f64-85ab-bd8b6c00c50f"
+          "round": "01a1f340-3da0-74e7-bc90-6fe6f1d45d45"
         }
       }
     ],
     "activity": {
       "kind": "poker",
-      "current": "01a1f340-6c80-7bbf-997a-40f55be6e2b9",
+      "current": "01a1f340-6c80-7b74-9aec-c583d5128965",
       "rounds": [
         {
-          "id": "01a1f340-3da0-7f64-85ab-bd8b6c00c50f",
+          "id": "01a1f340-3da0-74e7-bc90-6fe6f1d45d45",
           "topic": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845",
           "no": 3,
           "attempt": 2,
@@ -162,7 +162,7 @@
           ]
         },
         {
-          "id": "01a1f340-6c80-7bbf-997a-40f55be6e2b9",
+          "id": "01a1f340-6c80-7b74-9aec-c583d5128965",
           "topic": "01a1f33f-c870-7a3f-b810-a77fd2e12f34",
           "no": 4,
           "attempt": 1,

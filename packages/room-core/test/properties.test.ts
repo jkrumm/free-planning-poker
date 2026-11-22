@@ -186,7 +186,14 @@ function freeze(value: unknown): void {
   for (const inner of Object.values(value)) freeze(inner)
 }
 
-type Sent = { input: Extract<Input, { by: SeatIndex }>; events: number }
+type Sent = { input: Extract<Input, { by: SeatIndex }>; accepted: boolean }
+
+/** The same room, the log of command ids aside: what "changes nothing" means for an accepted command. */
+function sameRoom(a: RoomState, b: RoomState): boolean {
+  return (Object.keys(a) as (keyof RoomState)[]).every(
+    (key) => key === 'applied' || a[key] === b[key],
+  )
+}
 
 /** Plays a session and calls `observe` after every step with what it did. */
 class Player {
@@ -421,7 +428,8 @@ class Player {
         return input === undefined ? [] : [{ input, probe: 'unchanged' }]
       }
       case 'repeat': {
-        const applied = this.sent.filter((s) => s.events > 0)
+        // Any accepted command, one that changed nothing included.
+        const applied = this.sent.filter((s) => s.accepted)
         const earlier = at(applied, op.back)
         if (earlier === undefined) return []
         return [{ input: earlier.input, probe: 'duplicate' }]
@@ -563,7 +571,7 @@ function play(session: Session): void {
     const result = step(before, input, player.room.clock.ctx())
     if (probe === 'unchanged') {
       // (b) a second reveal and (c) a vote naming another round change nothing.
-      expect(result.state).toBe(before)
+      expect(sameRoom(result.state, before)).toBe(true)
       if (result.ok) expect(result.events).toEqual([])
     }
     if (probe === 'duplicate') {
@@ -572,7 +580,7 @@ function play(session: Session): void {
       expect(result.state).toBe(before)
     }
     if (input.by !== 'server' && probe === undefined)
-      player.sent.push({ input, events: result.ok ? result.events.length : 0 })
+      player.sent.push({ input, accepted: result.ok && !result.duplicate })
     player.room.state = result.state
     if (result.ok) {
       assertPublishedSecret(result.events)
@@ -599,7 +607,7 @@ describe('generated sessions', () => {
 })
 
 // A model-based test: a small model of one topic's voting, checked against the room after every command.
-type Model = { votes: Map<number, string>; revealed: boolean; attempt: number }
+type Model = { votes: Map<number, string>; revealed: boolean; decided: boolean; attempt: number }
 type Real = { room: Room; seats: SeatIndex[] }
 
 const CARDS = ['1', '2', '3', '5', '8', '?']
@@ -645,7 +653,11 @@ class RevealCommand implements fc.Command<Model, Real> {
     const result = stepSeat(real, real.seats[0]!, { type: 'poker.reveal', payload: { round } })
     if (model.revealed) expect(result.ok && result.events.length).toBe(0)
     else if (model.votes.size === 0) expect(result.ok ? 'ok' : result.reason).toBe('no_votes')
-    else model.revealed = true
+    else {
+      model.revealed = true
+      const labels = new Set(model.votes.values())
+      model.decided = labels.size === 1 && !labels.has('?')
+    }
     agree(model, real)
   }
   toString = () => 'reveal'
@@ -657,6 +669,7 @@ class RevoteCommand implements fc.Command<Model, Real> {
     const round = real.room.state.activity.current
     const result = stepSeat(real, real.seats[0]!, { type: 'poker.revote', payload: { round } })
     if (!model.revealed) expect(result.ok ? 'ok' : result.reason).toBe('not_revealed')
+    else if (model.decided) expect(result.ok ? 'ok' : result.reason).toBe('topic_decided')
     else {
       expect(result.ok).toBe(true)
       model.revealed = false
@@ -723,7 +736,12 @@ describe('model-based', () => {
             seats.push(room.state.seats.at(-1)!.index)
           }
           const setup = () => ({
-            model: { votes: new Map<number, string>(), revealed: false, attempt: 1 },
+            model: {
+              votes: new Map<number, string>(),
+              revealed: false,
+              decided: false,
+              attempt: 1,
+            },
             real: { room, seats },
           })
           fc.modelRun(setup, cmds)

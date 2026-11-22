@@ -41,6 +41,5 @@ export function publish(event: DomainEvent): Event {
       type: 'poker.voted',
       payload: { round: event.payload.round, seat: event.payload.seat },
     }
-  const { cmd: _cmd, ...published } = event
-  return published
+  return event
 }

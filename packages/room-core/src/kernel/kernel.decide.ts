@@ -127,7 +127,15 @@ export function decideKernel(
       return [{ type: 'topic.added', payload: { topics } }]
     }
     case 'topic.update': {
-      if (topicOf(state, command.payload.topic) === undefined) return reject('topic_unknown')
+      const topic = topicOf(state, command.payload.topic)
+      if (topic === undefined) return reject('topic_unknown')
+      const { title, url, ref } = command.payload
+      if (
+        title === topic.title &&
+        url === topic.url &&
+        JSON.stringify(ref) === JSON.stringify(topic.ref)
+      )
+        return []
       return [{ type: 'topic.updated', payload: command.payload }]
     }
     case 'topic.move': {

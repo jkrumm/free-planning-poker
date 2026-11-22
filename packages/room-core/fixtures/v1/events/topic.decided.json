@@ -1,13 +1,13 @@
 {
   "frame": "evt",
-  "seq": 27,
+  "seq": 32,
   "type": "topic.decided",
   "payload": {
     "result": {
       "type": "topic.decided",
       "v": 1,
-      "id": "01a1f340-37c4-74e7-bc90-6fe6f1d45d45",
-      "at": "2026-11-19T10:00:34.500Z",
+      "id": "01a1f340-60c8-73bf-a3ec-44c3627071ec",
+      "at": "2026-11-19T10:00:45.000Z",
       "room": {
         "slug": "team-alpha",
         "name": "Team Alpha Planning"
@@ -22,24 +22,29 @@
         "externalSite": "acme.atlassian.net"
       },
       "round": {
-        "id": "01a1f33f-dfe0-7a29-a2b6-cc81ef6e9ee8",
-        "no": 2,
-        "attempt": 1,
+        "id": "01a1f340-3da0-74e7-bc90-6fe6f1d45d45",
+        "no": 3,
+        "attempt": 2,
         "deck": "fibonacci",
         "voters": 2,
-        "consensus": true,
+        "consensus": false,
         "distribution": [
           {
-            "label": "5",
-            "value": 5,
-            "count": 2
+            "label": "3",
+            "value": 3,
+            "count": 1
+          },
+          {
+            "label": "8",
+            "value": 8,
+            "count": 1
           }
         ]
       },
       "final": {
         "label": "5",
         "value": 5,
-        "decidedBy": "agreed"
+        "decidedBy": "settled"
       }
     }
   }

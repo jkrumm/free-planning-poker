@@ -115,7 +115,7 @@ export function decide(state: RoomState, input: Input, ctx: Ctx): DomainEvent[] 
   return [...primary, ...followPoker(after, primary, ctx)]
 }
 
-/** Applies one event. The only place the room's state changes. */
+/** Applies one event. The only place the room changes; `step` adds only the id of the command to its log. */
 export function evolve(state: RoomState, event: DomainEvent): RoomState {
   const kernel = evolveKernel(state, event)
   const poker = evolvePoker(kernel.activity, event)
@@ -123,18 +123,8 @@ export function evolve(state: RoomState, event: DomainEvent): RoomState {
     event.type === 'seat.joined'
       ? Math.max(kernel.nextSeat, event.payload.seat.index + 1)
       : kernel.nextSeat
-  const applied =
-    event.cmd === undefined
-      ? kernel.applied
-      : [...kernel.applied, event.cmd].slice(-LIMITS.appliedLog)
-  if (
-    kernel === state &&
-    poker === state.activity &&
-    nextSeat === state.nextSeat &&
-    applied === state.applied
-  )
-    return state
-  return { ...kernel, activity: poker, nextSeat, applied }
+  if (kernel === state && poker === state.activity && nextSeat === state.nextSeat) return state
+  return { ...kernel, activity: poker, nextSeat }
 }
 
 export type StepResult =
@@ -166,10 +156,13 @@ export function step(state: RoomState, input: Input, ctx: Ctx): StepResult {
 
   let next = state
   const effects: Effect[] = []
-  decided.forEach((event, i) => {
+  for (const event of decided) {
     const before = next
-    next = evolve(before, i === 0 && key !== undefined ? { ...event, cmd: key } : event)
+    next = evolve(before, event)
     effects.push(...pokerEffects(before, event, next))
-  })
+  }
+  // Every accepted command is remembered, one that changed nothing included, so its repeat cannot apply later.
+  if (key !== undefined)
+    next = { ...next, applied: [...next.applied, key].slice(-LIMITS.appliedLog) }
   return { ok: true, duplicate: false, state: next, events: decided.map(publish), effects }
 }

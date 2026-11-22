@@ -36,13 +36,13 @@ export type Deck = Brand<
 const isRecord = (input: unknown): input is Record<string, unknown> =>
   typeof input === 'object' && input !== null && !Array.isArray(input)
 
-/** A label of 1 to 8 characters and a finite number or `null`. */
+/** A label of 1 to 8 UTF-16 units and a finite number or `null`. */
 export function parseCard(input: unknown): Card | undefined {
   if (!isRecord(input)) return undefined
   const { label, value } = input
   if (typeof label !== 'string' || label.trim() !== label) return undefined
-  const length = [...label].length
-  if (length < 1 || length > 8) return undefined
+  // UTF-16 units, as the protocol schemas count them.
+  if (label.length < 1 || label.length > 8) return undefined
   if (value !== null && (typeof value !== 'number' || !Number.isFinite(value))) return undefined
   return { label, value } as Card
 }

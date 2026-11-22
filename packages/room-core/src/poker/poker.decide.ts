@@ -156,7 +156,8 @@ export function decidePoker(
       if (round.id !== state.activity.current) return reject('round_closed')
       if (round.state !== 'revealed') return reject('not_revealed')
       const final = topicOf(state, round.topic).final
-      if (final?.decidedBy === 'settled' && final.round === round.id) return reject('topic_decided')
+      // A decision on this round wins over voting again, agreed or settled (ARCHITECTURE.md, Races).
+      if (final?.round === round.id) return reject('topic_decided')
       return [roundStarted(state, round.topic, round.attempt + 1, ctx)]
     }
     case 'poker.settle': {

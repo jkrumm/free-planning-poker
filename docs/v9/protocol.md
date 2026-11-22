@@ -7,7 +7,7 @@ The exact reference of the room protocol, version 1. `docs/v9/ARCHITECTURE.md`, 
 - JSON text frames over one WebSocket at `/api/ws/<slug>`. Every frame is a JSON object with a field `frame` that names it; `cmd`, `evt` and `fx` also carry `type` and `payload`.
 - The client opens with `hello`; the server answers with `welcome` or closes with a close code. Then the client sends `cmd`, the server answers each with `ack` or `nack` and publishes `evt` to every seat.
 - Every `evt` carries the room's `seq`, one higher than the last. A client that sees a gap reconnects with `lastSeq` and gets a fresh `welcome`.
-- Every `cmd` carries a client message id. A repeated id is answered with `ack` again and applied once.
+- Every `cmd` carries a client message id. A repeated id of an accepted command, one that changed nothing included, is answered with `ack` again and applied once; the room remembers the latest 256.
 - Every event is identical for all seats and never carries a hidden vote. A seat reads its own hidden card only from its own `welcome` view or its own command.
 - `fx` frames carry no `seq`, are never stored and are dropped for slow consumers.
 - Unknown fields and unknown types are ignored by both sides. Times are milliseconds since the epoch, except `at` in a result, which is ISO 8601. Ids of topics, rounds and results are UUID v7, minted by the server.
@@ -73,7 +73,7 @@ A seat sends these in a `cmd` frame. Each type starts with its owner: `poker` (t
 
 ### `poker.revote`
 
-`{ round }`: vote again on the same topic; the round must be the current one and revealed (`not_revealed`). Refused with `topic_decided` when a player settled the topic on this round. Publishes `poker.roundStarted` with the next attempt. Example: [`commands/poker.revote.json`](../../packages/room-core/fixtures/v1/commands/poker.revote.json).
+`{ round }`: vote again on the same topic; the round must be the current one and revealed (`not_revealed`). Refused with `topic_decided` when the topic was decided on this round, by a unanimous reveal or by `poker.settle`: the decision wins, and a player corrects it with `poker.settle`. Publishes `poker.roundStarted` with the next attempt. Example: [`commands/poker.revote.json`](../../packages/room-core/fixtures/v1/commands/poker.revote.json).
 
 ### `poker.settle`
 
@@ -274,7 +274,7 @@ Published in an `evt` frame, the same for every seat.
 | `card_unknown` | the round's deck has no such card, or a settle named a card without a number |
 | `topic_unknown` | the named topic is not in the room |
 | `topic_not_queued` | only a queued topic can be removed or moved on to |
-| `topic_decided` | a vote again on a round a player settled |
+| `topic_decided` | a vote again on a round the topic was decided on |
 | `queue_full` | more than 200 open topics |
 | `rate_limited` | the connection's token bucket is empty (burst 10, 5 per second) |
 | `internal` | a bug: the room is unchanged |

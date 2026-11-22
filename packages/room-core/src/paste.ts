@@ -15,7 +15,15 @@ const LINK = /https?:\/\/[^\s<>"']+/i
 const KEY = /^([A-Z][A-Z0-9_]{0,15}-\d{1,9})(?![\w-])/
 const EDGES = /^[\s:|–—-]+|[\s:|–—.,;-]+$/g
 
-const clip = (text: string, max: number) => [...text].slice(0, max).join('')
+/** Cuts to at most `max` UTF-16 units, the unit the schemas count, never inside a character. */
+function clip(text: string, max: number): string {
+  let out = ''
+  for (const char of text) {
+    if (out.length + char.length > max) break
+    out += char
+  }
+  return out
+}
 
 const ref = (
   source: TrackerSource | null,
