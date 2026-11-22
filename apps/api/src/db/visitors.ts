@@ -25,12 +25,21 @@ export async function recordEstimatingDay(
   db: Executor,
   args: { readonly day: string; readonly visitor: Uint8Array },
 ): Promise<boolean> {
+  return (await recordEstimatingDays(db, [args])) > 0
+}
+
+/** Records many estimating days in one statement, as `recordEstimatingDay` records one; returns how many were added. */
+export async function recordEstimatingDays(
+  db: Executor,
+  days: readonly { readonly day: string; readonly visitor: Uint8Array }[],
+): Promise<number> {
+  if (days.length === 0) return 0
   const rows = await db
     .insert(visitorDay)
-    .values({ day: args.day, visitor: args.visitor })
+    .values(days.map((entry) => ({ day: entry.day, visitor: entry.visitor })))
     .onConflictDoNothing()
     .returning({ day: visitorDay.day })
-  return rows.length > 0
+  return rows.length
 }
 
 /** Deletes estimating days older than 13 months, the one scheduled deletion; returns how many. */

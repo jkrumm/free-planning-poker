@@ -9,7 +9,7 @@ Every metric is named in `apps/api/src/db/stat-metrics.ts` with its dimension an
 | Metric | Dimension | Unit | Counts |
 |-|-|-|-|
 | `rounds` | none | rounds | rounds revealed on the day; also the marker of a rolled day, written as 0 where none |
-| `votes` | none | votes | votes in those rounds, special cards included |
+| `votes` | none | votes | votes in those rounds, special cards included; a round imported from v1 adds its summary's count (v9-importer) |
 | `rounds_consensus` | none | rounds | rounds in which every voter played the same estimate |
 | `rounds_by_hour` | UTC hour, `00` to `23` | rounds | rounds revealed in `[hh:00, hh+1:00)`; the weekday comes from the day |
 | `rooms_created` | none | rooms | rooms v9 created that day (`origin = 'v9'`) |
