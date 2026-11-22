@@ -51,7 +51,7 @@ Ten patterns carry the codebase. Each names the failure it prevents.
 | Pattern | Rule | Prevents |
 |-|-|-|
 | Functional core, imperative shell | `packages/room-core` decides; adapters do. The core returns state, events and effects as data. Adapters persist, publish and time them | logic that can only be tested through a socket |
-| Decide, then evolve | A command becomes events in `decide`. Only `evolve` changes state. Only events are published (`ARCHITECTURE.md`, "How a change happens") | rules scattered over handlers, and state that changed without a trace |
+| Decide, then evolve | A command becomes events in `decide`. Only `evolve` changes the room; `step` only adds the command's id to the dedupe log. Only events are published (`ARCHITECTURE.md`, "How a change happens") | rules scattered over handlers, and state that changed without a trace |
 | Effect where I/O fails | In `apps/api`, code that waits on something that can fail (Postgres, a schedule, a webhook, shutdown) is an Effect program behind a plain port. The core, the room loop and the browser import no Effect | hand-rolled retry loops and half-released resources on one side, a runtime inside pure code on the other |
 | Ports and adapters | Every outside thing the core needs is an interface in `room-core` (transport, store, history, clock, ids, telemetry) with one production adapter and one in-memory adapter. Tests replace an adapter; they never mock a module | test doubles that drift from the real thing |
 | Parse at the edge | A frame or request is validated once, where it enters the process. Past that point code trusts its types and validates nothing again | double validation and the bugs between two validators |

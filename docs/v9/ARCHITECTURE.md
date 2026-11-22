@@ -195,11 +195,11 @@ Three pure functions in `packages/room-core` carry it:
 
 ```ts
 decide(state, command, ctx): Event[] | Rejection // may this happen, and what follows?
-evolve(state, event): State                      // the only place state changes
+evolve(state, event): State                      // the only place the room changes
 project(state, seat): View                       // what this seat may see
 ```
 
-The client runs a fourth, `evolveView(view, event): View`. It applies the same events to its own view and needs a full view only at `welcome`.
+`step(state, command, ctx)` runs one command through `decide` and `evolve` and adds the command's id to the room's log of accepted ids, a command that changed nothing included, so a repeat is acknowledged and never applied twice; that log is the one thing `step` writes itself. The client runs a fourth, `evolveView(view, event): View`. It applies the same events to its own view and needs a full view only at `welcome`.
 
 - **No classes**, because state is copied as it is into the snapshot and into the simulator's trace, and one function projects it onto the wire. Instances would need a mapper at each of those borders, and a mapper is where a hidden vote leaks. A branded type gives the guarantee that matters without the mapping: a `Card` enters the core only through its parser.
 - **Not on the client**, because a client that holds the room's state holds the hidden votes. The server decides everything. The client runs what needs no secret: the view, the layout, and optimism for its own vote.

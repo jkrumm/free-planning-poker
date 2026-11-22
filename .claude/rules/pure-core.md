@@ -11,7 +11,7 @@ paths:
 
 ## The rule
 
-- Three functions carry a room: `decide(state, command, ctx): Event[] | Rejection`, `evolve(state, event): State` and `project(state, seat): View`. Only `evolve` changes state, only events are published, and `project` is the one function that builds what a seat sees (invariant 4: no other seat's vote before the reveal).
+- Three functions carry a room: `decide(state, command, ctx): Event[] | Rejection`, `evolve(state, event): State` and `project(state, seat): View`. Only `evolve` changes the room (`step` only adds each accepted command's id to the dedupe log), only events are published, and `project` is the one function that builds what a seat sees (invariant 4: no other seat's vote before the reveal).
 - Time, randomness and ids arrive in `ctx`, I/O through a port: an `interface` in room-core (transport, store, history, clock, ids, telemetry) with one production adapter outside and one in-memory adapter inside. Tests swap the adapter, never mock a module.
 - No import of `node:*`, `bun` or `bun:*`, and no runtime library (Effect, Elysia, React): Zod for the protocol schemas is the one dependency. No `fetch`, `WebSocket`, timers, `Date.now`, `new Date()`, `performance.now`, `Math.random`, crypto randomness, `process` or `Bun`.
 - No classes: state is plain data, copied as it is into the snapshot and the simulator's trace. A value object is a branded type whose parser is its only constructor (`Slug`, `SeatIndex`, `Card`).
