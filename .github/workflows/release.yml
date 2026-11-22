@@ -28,6 +28,8 @@ jobs:
     name: release-it
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.next }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -103,3 +105,16 @@ jobs:
           else
             bunx release-it --ci
           fi
+
+  # The image of the release, tagged with its version (publish-image.yml). The tag exists once release-it has pushed it.
+  publish:
+    name: publish image
+    needs: release
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      ref: refs/tags/${{ needs.release.outputs.version }}
+      version: ${{ needs.release.outputs.version }}
