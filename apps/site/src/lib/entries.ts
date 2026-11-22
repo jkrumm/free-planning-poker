@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content'
 import { visibleEntries } from './drafts.ts'
-import type { EntryData, GlossaryData } from './entry-schema.ts'
+import type { EntryData, GlossaryData, VsData } from './entry-schema.ts'
 import type { Section } from './sections.ts'
 import { target } from './target.ts'
 
@@ -10,7 +10,7 @@ export type { Section } from './sections.ts'
 type SectionData = {
   guides: EntryData
   glossary: GlossaryData
-  vs: EntryData
+  vs: VsData
   blog: EntryData
   docs: EntryData
 }

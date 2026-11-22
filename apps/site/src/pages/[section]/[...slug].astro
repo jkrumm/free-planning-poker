@@ -4,7 +4,9 @@ import type { GetStaticPaths } from 'astro'
 import DefinedTerm from '../../components/schema/defined-term.astro'
 import DefinedTermSet from '../../components/schema/defined-term-set.astro'
 import Base from '../../layouts/base.astro'
+import ComparisonTable from '../../components/comparison-table.astro'
 import Questions from '../../components/questions.astro'
+import type { VsData } from '../../lib/entry-schema.ts'
 import { sectionEntries, sections, visibleEntry } from '../../lib/entries.ts'
 import { strings } from '../../strings.en.ts'
 
@@ -53,6 +55,7 @@ export const getStaticPaths = (async () => {
 const { section, entry, entries, related, cluster } = Astro.props
 const Content = entry ? (await render(entry)).Content : undefined
 const isoDay = (date: Date) => date.toISOString().slice(0, 10)
+const vs = section === 'vs' && entry ? (entry.data as VsData) : undefined
 ---
 
 {
@@ -80,6 +83,17 @@ const isoDay = (date: Date) => date.toISOString().slice(0, 10)
             )
           }
         </p>
+        {
+          vs && (
+            <>
+              <p>
+                <strong>{strings.vs.checked.replace('{day}', isoDay(vs.checked))}</strong>
+              </p>
+              <p>{strings.vs.checkedNote.replaceAll('{tool}', vs.tool.name)}</p>
+              <ComparisonTable tool={vs.tool} facts={vs.facts} />
+            </>
+          )
+        }
         <Content />
         {
           section === 'glossary' && related.length > 0 && (
@@ -136,6 +150,24 @@ const isoDay = (date: Date) => date.toISOString().slice(0, 10)
             <>
               <dt>
                 <a href={`/glossary/${item.id}`}>{item.data.title}</a>
+                {item.data.draft && ` (${strings.draftLine})`}
+              </dt>
+              <dd>{item.data.description}</dd>
+            </>
+          ))
+        }
+      </dl>
+    </Base>
+  ) : section === 'vs' ? (
+    <Base title={strings.vs.indexTitle} description={strings.vs.indexDescription}>
+      <h1>{strings.vs.indexTitle}</h1>
+      <p>{strings.vs.indexDescription}</p>
+      <dl>
+        {
+          entries.map((item) => (
+            <>
+              <dt>
+                <a href={`/vs/${item.id}`}>{item.data.title}</a>
                 {item.data.draft && ` (${strings.draftLine})`}
               </dt>
               <dd>{item.data.description}</dd>

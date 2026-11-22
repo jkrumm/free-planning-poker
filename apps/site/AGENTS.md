@@ -37,6 +37,10 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 
 Structured data and social tags go into the `structured-data` and `social` slots of `src/layouts/base.astro`; the look replaces nothing in the markup. `questions` of an entry print as plain text until `v9-site-schema` marks them up.
 
+## The comparisons
+
+`src/content/vs` holds at most five pages (`src/lib/vs.test.ts`), each a draft until the owner has read it. A page's frontmatter is `vsSchema` (`src/lib/entry-schema.ts`): the tool, the address prefixes that count as its own pages (`origins`), `checked`, and `facts`. A fact is a topic, the claim, its `source`, the day it was `read`, what 9.0.0 does on the point (`ours`) and who is `ahead`. The test fails on a source outside `origins`, on a `checked` that is not the newest `read`, and on a page with no fact where the other tool is ahead. Read a fact on the day from the tool's own page (`agw web read <url> --ask ...`), never from memory or from `docs/v9/research`; `components/comparison-table.astro` prints each with its day and link, and the `.md` twin lists the same rows. Our side states only what 9.0.0 does, as `docs/v9/UX.md` describes it: no planned feature. No logo and no screenshot of another product. Before a page is published, re-read every source and move `checked`, `updated` and each `read` together.
+
 ## The glossary
 
 `src/content/glossary` holds at most 15 terms (`src/lib/glossary.test.ts`); the title is the term, and the first sentence of the body must contain it. A link from one entry to another goes through `entryPath` or `visibleEntry` in `src/lib/entries.ts`, or `components/term-link.astro` in a page: frontmatter `related` and `guide` become links only where the target is shown in the build, so no published page links a draft and a missing cluster page leaves no broken link. `guide` names a cluster entry id of `guideClusters` (`src/lib/entry-schema.ts`); `v9-site-guide` must use those ids or change the list. DefinedTerm and DefinedTermSet are `components/schema/defined-term*.astro` over typed builders; the JSON-LD serialiser is `components/schema/json-ld.ts`.
