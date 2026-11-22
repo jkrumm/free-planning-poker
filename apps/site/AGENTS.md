@@ -30,7 +30,7 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 ## Crawl files
 
 - `src/lib/robots.ts`: the crawler list, each token's source and read date above it; re-read the vendor page when the list changes. Served as `robots.txt`; every group disallows `/room`, `/_room/`, `/api/`.
-- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar, which both read from the pillar's Markdown file.
+- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar (the entries read through `sectionEntries`, the pillar through `pillarEntry`).
 - IndexNow: `public/<key>.txt` is committed, because the protocol serves the key publicly. `make indexnow` runs `scripts/indexnow.ts`: it sends the URLs whose sitemap entry is new or whose lastmod moved against the live sitemap, skips on beta, and `DRY_RUN=1` lists them without sending. Not called from a deploy yet: `v9-edge-routing` runs `make indexnow` as the last step of the site's deploy job, once the new sitemap is live.
 
 ## Where the later rows plug in

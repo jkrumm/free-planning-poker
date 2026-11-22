@@ -33,7 +33,7 @@ How do you run a planning poker session with 10 to 30 people? Split the group in
 
 The layout follows the width of the room container. Seat size steps down at 9 and at 17 players. The grid replaces the ring of seats when the container is under 700 px wide or the room has 25 or more players. A Table/Grid switch overrides the automatic choice. Seats are spaced by arc length around the table edge, and you always sit at the bottom centre.
 
-The round bar shows "7 of 9 voted". After 20 seconds it names who is missing, and any player can poke them. A seat whose tab has been hidden for 30 seconds is dimmed and does not block auto reveal. Auto reveal starts a three-second ring when the last active player has voted, and any player can cancel it. Because auto reveal ignores away seats, one absent person never stalls 29.
+The round bar shows "7 of 9 voted". After 20 seconds it names who is missing, and any player can poke them. A seat whose tab has been hidden for 30 seconds is dimmed and does not block auto reveal. Auto reveal starts a three-second ring when the last active player has voted, and any player can cancel it. Because auto reveal ignores away seats, one absent person never stalls the other 29.
 
 ## Keeping the pace
 
