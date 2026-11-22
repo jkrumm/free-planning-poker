@@ -30,6 +30,12 @@ const pages = [
   { path: '/roadmap', file: 'roadmap.html', title: prefix + 'Roadmap', ids: [] },
   { path: '/contact', file: 'contact.html', title: prefix + 'Contact', ids: [] },
   {
+    path: '/self-hosting',
+    file: 'self-hosting.html',
+    title: prefix + 'Self-hosting',
+    ids: ['start', 'update', 'backup', 'not-included'],
+  },
+  {
     path: '/privacy',
     file: 'privacy.html',
     title: prefix + 'Privacy',
