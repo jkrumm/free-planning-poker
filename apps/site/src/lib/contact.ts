@@ -1,5 +1,5 @@
 // The contact form's contract with POST /api/contact. The limits are v1's (apps/web contact.router.ts at origin/v1):
-// the page prints them as HTML attributes and contact.site.test.ts holds them against v1's numbers.
+// the page prints them as HTML attributes and contact.test.ts and legal.site.test.ts hold them against v1's numbers.
 
 export const contactEndpoint = '/api/contact'
 
