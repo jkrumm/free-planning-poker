@@ -1,4 +1,6 @@
 import { useLingui } from '@lingui/react/macro'
+import { track } from '@fpp/telemetry/browser'
+import { UMAMI_EVENT } from '@fpp/telemetry/umami'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { useAppEnv } from '../../app-env.tsx'
@@ -29,6 +31,7 @@ export function NewRoomPage() {
         })
         const body = (await response.json()) as { slug?: unknown }
         if (response.status !== 201 || typeof body.slug !== 'string') throw new Error('no room')
+        track(UMAMI_EVENT.roomCreated, { activity: 'poker' })
         void navigate({ to: '/room/$slug', params: { slug: body.slug }, replace: true })
       } catch {
         setFailed(true)

@@ -53,13 +53,13 @@ export const memoryStorage = (): StorageLike => {
 }
 
 /** One room in the real runtime on a calm simulated network, and the clock that moves both. */
-export function createWorld(options: { readonly code?: string } = {}) {
+export function createWorld(options: { readonly code?: string; readonly slug?: string } = {}) {
   const rng = random(1)
   const clock = scheduler(EPOCH)
   const store = memoryStore()
   const telemetry = telemetryRecorder()
   store.rows.set(ROOM, {
-    slug: parseSlug(ADDRESS)!,
+    slug: parseSlug(options.slug ?? ADDRESS)!,
     name: 'Test room',
     access: options.code === undefined ? 'open' : 'locked',
     code: options.code === undefined ? null : parseAccessCode(options.code)!,
