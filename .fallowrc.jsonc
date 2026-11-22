@@ -8,6 +8,9 @@
     "apps/api/scripts/import-v1.ts",
     "apps/site/scripts/indexnow.ts",
     "apps/arena/scripts/static-score.ts",
+    // Make target load: the orchestrator, and the scenario k6 runs in its container
+    "load/run.ts",
+    "load/k6/scenario.ts",
     // Run by hand; docs/v9/evidence and the file headers say how
     "apps/api/scripts/bake-off.ts",
     "apps/api/scripts/bake-off-server.ts",

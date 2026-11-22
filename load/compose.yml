@@ -1,0 +1,60 @@
+# What the load test adds to deploy/compose.yml (`make load`, load/run.ts): a proxy in front of the API, the container that
+# replaces it in the handoff run, and k6. Nothing here is a deployment; the project is removed with its data when the run ends.
+# The API is reached through the proxy on the project's network, so a run listens on no fixed port; the one host port the
+# base file publishes is a free one load/run.ts picks.
+
+services:
+  postgres:
+    restart: 'no'
+
+  api:
+    restart: 'no'
+    environment:
+      # The origin k6 sends; the API refuses a socket whose Origin it does not list.
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://load.test}
+
+  # The container the old one is replaced by: the same image on the same database, started before the handoff and
+  # healthy, as RollHook has it (docs/v9/ARCHITECTURE.md, Server). The proxy sends nothing to it until the old one drains.
+  api-next:
+    profiles: [handoff]
+    image: ${FPP_IMAGE:-fpp-api:local}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://fpp:${POSTGRES_PASSWORD:-fpp-local}@postgres:5432/fpp
+      VISITOR_KEY: ${VISITOR_KEY:-local-visitor-key-change-it-0000000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://load.test}
+    init: true
+    mem_limit: 512m
+    stop_grace_period: 30s
+    restart: 'no'
+
+  # The proxy and k6 carry their files in an image built from a small context, never a bind mount: the Colima VM on the
+  # mini shares only the directories its config lists, and a worktree is not one of them. Paths are relative to deploy/,
+  # the directory of the first file.
+  proxy:
+    build:
+      context: ../load/proxy
+      dockerfile_inline: |
+        FROM haproxy:3.0.31-alpine
+        COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      api:
+        condition: service_healthy
+    init: true
+    mem_limit: 384m
+    restart: 'no'
+
+  # Started with `compose run`, never by `up`. Three of the VM's four CPUs: the generator is the busiest process, and a quota
+  # that holds it back shows up as latency it did not measure (the report prints how often the quota did).
+  k6:
+    profiles: [k6]
+    build:
+      context: ../load/k6
+      dockerfile_inline: |
+        FROM grafana/k6:2.4.0
+        COPY . /scripts
+    cpus: 3
+    mem_limit: 1g
+    restart: 'no'

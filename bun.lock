@@ -120,6 +120,13 @@
         "@playwright/test": "1.65.1",
       },
     },
+    "load": {
+      "name": "@fpp/load",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@types/k6": "2.3.1",
+      },
+    },
     "packages/i18n": {
       "name": "@fpp/i18n",
       "version": "0.0.0",
@@ -426,6 +433,8 @@
     "@fpp/e2e": ["@fpp/e2e@workspace:e2e"],
 
     "@fpp/i18n": ["@fpp/i18n@workspace:packages/i18n"],
+
+    "@fpp/load": ["@fpp/load@workspace:load"],
 
     "@fpp/room": ["@fpp/room@workspace:apps/room"],
 
@@ -878,6 +887,8 @@
     "@types/istanbul-lib-report": ["@types/istanbul-lib-report@3.0.3", "", { "dependencies": { "@types/istanbul-lib-coverage": "*" } }, "sha512-NQn7AHQnk/RSLOxrBbGyJM/aVQ+pjj5HCgasFxc0K/KhoATfQ/47AyUl15I2yBUpihjmas+a+VJBOqecrFH+uA=="],
 
     "@types/istanbul-reports": ["@types/istanbul-reports@3.0.4", "", { "dependencies": { "@types/istanbul-lib-report": "*" } }, "sha512-pk2B1NWalF9toCRu6gjBzR69syFjP4Od8WRAX+0mmf9lAjCRicLOWc+ZrxZHx/0XRjotgkF9t6iaMJ+aXcOdZQ=="],
+
+    "@types/k6": ["@types/k6@2.3.1", "", {}, "sha512-3zbIAfQXvSDsA3ZaKC7+eczsvx1hGtL8o68iYEssOmTEmg0MuoCwZ45aAI3jDm0JtlhJZaQAszrie+M1xaqK7g=="],
 
     "@types/mdast": ["@types/mdast@4.0.4", "", { "dependencies": { "@types/unist": "*" } }, "sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA=="],
 

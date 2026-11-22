@@ -13,7 +13,8 @@
     "apps/*",
     "packages/*",
     "arena",
-    "e2e"
+    "e2e",
+    "load"
   ],
   "type": "module",
   "scripts": {

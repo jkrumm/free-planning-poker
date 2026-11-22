@@ -68,6 +68,12 @@ path = "e2e"
 package = "@fpp/e2e"
 imports = []
 
+# The load test: a k6 scenario and its Bun orchestrator, which speak the protocol as plain JSON and import nothing of ours.
+[[module]]
+path = "load"
+package = "@fpp/load"
+imports = []
+
 # A file takes the class of the first list whose glob matches it; a file no glob matches has no class rule.
 # pure: no I/O. Its imports may not reach node:*, bun or bun:*, a relative import may reach only another pure file,
 #   and its source may not use fetch, WebSocket, the timer functions, the clock, a random source, process or Bun.

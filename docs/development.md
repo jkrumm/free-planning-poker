@@ -84,6 +84,7 @@ Agents never start these servers. The API opens a room socket only for an `Origi
 | `make v9-up` | builds if needed, starts the stack, waits until both containers are healthy. `FPP_PORT` (default 7740) is the host port on loopback, `FPP_BIND=0.0.0.0` publishes it; `V9_UP_FLAGS=--no-build` starts a loaded image, `V9_PROJECT` names the Compose project |
 | `make v9-smoke` | `/api/health` answers 200 and `/room/x` returns the shell |
 | `make v9-size` | the image's size, uncompressed and as a gzipped `docker save` |
+| `make load` | the load test (`load/AGENTS.md`): k6 in a container against this stack behind a proxy, in a Compose project of its own; `LOAD_SCALE=nightly` for a tenth of the rooms, `HANDOFF=1` replaces the API container halfway. Run it in a slot |
 | `make v9-down` | removes the stack **and its database volume** |
 | `make v9-logs` | the last 200 lines of every container |
 | `make v9-replace-api` | what a deploy does to the API: `stop` (SIGTERM and the drain), `rm`, then a new container on the same database, waited until healthy |

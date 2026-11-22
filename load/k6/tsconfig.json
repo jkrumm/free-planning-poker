@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["k6"],
+    "lib": ["ESNext"]
+  },
+  "include": ["."]
+}
