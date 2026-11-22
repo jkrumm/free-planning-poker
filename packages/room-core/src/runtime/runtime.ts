@@ -41,6 +41,7 @@ import {
   within,
 } from './limits.ts'
 import type {
+  CommandOutcome,
   ConnectionId,
   RoomClaim,
   RoomKey,
@@ -105,6 +106,8 @@ export type RoomRuntime = {
   readonly seatOf: (room: RoomKey, token: string) => SeatIndex | undefined
   /** Closes every socket with 4002, writes every room a last time and gives it up. */
   readonly drain: () => Promise<void>
+  /** What a gauge samples: the open sockets and the rooms loaded in this process. */
+  readonly stats: () => { readonly connections: number; readonly rooms: number }
   /** The room as the store would receive it now, for tests and the simulator. */
   readonly inspect: (room: RoomKey) => RoomSnapshot | undefined
 }
@@ -200,7 +203,7 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
     for (const event of result.events) {
       room.seq += 1
       const frame = { frame: 'evt', seq: room.seq, ...event } as ServerFrame
-      transport.publish(room.key, frame)
+      telemetry.fanout(() => transport.publish(room.key, frame))
       after(room, event)
     }
     for (const effect of result.effects) run(room, effect)
@@ -228,6 +231,7 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
 
   /** What an event means beyond the state: a seat that left loses its secret and its sockets. */
   function after(room: Live, event: Event) {
+    if (event.type === 'poker.revealed') telemetry.event('round_revealed')
     if (event.type !== 'seat.left' && event.type !== 'seat.kicked') return
     const seat = event.payload.seat
     room.secrets.delete(seat)
@@ -375,7 +379,10 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
     const promise = (async () => {
       await releasing.get(key)
       const room = start(key, await store.claim(key))
-      if (room) rooms.set(key, room)
+      if (room) {
+        rooms.set(key, room)
+        telemetry.event('room_loaded')
+      }
       return room
     })().finally(() => claiming.delete(key))
     claiming.set(key, promise)
@@ -415,6 +422,8 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
   function lose(room: Live) {
     rooms.delete(room.key)
     stopTimers(room)
+    telemetry.roomEnded(room.state.seats.length)
+    telemetry.event('room_lost')
     for (const id of Array.from(room.conns)) {
       const conn = conns.get(id)
       if (conn) refuse(conn, CLOSE_CODES.draining)
@@ -424,6 +433,8 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
   function release(room: Live): Promise<unknown> {
     rooms.delete(room.key)
     stopTimers(room)
+    telemetry.roomEnded(room.state.seats.length)
+    telemetry.event('room_released')
     const done = store
       .release(room.key, exportSnapshot(room))
       .catch((error: unknown) => failed(error, 'store'))
@@ -538,6 +549,7 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
       return refuse(conn, CLOSE_CODES.expired)
     if (!back(room, secret.seat)) return refuse(conn, SOCKET_CLOSE.tryLater)
     welcomeSeat(room, conn, secret.seat, token)
+    telemetry.resumed()
   }
 
   /** Whether a new seat may enter a locked room: a missing or wrong code, or a pause, is refused. */
@@ -637,18 +649,37 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
       const id = raw['id']
       if (typeof id === 'string' && id.length > 0 && id.length <= 64)
         send(conn, { frame: 'nack', id, reason: 'invalid' })
+      telemetry.rejected('invalid')
       return strike(conn)
     }
     const { id } = parsed.data
     let order = { type: parsed.data.type, payload: parsed.data.payload } as Command
     if (options.faults?.voteAnyRound === true && order.type === 'poker.vote')
       order = { ...order, payload: { ...order.payload, round: room.state.activity.current } }
-    const result = seatStep(room, index, order, id)
-    if (result === 'internal') return send(conn, { frame: 'nack', id, reason: 'internal' })
-    if (!result.ok) return send(conn, { frame: 'nack', id, reason: result.reason })
-    if (order.type === 'poker.vote' && result.events.some((event) => event.type === 'poker.voted'))
-      estimating(room, conn, index)
-    send(conn, { frame: 'ack', id })
+    const info = {
+      type: order.type,
+      room: room.key,
+      seat: index,
+      traceparent: parsed.data.traceparent,
+    }
+    telemetry.command(info, (): CommandOutcome => {
+      const result = seatStep(room, index, order, id)
+      if (result === 'internal') {
+        send(conn, { frame: 'nack', id, reason: 'internal' })
+        return { ok: false, reason: 'internal' }
+      }
+      if (!result.ok) {
+        send(conn, { frame: 'nack', id, reason: result.reason })
+        return { ok: false, reason: result.reason }
+      }
+      if (
+        order.type === 'poker.vote' &&
+        result.events.some((event) => event.type === 'poker.voted')
+      )
+        estimating(room, conn, index)
+      send(conn, { frame: 'ack', id })
+      return { ok: true }
+    })
   }
 
   function onFx(room: Live, conn: Conn, index: SeatIndex, raw: Record<string, unknown>) {
@@ -676,6 +707,7 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
       const id = raw['id']
       if (raw['frame'] === 'cmd' && typeof id === 'string' && id.length > 0 && id.length <= 64)
         send(conn, { frame: 'nack', id, reason: 'rate_limited' })
+      telemetry.rejected('rate_limited')
       return strike(conn)
     }
     switch (raw['frame']) {
@@ -791,13 +823,18 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
       if (secret === undefined || secret.epoch < room.accessEpoch) return undefined
       return seatIn(room.state, secret.seat)?.index
     },
+    stats() {
+      return { connections: conns.size, rooms: rooms.size }
+    },
     async drain() {
+      const began = clock.now()
       draining = true
       if (tick !== null) clock.cancel(tick)
       tick = null
       for (const conn of Array.from(conns.values())) refuse(conn, CLOSE_CODES.draining)
       await Promise.all([...claiming.values()].map((claim) => claim.catch(() => null)))
       await Promise.all([...rooms.values()].map(release))
+      telemetry.handoff(clock.now() - began)
     },
     inspect(key) {
       const room = rooms.get(key)

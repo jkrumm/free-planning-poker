@@ -6,12 +6,13 @@
 import type {
   Access,
   DecidedResult,
+  NackReason,
   RevealedResult,
   ServerFrame,
   Settings,
 } from '../protocol/types.ts'
 import type { RoundRecord } from '../state.ts'
-import type { AccessCode, Slug } from '../values.ts'
+import type { AccessCode, SeatIndex, Slug } from '../values.ts'
 import type { RoomSnapshot } from './snapshot.ts'
 
 /** The transport's id of one socket. */
@@ -108,15 +109,46 @@ export type History = {
 /** Where a failure was caught: the frame or the timer the runtime was handling. */
 export type RuntimeAction = 'hello' | 'cmd' | 'fx' | 'timer' | 'store' | 'history'
 
+/** The command a span covers: its type from the protocol's closed set, the room's numeric id, the seat's index. */
+export type CommandInfo = {
+  readonly type: string
+  readonly room: RoomKey
+  readonly seat: SeatIndex
+  /** The frame's W3C `traceparent`, when the client sent one: the span continues that trace. */
+  readonly traceparent: string | undefined
+}
+
+/** How a command ended: accepted, refused with a reason, or a bug the runtime caught. */
+export type CommandOutcome =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly reason: NackReason | 'internal' }
+
+/** What happened to a room that an operator may want to count. */
+export type RuntimeEvent = 'room_loaded' | 'room_released' | 'room_lost' | 'round_revealed'
+
 /**
  * The runtime's telemetry. The adapter maps these onto the names of `@fpp/telemetry`; nothing passed here carries a
- * name, a code, a vote value or a device id (invariant 11).
+ * name, a code, a vote value or a device id (invariant 11): only enums, counts, durations, a room's numeric id and a
+ * seat's index.
  */
 export type RuntimeTelemetry = {
   /** A bug, caught once at the boundary: the room is unchanged and a command's sender got `nack internal`. */
   readonly failure: (error: unknown, at: { readonly action: RuntimeAction }) => void
   /** A socket the runtime closed, by its close code. */
   readonly closed: (code: number) => void
+  /** Runs one accepted-or-refused command inside its span; the adapter times it and records its outcome. */
+  readonly command: (info: CommandInfo, run: () => CommandOutcome) => void
+  /** Runs the publish of one event to a room, timed. */
+  readonly fanout: (run: () => void) => void
+  /** A frame refused before it became a command: it did not parse, or its sender was over the rate limit. */
+  readonly rejected: (reason: NackReason) => void
+  /** A socket came back with its seat token. */
+  readonly resumed: () => void
+  readonly event: (event: RuntimeEvent) => void
+  /** A room left this process, with the seats it had. */
+  readonly roomEnded: (seats: number) => void
+  /** Draining took this many milliseconds on the runtime's clock. */
+  readonly handoff: (ms: number) => void
 }
 
 export type RuntimePorts = {

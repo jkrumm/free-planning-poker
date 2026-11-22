@@ -10,6 +10,10 @@ export type Env = {
    * `cf-connecting-ip`); unset in development. Never `x-forwarded-for`: a client writes its first entry.
    */
   readonly clientIpHeader: string | undefined
+  /** The collector's base URL (`OTEL_EXPORTER_OTLP_ENDPOINT`); unset means no telemetry is exported. */
+  readonly otlpEndpoint: string | undefined
+  /** `prod` in production (`NODE_ENV=production`), `dev` everywhere else: the estate allows no third value. */
+  readonly environment: 'prod' | 'dev'
 }
 
 /** Local development listens on 7740 (docs/v9/ARCHITECTURE.md, Checks, CI and deploy). */
@@ -47,5 +51,7 @@ export function parseEnv(source: Readonly<Record<string, string | undefined>>): 
     commit: source.GIT_SHA || 'unknown',
     origins,
     clientIpHeader: source.CLIENT_IP_HEADER?.trim().toLowerCase() || undefined,
+    otlpEndpoint: source.OTEL_EXPORTER_OTLP_ENDPOINT?.trim() || undefined,
+    environment: source.NODE_ENV === 'production' ? 'prod' : 'dev',
   }
 }
