@@ -405,7 +405,7 @@ Target panels once signals land. Source per panel in brackets.
 
 - Hard SDK default: 2,000 series per metric. Keep each metric's label cross-product **under ~200** (order-of-magnitude buffer).
 - `fpp.action.count`: `action.type` (12) × `outcome` (2: ok\|error) = 24, plus `error.type` only on the error path (bounded by exception-class names). Safe.
-- `fpp.vote.cast`: `vote.value` = bounded deck (~13). Safe.
+- `fpp.vote.cast`: `vote.value` = bounded deck (7 Fibonacci values from fibonacci.constant.ts). Safe.
 - Configure SDK **Views** with an explicit attribute allowlist per metric so a stray `room.id`/`user.id` passed at a record site is dropped before export, not just by convention.
 - `error.type` on any error-path counter must be a documented low-card enum, never a raw exception message.
 
