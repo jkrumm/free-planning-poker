@@ -1,4 +1,4 @@
-import { getCollection } from 'astro:content'
+import { getCollection, getEntry } from 'astro:content'
 import { visibleEntries } from './drafts.ts'
 import type { EntryData, GlossaryData, VsData } from './entry-schema.ts'
 import type { Section } from './sections.ts'
@@ -24,6 +24,13 @@ export async function sectionEntries<S extends Section>(section: S): Promise<Sec
   return visibleEntries(all, target).toSorted(
     (a, b) => b.data.published.getTime() - a.data.published.getTime(),
   )
+}
+
+/** The pillar guide at /guide: published, and the same in every build. */
+export async function pillarEntry(): Promise<SectionEntry<'guides'>> {
+  const entry = await getEntry('pillar', 'guide')
+  if (!entry) throw new Error('src/content/pillar/guide.md is missing')
+  return entry as unknown as SectionEntry<'guides'>
 }
 
 /** One entry of a section if this build shows it. A link from one page to another entry goes through here or entryPath. */

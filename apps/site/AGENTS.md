@@ -30,7 +30,7 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 ## Crawl files
 
 - `src/lib/robots.ts`: the crawler list, each token's source and read date above it; re-read the vendor page when the list changes. Served as `robots.txt`; every group disallows `/room`, `/_room/`, `/api/`.
-- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar. The pillar's Markdown is `src/twins/guide.ts`, not a page source: `test/twins.site.test.ts` fails when it drifts from `guide.astro`.
+- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar, which both read from the pillar's Markdown file.
 - IndexNow: `public/<key>.txt` is committed, because the protocol serves the key publicly. `make indexnow` runs `scripts/indexnow.ts`: it sends the URLs whose sitemap entry is new or whose lastmod moved against the live sitemap, skips on beta, and `DRY_RUN=1` lists them without sending. Not called from a deploy yet: `v9-edge-routing` runs `make indexnow` as the last step of the site's deploy job, once the new sitemap is live.
 
 ## Where the later rows plug in
@@ -43,7 +43,11 @@ Structured data and social tags go into the `structured-data` and `social` slots
 
 ## The glossary
 
-`src/content/glossary` holds at most 15 terms (`src/lib/glossary.test.ts`); the title is the term, and the first sentence of the body must contain it. A link from one entry to another goes through `entryPath` or `visibleEntry` in `src/lib/entries.ts`, or `components/term-link.astro` in a page: frontmatter `related` and `guide` become links only where the target is shown in the build, so no published page links a draft and a missing cluster page leaves no broken link. `guide` names a cluster entry id of `guideClusters` (`src/lib/entry-schema.ts`); `v9-site-guide` must use those ids or change the list. DefinedTerm and DefinedTermSet are `components/schema/defined-term*.astro` over typed builders; the JSON-LD serialiser is `components/schema/json-ld.ts`.
+`src/content/glossary` holds at most 15 terms (`src/lib/glossary.test.ts`); the title is the term, and the first sentence of the body must contain it. A link from one entry to another goes through `entryPath` or `visibleEntry` in `src/lib/entries.ts`, or `components/term-link.astro` in a page: frontmatter `related` and `guide` become links only where the target is shown in the build, so no published page links a draft and a missing cluster page leaves no broken link. `guide` names a cluster entry id of `guideClusters` (`src/lib/entry-schema.ts`); the cluster guides use those ids (see The guides). DefinedTerm and DefinedTermSet are `components/schema/defined-term*.astro` over typed builders; the JSON-LD serialiser is `components/schema/json-ld.ts`.
+
+## The guides
+
+The pillar is `src/content/pillar/guide.md`, the one entry of the `pillar` collection (not a section, so never a draft and the same in every build), rendered at `/guide` by `src/pages/guide.astro` inside `<article id="master-the-art-of-planning-poker">`; read it through `pillarEntry`. Every id v1's page renders is kept: `test/guide.site.test.ts` reads them from v1's source in `test/fixtures/v1-guide`. The cluster pages are `src/content/guides/<slug>.md`, drafts, at `/guides/<slug>`. The slug scheme is decided: `/guide` singular for the pillar (v1's address), `/guides/<slug>` for a cluster, a lowercase hyphenated phrase with no date and no trailing slash, and the slugs are the `guideClusters` of `src/lib/entry-schema.ts` (`decks`, `when-a-spread-means-split`, `large-rooms`); renaming one loses links. The pillar and the cluster pages link each other in the route and in `guide.astro` through `visibleEntry`, never in the Markdown body, so a published page never links a draft. A cluster page states its question in the title and first paragraph, describes the product as `docs/v9/UX.md` does and nothing more, and links a source with the day it was read for every claim about method. `bun apps/site/scripts/check-links.ts` prints the status of every external link; run it when a guide is written or revised.
 
 ## Left out of v1's pages on purpose
 
