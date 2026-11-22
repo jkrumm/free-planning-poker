@@ -27,6 +27,13 @@ test('an entry is Home, its section and itself, however deep its id', () => {
   ])
 })
 
+test('a section index page is named like the section', () => {
+  expect(breadcrumbs('/guides.html', 'guides')).toEqual([
+    { name: 'Home', path: '/' },
+    { name: 'Guides', path: '/guides' },
+  ])
+})
+
 test('a nesting that is no section fails the build', () => {
   expect(() => breadcrumbs('/nowhere/page', 'Page')).toThrow('no section named nowhere')
 })

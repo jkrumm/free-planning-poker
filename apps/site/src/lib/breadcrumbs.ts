@@ -19,6 +19,11 @@ export function breadcrumbs(pathname: string, pageName: string): Crumb[] {
     if (name === undefined) throw new Error(`${path}: no section named ${first} for its breadcrumb`)
     trail.push({ name, path: `/${first}` })
   }
-  trail.push({ name: pageName, path })
+  // A section's index page carries the section's name, the same one its entries' trails give it.
+  const sectionName =
+    rest.length === 0
+      ? (strings.sectionNames as Record<string, string | undefined>)[first]
+      : undefined
+  trail.push({ name: sectionName ?? pageName, path })
   return trail
 }
