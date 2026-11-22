@@ -11,7 +11,7 @@ import { createApp } from '../../src/http/app.ts'
 import { timerClock } from '../../src/ws/clock.ts'
 import type { RoomServer, RoomServerOptions } from '../../src/ws/edge.ts'
 import { serveBun } from '../../src/ws/bun.transport.ts'
-import { NO_ROOMS } from '../support.ts'
+import { NO_ROOMS, NO_STATS } from '../support.ts'
 import { ORIGIN } from './client.ts'
 
 /**
@@ -48,6 +48,7 @@ export async function startServer(
       createApp({
         build: { version: 'contract', commit: 'contract' },
         rooms: NO_ROOMS,
+        stats: NO_STATS,
         health: async () => 'ok',
       }),
     rooms: rooms.directory,

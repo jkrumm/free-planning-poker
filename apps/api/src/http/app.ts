@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { type RoomsApi, roomRoutes } from './rooms.ts'
+import { type StatsApi, statsRoutes } from './stats.ts'
 
 export type BuildInfo = {
   readonly version: string
@@ -16,6 +17,7 @@ export type Health = 'ok' | 'degraded' | 'draining'
 export function createApp(deps: {
   readonly build: BuildInfo
   readonly rooms: RoomsApi
+  readonly stats: StatsApi
   readonly health: () => Promise<Health>
 }) {
   return new Elysia({ prefix: '/api' })
@@ -38,6 +40,7 @@ export function createApp(deps: {
       commit: deps.build.commit,
     }))
     .use(roomRoutes(deps.rooms))
+    .use(statsRoutes(deps.stats))
 }
 
 /** The API's type for Eden (`treaty<App>`): what a client imports from `@fpp/api/app`, types only. */
