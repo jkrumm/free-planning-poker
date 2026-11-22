@@ -6,6 +6,8 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test'
 import { parseSlug } from '@fpp/room-core/types'
 import { freePort } from '@fpp/test-kit/port'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { parseEnv } from '../../src/env.ts'
 import { createApiTelemetry } from '../../src/telemetry.ts'
@@ -102,6 +104,9 @@ test('with no endpoint the same round builds no SDK, sends nothing and writes no
 test('the API process with no endpoint starts, answers and writes nothing but its startup line', async () => {
   const port = await freePort()
   const entry = join(import.meta.dir, '..', '..', 'src', 'main.ts')
+  // A room app build, so the start has no reason to warn about its absence.
+  const roomApp = mkdtempSync(join(tmpdir(), 'fpp-room-app-'))
+  writeFileSync(join(roomApp, 'index.html'), '<!doctype html>')
   const child = Bun.spawn([process.execPath, entry], {
     // A database nobody listens on: the process starts and plays on without one, so no test touches a shared one.
     env: {
@@ -109,6 +114,7 @@ test('the API process with no endpoint starts, answers and writes nothing but it
       PORT: String(port),
       DATABASE_URL: `postgres://postgres@127.0.0.1:${await freePort()}/none`,
       VISITOR_KEY: ENV.VISITOR_KEY,
+      ROOM_APP_DIR: roomApp,
     },
     stdout: 'pipe',
     stderr: 'pipe',
