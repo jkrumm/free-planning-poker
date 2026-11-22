@@ -17,15 +17,15 @@ export type Funnel = {
 
 /**
  * One per room and page load: `room_joined` and `vote_cast` are sent once whatever the connection does. A reveal or a
- * decision is sent by the seat that issued the command, when the view shows its result; an automatic reveal has no
- * such seat and sends none.
+ * decision is sent by the seat that issued the command (the reveal for a unanimous one, the settle for a chosen
+ * value), when the view shows its result; an automatic reveal has no such seat and sends none.
  */
 export function createFunnel(): Funnel {
   let latest: View | null = null
   let joined = false
   let voted = false
   const revealedBy = new Set<RoundId>()
-  const decidedBy = new Set<RoundId>()
+  const settledBy = new Set<RoundId>()
   const sent = new Set<string>()
 
   const once = (key: string, send: () => void) => {
@@ -48,7 +48,10 @@ export function createFunnel(): Funnel {
           }),
         )
       const topic = view.topics.find((candidate) => candidate.final?.round === round.id)
-      if (topic?.final && decidedBy.has(round.id)) {
+      // A decision is sent by the seat that caused it: the reveal that was unanimous, or the settle.
+      const caused =
+        topic?.final?.decidedBy === 'agreed' ? revealedBy.has(round.id) : settledBy.has(round.id)
+      if (topic?.final && caused) {
         const how = topic.final.decidedBy === 'agreed' ? 'unanimous' : 'settled'
         once(`decided:${round.id}:${how}`, () =>
           track(UMAMI_EVENT.topicDecided, { activity: 'poker', how }),
@@ -73,15 +76,9 @@ export function createFunnel(): Funnel {
         voted = true
         track(UMAMI_EVENT.voteCast, { activity: 'poker' })
       }
-      if (command.type === 'poker.reveal') {
-        revealedBy.add(command.payload.round)
-        decidedBy.add(command.payload.round)
-      }
-      if (command.type === 'poker.cancelReveal') {
-        revealedBy.delete(command.payload.round)
-        decidedBy.delete(command.payload.round)
-      }
-      if (command.type === 'poker.settle') decidedBy.add(command.payload.round)
+      if (command.type === 'poker.reveal') revealedBy.add(command.payload.round)
+      if (command.type === 'poker.cancelReveal') revealedBy.delete(command.payload.round)
+      if (command.type === 'poker.settle') settledBy.add(command.payload.round)
       settle()
     },
   }
