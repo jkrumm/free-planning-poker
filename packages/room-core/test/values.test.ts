@@ -7,6 +7,7 @@ import {
   parseSeatIndex,
   parseSlug,
   parseTopicRef,
+  parseV1Address,
   sameAccessCode,
 } from '../src/values.ts'
 
@@ -20,6 +21,25 @@ describe('Slug', () => {
       expect(parseSlug(input)).toBeUndefined()
     },
   )
+})
+
+describe('v1 address', () => {
+  test.each([
+    ['123456', '123456'],
+    ['team-alpha', 'team-alpha'],
+    ['my team', 'my-team'],
+    ['my_team', 'my-team'],
+    [' Team  Alpha! ', 'team-alpha'],
+    ['müller', 'muller'],
+    ["o'neil\\x", 'o-neil-x'],
+    ['🚀 rockets', 'rockets'],
+    ['a b', 'a-b'],
+  ])('%s leads to %s', (input, slug) => {
+    expect(parseV1Address(input)).toBe(slug as never)
+  })
+  test.each(['ab', '!!!', '12 34', '42', '1234567'])('%p leads nowhere', (input) => {
+    expect(parseV1Address(input)).toBeUndefined()
+  })
 })
 
 describe('SeatIndex', () => {
