@@ -1,9 +1,10 @@
 ---
-import type { EntryData } from '../lib/entry-schema.ts'
-import { strings } from '../strings.en.ts'
+import { strings } from '../../strings.en.ts'
+import { faqPage, type QuestionInput } from './faq-page.ts'
+import { jsonLd } from './json-ld.ts'
 
 interface Props {
-  questions: EntryData['questions']
+  questions: readonly QuestionInput[]
 }
 
 const { questions } = Astro.props
@@ -21,6 +22,7 @@ const { questions } = Astro.props
           </>
         ))}
       </dl>
+      <script type="application/ld+json" is:inline set:html={jsonLd(faqPage(questions))} />
     </section>
   )
 }

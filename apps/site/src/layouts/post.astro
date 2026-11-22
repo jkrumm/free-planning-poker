@@ -1,6 +1,7 @@
 ---
 import type { EntryData } from '../lib/entry-schema.ts'
-import Questions from '../components/questions.astro'
+import Article from '../components/schema/article.astro'
+import Questions from '../components/schema/questions.astro'
 import { strings } from '../strings.en.ts'
 import Base from './base.astro'
 
@@ -12,7 +13,14 @@ const { data } = Astro.props
 const day = (value: Date) => value.toISOString().slice(0, 10)
 ---
 
-<Base title={data.title} description={data.description} draft={data.draft}>
+<Base title={data.title} description={data.description} draft={data.draft} type="article">
+  <Article
+    slot="structured-data"
+    headline={data.title}
+    description={data.description}
+    published={data.published}
+    updated={data.updated}
+  />
   <article>
     <h1>{data.title}</h1>
     <p>

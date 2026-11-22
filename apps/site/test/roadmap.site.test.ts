@@ -14,8 +14,11 @@ describe.each(realOutputs)('roadmap, build %s', (output) => {
     expect(await readText(outputRoot(output), 'roadmap.html')).toContain(`>${newest}<`)
   })
 
-  test('ships no script element', async () => {
-    expect(await readText(outputRoot(output), 'roadmap.html')).not.toContain('<script')
+  test('ships no script element but its structured data', async () => {
+    const html = await readText(outputRoot(output), 'roadmap.html')
+    expect(
+      html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, ''),
+    ).not.toContain('<script')
   })
 
   test('names every item of next.ts with its sentence', async () => {

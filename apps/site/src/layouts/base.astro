@@ -1,6 +1,11 @@
 ---
+import BreadcrumbList from '../components/schema/breadcrumb-list.astro'
+import Organization from '../components/schema/organization.astro'
+import WebSite from '../components/schema/web-site.astro'
+import { breadcrumbs } from '../lib/breadcrumbs.ts'
 import { canonicalPath } from '../lib/canonical.ts'
 import { sectionEntries } from '../lib/entries.ts'
+import { socialImagePath, socialImageSize } from '../lib/social.ts'
 import { strings } from '../strings.en.ts'
 
 interface Props {
@@ -11,12 +16,18 @@ interface Props {
   draft?: boolean
   /** Keep the page out of every index (the 404 page). */
   noindex?: boolean
+  /** The Open Graph type: an article for a page with a published date, a website for the rest. */
+  type?: 'website' | 'article'
 }
 
-const { title, description, draft = false, noindex = false } = Astro.props
+const { title, description, draft = false, noindex = false, type = 'website' } = Astro.props
 const pageTitle = title ? strings.titlePrefix + title : strings.homeTitle
 const canonical = new URL(canonicalPath(Astro.url.pathname), Astro.site).href
 const robots = draft || noindex ? 'noindex, nofollow' : 'index, follow'
+// social-images.ts writes the file at the end of the build, from this page's og:title and og:description.
+const socialImage = new URL(socialImagePath(Astro.url.pathname), Astro.site).href
+// A page that is kept out of every index has no trail to show.
+const crumbs = noindex || draft ? [] : breadcrumbs(Astro.url.pathname, title ?? pageTitle)
 const year = new Date().getFullYear()
 // /blog exists only while this build shows a post (src/pages/blog), so the footer links it on the same condition.
 const blogVisible = (await sectionEntries('blog')).length > 0
@@ -33,8 +44,22 @@ const vsVisible = (await sectionEntries('vs')).length > 0
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <meta name="robots" content={robots} />
-    <slot name="social" />
+    <meta property="og:site_name" content={strings.siteName} />
+    <meta property="og:locale" content="en" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(socialImageSize.width)} />
+    <meta property="og:image:height" content={String(socialImageSize.height)} />
+    <meta property="og:image:alt" content={pageTitle} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <Organization />
+    <WebSite />
     <slot name="structured-data" />
+    {crumbs.length > 0 && <BreadcrumbList crumbs={crumbs} />}
   </head>
   <body id="top">
     <header>

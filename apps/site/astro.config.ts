@@ -1,6 +1,7 @@
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import { defineConfig } from 'astro/config'
+import { socialImages } from './src/integrations/social-images.ts'
 import { readContentIndex, readPillarDate } from './src/lib/content-index.ts'
 import { siteOrigin } from './src/lib/site.ts'
 import { sitemapOptions } from './src/lib/sitemap.ts'
@@ -20,7 +21,11 @@ export default defineConfig({
   // Astro 7 defaults to 'jsx', which removes the space in "a <em>b</em>". 'true' collapses white space to one space.
   compressHTML: true,
   // @astrojs/sitemap (pinned in package.json): its filter and lastmod come from src/lib/sitemap.ts, read at build start.
-  integrations: [mdx(), sitemap(sitemapOptions(target, readContentIndex(), readPillarDate()))],
+  integrations: [
+    mdx(),
+    sitemap(sitemapOptions(target, readContentIndex(), readPillarDate())),
+    socialImages(),
+  ],
   i18n: {
     locales: ['en', 'de', 'es', 'fr', 'zh'],
     defaultLocale: 'en',

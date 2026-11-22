@@ -1,0 +1,6 @@
+---
+import { jsonLd } from './json-ld.ts'
+import { softwareApplication } from './software-application.ts'
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd(softwareApplication())} />

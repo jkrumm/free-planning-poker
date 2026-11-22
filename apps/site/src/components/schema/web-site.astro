@@ -1,0 +1,6 @@
+---
+import { webSite } from './organization.ts'
+import { jsonLd } from './json-ld.ts'
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd(webSite())} />
