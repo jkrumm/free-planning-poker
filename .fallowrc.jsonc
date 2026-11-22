@@ -1,4 +1,23 @@
 {
+  // Files fallow cannot see as imported: a Make target, a test glob, the
+  // lingui CLI or a Vite config loads them by path, or they are run by hand
+  // as the file header or docs/v9/evidence says.
+  "entry": [
+    // Make targets: build (budget), import-v1, indexnow, arena-score (static-score)
+    "apps/room/scripts/budget.ts",
+    "apps/api/scripts/import-v1.ts",
+    "apps/site/scripts/indexnow.ts",
+    "apps/arena/scripts/static-score.ts",
+    // Run by hand; docs/v9/evidence and the file headers say how
+    "apps/api/scripts/bake-off.ts",
+    "apps/api/scripts/bake-off-server.ts",
+    "apps/api/scripts/stop-after-close.ts",
+    "apps/site/scripts/check-links.ts",
+    // Loaded by path: the lingui CLI (`bun run i18n`) and the room's Vite config
+    "packages/i18n/lingui.config.ts",
+    // Content fixture read by the site build's glob loader
+    "apps/site/test/fixtures/content/docs/mdx-doc.mdx",
+  ],
   // Not imported by name, on purpose: effect-tsgo runs from the Makefile (bunx), social-image.ts resolves
   // @fontsource/inter with createRequire, and docs/v9/TABLE-BRIEF.md installs motion for arena entries.
   "ignoreDependencies": ["@effect/tsgo", "@fontsource/inter", "motion"],
