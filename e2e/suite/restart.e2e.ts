@@ -71,7 +71,8 @@ test('the API container is replaced mid-round: every seat resumes and the reveal
         await expect(seatOf(page, seat.name).getByTestId('seat-vote')).toHaveText(value)
     })
   } catch (error) {
-    await make('v9-logs').catch(() => undefined)
+    const logs = await make('v9-logs').catch(() => undefined)
+    if (logs !== undefined) await testInfo.attach('compose-logs', { body: logs.stdout })
     throw error
   } finally {
     await make('v9-down')
