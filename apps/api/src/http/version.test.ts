@@ -1,11 +1,12 @@
 import { expect, test } from 'bun:test'
-import { NO_ROOMS } from '../../test/support.ts'
+import { NO_ROOMS, NO_STATS } from '../../test/support.ts'
 import { createApp } from './app.ts'
 
 test('GET /api/version names the running build', async () => {
   const app = createApp({
     build: { version: '9.0.0', commit: 'abc123' },
     rooms: NO_ROOMS,
+    stats: NO_STATS,
     health: async () => 'ok',
   })
   const response = await app.handle(new Request('http://localhost/api/version'))

@@ -11,10 +11,12 @@ import { postgresStore } from '../db/store.ts'
 import type { Env } from '../env.ts'
 import { createApp } from '../http/app.ts'
 import { expiryJob } from '../jobs/expiry.ts'
+import { rollupJob } from '../jobs/rollup.ts'
 import type { ApiTelemetry } from '../telemetry.ts'
 import { timerClock } from '../ws/clock.ts'
 import type { RoomServerOptions } from '../ws/edge.ts'
 import { postgresRooms } from './rooms.ts'
+import { postgresStats } from './stats.ts'
 import { systemIds, systemSecrets } from './system.ts'
 
 /** How long closing the scope waits for snapshot and history writes still in flight. */
@@ -51,6 +53,7 @@ const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
       ),
     )
     yield* Effect.forkScoped(expiryJob({ database, now, failed: failed('expiry', 'sweep') }))
+    yield* Effect.forkScoped(rollupJob({ database, now, failed: failed('rollup', 'tick') }))
     const clock = timerClock({
       now: deps.now,
       failed: (error) => telemetry.failure(error, { action: 'timer' }),
@@ -66,6 +69,12 @@ const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
       exhausted: server.numbersExhausted,
       failed: failed('rooms', 'route'),
     })
+    const stats = postgresStats({
+      database,
+      now,
+      tablesOpen: () => runtime?.stats().rooms ?? 0,
+      failed: failed('stats', 'read'),
+    })
     const options: RoomServerOptions = {
       port: env.port,
       origins: env.origins,
@@ -75,6 +84,7 @@ const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
         return createApp({
           build: { version: env.version, commit: env.commit },
           rooms: rooms.api,
+          stats,
           health: () => (state.draining ? Promise.resolve('draining') : rooms.health()),
         })
       },

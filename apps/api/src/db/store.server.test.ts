@@ -78,7 +78,10 @@ describe('migrations', () => {
     const [row] = await query<{ n: string }>(
       sql`SELECT count(*) AS n FROM fpp.__drizzle_migrations`,
     )
-    expect(Number(row?.n)).toBe(1)
+    const journal = JSON.parse(await readFile(`${MIGRATIONS}/meta/_journal.json`, 'utf8')) as {
+      entries: unknown[]
+    }
+    expect(Number(row?.n)).toBe(journal.entries.length)
   })
 
   test('no table holds a display name, an IP address or a user agent', async () => {

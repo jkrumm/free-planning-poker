@@ -50,7 +50,10 @@ export const room = fpp.table(
     createdAt: timestamptz('created_at').notNull().defaultNow(),
     lastActiveAt: timestamptz('last_active_at').notNull().defaultNow(),
   },
-  (t) => [check('room_locked_has_code', sql`${t.access} = 'open' OR ${t.accessCode} IS NOT NULL`)],
+  (t) => [
+    check('room_locked_has_code', sql`${t.access} = 'open' OR ${t.accessCode} IS NOT NULL`),
+    index('room_created_at_idx').on(t.createdAt),
+  ],
 )
 
 /**
@@ -158,6 +161,8 @@ export const round = fpp.table(
   (t) => [
     uniqueIndex('round_room_no_unique').on(t.roomId, t.no),
     uniqueIndex('round_topic_attempt_unique').on(t.topicId, t.attempt),
+    // The daily rollup reads one UTC day of rounds (jobs/rollup.ts).
+    index('round_revealed_at_idx').on(t.revealedAt),
   ],
 )
 
@@ -184,6 +189,8 @@ export const visitorDay = fpp.table(
   },
   (t) => [
     primaryKey({ columns: [t.day, t.visitor] }),
+    // "New estimators" asks whether a device appeared on an earlier day.
+    index('visitor_day_visitor_idx').on(t.visitor, t.day),
     check('visitor_day_visitor_16_bytes', sql`octet_length(${t.visitor}) = 16`),
   ],
 )

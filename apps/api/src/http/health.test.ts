@@ -1,11 +1,12 @@
 import { expect, test } from 'bun:test'
-import { NO_ROOMS } from '../../test/support.ts'
+import { NO_ROOMS, NO_STATS } from '../../test/support.ts'
 import { createApp, type Health } from './app.ts'
 
 const app = (health: Health) =>
   createApp({
     build: { version: '9.0.0', commit: 'abc123' },
     rooms: NO_ROOMS,
+    stats: NO_STATS,
     health: async () => health,
   })
 
