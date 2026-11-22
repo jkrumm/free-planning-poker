@@ -72,7 +72,7 @@ It reaches your tracker. Linear is a native integration, and a Jira plugin sits 
 
 ## Where Free Planning Poker is better
 
-Nothing runs out. Planning Poker Online's free plan stops at 9 voting rounds and 5 voted issues per game, limits a long backlog passes quickly. There is no cap on rounds here, and no paid plan to move to. History is a Premium feature there; here every round is kept.
+Nothing runs out. Planning Poker Online's free plan stops at 9 voting rounds and 5 voted issues per game, and a long backlog passes both quickly. There is no cap on rounds here, and no paid plan to move to. History is a Premium feature there; here every round is kept.
 
 ## Which one to pick
 
