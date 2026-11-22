@@ -55,7 +55,7 @@ Test files are exempt from the class rules, not from the arrows. `scripts/bounda
 | 7739 | the room app (Vite) |
 | 7740 | the API; `bun run dev` starts it with `--watch` |
 
-Agents never start these servers.
+Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port.
 
 ## CI
 

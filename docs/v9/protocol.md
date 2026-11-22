@@ -294,7 +294,7 @@ Published in an `evt` frame, the same for every seat.
 | 4005 | `access_required` | access code required or wrong | ask for the code, connect again with it |
 | 4008 | `rate_limited` | rate limit exceeded | back off, reconnect |
 
-The runtime (`packages/room-core/src/runtime`) also closes with codes of the socket protocol itself (RFC 6455): 1000 after a `seat.leave`, 1001 for a socket silent for 60 s, 1008 when the first frame is not a valid `hello`, 1009 for a frame above 16 KB, 1011 for a bug while handling a frame, and 1013 when the table is full in both roles or the store did not answer. The client treats each as a lost connection and reconnects with backoff.
+The runtime (`packages/room-core/src/runtime`) also closes with codes of the socket protocol itself (RFC 6455): 1000 after a `seat.leave`, 1001 for a socket silent for 60 s, 1008 when the first frame is not a valid `hello`, 1009 for a frame above 16 KB (up to 64 KB: Bun ends a larger one without a close frame, which the client reads as 1006, as it does for a socket closed at the 256 KB backpressure limit), 1011 for a bug while handling a frame, and 1013 when the table is full in both roles or the store did not answer. The client treats each as a lost connection and reconnects with backoff.
 
 ## The view
 

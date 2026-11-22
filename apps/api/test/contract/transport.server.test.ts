@@ -11,10 +11,22 @@ import {
   type ServerFrame,
 } from '@fpp/room-core/types'
 import { freePort } from '@fpp/test-kit/port'
+import { readdirSync, readFileSync } from 'node:fs'
+import { encode } from '../../src/ws/edge.ts'
 import { join, TestClient, hello, upgradeStatus } from './client.ts'
 import { ADAPTERS, type AdapterName, SETTINGS, startServer, type Started } from './harness.ts'
 
 const ROOM = '482913'
+
+/** The fixtures of protocol version 1 (rule `protocol.md`), read as data from room-core. */
+const FIXTURES = new URL('../../../../packages/room-core/fixtures/v1/', import.meta.url).pathname
+const fixtures = (dir: string) =>
+  readdirSync(FIXTURES + dir)
+    .filter((name) => name.endsWith('.json'))
+    .toSorted()
+    .map((name) => ({ name, frame: JSON.parse(readFileSync(FIXTURES + dir + '/' + name, 'utf8')) }))
+const frameFixture = (name: string) =>
+  fixtures('frames').find((entry) => entry.name === name)?.frame
 const slug = (text: string) => {
   const parsed = parseSlug(text)
   if (parsed === undefined) throw new Error(`not a slug: ${text}`)
@@ -190,6 +202,50 @@ describe.each(Object.keys(ADAPTERS) as AdapterName[])('transport contract: %s', 
     expect(
       slow.client.frames.filter((frame) => frame.frame === 'evt' && frame.seq >= base).length,
     ).toBeLessThan(1_000)
+  })
+
+  test('every server frame and event fixture passes the outgoing check', () => {
+    const server = ['welcome', 'ack', 'nack', 'evt', 'fx', 'ping', 'pong'].map(
+      (name) => `${name}.json`,
+    )
+    const frames = fixtures('frames').filter(({ name }) => server.includes(name))
+    expect(frames.length).toBe(server.length)
+    for (const { frame } of [...frames, ...fixtures('events')])
+      expect(() => encode(frame)).not.toThrow()
+  })
+
+  test('every command fixture sent by a seat is answered by its id', async () => {
+    const commands = fixtures('commands')
+    expect(commands.length).toBeGreaterThan(0)
+    for (const [index, { name, frame }] of commands.entries()) {
+      // A room of its own per fixture: a kick or a leave leaves the next one a fresh table.
+      const seat = track(await join(room.url(`fixture-${index}`), { name: 'Ada' }))
+      seat.client.send(frame)
+      const answer = await Promise.race([
+        seat.client.next('ack', (reply) => reply.id === frame.id).then(() => 'ack'),
+        seat.client.next('nack', (reply) => reply.id === frame.id).then((reply) => reply.reason),
+        seat.client.closed.then((closed) => `closed ${closed.code}`),
+      ])
+      // A leave closes the seat's socket with 1000 before an ack could reach it; every other command is answered.
+      if (name === 'seat.leave.json') expect(answer).toBe('closed 1000')
+      else expect({ name, closed: answer.startsWith('closed') }).toEqual({ name, closed: false })
+    }
+  })
+
+  test('the hello, fx and ping fixtures go through the adapter', async () => {
+    // The hello fixture names a seat token this room never minted.
+    const stranger = await TestClient.open(room.url(ROOM))
+    open.push(stranger)
+    stranger.send(frameFixture('hello.json'))
+    expect((await stranger.closed).code).toBe(CLOSE_CODES.expired)
+
+    const alice = track(await join(room.url(ROOM), { name: 'Alice' }))
+    const bob = track(await join(room.url(ROOM), { name: 'Bob' }))
+    alice.client.send(frameFixture('fx.json'))
+    const fx = await bob.client.next('fx')
+    expect(fx.seat).toBe(alice.welcome.seat)
+    alice.client.send(frameFixture('ping.json'))
+    await alice.client.next('pong')
   })
 
   test('a stop closes every open socket with 4002', async () => {

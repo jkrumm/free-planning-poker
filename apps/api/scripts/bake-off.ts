@@ -1,7 +1,7 @@
 /**
  * The transport bake-off (docs/v9/evidence/transport.md): against each adapter, in a server process of its own, a burst
  * of 2,000 sockets in 200 rooms that vote and reveal, and a slow consumer under a flood of 1,000 events. Prints one
- * JSON line per run. `bun apps/api/scripts/bake-off.ts [adapter ...] [--runs n]`.
+ * JSON line per run. `bun apps/api/scripts/bake-off.ts [adapter ...] [--runs n] [--phase burst|slow]`.
  */
 import type { ServerFrame } from '@fpp/room-core/types'
 import { join, type TestClient } from '../test/contract/client.ts'
@@ -10,7 +10,12 @@ import { ADAPTERS, type AdapterName } from '../test/contract/harness.ts'
 const args = Bun.argv.slice(2)
 const runsAt = args.indexOf('--runs')
 const runs = runsAt === -1 ? 3 : Number(args[runsAt + 1])
-const chosen = args.filter((arg, index) => !arg.startsWith('--') && args[index - 1] !== '--runs')
+const phaseAt = args.indexOf('--phase')
+const phase = phaseAt === -1 ? 'both' : args[phaseAt + 1]
+const chosen = args.filter(
+  (arg, index) =>
+    !arg.startsWith('--') && args[index - 1] !== '--runs' && args[index - 1] !== '--phase',
+)
 const adapters = (chosen.length > 0 ? chosen : Object.keys(ADAPTERS)) as AdapterName[]
 
 const ROOMS = 200
@@ -267,8 +272,9 @@ async function slowConsumer(adapter: AdapterName) {
   }
 }
 
+// The order alternates between runs, so a host whose load drifts favours no adapter.
 for (let run = 1; run <= runs; run += 1)
-  for (const adapter of adapters) {
-    console.log(JSON.stringify({ run, ...(await burst(adapter)) }))
-    console.log(JSON.stringify({ run, ...(await slowConsumer(adapter)) }))
+  for (const adapter of run % 2 === 0 ? adapters.toReversed() : adapters) {
+    if (phase !== 'slow') console.log(JSON.stringify({ run, ...(await burst(adapter)) }))
+    if (phase !== 'burst') console.log(JSON.stringify({ run, ...(await slowConsumer(adapter)) }))
   }

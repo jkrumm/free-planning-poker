@@ -11,10 +11,8 @@
     "db:migrate": "bun scripts/migrate.ts"
   },
   "dependencies": {
-    "@effect/platform-bun": "4.1.4",
     "@fpp/room-core": "workspace:*",
     "drizzle-orm": "0.45.4",
-    "effect": "4.1.4",
     "elysia": "2.0.0-rc.3",
     "exact-mirror": "1.2.7",
     "openapi-types": "12.1.3",

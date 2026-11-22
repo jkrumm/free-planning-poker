@@ -8,17 +8,17 @@ import { DECKS } from '@fpp/room-core/types'
 import { memoryRooms } from '../../src/app/memory-rooms.ts'
 import { systemIds, systemSecrets } from '../../src/app/system.ts'
 import { createApp } from '../../src/http/app.ts'
-import { serveBun } from '../../src/ws/bun.transport.ts'
 import { timerClock } from '../../src/ws/clock.ts'
 import type { RoomServer, RoomServerOptions } from '../../src/ws/edge.ts'
-import { serveEffect } from '../../src/ws/effect.transport.ts'
-import { serveElysia } from '../../src/ws/elysia.transport.ts'
+import { serveBun } from '../../src/ws/bun.transport.ts'
 import { ORIGIN } from './client.ts'
 
+/**
+ * The adapters the suite runs against: the bake-off's winner (docs/v9/evidence/transport.md). A candidate for a later
+ * bake-off joins here and runs the same suite.
+ */
 export const ADAPTERS = {
-  elysia: serveElysia,
   bun: serveBun,
-  effect: serveEffect,
 } as const satisfies Record<string, (options: RoomServerOptions) => Promise<RoomServer>>
 
 export type AdapterName = keyof typeof ADAPTERS
