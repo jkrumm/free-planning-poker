@@ -12,5 +12,8 @@ coverage/
 # Scorecards of the table arena: written by make arena-score, never committed.
 arena/scores/
 test-results/
+# Playwright reports of the end-to-end suite (CI merges the blobs into one report).
+blob-report/
+playwright-report/
 # The report of make import-v1: counts, skips and phase times of one run, never committed.
 import-v1-report*.json

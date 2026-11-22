@@ -128,6 +128,7 @@
         "e2e/arena/playwright.config.ts",
         "e2e/arena/setup.ts",
         "e2e/arena/report.ts",
+        "e2e/suite/playwright.config.ts",
         "arena/css-modules.d.ts",
         "apps/room/vite.config.ts",
         "packages/i18n/lingui.config.ts"

@@ -143,9 +143,78 @@ jobs:
           retention-days: 1
           compression-level: 0
 
+  # The end-to-end suite (e2e/suite): one browser context per seat against the image of the `image` job, started from
+  # deploy/compose.yml by e2e/suite/run.ts. Playwright runs on the runner itself, not in a container, because one test
+  # replaces the API container mid-round and needs Docker. Two shards; each starts its own stack. Chromium only, in the
+  # bundled headless shell. One retry exists to record a trace and the config fails a test that needed it. Runs only when
+  # lane app changed.
+  e2e:
+    needs: [lanes, image]
+    if: needs.lanes.outputs.app == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: fpp-api-image
+          path: ${{ runner.temp }}
+      - run: docker load --input "${{ runner.temp }}/fpp-api.tar"
+      - run: e2e/node_modules/.bin/playwright install --with-deps --only-shell chromium
+      - run: bun e2e/suite/run.ts --shard=${{ matrix.shard }}/2
+        env:
+          E2E_NO_BUILD: '1'
+          E2E_IMAGE: fpp-api:local
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-blob-${{ matrix.shard }}
+          path: e2e/suite/blob-report
+          retention-days: 1
+          if-no-files-found: ignore
+
+  # The shards' blob reports merged into one HTML report, with the failures as annotations on the run.
+  e2e-report:
+    needs: e2e
+    if: ${{ !cancelled() && needs.e2e.result != 'skipped' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: e2e-blob-*
+          path: e2e/suite/blob-reports
+          merge-multiple: true
+      - run: e2e/node_modules/.bin/playwright merge-reports --reporter html,github e2e/suite/blob-reports
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-report
+          path: playwright-report
+          retention-days: 14
+          if-no-files-found: ignore
+
   # The required check. It runs whatever happened before it and is red when a needed job failed or was cancelled.
   ci:
-    needs: [lanes, check, site, arena, image]
+    needs: [lanes, check, site, arena, image, e2e, e2e-report]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
