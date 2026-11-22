@@ -22,6 +22,17 @@ test('the room app is served from its build, or from the directory ROOM_APP_DIR 
   expect(parseEnv({ ...ENV, ROOM_APP_DIR: '' }).roomAppDir.endsWith('/apps/room/dist')).toBe(true)
 })
 
+test('the migrations are applied from apps/api/drizzle, or from the directory MIGRATIONS_DIR names', () => {
+  expect(parseEnv(ENV).migrationsDir.endsWith('/apps/api/drizzle')).toBe(true)
+  expect(parseEnv({ ...ENV, MIGRATIONS_DIR: ' /app/drizzle ' }).migrationsDir).toBe('/app/drizzle')
+})
+
+test('migrations run on start only where MIGRATE_ON_START is true', () => {
+  expect(parseEnv(ENV).migrateOnStart).toBe(false)
+  expect(parseEnv({ ...ENV, MIGRATE_ON_START: 'true' }).migrateOnStart).toBe(true)
+  expect(parseEnv({ ...ENV, MIGRATE_ON_START: 'yes' }).migrateOnStart).toBe(false)
+})
+
 test('the client address header is read in lower case, and absent by default', () => {
   expect(parseEnv(ENV).clientIpHeader).toBeUndefined()
   expect(parseEnv({ ...ENV, CLIENT_IP_HEADER: 'CF-Connecting-IP' }).clientIpHeader).toBe(

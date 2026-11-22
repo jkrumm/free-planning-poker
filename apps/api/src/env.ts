@@ -30,6 +30,13 @@ export type Env = {
   readonly feedbackDoor: Upstream | undefined
   /** The built room app the API serves under `/room` and `/_room` (`ROOM_APP_DIR`); the build of `apps/room` by default. */
   readonly roomAppDir: string
+  /**
+   * Apply the migrations before serving (`MIGRATE_ON_START=true`, set by the image). Off by default: a process in
+   * development or in a test starts without a database and plays on (docs/development.md, Image).
+   */
+  readonly migrateOnStart: boolean
+  /** The drizzle migrations applied on start (`MIGRATIONS_DIR`); `apps/api/drizzle` by default, the copy beside the bundle in the image. */
+  readonly migrationsDir: string
   /** The server secret of the device hash in `visitor_day` (`VISITOR_KEY`, at least 32 characters). */
   readonly visitorKey: string
 }
@@ -38,6 +45,9 @@ export type Env = {
 export type Upstream = { readonly url: string; readonly secret: string }
 /** Where `bun run build` in `apps/room` writes the app, beside the API's sources. */
 const DEFAULT_ROOM_APP_DIR = fileURLToPath(new URL('../../room/dist', import.meta.url))
+
+/** Where the migrations are in the source tree, beside `src`. */
+const DEFAULT_MIGRATIONS_DIR = fileURLToPath(new URL('../drizzle', import.meta.url))
 
 /** A shorter key than this is refused: it would make the device hash guessable. */
 const VISITOR_KEY_MIN = 32
@@ -115,6 +125,8 @@ export function parseEnv(source: Readonly<Record<string, string | undefined>>): 
       secret: 'FACTORY_FEEDBACK_TOKEN',
     }),
     roomAppDir: source.ROOM_APP_DIR?.trim() || DEFAULT_ROOM_APP_DIR,
+    migrateOnStart: source.MIGRATE_ON_START === 'true',
+    migrationsDir: source.MIGRATIONS_DIR?.trim() || DEFAULT_MIGRATIONS_DIR,
     databaseUrl,
     visitorKey,
   }
