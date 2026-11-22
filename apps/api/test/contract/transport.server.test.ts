@@ -13,7 +13,7 @@ import {
 import { freePort } from '@fpp/test-kit/port'
 import { readdirSync, readFileSync } from 'node:fs'
 import { encode } from '../../src/ws/edge.ts'
-import { join, TestClient, hello, upgradeStatus } from './client.ts'
+import { join, plainStatus, statusOf, TestClient, hello, upgradeStatus } from './client.ts'
 import { ADAPTERS, type AdapterName, SETTINGS, startServer, type Started } from './harness.ts'
 
 const ROOM = '482913'
@@ -94,6 +94,32 @@ describe.each(Object.keys(ADAPTERS) as AdapterName[])('transport contract: %s', 
     const response = await fetch(`http://127.0.0.1:${room.server.port}/api/health`)
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ status: 'ok' })
+  })
+
+  test('an HTTP/1.0 request with no Host header is answered, not refused with a 500', async () => {
+    expect(await plainStatus(room.server.port, '/api/health')).toBe(200)
+  })
+
+  test('a Host-less POST with a body answers as the same POST with a Host does', async () => {
+    const body = '{}'
+    const withHost = await fetch(`http://127.0.0.1:${room.server.port}/api/contact`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body,
+    })
+    const without = await statusOf(room.server.port, [
+      'POST /api/contact HTTP/1.0',
+      'Content-Type: application/json',
+      `Content-Length: ${body.length}`,
+      '',
+      body,
+    ])
+    expect(without).toBe(withHost.status)
+    expect(without).not.toBe(500)
+  })
+
+  test("a Host-less target that starts with '//' is a path, not a host, so it answers as the same path would", async () => {
+    expect(await plainStatus(room.server.port, '//x/api/health')).toBe(404)
   })
 
   test('a frame above 16 KB closes the socket with 1009', async () => {
