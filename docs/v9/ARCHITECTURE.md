@@ -283,7 +283,7 @@ The fixtures of the last released protocol version keep passing forever (rule `p
 
 | Port | Production adapter | Test adapter |
 |-|-|-|
-| Transport (accept, send, publish to room, close) | one of three adapters, decided by the bake-off below; one pub/sub topic per room | in-memory transport from `@fpp/room-core/sim` |
+| Transport (accept, send, publish to room, close) | `Bun.serve`'s native WebSocket handler (`apps/api/src/ws/bun.transport.ts`), the winner of the bake-off below; one pub/sub topic per room | in-memory transport from `@fpp/room-core/sim` |
 | Room store (claim, snapshot, release) | Postgres | in-memory map |
 | History (topics, rounds, estimating days, rollups) | Postgres | in-memory |
 | Clock, id source | system | seeded |
@@ -297,7 +297,9 @@ The fixtures of the last released protocol version keep passing forever (rule `p
 | `Bun.serve`'s native handler | the documented surface: publish to a topic, `send()` return codes for backpressure, `drain` | a second place where a route is registered |
 | Effect's socket server on Bun | structured concurrency, one model with the store adapter | its API exposes neither Bun's publish nor the backpressure codes, and an open report describes unbounded buffering of inbound frames (#10607); its RPC sits under `effect/unstable` and is not part of the test (`research/r18-effect.md`) |
 
-Each adapter implements the same port in about 150 lines. The row runs the frame fixtures, the close codes, the drain, a slow consumer and a burst of 2,000 sockets against all three, records the numbers in `docs/v9/evidence/transport.md`, keeps the winner and deletes the others. A candidate that cannot bound a slow consumer's memory or loses a frame is out, whatever else it offers. Whichever wins, the room server keys a connection by its own id, validates outgoing frames itself, takes the room's address from the path, and keeps every framework import in `apps/api/src/http` and `apps/api/src/ws`. A version bump reruns the suite before it merges; `latest` on npm is the 1.4 line and tags have moved before, so nothing installs by tag.
+Each adapter implemented the same port in 73 to 121 lines. The row ran the transport contract suite, a slow consumer and a burst of 2,000 sockets against all three, recorded the numbers in `docs/v9/evidence/transport.md`, kept the winner and deleted the others. A candidate that cannot bound a slow consumer's memory or loses a frame is out, whatever else it offers.
+
+**The outcome (2026-11-22): `Bun.serve`'s native handler carries the rooms**, with Elysia serving every HTTP route through its fetch. All three passed the suite, bounded the slow consumer and lost no frame. Bun's handler had the lowest 99th percentile from command to last fan-out (117 ms against Elysia's 138 ms over 20 paired runs of the burst, Effect three to seven times slower), so Elysia was outside the 10 % that would have kept it. One clock timer drives the runtime; Bun's payload ceiling is 64 KB because Bun ends a larger frame without a close code, and the runtime closes anything above 16 KB with 1009. The room server keys a connection by its own id, validates outgoing frames itself, takes the room's address from the path, and keeps every framework import in `apps/api/src/http` and `apps/api/src/ws`. A version bump reruns the suite before it merges; `latest` on npm is the 1.4 line and tags have moved before, so nothing installs by tag.
 
 **Effect, where I/O fails.** The API's adapters and its composition root are written with Effect 4:
 
