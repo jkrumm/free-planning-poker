@@ -24,7 +24,7 @@ Every row names the seat its lead starts on.
 |-|-|-|
 | `opus`, effort high | 16 | new hard logic, or a design other rows build on. The reason is in the row's `why` |
 | `lead` | 54 | everything else that is built |
-| `light` | 8 | small mechanical rows that a check proves: the development host, the crawl files, the blog and roadmap pages, the session summary, the personal record, the feedback form, the end of v1's hosting. Filed, so the factory does not move them up: a lead that gets stuck there asks |
+| `light` | 8 | small mechanical rows that a check proves: the development host, the crawl files, the blog and roadmap pages, the session summary, the personal record, the feedback form, the end of v1's hosting. Filed with `moveUp`: a lead that struggles there (a second stall, a second refused ship, a regression on its first watch, or its own word that the work is beyond the seat) is moved up to the lead row |
 
 Two lanes cap what runs at once on the development host: `browser` (2) for rows that run Playwright suites, `ui` (4, a first guess that `v9-plan-table` replaces with a measured number) for rows that run the room's component tests and screenshots.
 

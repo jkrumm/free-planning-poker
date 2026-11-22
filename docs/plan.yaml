@@ -7,8 +7,9 @@
 # Priority: every row not yet filed carries prio 1 (owner, 2026-11-21: the rewrite ranks above the other projects' default 0;
 # basalt-ui's Issues rank above it and are raised by hand, because the factory has no priority per project).
 # Seats, filed on every row: opus high where the logic is new and hard, other rows build on the design or production is at stake
-# (reason in why); {role: light} on eight small mechanical rows that a check proves (owner, 2026-11-21: file it; a filed light
-# seat is not moved up, and the light rule's keep-off words would have kept half of them off the seat); {role: lead} for the rest.
+# (reason in why); the light seat with moveUp on eight small mechanical rows that a check proves (owner, 2026-11-21: file it, so the light rule's
+# keep-off words do not keep half of them off the seat; owner, 2026-11-22: moveUp, so a light lead that meets work bigger than
+# filed is moved up to the lead row, not stalled; it starts light and moves up on a second stall or refused ship, a regression on its first watch, or its own word); {role: lead} for the rest.
 version: 1
 rows:
   - key: v9-gate-1
@@ -137,7 +138,7 @@ rows:
     title: 'Local doors for FPP v9: fpp-next.test with production''s path split, and a database fpp on the mini'
     repo: dotfiles
     kind: chore
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     after: [v9-gate-1]
     after_needs: shipped
     facts:
@@ -961,7 +962,7 @@ rows:
     title: 'The session summary: every topic with its final value, spread, rounds and duration, copied as Markdown and exported as CSV through the API summary route'
     kind: feature
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     lane: ui
     after: [v9-room-topics, v9-api-read]
     after_needs: shipped
@@ -1149,7 +1150,7 @@ rows:
     title: 'The personal record: rounds played, how often you matched the most common card and whether you vote higher or lower than your teams, computed and kept on the device only'
     kind: feature
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     lane: ui
     after: [v9-room-shell]
     after_needs: shipped
@@ -1176,7 +1177,7 @@ rows:
     title: 'The feedback form in the room: a short text sent through the API''s feedback route, as v1 has it'
     kind: feature
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     lane: ui
     after: [v9-room-shell, v9-api-contact]
     after_needs: shipped
@@ -1329,7 +1330,7 @@ rows:
     title: 'Search plumbing for the site: robots.txt with the crawler policy, a sitemap without drafts or rooms, llms.txt and Markdown twins, the IndexNow key and ping'
     kind: feature
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     after: [v9-site-scaffold]
     after_needs: shipped
     facts:
@@ -1491,7 +1492,7 @@ rows:
     title: 'The blog: collection index, post layout, RSS feed, and a first post on what is new in 9.0.0 as a draft'
     kind: feature
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     after: [v9-site-scaffold]
     after_needs: shipped
     facts:
@@ -1517,7 +1518,7 @@ rows:
     title: 'The roadmap at /roadmap: the changelog read from CHANGELOG.md at build time and what is next from one data file'
     kind: feature
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     after: [v9-site-scaffold]
     after_needs: shipped
     facts:
@@ -2213,7 +2214,7 @@ rows:
     title: 'End of v1''s hosting on this repository''s side: v1''s deploy workflow disabled, the branch v1 kept and tagged v1-final, the documents corrected'
     kind: chore
     prio: 1
-    seat: {role: light}
+    seat: {role: light, moveUp: true}
     after: [v9-release-9]
     after_needs: shipped
     after_days: 14
