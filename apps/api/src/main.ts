@@ -1,6 +1,5 @@
 import { composeApi } from './app/compose.ts'
 import { parseEnv } from './env.ts'
-import { createSpa } from './http/spa.ts'
 import { createApiTelemetry } from './telemetry.ts'
 import { serveBun } from './ws/bun.transport.ts'
 import { DRAIN_DEADLINE_MS } from './ws/edge.ts'
@@ -37,7 +36,7 @@ process.on('SIGTERM', () => {
   void shutdown()
 })
 
-if (createSpa(env.roomAppDir) === undefined)
+if (api.options.spa === undefined)
   console.warn(
     `no room app at ${env.roomAppDir}: /room answers 404 (build it with bun run --filter @fpp/room build)`,
   )

@@ -1,6 +1,6 @@
 /**
- * The transport port on `Bun.serve`'s native WebSocket handler, beside Elysia's fetch for every HTTP route
- * (docs/v9/evidence/transport.md). Publish goes to Bun's topic of the room, so one call serves every seat.
+ * The transport port on `Bun.serve`'s native WebSocket handler, beside Elysia's fetch for every `/api` route and the
+ * built room app's handler for `/room*` and `/_room/*` (docs/v9/evidence/transport.md). Publish goes to Bun's topic of the room, so one call serves every seat.
  */
 import {
   createRoomRuntime,

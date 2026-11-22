@@ -4,7 +4,7 @@
  * the shell names the current hashes, so it is never cached. Everything else is not this module's.
  */
 import { existsSync } from 'node:fs'
-import { join, normalize, sep } from 'node:path'
+import { join, normalize, resolve, sep } from 'node:path'
 
 export type Spa = (request: Request) => Promise<Response | undefined>
 
@@ -21,9 +21,11 @@ const notFound = () =>
 
 /** The built app in `dir` as a request handler, or undefined where no build is there. */
 export function createSpa(dir: string): Spa | undefined {
-  const shell = join(dir, 'index.html')
+  // Absolute and without a trailing separator, whatever the operator wrote in ROOM_APP_DIR.
+  const base = resolve(dir)
+  const shell = join(base, 'index.html')
   if (!existsSync(shell)) return undefined
-  const root = normalize(dir) + sep
+  const root = base + sep
   return async (request) => {
     if (request.method !== 'GET' && request.method !== 'HEAD') return undefined
     const { pathname } = new URL(request.url)
@@ -40,7 +42,7 @@ export function createSpa(dir: string): Spa | undefined {
     if (!pathname.startsWith(ASSET_PREFIX)) return undefined
     const name = safeDecode(pathname.slice(ASSET_PREFIX.length))
     if (name === undefined) return notFound()
-    const path = normalize(join(dir, name))
+    const path = normalize(join(base, name))
     if (!path.startsWith(root)) return notFound()
     const file = Bun.file(path)
     if (!(await file.exists())) return notFound()
