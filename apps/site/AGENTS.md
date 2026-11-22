@@ -11,7 +11,7 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 
 ## The draft rule
 
-`FPP_SITE_TARGET` is the build-time variable of the target: `beta` or anything else, which is production. `FPP_SITE_CONTENT` (content root) and `FPP_SITE_OUT` (output directory) exist for the fixture builds of `make site` only; never set them in a deploy. `src/lib/entries.ts` (`sectionEntries`) is the only reader of the collections, and it drops drafts in production through `visibleEntries`. Read content through it and a draft gets no route and no index entry; on beta a draft is built with a draft line and `robots: noindex`. A section with nothing to show in a build gets no index page. A new list (sitemap, `llms.txt`, a feed; `v9-site-crawl` wires `@astrojs/sitemap`, pinned here) reads through `sectionEntries` too; `test/drafts.site.test.ts` fails if a draft's name appears in any production file.
+`FPP_SITE_TARGET` is the build-time variable of the target: `beta` or anything else, which is production. `FPP_SITE_CONTENT` (content root) and `FPP_SITE_OUT` (output directory) exist for the fixture builds of `make site` only; never set them in a deploy. `src/lib/entries.ts` (`sectionEntries`) is the only reader of the collections, and it drops drafts in production through `visibleEntries`. Read content through it and a draft gets no route and no index entry; on beta a draft is built with a draft line and `robots: noindex`. A section with nothing to show in a build gets no index page. A new list (`llms.txt`, a feed) reads through `sectionEntries` too. The sitemap is configured when the build starts, before `astro:content` exists, so `src/lib/content-index.ts` reads the same files and `src/lib/sitemap.ts` drops drafts through the same `visibleEntries`. `test/drafts.site.test.ts` fails if a draft's name appears in any production file.
 
 ## Facts about this setup
 
@@ -25,6 +25,12 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 - **Strings.** Navigation and footer text is in `src/strings.en.ts`; page bodies are content in the `.astro` files.
 - **Legal pages.** Every figure `/privacy` prints is a fact in `src/lib/privacy-facts.ts`, backed by a constant in `apps/api/src/db/holds.ts` or a quoted sentence of `docs/v9/ARCHITECTURE.md`; `privacy-facts.test.ts` fails when either moves, so change the page's number there, not in the page. `/imprint` is v1's text (`test/fixtures/v1-imprint.ts`) and publishes no address or e-mail on purpose. The contact form's limits are v1's (`src/lib/contact.ts`); it posts to `POST /api/contact`, whose answers (`v9-api-contact`: 400, 429, 503, 502) `answerFor` maps to four messages.
 - **Blog.** `src/pages/blog/` builds `/blog` and `/blog/rss.xml` only while `sectionEntries('blog')` is non-empty; the footer links `/blog` on the same condition. The generic `[section]` route skips blog. `updated` is set by hand, when the body changes.
+
+## Crawl files
+
+- `src/lib/robots.ts`: the crawler list, each token's source and read date above it; re-read the vendor page when the list changes. Served as `robots.txt`; every group disallows `/room`, `/_room/`, `/api/`.
+- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar. The pillar's Markdown is `src/twins/guide.ts`, not a page source: `test/twins.site.test.ts` fails when it drifts from `guide.astro`.
+- IndexNow: `public/<key>.txt` is committed, because the protocol serves the key publicly. `make indexnow` runs `scripts/indexnow.ts`: it sends the URLs whose sitemap entry is new or whose lastmod moved against the live sitemap, skips on beta, and `DRY_RUN=1` lists them without sending. Not called from a deploy yet: `v9-edge-routing` runs `make indexnow` as the last step of the site's deploy job, once the new sitemap is live.
 
 ## Where the later rows plug in
 

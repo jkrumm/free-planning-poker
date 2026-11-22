@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run factory-files bun-version lanes deploy verify logs
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run indexnow factory-files bun-version lanes deploy verify logs
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover. Overridable so `verify` can be pointed at another host.
@@ -88,6 +88,11 @@ verify: ## Probe production health (web + server + analytics)
 	@curl -fsS $(ANALYTICS_URL) >/dev/null
 	@curl -fsS $(WEB_URL) >/dev/null
 	@echo "production healthy"
+
+# The production URLs new or changed since the last deploy go to IndexNow (apps/site/scripts/indexnow.ts). The beta
+# target skips; DRY_RUN=1 prints the list and sends nothing.
+indexnow: ## Ping IndexNow with the URLs changed since the last deploy (lane site; DRY_RUN=1 lists them)
+	@bun apps/site/scripts/indexnow.ts $(if $(DRY_RUN),--dry-run)
 
 # Bounded tail of a production container's logs over SSH, then return. Never
 # follows (-f). The container is matched by its Compose service label.
