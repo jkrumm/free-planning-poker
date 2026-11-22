@@ -1,0 +1,17 @@
+{
+  "name": "@fpp/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run build:production && bun run build:beta && bun run build:fixtures",
+    "build:production": "FPP_SITE_TARGET=production bunx --bun astro build",
+    "build:beta": "FPP_SITE_TARGET=beta bunx --bun astro build",
+    "build:fixtures": "FPP_SITE_CONTENT=./test/fixtures/content FPP_SITE_TARGET=production FPP_SITE_OUT=dist/fixture-production bunx --bun astro build && FPP_SITE_CONTENT=./test/fixtures/content FPP_SITE_TARGET=beta FPP_SITE_OUT=dist/fixture-beta bunx --bun astro build"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "8.1.6",
+    "@astrojs/sitemap": "3.7.6",
+    "astro": "7.4.13"
+  }
+}

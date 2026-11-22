@@ -1,0 +1,64 @@
+---
+import { canonicalPath } from '../lib/canonical.ts'
+import { strings } from '../strings.en.ts'
+
+interface Props {
+  /** The page's own title; the home page passes none and gets the site title. */
+  title?: string
+  description: string
+  /** Draft on the beta build: a draft line and robots noindex. */
+  draft?: boolean
+  /** Keep the page out of every index (the 404 page). */
+  noindex?: boolean
+}
+
+const { title, description, draft = false, noindex = false } = Astro.props
+const pageTitle = title ? strings.titlePrefix + title : strings.homeTitle
+const canonical = new URL(canonicalPath(Astro.url.pathname), Astro.site).href
+const robots = draft || noindex ? 'noindex, nofollow' : 'index, follow'
+const year = new Date().getFullYear()
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content={robots} />
+    <slot name="social" />
+    <slot name="structured-data" />
+  </head>
+  <body id="top">
+    <header>
+      <a href="/">{strings.siteName}</a>
+      <nav aria-label={strings.navLabel}>
+        <ul>
+          {strings.nav.map((item) => <li><a href={item.href}>{item.title}</a></li>)}
+        </ul>
+      </nav>
+    </header>
+    {draft && <p>{strings.draftLine}</p>}
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>
+        © {year} • <a href={strings.releases.href}>{strings.releases.title}</a> •
+        <a href={strings.license.href}>{strings.license.title}</a>
+      </p>
+      <p>{strings.credit}</p>
+      <nav aria-label={strings.footerLabel}>
+        <ul>
+          {strings.footerPages.map((item) => <li><a href={item.href}>{item.title}</a></li>)}
+        </ul>
+        <ul>
+          {strings.footerLegal.map((item) => <li><a href={item.href}>{item.title}</a></li>)}
+        </ul>
+      </nav>
+      <p><a href="#top">{strings.backToTop}</a></p>
+    </footer>
+  </body>
+</html>

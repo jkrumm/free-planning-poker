@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/base.astro'
+
+const points = [
+  ['1', 'Straightforward task, requiring adjustments at few places', 'Max. 1h'],
+  [
+    '2',
+    'Straightforward task, requires more work in implementation, increased documentation or information requirement',
+    '2-4h',
+  ],
+  ['3', 'Simple task with high effort or a complex task with clear steps', '4-8h'],
+  ['5', 'Complex task with unclear implementation', '8-16h'],
+  ['8', 'Very complex task with significant uncertainty', '16-32h'],
+  ['13', 'Extremely complex task with very high effort', 'At least one week'],
+]
+---
+
+<Base
+  title="Guide"
+  description="Planning poker explained: story points, the Fibonacci sequence, anonymous voting and how to read the estimates."
+>
+  <article id="master-the-art-of-planning-poker">
+    <header>
+      <h1>Master the Art of Planning Poker: An Agile Approach to Estimation</h1>
+    </header>
+    <section>
+      <h2>TL;DR</h2>
+      <p>
+        Discover how Planning Poker, an Agile estimation technique, helps teams efficiently plan sprints using story
+        points. Learn about its process, the role of the Fibonacci sequence, and the benefits of anonymity and
+        gamification in achieving accurate task estimations.
+      </p>
+
+      <h2>The Essence of Planning Poker</h2>
+      <p>
+        Agile methodologies like <b>Scrum, Kanban, and Jira</b> emphasize iterative development and effective task estimation.
+        Planning Poker is a widely used technique that combines <b>team collaboration, game mechanics</b>, and the
+        Fibonacci sequence to achieve precise workload estimates.
+      </p>
+
+      <h3>Why Sprint Planning Matters</h3>
+      <p>
+        Effective sprint planning ensures productive use of team resources over time. Story points are crucial as they
+        provide a way to measure <b>team capacity, plan upcoming sprints, and track progress</b>. They enable tools like
+        Velocity and Burndown charts, helping in comparing team performance and enhancing overall productivity.
+      </p>
+
+      <h3>How Planning Poker Works</h3>
+      <p>
+        In Planning Poker, tasks are assigned <b>Fibonacci numbers</b> (1, 2, 3, 5, 8, 13, 21) to estimate their
+        complexity and time requirements. This sequence mirrors the uncertainty and risk associated with task
+        estimation. Transforming abstract complexity into numerical values is useful for prioritizing backlog items and
+        rationalizing efforts.
+      </p>
+
+      <h2>The Power of Anonymity and Gamification</h2>
+      <p>
+        In Planning Poker, team members vote anonymously, which enhances objectivity and promotes a
+        <b>diversity of viewpoints</b>. The integration of gamification increases engagement and ensures that task
+        estimates are <b>unbiased</b> and accurate.
+      </p>
+
+      <h2>Interpreting Estimations and Splitting Tasks</h2>
+      <p>
+        Once votes are revealed, the highest and lowest estimators explain their reasoning, providing valuable insights
+        into task complexities. Tasks estimated at 13 points or more are typically split into smaller,
+        <b>more manageable tasks to prevent sprint overload and improve visibility</b>.
+      </p>
+
+      <h2>Insights from Voting Metrics</h2>
+      <p>
+        Key metrics like minimum, maximum, average, and vote count offer valuable insights. A higher average often
+        suggests that teams prefer conservative estimates, helping cushion against unforeseen complexities and ensuring
+        timely sprint completion.
+      </p>
+    </section>
+
+    <section>
+      <h2>Fibonacci Sequence for Task Estimation: A Quick Guide</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Story Points</th>
+            <th>Description</th>
+            <th>Completion Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            points.map((row) => (
+              <tr>
+                {row.map((cell) => (
+                  <td>{cell}</td>
+                ))}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>
+        Embrace collective intelligence, gamification, and the Fibonacci sequence with Planning Poker to set your Agile
+        projects on the path to success.
+      </p>
+    </footer>
+  </article>
+</Base>

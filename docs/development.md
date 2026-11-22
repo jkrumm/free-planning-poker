@@ -14,6 +14,7 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 | oxfmt | 0.79.0 | root | `.oxfmtrc.json` copies basalt-ui's settings, so the switch to its presets in `v9-ui-foundation` reformats nothing. Markdown is left out: oxfmt pads tables, and the docs keep the minimal `|-|-|` separator |
 | lefthook | 2.2.2 | root | pre-commit: oxfmt check and oxlint on staged files; commit-msg: commitlint |
 | drizzle-orm, drizzle-kit | 0.45.4, 0.31.11 | `apps/api` | the 0.45 line of the ORM, not the 1.0 release candidate; drizzle-kit has its own 0.31 line. Driver `drizzle-orm/bun-sql` on Bun's built-in `SQL`: the repository tests passed 20 runs in a row on Bun 1.4.2, so no `postgres` package. `bun --env-file=.env.tpl run db:migrate` in `apps/api` (`scripts/migrate.ts`) applies the migrations to `DATABASE_URL` (local value in `apps/api/.env.tpl`); drizzle-kit's own `migrate` would need a second driver package |
+| Astro | 7.4.13 | `apps/site` | with `@astrojs/mdx` 8.1.6 and `@astrojs/sitemap` 3.7.6, checked with `agw web package` on 2026-11-22; Vite 8, Node 22.23.4 or newer, run on Bun in CI |
 | Elysia | 2.0.0-rc.3 | `apps/api` | by the owner's ruling; never installed by tag. Its peers `typebox` 1.4.7, `exact-mirror` 1.2.7 and `openapi-types` 12.1.3 are pinned beside it |
 
 `bunfig.toml` sets the isolated linker (a package resolves only what it declares), exact pins for `bun add`, and a 3-day release-age cooldown. CI installs with `bun install --frozen-lockfile`.
@@ -22,7 +23,7 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 
 | Target | Steps |
 |-|-|
-| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
+| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts` and `*.site.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
 | `make check` | `check-fast`, then `make test-server` (the `*.server.test.ts` files), then `make build` |
 
 Each step prints `==> <step>`; a failure prints `==> FAILED: <step>` and stops the target. Measured on the mini on 2026-11-21: `make check-fast` 2.9 s wall clock. A test step writes JUnit to `$FACTORY_JUNIT_DIR/<step>.xml` only when that variable is set.
@@ -64,6 +65,7 @@ Agents never start these servers.
 |-|-|
 | `lanes` | `.github/lanes.sh` reads `.github/lanes` and the diff and outputs `app` and `site` as booleans; a change on the `every` line (`.github/`, `bun.lock`, `package.json`, `bunfig.toml`, `tsconfig.base.json`) selects every lane |
 | `check` | installs the PostgreSQL 18 server binaries from PGDG (`.github/postgres.sh`, no cluster), `bun install --frozen-lockfile`, `make check` with `PG_BIN_DIR` set |
+| `site` | lane `site`: `make site` builds `apps/site` for production and beta and tests the output (scripts, links, page budgets, the draft rule); apps/site/AGENTS.md |
 | `ci` | `if: always()`; `.github/gate.sh` reads `toJSON(needs)` and fails when a needed job failed or was cancelled, or was skipped while `lanes` did not succeed. The only required check of `master` |
 
 A row that adds a lane job (`image`, `e2e`, `site`) gives it `if: needs.lanes.outputs.<lane> == 'true'` and adds it to the `needs` of `ci`; `gate.sh` needs no change.
