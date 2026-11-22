@@ -502,6 +502,14 @@ export function createRoomClient(options: RoomClientOptions): RoomClient {
     if (frame.seq !== lastSeq + 1) return dropped()
     const { frame: _frame, seq: _seq, ...rest } = frame
     let next = evolveView(view, rest as Event)
+    // A vote the room dropped (cleared elsewhere, or the seat became a spectator) is no longer the seat's to assert.
+    if (
+      (rest.type === 'poker.voteCleared' && rest.payload.seat === next.self) ||
+      (rest.type === 'seat.roleChanged' &&
+        rest.payload.seat === next.self &&
+        rest.payload.role === 'spectator')
+    )
+      confirmed = null
     // The seat's own card comes from its command: an ack that beat its event waited here, so the order of votes stays the server's.
     if (rest.type === 'poker.voted' && rest.payload.seat === next.self)
       next = ownCard(next, rest.payload.round)
@@ -530,12 +538,28 @@ export function createRoomClient(options: RoomClientOptions): RoomClient {
     entry.resolve(result)
   }
 
-  /** The view with the seat's acknowledged card in `round`, where the round is voting and holds the seat's vote. */
+  /** The card the seat's latest unanswered vote names in `round`, if that is what it last asked for. */
+  function waitingCard(round: RoundId): string | undefined {
+    let card: string | undefined
+    for (const { command } of pending.values()) {
+      if (command.type === 'poker.vote' && command.payload.round === round)
+        card = command.payload.card
+      else if (command.type === 'poker.clearVote' && command.payload.round === round)
+        card = undefined
+    }
+    return card
+  }
+
+  /**
+   * The view with the seat's own card in `round`, where the round is voting and holds the seat's vote: the card of
+   * the vote still waiting for its answer, else the acknowledged one.
+   */
   function ownCard(view: View, round: RoundId): View {
     const voting = view.activity.rounds.find((candidate) => candidate.id === round)
-    if (confirmed?.round !== round || voting?.state !== 'voting') return view
+    if (voting?.state !== 'voting') return view
     if (!voting.votes.some((vote) => vote.seat === view.self)) return view
-    const card = findCard(voting.deck, confirmed.card)
+    const label = waitingCard(round) ?? (confirmed?.round === round ? confirmed.card : undefined)
+    const card = label === undefined ? undefined : findCard(voting.deck, label)
     return card === undefined ? view : withOwnVote(view, round, card)
   }
 
