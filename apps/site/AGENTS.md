@@ -29,6 +29,10 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 
 Structured data and social tags go into the `structured-data` and `social` slots of `src/layouts/base.astro`; the look replaces nothing in the markup. `questions` of an entry print as plain text until `v9-site-schema` marks them up.
 
+## The glossary
+
+`src/content/glossary` holds at most 15 terms (`src/lib/glossary.test.ts`); the title is the term, and the first sentence of the body must contain it. A link from one entry to another goes through `entryPath` or `visibleEntry` in `src/lib/entries.ts`, or `components/term-link.astro` in a page: frontmatter `related` and `guide` become links only where the target is shown in the build, so no published page links a draft and a missing cluster page leaves no broken link. `guide` names a cluster entry id of `guideClusters` (`src/lib/entry-schema.ts`); `v9-site-guide` must use those ids or change the list. DefinedTerm and DefinedTermSet are `components/schema/defined-term*.astro` over typed builders; the JSON-LD serialiser is `components/schema/json-ld.ts`.
+
 ## Left out of v1's pages on purpose
 
 The room form and screenshots of `/` (no JavaScript, no images yet), the Todoist-backed board of `/roadmap`, the figures of `/analytics` (v1's invented fallbacks are not ported), the release tag in the footer (a link to the releases instead), and the icon and manifest links.

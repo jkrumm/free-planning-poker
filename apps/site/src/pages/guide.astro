@@ -1,4 +1,5 @@
 ---
+import TermLink from '../components/term-link.astro'
 import Base from '../layouts/base.astro'
 
 const points = [
@@ -26,8 +27,8 @@ const points = [
     <section>
       <h2>TL;DR</h2>
       <p>
-        Discover how Planning Poker, an Agile estimation technique, helps teams efficiently plan sprints using story
-        points. Learn about its process, the role of the Fibonacci sequence, and the benefits of anonymity and
+        Discover how <TermLink id="planning-poker">Planning Poker</TermLink>, an Agile estimation technique, helps teams efficiently plan sprints using <TermLink id="story-points">story
+        points</TermLink>. Learn about its process, the role of the <TermLink id="fibonacci-sequence">Fibonacci sequence</TermLink>, and the benefits of anonymity and
         gamification in achieving accurate task estimations.
       </p>
 
@@ -40,9 +41,9 @@ const points = [
 
       <h3>Why Sprint Planning Matters</h3>
       <p>
-        Effective sprint planning ensures productive use of team resources over time. Story points are crucial as they
+        Effective <TermLink id="sprint-planning">sprint planning</TermLink> ensures productive use of team resources over time. Story points are crucial as they
         provide a way to measure <b>team capacity, plan upcoming sprints, and track progress</b>. They enable tools like
-        Velocity and Burndown charts, helping in comparing team performance and enhancing overall productivity.
+        <TermLink id="velocity">Velocity</TermLink> and Burndown charts, helping in comparing team performance and enhancing overall productivity.
       </p>
 
       <h3>How Planning Poker Works</h3>

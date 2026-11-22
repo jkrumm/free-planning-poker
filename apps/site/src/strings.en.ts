@@ -7,6 +7,10 @@ export const strings = {
   footerLabel: 'Footer',
   draftLine: 'Draft: this page is not published yet.',
   questionsHeading: 'Questions',
+  updatedLabel: 'Updated',
+  relatedTerms: 'Related terms',
+  inTheGuide: 'In the guide',
+  pillarGuide: 'Planning poker explained: the guide',
   nav: [
     { title: 'Home', href: '/' },
     { title: 'Guide', href: '/guide' },

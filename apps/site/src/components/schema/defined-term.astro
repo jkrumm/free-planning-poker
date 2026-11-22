@@ -1,0 +1,23 @@
+---
+import { definedTerm } from './defined-term.ts'
+import { jsonLd } from './json-ld.ts'
+
+interface Props {
+  name: string
+  description: string
+  /** Path of the term's page. */
+  path: string
+  /** Path of the glossary index, the DefinedTermSet the term belongs to. */
+  setPath: string
+}
+
+const { name, description, path, setPath } = Astro.props
+const data = definedTerm({
+  name,
+  description,
+  url: new URL(path, Astro.site).href,
+  setUrl: new URL(setPath, Astro.site).href,
+})
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd(data)} />

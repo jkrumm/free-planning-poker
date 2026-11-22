@@ -1,0 +1,25 @@
+---
+import { definedTermSet } from './defined-term.ts'
+import { jsonLd } from './json-ld.ts'
+
+interface Props {
+  name: string
+  description: string
+  path: string
+  terms: { name: string; description: string; path: string }[]
+}
+
+const { name, description, path, terms } = Astro.props
+const data = definedTermSet({
+  name,
+  description,
+  url: new URL(path, Astro.site).href,
+  terms: terms.map((term) => ({
+    name: term.name,
+    description: term.description,
+    url: new URL(term.path, Astro.site).href,
+  })),
+})
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd(data)} />
