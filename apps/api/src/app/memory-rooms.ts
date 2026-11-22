@@ -1,6 +1,7 @@
 /**
- * Rooms, snapshots and history in memory, until `v9-api-persistence` puts them in Postgres. Every valid address
- * leads to a room: the first visit opens one, open and with the default settings, as no HTTP route creates rooms yet.
+ * Rooms, snapshots and history in memory: the transport contract suite's harness, which tests sockets without a
+ * database (production rooms live in Postgres, `compose.ts`). Every valid address leads to a room: the first visit
+ * opens one, open and with the default settings.
  */
 import type { ColdRoom, RoomKey } from '@fpp/room-core/server'
 import { DEFAULT_SETTINGS } from '@fpp/room-core/server'

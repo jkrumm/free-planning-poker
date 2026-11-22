@@ -10,7 +10,7 @@ The dependency arrows point down this table only. `boundaries.toml` holds the sa
 |-|-|-|-|-|
 | `apps/site` | `@fpp/site` | shell at its entry | Astro marketing site | table, room-core, telemetry |
 | `apps/room` | `@fpp/room` | shell at `src/main.tsx` | Vite SPA: the room | table, room-client, room-core, telemetry |
-| `apps/api` | `@fpp/api` | shell at `src/main.ts`; `src/ws`, `src/db` adapter | Elysia HTTP API, WebSocket room server, Postgres, jobs | room-core, telemetry |
+| `apps/api` | `@fpp/api` | shell at `src/main.ts`; `src/ws`, `db`, `app`, `jobs` adapter | Elysia HTTP API, WebSocket room server, Postgres, jobs | room-core, telemetry |
 | `apps/arena` | `@fpp/arena` | | the table arena's gallery | table, room-core |
 | `arena` | `@fpp/arena-entries` | | the arena's entries | table, room-core |
 | `packages/table` | `@fpp/table` | `src/layout.ts` pure | the game surface as React components | room-core (types only) |
