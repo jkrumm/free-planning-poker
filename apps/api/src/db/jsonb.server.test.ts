@@ -112,6 +112,12 @@ test('the migration rewrites string-typed rows and leaves the others as they are
     distribution: 'string',
   })
 
+  // Before the migration runs, a string-typed row still reads as the value inside it.
+  expect((await findRoom(client.db, legacy))?.settings).toEqual(SETTINGS)
+  const [before] = await listTopics(client.db, { roomId: legacy })
+  expect(before?.rounds[0]?.deck).toEqual(DECK)
+  expect(before?.rounds[0]?.distribution).toEqual(DISTRIBUTION)
+
   const file = await readFile(
     new URL('../../drizzle/0003_jsonb_unwrap_strings.sql', import.meta.url),
     'utf8',

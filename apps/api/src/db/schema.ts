@@ -27,13 +27,21 @@ const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({
 /**
  * A jsonb column that takes the value itself. Drizzle's own `jsonb` hands the driver `JSON.stringify(value)`, and bun-sql
  * stores a string as a JSON string (`jsonb_typeof` is `string`); the object goes to the driver as it is and is stored as
- * the array or object it is. The driver decodes it on the way back.
+ * the array or object it is. A row the previous release wrote still holds a JSON string; it is read as the value inside, as
+ * Drizzle's jsonb does, until the migration has rewritten it and that release is gone.
  */
 const jsonbValue = <T>(name: string) =>
   customType<{ data: T; driverData: T }>({
     dataType: () => 'jsonb',
     toDriver: (value) => value,
-    fromDriver: (value) => value,
+    fromDriver: (value) => {
+      if (typeof value !== 'string') return value
+      try {
+        return JSON.parse(value) as T
+      } catch {
+        return value as T
+      }
+    },
   })(name)
 
 const timestamptz = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' })
