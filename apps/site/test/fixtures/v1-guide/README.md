@@ -2,9 +2,9 @@ The source of v1's /guide page and every component it renders, copied from `orig
 
 | File | v1 path |
 |-|-|
-| `guide.tsx.txt` | `apps/web/src/pages/guide.tsx` |
-| `points-table.tsx.txt` | `apps/web/src/components/index/points-table.tsx` |
-| `navbar.tsx.txt` | `apps/web/src/components/layout/navbar.tsx` |
-| `hero.tsx.txt` | `apps/web/src/components/layout/hero.tsx` |
-| `footer.tsx.txt` | `apps/web/src/components/layout/footer.tsx` |
-| `meta.tsx.txt` | `apps/web/src/components/meta.tsx` |
+| `guide.tsx.txt` | `origin/v1:apps/web/src/pages/guide.tsx` |
+| `points-table.tsx.txt` | `origin/v1:apps/web/src/components/index/points-table.tsx` |
+| `navbar.tsx.txt` | `origin/v1:apps/web/src/components/layout/navbar.tsx` |
+| `hero.tsx.txt` | `origin/v1:apps/web/src/components/layout/hero.tsx` |
+| `footer.tsx.txt` | `origin/v1:apps/web/src/components/layout/footer.tsx` |
+| `meta.tsx.txt` | `origin/v1:apps/web/src/components/meta.tsx` |
