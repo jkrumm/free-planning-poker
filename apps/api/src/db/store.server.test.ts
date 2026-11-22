@@ -15,8 +15,14 @@ import {
   sweepSnapshots,
   writeSnapshot,
 } from './rooms.ts'
-import { insertRound, listTopics } from './rounds.ts'
-import { loadOpenTopics, recordDecision, upsertTopics } from './topics.ts'
+import { insertRound, listTopics, roundCounters } from './rounds.ts'
+import {
+  loadOpenTopics,
+  type QueueTopic,
+  recordDecision,
+  upsertTopics,
+  writeQueue,
+} from './topics.ts'
 import {
   deleteEstimatingDaysBefore,
   hashVisitor,
@@ -82,14 +88,19 @@ describe('migrations', () => {
     expect(columns).toEqual([])
   })
 
-  test('no statement of the store deletes a room, a round or a vote', async () => {
+  test('no statement of the store deletes a room, a round or a vote, and a topic only while queued and unplayed', async () => {
     const files = (await readdir(__dirname)).filter(
       (f) => f.endsWith('.ts') && !f.includes('.test.'),
     )
     for (const file of files) {
       const code = await readFile(`${__dirname}/${file}`, 'utf8')
-      expect(code).not.toMatch(/DELETE\s+FROM\s+fpp\.(room|round|round_vote|topic)\b/i)
+      expect(code).not.toMatch(/DELETE\s+FROM\s+fpp\.(room|round|round_vote)\b/i)
       expect(code).not.toMatch(/\.delete\(\s*(room|round|roundVote|topic)\b/)
+      // A room removes only a queued topic, which no round names: the one topic deletion (writeQueue).
+      for (const [statement] of code.matchAll(/DELETE\s+FROM\s+fpp\.topic\b[^`]*/gi)) {
+        expect(statement).toContain("state = 'queued'")
+        expect(statement).toContain('NOT EXISTS (SELECT 1 FROM fpp.round')
+      }
     }
   })
 })
@@ -578,5 +589,82 @@ describe('estimating days and rollups', () => {
       { dimension: '', value: 5 },
       { dimension: 'fibonacci', value: 2 },
     ])
+  })
+})
+
+const queued = (id: string, position: number, extra: Partial<QueueTopic> = {}): QueueTopic => ({
+  id,
+  position,
+  title: `Topic ${position}`,
+  url: null,
+  source: null,
+  externalId: null,
+  externalKey: null,
+  externalSite: null,
+  state: 'queued',
+  ...extra,
+})
+
+describe('the live queue written through', () => {
+  test('topics are written by id, a removed queued one is deleted, a played one is kept', async () => {
+    const roomId = await createRoom(db())
+    const [a, b, c] = [Bun.randomUUIDv7(), Bun.randomUUIDv7(), Bun.randomUUIDv7()]
+    await writeQueue(db(), {
+      roomId,
+      topics: [queued(a, 0, { state: 'active' }), queued(b, 1), queued(c, 2)],
+      removed: [],
+    })
+    await insertRound(db(), { round: roundOf(roomId, a, 1), votes: [] })
+    await writeQueue(db(), {
+      roomId,
+      topics: [queued(c, 1, { title: 'Renamed' })],
+      removed: [a, b],
+    })
+    const rows = await query<{ id: string; position: number; title: string }>(
+      sql`SELECT id, position, title FROM fpp.topic WHERE room_id = ${roomId} ORDER BY position`,
+    )
+    expect(rows).toEqual([
+      { id: a, position: 0, title: 'Topic 0' },
+      { id: c, position: 1, title: 'Renamed' },
+    ])
+  })
+
+  test('a second topic with a tracker reference the room holds is stored without it', async () => {
+    const roomId = await createRoom(db())
+    const ref = { source: 'jira', externalKey: 'SHOP-1', externalSite: 'acme' }
+    const [first, second] = [Bun.randomUUIDv7(), Bun.randomUUIDv7()]
+    await writeQueue(db(), {
+      roomId,
+      topics: [queued(first, 0, ref), queued(second, 1, ref)],
+      removed: [],
+    })
+    const rows = await query<{ id: string; external_key: string | null }>(
+      sql`SELECT id, external_key FROM fpp.topic WHERE room_id = ${roomId} ORDER BY position`,
+    )
+    expect(rows).toEqual([
+      { id: first, external_key: 'SHOP-1' },
+      { id: second, external_key: null },
+    ])
+  })
+
+  test("the round counters name the highest number and each topic's latest round; a repeated round is stored once", async () => {
+    const roomId = await createRoom(db())
+    const topicId = Bun.randomUUIDv7()
+    await writeQueue(db(), {
+      roomId,
+      topics: [queued(topicId, 0, { state: 'active' })],
+      removed: [],
+    })
+    const first = { ...roundOf(roomId, topicId, 1), attempt: 1 }
+    const second = { ...roundOf(roomId, topicId, 2), attempt: 2 }
+    await insertRound(db(), { round: first, votes: [{ seat: 0, label: '5', value: 5 }] })
+    await insertRound(db(), { round: second, votes: [] })
+    await insertRound(db(), { round: first, votes: [{ seat: 0, label: '5', value: 5 }] })
+    const counters = await roundCounters(db(), { roomId, topicIds: [topicId] })
+    expect(counters.no).toBe(2)
+    expect(counters.latest.get(topicId)).toEqual({ id: second.id, attempt: 2 })
+    expect(
+      await query(sql`SELECT 1 FROM fpp.round_vote WHERE round_id = ${first.id}`),
+    ).toHaveLength(1)
   })
 })

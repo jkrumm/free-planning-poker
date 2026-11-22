@@ -16,9 +16,12 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 | lefthook | 2.2.2 | root | pre-commit: oxfmt check and oxlint on staged files; commit-msg: commitlint |
 | drizzle-orm, drizzle-kit | 0.45.4, 0.31.11 | `apps/api` | the 0.45 line of the ORM, not the 1.0 release candidate; drizzle-kit has its own 0.31 line. Driver `drizzle-orm/bun-sql` on Bun's built-in `SQL`: the repository tests passed 20 runs in a row on Bun 1.4.2, so no `postgres` package. `bun --env-file=.env.tpl run db:migrate` in `apps/api` (`scripts/migrate.ts`) applies the migrations to `DATABASE_URL` (local value in `apps/api/.env.tpl`); drizzle-kit's own `migrate` would need a second driver package |
 | Astro | 7.4.13 | `apps/site` | with `@astrojs/mdx` 8.1.6 and `@astrojs/sitemap` 3.7.6, checked with `agw web package` on 2026-11-22; Vite 8, Node 22.23.4 or newer, run on Bun in CI |
+| Effect | 4.1.4 | `apps/api` | checked with `agw web package` on 2026-11-22; 4.1.5 was two days old and inside the cooldown. Only in `apps/api/src/app`, `src/db`, `src/jobs`; nothing from `effect/unstable`. Drizzle 0.45 has no Effect integration, so the adapters wrap each repository call in `Effect.tryPromise` (`src/db/resilience.ts`) |
 | Elysia | 2.0.0-rc.3 | `apps/api` | by the owner's ruling; never installed by tag. Its peers `typebox` 1.4.7, `exact-mirror` 1.2.7 and `openapi-types` 12.1.3 are pinned beside it |
 
 `bunfig.toml` sets the isolated linker (a package resolves only what it declares), exact pins for `bun add`, and a 3-day release-age cooldown. CI installs with `bun install --frozen-lockfile`.
+
+The API needs `DATABASE_URL` and `VISITOR_KEY` (the device hash's key, 32 characters or more) and refuses to start without them. `bun run dev` in `apps/api` loads both from `apps/api/.env.tpl` (local values, no secret) and expects a database migrated with `db:migrate`.
 
 ## Check tiers
 

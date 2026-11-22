@@ -1,37 +1,91 @@
 /**
- * The room server's options from the parsed environment: what `main.ts` serves. Rooms live in memory until
- * `v9-api-persistence` puts them in Postgres.
+ * The composition root (docs/v9/ARCHITECTURE.md, Server): what `main.ts` serves, from the parsed environment. The
+ * pool, the adapters on it and the expiry job are acquired in one scope and released in reverse when it closes:
+ * the job stops, the writes still waiting get `FLUSH_WAIT` to land, then the pool closes.
  */
-import type { RuntimeTelemetry } from '@fpp/room-core/server'
+import type { RoomRuntime } from '@fpp/room-core/server'
+import { Effect, Exit, Scope } from 'effect'
+import { postgresHistory } from '../db/history.ts'
+import { acquireDatabase } from '../db/resilience.ts'
+import { postgresStore } from '../db/store.ts'
 import type { Env } from '../env.ts'
 import { createApp } from '../http/app.ts'
+import { expiryJob } from '../jobs/expiry.ts'
+import type { ApiTelemetry } from '../telemetry.ts'
 import { timerClock } from '../ws/clock.ts'
 import type { RoomServerOptions } from '../ws/edge.ts'
-import { memoryRooms } from './memory-rooms.ts'
+import { postgresRooms } from './rooms.ts'
 import { systemIds, systemSecrets } from './system.ts'
 
-export function roomServerOptions(
-  env: Env,
-  deps: { readonly now: () => number; readonly telemetry: RuntimeTelemetry },
-): RoomServerOptions {
-  const rooms = memoryRooms()
-  return {
-    port: env.port,
-    origins: env.origins,
-    ...(env.clientIpHeader === undefined ? {} : { clientIpHeader: env.clientIpHeader }),
-    http: createApp({ build: { version: env.version, commit: env.commit } }),
-    rooms: rooms.directory,
-    ports: {
-      clock: timerClock({
-        now: deps.now,
-        failed: (error) => deps.telemetry.failure(error, { action: 'timer' }),
-      }),
+/** How long closing the scope waits for snapshot and history writes still in flight. */
+export const FLUSH_WAIT = '5 seconds'
+
+export type Api = {
+  readonly options: RoomServerOptions
+  /** Releases everything `composeApi` acquired, in reverse. Call it after the server has stopped. */
+  readonly close: () => Promise<void>
+}
+
+type Deps = { readonly now: () => number; readonly telemetry: ApiTelemetry }
+
+const compose = (env: Env, deps: Deps) =>
+  Effect.gen(function* () {
+    const now = () => new Date(deps.now())
+    const { server, port: telemetry } = deps.telemetry
+    const failed = (component: string, action: string) => (error: unknown) =>
+      server.recordError(error, { component, action }, 'high')
+    const database = yield* acquireDatabase({ url: env.databaseUrl })
+    const store = postgresStore({ database, owner: crypto.randomUUID(), now })
+    const history = postgresHistory({ database, visitorKey: env.visitorKey, now })
+    yield* Effect.addFinalizer(() =>
+      Effect.promise(() => Promise.all([store.idle(), history.idle()])).pipe(
+        Effect.timeoutOrElse({ duration: FLUSH_WAIT, orElse: () => Effect.void }),
+        Effect.ensuring(
+          Effect.sync(() => {
+            store.abort()
+            history.abort()
+          }),
+        ),
+      ),
+    )
+    yield* Effect.forkScoped(expiryJob({ database, now, failed: failed('expiry', 'sweep') }))
+    const clock = timerClock({
+      now: deps.now,
+      failed: (error) => telemetry.failure(error, { action: 'timer' }),
+    })
+    yield* Effect.addFinalizer(() => Effect.sync(() => clock.stop()))
+
+    let runtime: RoomRuntime | undefined
+    const rooms = postgresRooms({
+      database,
       ids: systemIds,
-      secrets: systemSecrets,
-      store: rooms.store,
-      history: rooms.history,
-      telemetry: deps.telemetry,
-    },
-    runtime: { build: env.version },
-  }
+      now,
+      runtime: () => runtime,
+      exhausted: server.numbersExhausted,
+      failed: failed('rooms', 'route'),
+    })
+    const options: RoomServerOptions = {
+      port: env.port,
+      origins: env.origins,
+      ...(env.clientIpHeader === undefined ? {} : { clientIpHeader: env.clientIpHeader }),
+      http: (live) => {
+        runtime = live
+        return createApp({
+          build: { version: env.version, commit: env.commit },
+          rooms: rooms.api,
+          health: rooms.health,
+        })
+      },
+      rooms: rooms.directory,
+      ports: { clock, ids: systemIds, secrets: systemSecrets, store, history, telemetry },
+      runtime: { build: env.version },
+    }
+    return options
+  })
+
+/** Builds the room server's options on Postgres. */
+export async function composeApi(env: Env, deps: Deps): Promise<Api> {
+  const scope = Scope.makeUnsafe()
+  const options = await Effect.runPromise(compose(env, deps).pipe(Scope.provide(scope)))
+  return { options, close: () => Effect.runPromise(Scope.close(scope, Exit.void)) }
 }

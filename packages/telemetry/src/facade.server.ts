@@ -100,6 +100,8 @@ export type ServerTelemetry = {
   readonly rejected: (reason: string) => void
   readonly closed: (code: number) => void
   readonly resumed: () => void
+  /** `POST /api/rooms` found no number it could take in its draws: the pool of numbers is running out. */
+  readonly numbersExhausted: () => void
   readonly roomEnded: (seats: number) => void
   readonly handoff: (ms: number) => void
   /** Wires the two gauges to what the process holds now; sampled at each collection. */
@@ -258,6 +260,10 @@ export function createServerTelemetry(config: ServerTelemetryConfig): ServerTele
     unit: METRIC.WS_RESUMED.unit,
     description: METRIC.WS_RESUMED.description,
   })
+  const exhausted = meter.createCounter(METRIC.NUMBERS_EXHAUSTED.name, {
+    unit: METRIC.NUMBERS_EXHAUSTED.unit,
+    description: METRIC.NUMBERS_EXHAUSTED.description,
+  })
   const connections = meter.createObservableUpDownCounter(METRIC.CONNECTIONS_ACTIVE.name, {
     unit: METRIC.CONNECTIONS_ACTIVE.unit,
     description: METRIC.CONNECTIONS_ACTIVE.description,
@@ -350,6 +356,7 @@ export function createServerTelemetry(config: ServerTelemetryConfig): ServerTele
     rejected: (reason) => rejected.add(1, { ...label, [ATTR.NACK_REASON]: reason }),
     closed: (code) => closed.add(1, { ...label, [ATTR.CLOSE_CODE]: String(code) }),
     resumed: () => resumed.add(1, label),
+    numbersExhausted: () => exhausted.add(1, label),
     roomEnded: (seats) => roomSeats.record(seats, label),
     handoff: (ms) => handoffDuration.record(ms, label),
     observeLoad(sample) {

@@ -21,9 +21,39 @@ export async function createRoom(db: Executor, input: RoomInput = {}): Promise<n
 
 /** A room as a cold start sees it: the row and its open topics (queued or active), without a live snapshot. */
 export async function loadRoom(db: Executor, roomId: number) {
-  const [row] = await db.select().from(room).where(eq(room.id, roomId))
+  const row = await findRoom(db, roomId)
   if (!row) return null
   return { room: row, openTopics: await loadOpenTopics(db, { roomId }) }
+}
+
+/** A room's row, or null. */
+export async function findRoom(db: Executor, roomId: number): Promise<RoomRow | null> {
+  const [row] = await db.select().from(room).where(eq(room.id, roomId))
+  return row ?? null
+}
+
+/** Sets a room's display name. */
+export async function setRoomName(
+  db: Executor,
+  args: { readonly roomId: number; readonly name: string },
+) {
+  await db.update(room).set({ name: args.name }).where(eq(room.id, args.roomId))
+}
+
+/** What the live room writes through to its row, so a cold start begins from it. */
+export type RoomUpdate = Pick<
+  RoomRow,
+  'name' | 'settings' | 'access' | 'accessCode' | 'accessEpoch'
+>
+
+export async function updateRoom(
+  db: Executor,
+  args: { readonly roomId: number; readonly row: RoomUpdate; readonly now: Date },
+): Promise<void> {
+  await db
+    .update(room)
+    .set({ ...args.row, lastActiveAt: args.now })
+    .where(eq(room.id, args.roomId))
 }
 
 export type RoomClaim = {

@@ -338,7 +338,7 @@ Schema `fpp` in the shared Postgres, migrations by drizzle-kit, journal in the s
 
 What the shape decides:
 
-- **Topics are written through.** Queue changes, reveals and decisions are stored when they happen, one transaction per event. A backlog prepared on Friday is there on Monday although the live snapshot has expired: a cold room starts from `room` and its open topics.
+- **Topics are written through.** Queue changes, reveals and decisions are stored when they happen, one transaction per event. A backlog prepared on Friday is there on Monday although the live snapshot has expired: a cold room starts from `room` and its open topics, and its round numbers continue from the rounds stored. A topic removed from the queue is deleted, which only a queued topic no round names can be.
 - **A value is a label and a number.** `round_vote.value` and `topic.final_value` hold the card's number, null for `?` and break; the label is what was shown. Statistics use the number, screens the label, and a tracker gets whichever its field takes.
 - **A tracker reference is complete from the first row:** the provider (`source`), the tracker's stable id, the display key (which changes when an issue moves) and the site or workspace. A pasted line such as "SHOP-123 Checkout redesign" fills the key; a tracker link also fills the provider and the site. The stable id arrives when a host, the topics route or a browser-held connection supplies it.
 - **An address is a row, not a column.** A room has one primary address (its name if it has one, else its number); any other row of the room redirects to it. `release_at` moves forward when the room is visited, at most once a day, so a lookup needs no second table.
@@ -375,7 +375,7 @@ Routes under `/api`, typed end to end with Eden.
 | `POST /contact`, `POST /feedback` | email-gateway; factory door with v1's limits | none |
 | `GET /health`, `GET /version` | liveness; the running build | none |
 
-Seat secrets travel in the `Authorization` header. Business errors are typed responses; nothing below a route throws for a user mistake.
+Seat secrets travel in the `Authorization` header (`Bearer <seat token>`), proven against the room live in the process. Business errors are typed responses, `{ error }` with a fixed reason: 400 for a broken name, code or address, 403 `not_seated` or `not_player`, 404 for an address nobody holds, 409 `name_held`, 503 `unavailable` while Postgres is away or no number could be drawn; nothing below a route throws for a user mistake. `GET /rooms/:slug` adds `primary` when the address asked for is not the room's primary one, so the client can correct the URL. Eden's type is `App` from `@fpp/api/app`.
 
 ## Client
 
@@ -417,7 +417,7 @@ Three channels, each with one job.
 | What do people do? | Umami, with its own cookieless script | One script of about 4 kB on every page of the site and the room app, served with its collect endpoint under `/api/u/` on our origin. No cookie, no banner, no identifier from us |
 | How do rooms behave? | Postgres | `topic`, `round`, `visitor_day` and `stat_daily` |
 
-Server metrics: `fpp.ws.connections.active`, `fpp.room.active`, `fpp.room.seats` (histogram), `fpp.command.duration`, `fpp.fanout.duration`, `fpp.ws.closed` by code, `fpp.ws.resumed`, `fpp.deploy.handoff.duration`, `fpp.command.rejected` by reason. Labels are `build` and fixed enums only.
+Server metrics: `fpp.ws.connections.active`, `fpp.room.active`, `fpp.room.seats` (histogram), `fpp.command.duration`, `fpp.fanout.duration`, `fpp.ws.closed` by code, `fpp.ws.resumed`, `fpp.deploy.handoff.duration`, `fpp.command.rejected` by reason, `fpp.room.numbers_exhausted` (a new room refused because no drawn number could be taken). Labels are `build` and fixed enums only.
 
 Browser telemetry is errors and connection state only: uncaught exceptions, rejected promises and the connection state changes of `@fpp/room-client`, sent as OTLP logs to `/api/otel` with a session id that lives in memory for one page load. No replay, no field web vitals; performance is held by lab budgets in CI.
 

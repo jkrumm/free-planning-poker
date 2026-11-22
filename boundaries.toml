@@ -79,6 +79,8 @@ pure = [
 adapter = [
   "apps/api/src/ws/**",
   "apps/api/src/db/**",
+  "apps/api/src/jobs/**",
+  "apps/api/src/app/**",
   "packages/room-client/src/**",
   "packages/telemetry/src/facade*.ts",
 ]

@@ -45,14 +45,14 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
     },
   }
   const runtime = createRoomRuntime({ ...options.ports, transport }, options.runtime)
+  const http = options.http(runtime)
   const failed = (error: unknown) => options.ports.telemetry.failure(error, { action: 'cmd' })
 
   const server = Bun.serve<Data>({
     port: options.port,
     ...(options.hostname === undefined ? {} : { hostname: options.hostname }),
     async fetch(request, bun) {
-      if (slugOfPath(new URL(request.url).pathname) === undefined)
-        return options.http.handle(request)
+      if (slugOfPath(new URL(request.url).pathname) === undefined) return http.handle(request)
       const admission = await admit(request, {
         origins,
         rooms: options.rooms,

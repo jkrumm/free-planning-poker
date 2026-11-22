@@ -3,8 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./app": "./src/http/app.ts"
+  },
   "scripts": {
-    "dev": "PORT=7740 bun --watch src/main.ts",
+    "dev": "PORT=7740 bun --env-file=.env.tpl --watch src/main.ts",
     "build": "bun build src/main.ts --target=bun --outdir=dist",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
@@ -14,6 +17,7 @@
     "@fpp/room-core": "workspace:*",
     "@fpp/telemetry": "workspace:*",
     "drizzle-orm": "0.45.4",
+    "effect": "4.1.4",
     "elysia": "2.0.0-rc.3",
     "exact-mirror": "1.2.7",
     "openapi-types": "12.1.3",

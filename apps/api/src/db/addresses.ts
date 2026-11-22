@@ -138,6 +138,14 @@ export async function resolveAddress(
   }
 }
 
+/** The address a room shows, or null for a room that has none. */
+export async function primaryAddress(db: Executor, roomId: number): Promise<string | null> {
+  const rows = rowsOf<{ slug: string }>(
+    await db.execute(sql`SELECT slug FROM fpp.room_slug WHERE room_id = ${roomId} AND is_primary`),
+  )
+  return rows[0]?.slug ?? null
+}
+
 /**
  * A visit holds the room's primary address again: its release date moves forward, at most once a day. Returns
  * whether it wrote. The room id is part of the match, so a visit through an address another room has since taken

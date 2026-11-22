@@ -76,6 +76,80 @@ export async function upsertTopics(
   })
 }
 
+/** One topic of a live room's queue, written through as it is now. */
+export type QueueTopic = {
+  readonly id: string
+  readonly position: number
+  readonly title: string
+  readonly url: string | null
+  readonly source: string | null
+  readonly externalId: string | null
+  readonly externalKey: string | null
+  readonly externalSite: string | null
+  readonly state: TopicState
+}
+
+const refKey = (
+  entry: Pick<QueueTopic, 'source' | 'externalSite' | 'externalId' | 'externalKey'>,
+) => {
+  const ref = entry.externalId ?? entry.externalKey
+  return ref === null ? null : `${entry.source ?? ''}|${entry.externalSite ?? ''}|${ref}`
+}
+
+/**
+ * Writes a live room's queue in one transaction: each topic by its id, as the room holds it, and the removed ones
+ * deleted. Only a queued topic that no round names can be removed, which is the only kind a room removes. A topic
+ * whose tracker reference another topic of the room already holds is stored without the reference, as the reference
+ * is unique per room; its title and link stay.
+ */
+export async function writeQueue(
+  db: Executor,
+  args: {
+    readonly roomId: number
+    readonly topics: readonly QueueTopic[]
+    readonly removed: readonly string[]
+  },
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    const held = rowsOf<{ id: string; ref: string }>(
+      await tx.execute(sql`
+        SELECT id, coalesce(source, '') || '|' || coalesce(external_site, '') || '|' ||
+               coalesce(external_id, external_key) AS ref
+        FROM fpp.topic
+        WHERE room_id = ${args.roomId} AND coalesce(external_id, external_key) IS NOT NULL`),
+    )
+    const holder = new Map(held.map((row) => [row.ref, row.id]))
+    for (const entry of args.topics) {
+      const key = refKey(entry)
+      const taken = key !== null && (holder.get(key) ?? entry.id) !== entry.id
+      if (key !== null && !taken) holder.set(key, entry.id)
+      const ref = taken
+        ? { source: null, externalId: null, externalKey: null, externalSite: null }
+        : entry
+      await tx.execute(sql`
+        INSERT INTO fpp.topic
+          (id, room_id, position, title, url, source, external_id, external_key, external_site, state)
+        VALUES (${entry.id}, ${args.roomId}, ${entry.position}, ${entry.title}, ${entry.url},
+                ${ref.source}, ${ref.externalId}, ${ref.externalKey}, ${ref.externalSite}, ${entry.state})
+        ON CONFLICT (id) DO UPDATE
+          SET position = EXCLUDED.position, title = EXCLUDED.title, url = EXCLUDED.url,
+              source = EXCLUDED.source, external_id = EXCLUDED.external_id,
+              external_key = EXCLUDED.external_key, external_site = EXCLUDED.external_site,
+              state = EXCLUDED.state
+          WHERE fpp.topic.room_id = EXCLUDED.room_id`)
+    }
+    if (args.removed.length === 0) return
+    const ids = sql.join(
+      args.removed.map((id) => sql`${id}`),
+      sql`, `,
+    )
+    await tx.execute(sql`
+      DELETE FROM fpp.topic t
+      WHERE t.room_id = ${args.roomId} AND t.id IN (${ids}) AND t.state = 'queued'
+        AND NOT EXISTS (SELECT 1 FROM fpp.round r WHERE r.topic_id = t.id)`)
+  })
+}
+
 /** Records the value a team settled on for a topic. A `null` value is a card with no number (`?`, break). */
 export async function recordDecision(
   db: Executor,
