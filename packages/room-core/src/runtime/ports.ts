@@ -67,9 +67,15 @@ export type ColdRoom = {
 
 export type RoomClaim =
   | { readonly kind: 'missing' }
-  | { readonly kind: 'cold'; readonly room: ColdRoom }
-  /** `snapshot` is what this runtime once exported; `importSnapshot` reads it. */
-  | { readonly kind: 'live'; readonly snapshot: unknown }
+  | {
+      readonly kind: 'found'
+      readonly room: ColdRoom
+      /**
+       * The live snapshot this runtime once exported, or null when there is none or it expired. One that
+       * `importSnapshot` cannot read (another version wrote it) starts the room cold from `room`.
+       */
+      readonly snapshot: unknown
+    }
 
 export type Ownership = 'owned' | 'lost'
 

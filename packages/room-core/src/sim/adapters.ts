@@ -66,11 +66,15 @@ export function memoryStore(): MemoryStore {
     },
     claim: async (room) => {
       stolen.delete(room)
-      const snapshot = snapshots.get(room)
-      if (snapshot !== undefined)
-        return { kind: 'live', snapshot: JSON.parse(JSON.stringify(snapshot)) as unknown }
       const row = rows.get(room)
-      return row === undefined ? { kind: 'missing' } : { kind: 'cold', room: row }
+      if (row === undefined) return { kind: 'missing' }
+      const snapshot = snapshots.get(room)
+      // Through JSON, as a database would hand it back.
+      return {
+        kind: 'found',
+        room: row,
+        snapshot: snapshot === undefined ? null : (JSON.parse(JSON.stringify(snapshot)) as unknown),
+      }
     },
     write: async (room, snapshot) => keep(room, snapshot),
     release: async (room, snapshot) => keep(room, snapshot),

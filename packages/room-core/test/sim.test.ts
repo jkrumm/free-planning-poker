@@ -36,6 +36,12 @@ describe('the simulator', () => {
     BUDGET_MS * 2,
   )
 
+  test('seed 2044: a deploy hands the room to a process that starts the fx limit afresh', async () => {
+    const result = await simulate({ seed: 2044 })
+    expect(result.stats.deploys).toBe(1)
+    expect(result.violations).toEqual([])
+  })
+
   test('one seed gives one trace: hashed twice, the hashes match', async () => {
     const first = await traceOf42()
     expect(await traceOf42()).toEqual(first)
