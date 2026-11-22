@@ -85,7 +85,7 @@ Your answers of 2026-11-20 to the open choices and to the points where the plan 
 | Who runs a room | Everyone. A room has no owner | No room key, no admin, no facilitator flag. Every player reveals, settles, kicks, locks and names the room |
 | What a new room is called | A six-digit number, as in v1: digits work in every language | Numbers are the default address. A name is a booking a team makes. Both return to the pool when unused (`ARCHITECTURE.md`, "Room model") |
 | The lock | A password people type or let the room generate. It need not be secure; a device that got in once remembers it | Typed or generated, stored readable, carried in the link, kept in the device's storage |
-| Runtime and framework | Bun and Elysia 2. Which socket path, including Effect's, is still open: compare them | A bake-off of three candidates in `v9-api-ws`. Elysia wins a tie. Effect stays in the API's adapters and jobs |
+| Runtime and framework | Bun and Elysia 2. Which socket path, including Effect's, is still open: compare them | A bake-off of three candidates in `v9-api-ws`. Elysia wins a tie. Effect stays in the API's adapters and jobs. Decided on 2026-11-22: `Bun.serve`'s native handler, by the lowest 99th percentile (`evidence/transport.md`) |
 | The table arena | Not in the usual factory loop. Later, with several directions and several labs' models | The factory builds the harness. Entries are made in sessions you start; the pick is still a gate |
 | Planning of the later stages | Ahead, as far as it can be known today; no Spec on the way (confirmed 2026-11-21) | Written out on 2026-11-21: every stage is rows in `docs/plan.yaml`. Three correction rows stay, one per stage, each fixing what the stage before measured differently |
 | Languages | From the beginning, on the landing page and in the room; more than two (2026-11-21) | A message catalogue from the first screen. The room ships in English, German, Spanish, French and Simplified Chinese; the landing page is built in the same five (`research/r24`, `r25`) |
@@ -127,7 +127,7 @@ Effect 4.0 has been stable since 2026-09-30. It earns its place where code waits
 | The core: `decide`, `evolve`, `project` | no | Pure functions give a runtime nothing to manage. Property tests and the simulator need no runtime either |
 | Protocol schemas | no | Zod 4 is about 5 kB in the browser. Effect's Schema pays off only together with its RPC |
 | The room loop | no | The loop is synchronous on purpose |
-| The socket | measured | Effect's Bun server is one of three candidates in the bake-off. On paper it exposes neither Bun's publish nor its backpressure codes and has an open report of unbounded buffering; the test decides |
+| The socket | measured | Effect's Bun server is one of three candidates in the bake-off. On paper it exposes neither Bun's publish nor its backpressure codes and has an open report of unbounded buffering; the test decides. It passed every case and bounded the slow consumer, but was three to seven times slower at the 99th percentile, so it is not kept (`evidence/transport.md`) |
 | The browser client | no | Its state machine is tested by the simulator, and it would carry the runtime |
 | Postgres store, jobs, startup and drain | yes | Retries, schedules and ordered release become declarations |
 | Webhook relay, after launch | yes, the strongest case | A retry rule per status code, bounded concurrency, timeouts, typed failures |
@@ -158,7 +158,7 @@ That is narrower than you proposed. What you want from it, stability and testabi
 | Area | Decision | Changing it later costs |
 |-|-|-|
 | Transport | JSON over one WebSocket, the version in the first frame, a sequence number per room, snapshot on resume | additive changes are free; a new encoding fits behind the version |
-| Server | Bun, and Elysia 2 for HTTP, pinned exactly. The WebSocket path by bake-off between Elysia, Bun's native handler and Effect's socket server | low: all sit behind one port |
+| Server | Bun, and Elysia 2 for HTTP, pinned exactly. The WebSocket path on Bun's native handler, the winner of the bake-off against Elysia's and Effect's | low: all sit behind one port |
 | I/O in the API | Effect 4 in adapters, jobs, startup and drain | low to remove: it sits in three folders behind plain ports |
 | Persistence | Postgres only. Live snapshots in an unlogged table with an epoch for ownership; topics and results written through | low |
 | Deploys | Drain, snapshot, clients resume against the new container. Tested by killing a server mid-round in CI | none |

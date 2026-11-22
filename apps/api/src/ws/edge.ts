@@ -46,6 +46,11 @@ export type RoomServerOptions = {
   readonly hostname?: string
   /** Origins allowed to open a room socket, as `scheme://host[:port]`. */
   readonly origins: readonly string[]
+  /**
+   * The request header that carries the client's address, set by the edge in front of the API (Cloudflare's
+   * `cf-connecting-ip`); without it the socket's peer address counts, which behind a proxy is the proxy's.
+   */
+  readonly clientIpHeader?: string
   /** The HTTP routes; Elysia keeps them whichever adapter carries the sockets. */
   readonly http: App
   readonly rooms: RoomDirectory
@@ -72,7 +77,7 @@ export function slugOfPath(pathname: string): string | undefined {
 }
 
 export type Admission =
-  | { readonly ok: true; readonly room: RoomKey }
+  | { readonly ok: true; readonly room: RoomKey; readonly ip: string }
   | { readonly ok: false; readonly response: Response }
 
 const refused = (status: number) => ({
@@ -87,7 +92,13 @@ const refused = (status: number) => ({
  */
 export async function admit(
   request: Request,
-  deps: { readonly origins: ReadonlySet<string>; readonly rooms: RoomDirectory },
+  deps: {
+    readonly origins: ReadonlySet<string>
+    readonly rooms: RoomDirectory
+    readonly clientIpHeader?: string | undefined
+    /** The socket's peer address. */
+    readonly peer: string
+  },
 ): Promise<Admission> {
   const origin = request.headers.get('origin')
   if (origin === null || !deps.origins.has(origin)) return refused(403)
@@ -96,7 +107,14 @@ export async function admit(
   if (slug === undefined || slug !== raw) return refused(404)
   const room = await deps.rooms.resolve(slug)
   if (room === null) return refused(404)
-  return { ok: true, room }
+  return { ok: true, room, ip: clientIp(request, deps.clientIpHeader, deps.peer) }
+}
+
+/** The client's address: the first entry of the edge's header when one is named and present, else the peer's. */
+function clientIp(request: Request, header: string | undefined, peer: string): string {
+  const named = header === undefined ? null : request.headers.get(header)
+  const first = named?.split(',')[0]?.trim()
+  return first === undefined || first === '' ? peer : first
 }
 
 /** A frame as the text a socket sends; one that the protocol's schemas refuse is a bug and throws. */

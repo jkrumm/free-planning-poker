@@ -55,7 +55,7 @@ Test files are exempt from the class rules, not from the arrows. `scripts/bounda
 | 7739 | the room app (Vite) |
 | 7740 | the API; `bun run dev` starts it with `--watch` |
 
-Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port.
+Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port. Behind a proxy, `CLIENT_IP_HEADER` names the header that carries the client's address (`cf-connecting-ip` behind Cloudflare), so the per-address limit on wrong access codes counts clients and not the proxy; unset, the socket's peer address counts.
 
 ## CI
 

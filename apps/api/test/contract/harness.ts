@@ -26,7 +26,11 @@ export type AdapterName = keyof typeof ADAPTERS
 /** T-shirt cards, no countdown: a vote's label (`XXL`) appears in no id, and a reveal lands at once. */
 export const SETTINGS = { ...DEFAULT_SETTINGS, deck: DECKS['t-shirt'], revealCountdown: 0 }
 
-export async function startServer(adapter: AdapterName, port: number) {
+export async function startServer(
+  adapter: AdapterName,
+  port: number,
+  options: { readonly clientIpHeader?: string } = {},
+) {
   const rooms = memoryRooms()
   const telemetry = telemetryRecorder()
   const clock = timerClock({
@@ -37,6 +41,7 @@ export async function startServer(adapter: AdapterName, port: number) {
     port,
     hostname: '127.0.0.1',
     origins: [ORIGIN],
+    ...options,
     http: createApp({ build: { version: 'contract', commit: 'contract' } }),
     rooms: rooms.directory,
     ports: {
