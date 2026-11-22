@@ -80,6 +80,22 @@
       "rules": {
         "import/no-default-export": "off"
       }
+    },
+    {
+      "files": ["apps/api/src/ws/effect.transport.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["effect/unstable", "effect/unstable/*"],
+                "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
