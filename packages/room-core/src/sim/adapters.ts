@@ -85,6 +85,8 @@ export function memoryStore(): MemoryStore {
 }
 
 export type MemoryHistory = History & {
+  /** The room's row and queue as last written through. */
+  readonly latest: Map<RoomKey, Parameters<History['room']>[1]>
   readonly rounds: {
     readonly room: RoomKey
     readonly result: RevealedResult
@@ -99,7 +101,12 @@ export function memoryHistory(): MemoryHistory {
   const rounds: MemoryHistory['rounds'] = []
   const decisions: MemoryHistory['decisions'] = []
   const days: string[] = []
+  const latest: MemoryHistory['latest'] = new Map()
   return {
+    latest,
+    room: (room, entry) => {
+      latest.set(room, entry)
+    },
     rounds,
     decisions,
     days,

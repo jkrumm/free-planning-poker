@@ -172,6 +172,10 @@ const TOKEN_BYTES = 32
 
 const accepted = (result: StepResult | 'internal'): boolean => result !== 'internal' && result.ok
 
+/** An event that changes what the room's row or its queue hold. */
+const writesThrough = (event: Event): boolean =>
+  event.type.startsWith('room.') || event.type.startsWith('topic.')
+
 export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions): RoomRuntime {
   const { transport, clock, ids, secrets, store, history, telemetry } = ports
   const conns = new Map<ConnectionId, Conn>()
@@ -206,6 +210,8 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
       telemetry.fanout(() => transport.publish(room.key, frame))
       after(room, event)
     }
+    // The row and the queue reach history before a round or a decision of the same step, which name its topic.
+    if (result.events.some(writesThrough)) persistRoom(room)
     for (const effect of result.effects) run(room, effect)
     if (result.events.length > 0) dirty(room)
   }
@@ -221,6 +227,16 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
     }
     if (result.ok && !result.duplicate) commit(room, result)
     return result
+  }
+
+  /** The room's row and queue as history keeps them, so a room whose snapshot expired starts from them. */
+  function persistRoom(room: Live) {
+    const entry = {
+      room: room.state.room,
+      accessEpoch: room.accessEpoch,
+      topics: room.state.topics,
+    }
+    detach('history', () => history.room(room.key, entry))
   }
 
   const serverStep = (room: Live, command: ServerCommand) =>
@@ -353,9 +369,22 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
     const snapshot = claim.snapshot === null ? undefined : importSnapshot(claim.snapshot)
     if (snapshot === undefined) {
       if (claim.snapshot !== null) failed(new Error('a live snapshot could not be read'), 'store')
-      const { slug, name, access, code, settings, accessEpoch } = claim.room
-      const state = initialState({ slug, name, access, code, settings }, ctx())
-      return { ...base, state, seq: 0, accessEpoch, secrets: new Map() }
+      const { slug, name, access, code, settings, accessEpoch, topics, rounds } = claim.room
+      const state = initialState(
+        {
+          slug,
+          name,
+          access,
+          code,
+          settings,
+          ...(topics === undefined ? {} : { topics }),
+          ...(rounds === undefined ? {} : { rounds }),
+        },
+        ctx(),
+      )
+      const cold: Live = { ...base, state, seq: 0, accessEpoch, secrets: new Map() }
+      persistRoom(cold)
+      return cold
     }
     const room: Live = {
       ...base,
@@ -807,6 +836,7 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
               payload: { seat: index, presence: 'gone' },
             })
         }
+        persistRoom(room)
         dirty(room)
       }
       return { ok: true, accessEpoch: room.accessEpoch }

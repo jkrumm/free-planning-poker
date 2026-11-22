@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { DECKS, parseCard, parseDeck } from '../src/decks.ts'
 import {
+  ACCESS_CODE_ALPHABET,
+  generateAccessCode,
   parseAccessCode,
   parseSeatIndex,
   parseSlug,
@@ -76,5 +78,23 @@ describe('Card and Deck', () => {
     expect(parseDeck({ id: 'custom', cards: [card('X', null)] })).toBeUndefined()
     expect(parseDeck({ id: 'custom', cards: [] })).toBeUndefined()
     expect(parseDeck({ id: 'other', cards: [card('S', 1)] })).toBeUndefined()
+  })
+})
+
+describe('generated AccessCode', () => {
+  test('the alphabet holds 31 characters, none of 0, 1, i, l, o', () => {
+    expect(new Set(ACCESS_CODE_ALPHABET).size).toBe(31)
+    for (const confusable of '01ilo') expect(ACCESS_CODE_ALPHABET).not.toContain(confusable)
+  })
+
+  test('six characters of the alphabet, and a byte past the last full cycle is drawn again', () => {
+    // 248 and above would favour the first eight characters; they are skipped.
+    const batches = [
+      [255, 248, 0, 1, 2, 3],
+      [30, 31, 0, 0, 0, 0],
+    ]
+    const code = generateAccessCode(() => new Uint8Array(batches.shift() ?? []))
+    expect(String(code)).toBe('2345z2')
+    expect(parseAccessCode(code)).toBe(code)
   })
 })

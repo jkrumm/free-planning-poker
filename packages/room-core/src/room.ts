@@ -18,7 +18,7 @@ import {
 import { evolvePoker } from './poker/poker.evolve.ts'
 import { publish } from './project.ts'
 import { LIMITS } from './protocol/names.ts'
-import type { Access, Event, NackReason, ServerCommand, Settings } from './protocol/types.ts'
+import type { Access, Event, NackReason, ServerCommand, Settings, Topic } from './protocol/types.ts'
 import type { Ctx, DomainEvent, Effect, Input, Rejection, RoomState } from './state.ts'
 import type { AccessCode, Slug } from './values.ts'
 
@@ -36,7 +36,9 @@ const activity: KernelActivity = {
 
 /**
  * A new room: no seats, one untitled active topic and its first round. That round has no timer; the room's timer
- * runs from the next round on.
+ * runs from the next round on. A room that comes back cold passes the open topics history kept and where its round
+ * numbering stands: the active topic stays active (else the first queued one becomes it, else an untitled one is
+ * added), and its round continues the counts.
  */
 export function initialState(
   room: {
@@ -45,13 +47,29 @@ export function initialState(
     readonly access?: Access
     readonly code?: AccessCode | null
     readonly settings?: Settings
+    readonly topics?: readonly Topic[]
+    readonly rounds?: { readonly no: number; readonly attempt: number }
   },
   ctx: Ctx,
 ): RoomState {
   const settings = room.settings ?? DEFAULT_SETTINGS
   if (room.access === 'locked' && (room.code ?? null) === null)
     throw new Error('a locked room needs its access code')
-  const topic = ctx.newId()
+  const open = (room.topics ?? []).filter(
+    (entry) => entry.state === 'queued' || entry.state === 'active',
+  )
+  const resumed = open.find((entry) => entry.state === 'active') ?? open[0]
+  const topics: Topic[] =
+    resumed === undefined
+      ? [{ id: ctx.newId(), title: null, url: null, ref: null, state: 'active', final: null }]
+      : open.map((entry) =>
+          entry.id === resumed.id
+            ? { ...entry, state: 'active' }
+            : { ...entry, state: 'queued', final: null },
+        )
+  const topic = (resumed ?? topics[0]!).id
+  const attempt = resumed?.state === 'active' ? (room.rounds?.attempt ?? 0) + 1 : 1
+  const no = (room.rounds?.no ?? 0) + 1
   const round = ctx.newId()
   const access = room.access ?? 'open'
   return {
@@ -64,17 +82,17 @@ export function initialState(
     },
     seats: [],
     nextSeat: 0,
-    topics: [{ id: topic, title: null, url: null, ref: null, state: 'active', final: null }],
+    topics,
     activity: {
       kind: 'poker',
-      no: 1,
+      no,
       current: round,
       rounds: [
         {
           id: round,
           topic,
-          no: 1,
-          attempt: 1,
+          no,
+          attempt,
           deck: settings.deck,
           state: 'voting',
           startedAt: ctx.now,

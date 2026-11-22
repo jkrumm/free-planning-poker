@@ -7,7 +7,7 @@ import { describe, expect, test } from 'bun:test'
 import { createHash } from 'node:crypto'
 import { DEFAULT_SETTINGS } from '../src/room.ts'
 import { project } from '../src/project.ts'
-import type { Command, ServerFrame, View } from '../src/protocol/types.ts'
+import type { Command, ServerFrame, Topic, View } from '../src/protocol/types.ts'
 import { RUNTIME_LIMITS } from '../src/runtime/limits.ts'
 import type { Transport } from '../src/runtime/ports.ts'
 import { createRoomRuntime, type RuntimeOptions } from '../src/runtime/runtime.ts'
@@ -536,5 +536,96 @@ describe('what the runtime reports to telemetry', () => {
     expect(room.telemetry.events).toEqual(['room_loaded', 'round_revealed', 'room_released'])
     expect(room.telemetry.ended).toEqual([1])
     expect(room.telemetry.handoffs.length).toBe(1)
+  })
+})
+
+const topicOf = (id: string, title: string, state: 'queued' | 'active') =>
+  ({ id, title, url: null, ref: null, state, final: null }) as Topic
+
+describe('the row and the queue written through', () => {
+  test('a queue change and an access epoch change reach history with the whole queue', async () => {
+    const room = harness()
+    const ada = await room.connect()
+    expect(room.history.latest.get(ROOM)?.topics).toHaveLength(1)
+    await room.send(ada, {
+      type: 'topic.add',
+      payload: { topics: [{ title: 'Checkout', url: null, ref: null }] },
+    })
+    const written = room.history.latest.get(ROOM)!
+    expect(written.topics.map((topic) => [topic.title, topic.state])).toEqual([
+      [null, 'active'],
+      ['Checkout', 'queued'],
+    ])
+    expect(written.accessEpoch).toBe(0)
+    const seat = room.welcome(ada).seat
+    room.runtime.setAccess(ROOM, {
+      access: 'locked',
+      code: parseAccessCode('k7m2qx')!,
+      by: seat,
+      reseat: true,
+    })
+    expect(room.history.latest.get(ROOM)).toMatchObject({
+      accessEpoch: 1,
+      room: { access: 'locked', code: 'k7m2qx' },
+    })
+  })
+
+  test('a cold room resumes its open topics and continues its round numbers', async () => {
+    const store = memoryStore()
+    store.rows.set(ROOM, {
+      slug: parseSlug('482913')!,
+      name: 'Team Alpha',
+      access: 'open',
+      code: null,
+      settings: DEFAULT_SETTINGS,
+      accessEpoch: 0,
+      topics: [
+        topicOf('00000000-0000-7000-8000-00000000000a', 'Queued', 'queued'),
+        topicOf('00000000-0000-7000-8000-00000000000b', 'Active', 'active'),
+      ],
+      rounds: { no: 4, attempt: 2 },
+    })
+    const room = harness({ store })
+    await room.connect()
+    expect(room.state().topics.map((entry) => [entry.title, entry.state])).toEqual([
+      ['Queued', 'queued'],
+      ['Active', 'active'],
+    ])
+    const round = room.state().activity.rounds.find((entry) => entry.id === room.current())
+    expect(round).toMatchObject({
+      no: 5,
+      attempt: 3,
+      topic: '00000000-0000-7000-8000-00000000000b',
+    })
+  })
+
+  test('a cold room without an active topic makes its first queued one active, at its first attempt', async () => {
+    const store = memoryStore()
+    store.rows.set(ROOM, {
+      slug: parseSlug('482913')!,
+      name: 'Team Alpha',
+      access: 'open',
+      code: null,
+      settings: DEFAULT_SETTINGS,
+      accessEpoch: 0,
+      topics: [
+        {
+          id: '00000000-0000-7000-8000-00000000000c',
+          title: 'Next',
+          url: null,
+          ref: null,
+          state: 'queued',
+          final: null,
+        } as Topic,
+      ],
+      rounds: { no: 9, attempt: 0 },
+    })
+    const room = harness({ store })
+    await room.connect()
+    expect(room.state().topics.map((entry) => [entry.title, entry.state])).toEqual([
+      ['Next', 'active'],
+    ])
+    const round = room.state().activity.rounds.find((entry) => entry.id === room.current())
+    expect(round).toMatchObject({ no: 10, attempt: 1 })
   })
 })
