@@ -10,7 +10,7 @@ Prose before the first release is skipped.
 
 ### Features
 
-* add rooms ([abcdef1](https://github.com/o/r/commit/abcdef1234567))
+* **rooms:** add rooms ([abcdef1](https://github.com/o/r/commit/abcdef1234567))
 
 ### Bug Fixes
 
@@ -35,7 +35,7 @@ describe('parseChangelog', () => {
             title: 'Features',
             items: [
               {
-                text: 'add rooms',
+                text: 'rooms: add rooms',
                 commit: { sha: 'abcdef1', href: 'https://github.com/o/r/commit/abcdef1234567' },
               },
             ],
