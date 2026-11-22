@@ -25,7 +25,7 @@ export class ChangelogError extends Error {
   }
 }
 
-const linkedHeading = /^## \[([^\]]+)\]\(([^)]+)\) \((\d{4}-\d{2}-\d{2})\)$/
+const linkedHeading = /^## \[([^\]]+)\]\((https?:\/\/[^)]+)\) \((\d{4}-\d{2}-\d{2})\)$/
 const plainHeading = /^## (\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)$/
 const sectionHeading = /^### (.+)$/
 const bullet = /^\* (.+)$/
@@ -47,7 +47,11 @@ function parseHeading(line: string, lineNo: number): Release {
 }
 
 function parseItem(body: string): ChangelogItem {
-  const text = body.replace(commitLink, '').replace(otherLink, '$1').trim()
+  const text = body
+    .replace(commitLink, '')
+    .replace(otherLink, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .trim()
   const commit = commitLink.exec(body)
   if (commit === null) return { text }
   const [, sha = '', href = ''] = commit
