@@ -1,0 +1,410 @@
+/*
+ * The felt table seen from above: an oval of green felt, seats on its rim (a grid when the box is narrow or full),
+ * cards dealt face down and turned in seat order. Colours are tokens or mixes of tokens; durations and easings are
+ * the custom properties that motion.ts sets on the root.
+ */
+
+.root {
+  box-sizing: border-box;
+  block-size: 100%;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+  background: var(--basalt-canvas);
+  color: var(--basalt-ink);
+  font-family: var(--basalt-font-sans);
+  font-size: var(--basalt-text-md);
+}
+
+.head {
+  display: grid;
+  gap: 2px;
+  flex: none;
+}
+
+.topic {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--basalt-font-head);
+  font-size: var(--basalt-text-lg);
+  font-weight: var(--basalt-weight-strong);
+}
+
+.state {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  color: var(--basalt-ink-muted);
+}
+
+.outcome {
+  color: var(--basalt-ink);
+  font-weight: var(--basalt-weight-strong);
+}
+
+/* The area holds the felt, the middle and the seats; its box is the container the gather measures. */
+.area {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  container-type: size;
+  overflow: hidden;
+  --flow: 1;
+}
+
+.area:dir(rtl) {
+  --flow: -1;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.felt {
+  box-sizing: border-box;
+  position: absolute;
+  inset: 0;
+  border-radius: var(--basalt-radius-card);
+  border: 10px solid color-mix(in srgb, var(--fpp-felt) 55%, var(--basalt-ink));
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    color-mix(in srgb, var(--fpp-felt) 80%, var(--fpp-glow)),
+    var(--fpp-felt) 62%,
+    color-mix(in srgb, var(--fpp-felt) 78%, var(--basalt-ink))
+  );
+  box-shadow: inset 0 0 36px color-mix(in srgb, var(--fpp-felt) 50%, var(--basalt-ink));
+  pointer-events: none;
+}
+
+.ring .felt {
+  inset-block: 16%;
+  inset-inline: 11%;
+  border-radius: 50%;
+}
+
+.felt::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 6px var(--fpp-glow);
+  opacity: 0;
+}
+
+.root[data-outcome='consensus'] .felt::after {
+  opacity: 1;
+}
+
+.root[data-motion='on'] .felt::after {
+  transition: opacity var(--gather-duration) var(--gather-easing);
+}
+
+.middle {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 12px;
+  min-block-size: 0;
+}
+
+.middle:empty {
+  display: none;
+}
+
+.ring .middle {
+  position: absolute;
+  inset: 0;
+}
+
+.spread {
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  display: flex;
+  align-items: end;
+  gap: 6px;
+  max-inline-size: 64%;
+  border: 1px solid var(--basalt-hairline);
+  border-radius: var(--basalt-radius-ctrl);
+  background: var(--basalt-card);
+  box-shadow: var(--basalt-shadow-raised);
+}
+
+.column {
+  display: grid;
+  justify-items: center;
+  row-gap: 4px;
+  flex: 1 1 0;
+  min-inline-size: 36px;
+}
+
+.bar {
+  display: block;
+  inline-size: 100%;
+  block-size: 96px;
+  border-radius: var(--basalt-radius-chip);
+  background: var(--fpp-card-face);
+  border: 1px solid var(--basalt-input);
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--share));
+}
+
+.root[data-motion='on'][data-phase='revealed'] .bar {
+  animation: grow var(--bar-duration) var(--bar-easing) var(--turned) both;
+}
+
+.tally {
+  font-size: var(--basalt-text-xs);
+  white-space: nowrap;
+}
+
+/* Seats: a plate with the card on top, the name and the status below. */
+
+.seats {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ring .seats {
+  pointer-events: none;
+}
+
+.grid .seats {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+}
+
+.seat {
+  position: relative;
+  box-sizing: border-box;
+  min-block-size: 96px;
+  min-inline-size: 0;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  row-gap: 2px;
+  padding: 6px 8px 4px;
+  border: 1px solid var(--basalt-hairline);
+  border-radius: var(--basalt-radius-ctrl);
+  background: var(--basalt-card);
+  box-shadow: var(--basalt-shadow-raised);
+  color: var(--basalt-ink);
+  text-align: center;
+}
+
+.ring .seat {
+  position: absolute;
+  inset-block-start: calc(var(--y) * 1%);
+  inset-inline-start: calc(var(--x) * 1%);
+  inline-size: 116px;
+  block-size: 96px;
+  transform: translate(-50%, -50%);
+}
+
+.seat[data-status='spectator'],
+.seat[data-status='away'],
+.seat[data-status='reconnecting'] {
+  opacity: 0.6;
+}
+
+.seat[data-status='gone'] {
+  opacity: 0.4;
+}
+
+.name {
+  inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--basalt-weight-medium);
+}
+
+.status {
+  font-size: var(--basalt-text-xs);
+  color: var(--basalt-ink-muted);
+}
+
+/* The slot is 48 px tall at the top of the plate: 6 px padding, then 24 px to its centre. */
+.slot {
+  position: relative;
+  inline-size: 34px;
+  block-size: 48px;
+  perspective: 600px;
+}
+
+.gathered {
+  transform: translate(
+    calc(var(--flow) * (50 - var(--x)) * 1cqw + var(--order) * 0.4px),
+    calc((50 - var(--y)) * 1cqh + 18px + var(--order) * 0.4px)
+  );
+}
+
+.flip {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(0deg);
+}
+
+.flip[data-face='up'] {
+  transform: rotateY(180deg);
+}
+
+.back,
+.front {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--basalt-input);
+  border-radius: var(--basalt-radius-chip);
+  backface-visibility: hidden;
+}
+
+.back {
+  background: var(--fpp-card-back);
+}
+
+.front {
+  transform: rotateY(180deg);
+  background: var(--fpp-card-face);
+  color: var(--basalt-ink);
+  font-weight: var(--basalt-weight-strong);
+}
+
+.effect,
+.tableEffect {
+  position: absolute;
+  animation: rise var(--rise-duration) var(--rise-easing) both;
+}
+
+.effect {
+  inset-block-start: -10px;
+  inset-inline-end: -8px;
+  font-size: var(--basalt-text-lg);
+}
+
+.tableEffect {
+  inset-block-start: 40%;
+  inset-inline-start: 50%;
+  font-size: var(--basalt-text-display);
+}
+
+/* Motion: transitions only when the person has not asked for reduced motion; the end state is the default. */
+
+.root[data-motion='on'] .flip {
+  transition: transform var(--flip-duration) var(--flip-easing);
+}
+
+.root[data-motion='on'] .slot {
+  transition: transform var(--gather-duration) var(--gather-easing);
+}
+
+.root[data-motion='on'][data-phase='revealed'] .flip[data-face='up'] {
+  transition-delay: calc(var(--order) * var(--stagger));
+}
+
+.root[data-motion='on'][data-phase='revealed'] .gathered {
+  transition-delay: var(--turned);
+}
+
+.root[data-motion='off'] .effect,
+.root[data-motion='off'] .tableEffect,
+.root[data-motion='off'] .bar {
+  animation: none;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-36px);
+    opacity: 0;
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(var(--share));
+  }
+}
+
+/* Controls and hand. */
+
+.actions,
+.hand,
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  flex: none;
+}
+
+.hand {
+  max-block-size: 40%;
+  overflow-y: auto;
+  padding-block-start: 6px;
+}
+
+.actions button,
+.reactions button {
+  min-block-size: var(--basalt-hit);
+  min-inline-size: var(--basalt-hit);
+  padding-inline: 10px;
+  border: 1px solid var(--basalt-input);
+  border-radius: var(--basalt-radius-ctrl);
+  background: var(--basalt-raised);
+  color: var(--basalt-ink);
+  font: inherit;
+}
+
+.handCard {
+  min-block-size: 60px;
+  min-inline-size: 44px;
+  border: 1px solid var(--basalt-input);
+  border-radius: var(--basalt-radius-chip);
+  background: var(--fpp-card-face);
+  color: var(--basalt-ink);
+  font: inherit;
+  font-weight: var(--basalt-weight-strong);
+}
+
+.handCard[aria-pressed='true'] {
+  background: var(--basalt-brand-fill);
+  color: var(--basalt-on-brand);
+  transform: translateY(-6px);
+}
+
+.root[data-motion='on'] .handCard {
+  transition: transform var(--lift-duration) var(--lift-easing);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--basalt-brand);
+  outline-offset: 2px;
+}
