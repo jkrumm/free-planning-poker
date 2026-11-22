@@ -530,7 +530,7 @@ rows:
     after_needs: shipped
     facts:
       why: |-
-        The owner wants to open the current state of the rewrite at any time, and a lead must be able to prove its change on real infrastructure. Deploys of this repo are owned by CI (AGENTS.md section Shipping, docs/shipping.md).
+        The owner wants to open the current state of the rewrite at any time, and a lead must be able to prove its change on real infrastructure. Deploys of this repo are owned by CI (AGENTS.md section Deploy, docs/shipping.md).
       what: |-
         .github/workflows/deploy-next.yml (new), Makefile (verify, logs, e2e-beta), project.yaml (a second deploy target), docs/shipping.md.
       change: |-
@@ -2186,7 +2186,7 @@ rows:
     after_needs: shipped
     facts:
       why: |-
-        After v9-cutover production runs v9, but this repository still treats the beta host as v9's only place and the release is still 8.5.0 (package.json, CHANGELOG.md). Contract: docs/v9/ARCHITECTURE.md sections Checks, CI and deploy, Topology and Cutover; docs/v9/UX.md section Being found (canonical links, sitemap, IndexNow); docs/shipping.md section Releases; AGENTS.md section Shipping.
+        After v9-cutover production runs v9, but this repository still treats the beta host as v9's only place and the release is still 8.5.0 (package.json, CHANGELOG.md). Contract: docs/v9/ARCHITECTURE.md sections Checks, CI and deploy, Topology and Cutover; docs/v9/UX.md section Being found (canonical links, sitemap, IndexNow); docs/shipping.md section Releases; AGENTS.md section Deploy.
       what: |-
         project.yaml, the Makefile (verify and every target that names a host), the site's canonical host and every absolute URL (apps/site configuration, structured data, llms.txt as generated, README.md's live link), the switch between beta and production that v9-site-crawl and v9-edge-routing built for the noindex header and make indexnow, deploy workflows only where they name a host, AGENTS.md, README.md, docs/shipping.md, docs/development.md, and docs/v9/ARCHITECTURE.md and docs/v9/ENGINEERING.md where they say until the cutover.
       change: |-
