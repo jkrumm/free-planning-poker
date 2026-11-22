@@ -77,6 +77,8 @@ Agents never start these servers. The API opens a room socket only for an `Origi
 | `make v9-smoke` | `/api/health` answers 200 and `/room/x` returns the shell |
 | `make v9-size` | the image's size, uncompressed and as a gzipped `docker save` |
 | `make v9-down` | removes the stack **and its database volume** |
+| `make v9-logs` | the last 200 lines of every container |
+| `make v9-replace-api` | what a deploy does to the API: `stop` (SIGTERM and the drain), `rm`, then a new container on the same database, waited until healthy |
 
 A lead starts the stack inside a slot, on a port from the OS and a project name of its own: `factory slot run -- make v9-up V9_PROJECT=<name> FPP_PORT=<port>`; the factory's Docker hook refuses a bare `v9-up` from a worktree.
 
@@ -85,6 +87,10 @@ A lead starts the stack inside a slot, on a port from the OS and a project name 
 - **Environment.** `DATABASE_URL` and `VISITOR_KEY` come from the compose file with local defaults; a real deployment sets `VISITOR_KEY`, `POSTGRES_PASSWORD` and `ALLOWED_ORIGINS`. `OTEL_SERVICE_VERSION` is a build argument (the commit; `local` without one) and reaches the API as `GIT_SHA`.
 - **Migrations** run on start where `MIGRATE_ON_START=true` (the image sets it; development and tests leave it off, so a process still starts without a database) (`migrateOnStart` in `src/db/client.ts`, called by `src/main.ts`): a session advisory lock on a connection of its own makes two starting containers apply them one after the other. `MIGRATIONS_DIR` names the folder (`/app/drizzle` in the image). A failed migration, or a database that is not there, stops the process: the container never serves on an old schema, and the restart policy (or the orchestrator's health wait) tries again.
 - **Health and stop.** The health check is `/api/health` (503 while draining, so a stopping container is unhealthy). SIGTERM reaches Bun as PID 1; the drain exits 0 well inside the compose `stop_grace_period` of 30 s.
+
+## End-to-end suite
+
+`e2e/suite` drives one browser context per seat against the image of the previous section (`e2e/AGENTS.md` has the rules of writing a test). `make e2e` builds the image as `fpp-api:e2e-<pid>`, starts a stack of its own on a port the system picks, runs Playwright in the bundled headless shell and removes the stack and the image, in a factory slot where there is one; `E2E_ARGS` goes to Playwright. `make e2e-beta E2E_BASE_URL=<origin>` runs the tests tagged `@smoke` against a running host and refuses the production host. Every test makes its own room; `restart.e2e.ts` starts a stack of its own, because it replaces the API container.
 
 ## CI
 
@@ -95,6 +101,7 @@ A lead starts the stack inside a slot, on a port from the OS and a project name 
 | `lanes` | `.github/lanes.sh` reads `.github/lanes` and the diff and outputs `app` and `site` as booleans; a change on the `every` line (`.github/`, `bun.lock`, `package.json`, `bunfig.toml`, `tsconfig.base.json`) selects every lane |
 | `check` | installs the PostgreSQL 18 server binaries from PGDG (`.github/postgres.sh`, no cluster), `bun install --frozen-lockfile`, `make check` with `PG_BIN_DIR` set |
 | `image` | lane `app`: builds `apps/api/Dockerfile` with BuildKit's GitHub cache backend (scope `fpp-api`), prints the image size to the job summary, starts `deploy/compose.yml` from the built image, runs `make v9-smoke`, removes the stack, and hands the image on as the artifact `fpp-api-image` (a tar, one day). No registry push: nothing rolls out from here (`v9-next-deploy`) |
+| `e2e`, `e2e-report` | lane `app`, after `image`: two shards, each loads the image artifact as `fpp-api:local`, starts its own stack (`bun e2e/suite/run.ts --shard=n/2`, Playwright on the runner because one test replaces the API container) and uploads a blob report; `e2e-report` merges them into the HTML report `e2e-report` and annotates the failures. One retry records a trace and `failOnFlakyTests` keeps the test red; both are in the needs of `ci` |
 | `site` | lane `site`: `make site` builds `apps/site` for production and beta and tests the output (scripts, links, page budgets, the draft rule); apps/site/AGENTS.md |
 | `ci` | `if: always()`; `.github/gate.sh` reads `toJSON(needs)` and fails when a needed job failed or was cancelled, or was skipped while `lanes` did not succeed. The only required check of `master` |
 

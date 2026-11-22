@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score indexnow factory-files bun-version lanes deploy verify logs import-v1 v1-mariadb v9-image v9-up v9-down v9-smoke v9-size
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify logs import-v1 v1-mariadb v9-image v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover. Overridable so `verify` can be pointed at another host.
@@ -93,6 +93,15 @@ v9-size: ## Print the image's size, uncompressed and as a gzipped `docker save` 
 v9-down: ## Remove the v9 stack with its database volume
 	@$(V9_COMPOSE) down --volumes --remove-orphans
 
+v9-logs: ## The last 200 lines of every container of the v9 stack
+	@$(V9_COMPOSE) logs --no-color --tail=200
+
+# What a deploy does to the API (docs/v9/ARCHITECTURE.md, Server): SIGTERM and the drain, then a new container on the same database.
+v9-replace-api: ## Stop the API container, remove it and start a new one against the same database
+	@$(V9_COMPOSE) stop api
+	@$(V9_COMPOSE) rm --force api
+	@$(V9_COMPOSE) up -d --no-deps --no-build --wait api
+
 v9-smoke: ## Probe the running stack: /api/health answers 200 and /room/x returns the shell
 	@curl -fsS http://127.0.0.1:$(FPP_PORT)/api/health
 	@echo
@@ -114,6 +123,20 @@ arena-score: ## Score one table entry: make arena-score ENTRY=<name> (writes are
 	@$(call step,arena static checks,bun apps/arena/scripts/static-score.ts $(ENTRY))
 	@$(call step,arena browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium ffmpeg >/dev/null)
 	@$(call step,arena scorecard (playwright),$(call slot,arena-score) env ARENA_ENTRY=$(ENTRY) e2e/node_modules/.bin/playwright test -c e2e/arena/playwright.config.ts)
+
+# The end-to-end suite (e2e/suite, lane app): one browser context per seat against the image users self-host. e2e/suite/run.ts builds
+# the image, starts its own stack on a port the system picks, runs Playwright in the bundled headless shell and removes the
+# stack; arguments go to Playwright: make e2e E2E_ARGS='--grep "reload"'. CI starts it with E2E_NO_BUILD and the loaded image.
+E2E_ARGS ?=
+e2e: ## End-to-end suite against a stack of its own, in a slot (about 4 min; ARGS to Playwright: E2E_ARGS='--grep reload')
+	@$(call step,e2e browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium >/dev/null)
+	@$(call step,e2e suite (stack + playwright),$(call slot,e2e) bun e2e/suite/run.ts $(E2E_ARGS))
+
+# The tests tagged @smoke against a running host (the beta host), never production: they need no Docker.
+e2e-beta: ## Smoke tests against a running host: make e2e-beta E2E_BASE_URL=<origin of the beta host>
+	@test -n "$(E2E_BASE_URL)" || { echo "usage: make e2e-beta E2E_BASE_URL=<origin of the beta host>"; exit 2; }
+	@$(call step,e2e browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium >/dev/null)
+	@$(call step,e2e smoke (playwright),E2E_BASE_URL=$(E2E_BASE_URL) e2e/node_modules/.bin/playwright test -c e2e/suite/playwright.config.ts --grep @smoke $(E2E_ARGS))
 
 # The plan and the project file must parse; skipped where the factory CLI is not installed (CI).
 factory-files:

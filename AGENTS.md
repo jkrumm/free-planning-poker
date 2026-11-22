@@ -84,8 +84,9 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 | `make fmt` | oxfmt over the repo | when the format check fails |
 | `make lanes` | which CI lanes this branch touches | when a row adds a lane job |
 | `make arena-score ENTRY=<name>` | one arena entry's scorecard (`e2e/AGENTS.md`) | lane `arena` |
+| `make e2e` | the end-to-end suite, in a slot (`e2e/AGENTS.md`) | CI job `e2e` |
 
-Later tiers arrive with their rows: Vitest browser component tests (lane `ui`), the end-to-end suite (`*.e2e.ts`, lane `browser`). `nightly.yml` runs 10,000 simulator seeds. A missed budget is reported with its number, never met by removing a check. Toolchain, ports and CI: `docs/development.md`.
+Vitest component tests (lane `ui`) arrive with their row. `nightly.yml` runs 10,000 simulator seeds. A missed budget is reported with its number, not met by removing a check. Toolchain, ports and CI: `docs/development.md`.
 
 ## Deploy
 
