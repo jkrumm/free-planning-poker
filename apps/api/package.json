@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fpp/room-core": "workspace:*",
+    "@fpp/telemetry": "workspace:*",
     "drizzle-orm": "0.45.4",
     "elysia": "2.0.0-rc.3",
     "exact-mirror": "1.2.7",

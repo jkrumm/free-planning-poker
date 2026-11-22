@@ -73,6 +73,7 @@ shell = ["apps/api/src/main.ts", "apps/room/src/main.tsx"]
 pure = [
   "packages/room-core/src/**",
   "packages/telemetry/src/names.ts",
+  "packages/telemetry/src/umami.ts",
   "packages/table/src/layout.ts",
 ]
 adapter = [

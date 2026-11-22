@@ -28,6 +28,10 @@
           {
             "group": ["effect", "effect/*", "@effect/*"],
             "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
+          },
+          {
+            "group": ["@opentelemetry/*"],
+            "message": "OpenTelemetry is imported in packages/telemetry only; use its facade (rule telemetry.md)."
           }
         ]
       }
@@ -58,6 +62,10 @@
               {
                 "group": ["effect", "effect/*", "@effect/*"],
                 "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
+              },
+              {
+                "group": ["@opentelemetry/*"],
+                "message": "OpenTelemetry is imported in packages/telemetry only; use its facade (rule telemetry.md)."
               }
             ]
           }
@@ -78,6 +86,34 @@
               {
                 "group": ["elysia", "elysia/*", "@elysia/*"],
                 "message": "Elysia is imported in apps/api/src/http and apps/api/src/ws only (docs/v9/ARCHITECTURE.md, Server)."
+              },
+              {
+                "group": ["@opentelemetry/*"],
+                "message": "OpenTelemetry is imported in packages/telemetry only; use its facade (rule telemetry.md)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/telemetry/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["effect/unstable", "effect/unstable/*"],
+                "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+              },
+              {
+                "group": ["elysia", "elysia/*", "@elysia/*"],
+                "message": "Elysia is imported in apps/api/src/http and apps/api/src/ws only (docs/v9/ARCHITECTURE.md, Server)."
+              },
+              {
+                "group": ["effect", "effect/*", "@effect/*"],
+                "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
               }
             ]
           }
