@@ -1,6 +1,7 @@
 /**
  * `@fpp/room-core/sim`: deterministic context for tests, the in-memory adapters of the runtime's ports, the seeded
- * scheduler and network, the bots, the invariants, and `simulate`, which plays one seeded session.
+ * scheduler and network, the bots, the invariants, `simulate`, which plays one seeded session, and `playScript`,
+ * which plays a scripted one for the table arena.
  */
 export { EPOCH, generator, seededClock, uuidv7 } from './clock.ts'
 export type { SeededClock } from './clock.ts'
@@ -24,4 +25,6 @@ export type { Bot, BotKind, BotWorld } from './bots.ts'
 export { checker, foreignCards } from './invariants.ts'
 export type { Checker, Stats } from './invariants.ts'
 export { replayCommand, simulate } from './simulate.ts'
+export { playScript } from './scenario.ts'
+export type { Script, ScriptAction, ScriptFrame, ScriptFx, ScriptStep } from './scenario.ts'
 export type { SimOptions, SimResult } from './simulate.ts'

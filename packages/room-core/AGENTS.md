@@ -15,7 +15,7 @@ The room's rules as pure functions, and the protocol every browser and server sp
 | `src/view.ts` | `evolveView`, `withOwnVote`, selectors |
 | `src/result.ts`, `src/paste.ts`, `src/check.ts` | result contract builders, the paste parser, the invariants |
 | `src/runtime/` | `createRoomRuntime(ports)`: handshake, seat tokens, the lock and its limits, reclaim, resume, presence, heartbeat, snapshots. `ports.ts` holds every port; `limits.ts` the numbers; it reaches the reducer only through `step` and `project` |
-| `src/sim/` | `@fpp/room-core/sim`: the seeded clock, scheduler and network, the in-memory adapters of every port, the bots, the invariants (`invariants.ts`) and `simulate`. `scripts/sim.ts` is its command line, outside `src` because it reads argv |
+| `src/sim/` | `@fpp/room-core/sim`: the seeded clock, scheduler and network, the in-memory adapters of every port, the bots, the invariants (`invariants.ts`), `simulate`, and `playScript` (`scenario.ts`), which plays the table arena's scripts into frames. `scripts/sim.ts` is its command line, outside `src` because it reads argv |
 | `*.entry.ts` | the entries of `package.json` `exports`. `/types` and `/view` must stay free of Zod and of `decide`: `test/bundle.test.ts` builds them and checks |
 
 ## Changing a rule
