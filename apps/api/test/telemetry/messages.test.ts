@@ -10,7 +10,7 @@ import { createMessages } from '../../src/app/messages.ts'
 import { parseEnv } from '../../src/env.ts'
 import { createApp } from '../../src/http/app.ts'
 import { createApiTelemetry } from '../../src/telemetry.ts'
-import { NO_ROOMS, ENV } from '../support.ts'
+import { NO_ROOMS, NO_STATS, ENV } from '../support.ts'
 import { deadUrl, startUpstream } from '../upstream.ts'
 
 const MARK = {
@@ -35,6 +35,7 @@ test('a failed contact and a failed feedback export no message text, address, su
     const app = createApp({
       build: { version: 'test', commit: 'test' },
       rooms: NO_ROOMS,
+      stats: NO_STATS,
       messages: createMessages({
         gateway: { url: gateway.url, secret: 'zq7-gateway-secret' },
         door: { url: await deadUrl(await freePort()), secret: 'zq7-door-token' },

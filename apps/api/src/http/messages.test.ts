@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { freePort } from '@fpp/test-kit/port'
 import { createMessages, type MessagesOptions } from '../app/messages.ts'
 import { deadUrl, startUpstream } from '../../test/upstream.ts'
-import { NO_ROOMS } from '../../test/support.ts'
+import { NO_ROOMS, NO_STATS } from '../../test/support.ts'
 import { createApp } from './app.ts'
 
 const ORIGIN = 'https://room.test'
@@ -37,6 +37,7 @@ function appWith(options: Partial<MessagesOptions> = {}, client = 'client-a') {
   return createApp({
     build: { version: 'test', commit: 'test' },
     rooms: NO_ROOMS,
+    stats: NO_STATS,
     messages: createMessages({
       gateway: undefined,
       door: undefined,

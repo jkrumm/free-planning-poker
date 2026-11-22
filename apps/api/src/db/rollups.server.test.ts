@@ -4,7 +4,7 @@ import type { PostgresCluster } from '@fpp/test-kit/postgres'
 import { sql } from 'drizzle-orm'
 import { Effect } from 'effect'
 import { createApp } from '../http/app.ts'
-import { NO_ROOMS } from '../../test/support.ts'
+import { NO_MESSAGES, NO_ROOMS } from '../../test/support.ts'
 import { postgresStats } from '../app/stats.ts'
 import { rollupTick } from '../jobs/rollup.ts'
 import { createDb, runMigrations } from './client.ts'
@@ -290,6 +290,9 @@ describe('the public figures', () => {
     const app = createApp({
       build: { version: 'test', commit: 'test' },
       rooms: NO_ROOMS,
+      messages: NO_MESSAGES,
+      origins: new Set(),
+      client: () => 'test',
       stats,
       health: async () => 'ok',
     })
