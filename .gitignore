@@ -12,3 +12,5 @@ coverage/
 # Scorecards of the table arena: written by make arena-score, never committed.
 arena/scores/
 test-results/
+# The report of make import-v1: counts, skips and phase times of one run, never committed.
+import-v1-report*.json
