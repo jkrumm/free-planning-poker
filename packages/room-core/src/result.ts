@@ -3,7 +3,7 @@
  * `poker.revealed` and `topic.decided`. History, exports, embed messages and webhooks carry what these return and
  * nothing else. A result names no participant and no seat: only counts per card.
  */
-import { type Card, type Deck, SPECIAL_CARDS } from './decks.ts'
+import { type Card, type Deck, type DeckId, SPECIAL_CARDS } from './decks.ts'
 import type {
   DecidedBy,
   DecidedResult,
@@ -73,8 +73,20 @@ export function isConsensus(counts: readonly ResultCount[]): boolean {
   return counts.length === 1 && counts[0]?.value !== null
 }
 
-export function buildRevealedResult(input: ResultInput): RevealedResult {
-  const counts = distribution(input.round.deck, input.round.votes)
+/** What history stores of a revealed round: the counts the builder produced, not the votes they came from. */
+export type StoredResultInput = Omit<ResultInput, 'round'> & {
+  readonly round: {
+    readonly id: RoundId
+    readonly no: number
+    readonly attempt: number
+    readonly deck: DeckId
+    readonly distribution: readonly ResultCount[]
+  }
+}
+
+/** The result of a round from its stored counts: the one place that assembles the contract's shape. */
+export function buildRevealedFromCounts(input: StoredResultInput): RevealedResult {
+  const counts = input.round.distribution
   return {
     type: 'poker.revealed',
     v: 1,
@@ -86,7 +98,7 @@ export function buildRevealedResult(input: ResultInput): RevealedResult {
       id: input.round.id,
       no: input.round.no,
       attempt: input.round.attempt,
-      deck: input.round.deck.id,
+      deck: input.round.deck,
       voters: counts.reduce((sum, entry) => sum + entry.count, 0),
       consensus: isConsensus(counts),
       distribution: counts,
@@ -94,16 +106,38 @@ export function buildRevealedResult(input: ResultInput): RevealedResult {
   }
 }
 
-export function buildDecidedResult(
-  input: ResultInput & {
-    readonly final: {
-      readonly label: string
-      readonly value: number
-      readonly decidedBy: DecidedBy
-    }
-  },
+export function buildRevealedResult(input: ResultInput): RevealedResult {
+  return buildRevealedFromCounts({
+    ...input,
+    round: {
+      id: input.round.id,
+      no: input.round.no,
+      attempt: input.round.attempt,
+      deck: input.round.deck.id,
+      distribution: distribution(input.round.deck, input.round.votes),
+    },
+  })
+}
+
+type Final = {
+  readonly label: string
+  readonly value: number
+  readonly decidedBy: DecidedBy
+}
+
+/** A decision from the stored counts of the round that carried it. */
+export function buildDecidedFromCounts(
+  input: StoredResultInput & { readonly final: Final },
 ): DecidedResult {
-  const { type: _revealed, v, id, at, room, topic, round } = buildRevealedResult(input)
+  return withFinal(buildRevealedFromCounts(input), input.final)
+}
+
+export function buildDecidedResult(input: ResultInput & { readonly final: Final }): DecidedResult {
+  return withFinal(buildRevealedResult(input), input.final)
+}
+
+function withFinal(revealed: RevealedResult, final: Final): DecidedResult {
+  const { type: _revealed, v, id, at, room, topic, round } = revealed
   return {
     type: 'topic.decided',
     v,
@@ -112,10 +146,6 @@ export function buildDecidedResult(
     room,
     topic,
     round,
-    final: {
-      label: input.final.label,
-      value: input.final.value,
-      decidedBy: input.final.decidedBy,
-    },
+    final: { label: final.label, value: final.value, decidedBy: final.decidedBy },
   }
 }

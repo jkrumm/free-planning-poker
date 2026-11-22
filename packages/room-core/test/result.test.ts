@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import { DECKS, findCard } from '../src/decks.ts'
-import { buildDecidedResult, buildRevealedResult, type ResultInput } from '../src/result.ts'
+import {
+  buildDecidedFromCounts,
+  buildDecidedResult,
+  buildRevealedFromCounts,
+  buildRevealedResult,
+  type ResultInput,
+} from '../src/result.ts'
 import { parseSlug, parseTopicRef } from '../src/values.ts'
 
 const deck = DECKS.fibonacci
@@ -77,6 +83,25 @@ describe('the result contract', () => {
       ...revealed,
       final,
     })
+  })
+
+  test('a result from stored counts is the one the votes made', () => {
+    const revealed = buildRevealedResult(input)
+    const stored = {
+      ...input,
+      round: {
+        id: input.round.id,
+        no: input.round.no,
+        attempt: input.round.attempt,
+        deck: input.round.deck.id,
+        distribution: revealed.round.distribution,
+      },
+    }
+    const final = { label: '5', value: 5, decidedBy: 'agreed' as const }
+    expect(buildRevealedFromCounts(stored)).toEqual(revealed)
+    expect(buildDecidedFromCounts({ ...stored, final })).toEqual(
+      buildDecidedResult({ ...input, final }),
+    )
   })
 
   test('consensus means one card, and an estimate', () => {
