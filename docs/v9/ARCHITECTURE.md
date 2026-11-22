@@ -360,7 +360,7 @@ There is no user table, no page-view table and no event table: visits are measur
 - the days on which each v1 user id voted, as `visitor_day` rows under the same hash a returning browser will produce
 - daily aggregates of v1's traffic and event tables in `stat_daily`
 
-v1's per-visitor rows with location and device are not imported. The final MariaDB dump is archived together with its Parquet export. The importer reads v1's schema from the branch `v1`.
+v1's per-visitor rows with location and device are not imported. The final MariaDB dump is archived together with its Parquet export. The importer reads v1's schema from the branch `v1`, and reads the dump file itself. A v1 name outside the name rule is mapped by `parseV1Address` (`@fpp/room-core/types`), the one function the room shell is to apply to a v1 link that `parseSlug` refuses; v1 numbers that are not six digits have no v9 address. What could not be carried, and the run on a production dump: `docs/v9/evidence/import-rehearsal.md`.
 
 ## HTTP API
 

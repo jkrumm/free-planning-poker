@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score indexnow factory-files bun-version lanes deploy verify logs
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score indexnow factory-files bun-version lanes deploy verify logs import-v1 v1-mariadb
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover. Overridable so `verify` can be pointed at another host.
@@ -99,6 +99,20 @@ bun-version:
 
 lanes: ## Which CI lanes this branch touches against origin/master (.github/lanes)
 	@EVENT=local .github/lanes.sh
+
+# The one-time import of v1 (apps/api/src/jobs/import-v1, docs/v9/evidence/import-rehearsal.md): reads a mariadb-dump
+# file, plain or gzip, and writes into the Postgres of DATABASE_URL with VISITOR_KEY, both from the environment. A dry run
+# unless APPLY=1; ALLOW_OTHER_ORIGINS=1 imports into a database that holds v9 rooms.
+REPORT ?= import-v1-report.json
+import-v1: ## Import a v1 dump: make import-v1 DUMP=<file.sql[.gz]> [APPLY=1] [REPORT=<file>] (DATABASE_URL, VISITOR_KEY)
+	@test -n "$(DUMP)" || { echo "usage: make import-v1 DUMP=<file.sql[.gz]> [APPLY=1]"; exit 2; }
+	@bun apps/api/scripts/import-v1.ts --dump "$(DUMP)" --report "$(REPORT)" $(if $(APPLY),--apply) $(if $(ALLOW_OTHER_ORIGINS),--allow-other-origins)
+
+# A scratch MariaDB of v1's version, one shot (scripts/v1-mariadb.sh): started, given DUMP, asked SQL, dumped to OUT and
+# removed, all in one command. Never the shared development MariaDB. Run it in a test slot, as every container of a lead:
+# factory slot run -- make v1-mariadb DUMP=<file.sql[.gz]> SQL=<file.sql>
+v1-mariadb: ## One-shot scratch MariaDB 11.4: DUMP=<file.sql[.gz]> restores, SQL=<file> runs, OUT=<file> DB=<db> dumps; then removed
+	@scripts/v1-mariadb.sh
 
 # Nothing on master deploys to production. v1 deploys from the branch v1
 # (docs/shipping.md section v1).
