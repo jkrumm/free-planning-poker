@@ -1,0 +1,25 @@
+{
+  "name": "@fpp/telemetry",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./names": "./src/names.ts",
+    "./umami": "./src/umami.ts",
+    "./browser": "./src/facade.browser.ts",
+    "./server": "./src/facade.server.ts",
+    "./memory": "./src/facade.memory.ts"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/api-logs": "0.223.0",
+    "@opentelemetry/core": "3.1.1",
+    "@opentelemetry/exporter-logs-otlp-proto": "0.301.2",
+    "@opentelemetry/exporter-metrics-otlp-proto": "0.301.2",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.301.2",
+    "@opentelemetry/resources": "3.1.1",
+    "@opentelemetry/sdk-logs": "3.1.1",
+    "@opentelemetry/sdk-metrics": "3.1.1",
+    "@opentelemetry/sdk-trace-base": "2.12.0"
+  }
+}
