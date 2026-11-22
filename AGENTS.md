@@ -60,7 +60,7 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 17. One table, keyed by the address, holds every number and name that leads to a room (Data model).
 18. No visible string lives in a component: message catalogue, `Intl`, logical properties, no language in a room URL (rule `strings.md`).
 
-## Before your first edit
+## Before your first edit: what an agent never does here
 
 - **Start no dev server.** `bun run dev` is the owner's; prove a change with tests.
 - **Listen on no fixed port and touch no shared database**, because many leads run their suites on one host at once: a port from `freePort()` (`@fpp/test-kit/port`), a database from `startPostgres()` (`@fpp/test-kit/postgres`), which starts a private cluster from `PG_BIN_DIR` (or the `initdb` on PATH) in a temporary directory. A test that needs Postgres is named `*.server.test.ts` and runs in `make check`, not in `check-fast`.
@@ -91,7 +91,7 @@ Each step prints its name and, on failure, `FAILED: <step>`. Later tiers arrive 
 4. Merge is rebase-only (linear history) through the merge window: `factory land`.
 5. Nothing on `master` deploys yet: `make deploy` is a no-op and v1 deploys from `v1`. From `v9-next-deploy` on, a push touching lane `app` rolls to the beta host.
 
-Commits: `<type>(<scope>): <subject>`, types feat, fix, perf, refactor, docs, ci, chore, test, style, build; header at most 80 characters (`commitlint.config.ts`, run by lefthook). No AI attribution anywhere. Releases are manual (`release.yml`); never edit `CHANGELOG.md` by hand. Branch protection, workflows, Vercel: `docs/shipping.md`.
+Commits: `<type>(<scope>): <subject>`, types feat, fix, perf, refactor, docs, ci, chore, test, style, build; scope optional, `JK-<number>` if present; header at most 80 characters, body lines at most 300 (`commitlint.config.ts`, run by lefthook). No AI attribution anywhere. Releases are manual (`release.yml`); never edit `CHANGELOG.md` by hand. Branch protection, workflows, Vercel: `docs/shipping.md`.
 
 ## Verify & Monitor
 
