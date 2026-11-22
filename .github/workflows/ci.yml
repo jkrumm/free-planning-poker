@@ -133,7 +133,7 @@ jobs:
       - run: make v9-up V9_UP_FLAGS=--no-build
       - run: make v9-smoke
       - if: failure()
-        run: docker compose -f deploy/compose.yml logs --no-color
+        run: make v9-logs
       - if: always()
         run: make v9-down
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

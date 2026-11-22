@@ -3,11 +3,14 @@
  * picks, runs Playwright with the arguments given here (`--shard=1/2`, a file, `--grep`), and removes the stack,
  * whatever the outcome. Started by `make e2e` (in a factory slot) and by CI.
  *
+ * The stack is deploy/compose.yml, the file users self-host with, with secrets generated for the run.
+ *
  * The image is built from the checkout unless E2E_NO_BUILD is set, and then E2E_IMAGE names an image that is already
  * loaded (CI loads the artifact of the `image` job as `fpp-api:local`). A build is tagged for this run alone, so
  * two runs on one host never overwrite each other's image.
  */
 import { spawn } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import { resolve } from 'node:path'
 import { freePort } from './port.ts'
 
@@ -22,6 +25,9 @@ const env = {
   FPP_PORT: String(port),
   FPP_IMAGE: image,
   E2E_IMAGE: image,
+  // The compose file has no default for its two secrets, as users get it: the run makes its own, like a self-hoster's `.env`.
+  POSTGRES_PASSWORD: randomBytes(24).toString('hex'),
+  VISITOR_KEY: randomBytes(32).toString('hex'),
   ALLOWED_ORIGINS: baseURL,
   V9_UP_FLAGS: '--no-build',
   E2E_BASE_URL: baseURL,

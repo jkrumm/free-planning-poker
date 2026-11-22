@@ -1,16 +1,16 @@
-# The API with the room app it serves, and PostgreSQL 18: the way to self-host Free Planning Poker, and the system the
-# end-to-end suite runs against (docs/development.md, Image). Every value has a local default, so nothing needs a
-# secret store. `make v9-up` builds the image and starts the stack; `make v9-down` removes it with its data.
+# Free Planning Poker, self-hosted: the published image and PostgreSQL 18 in one file (https://free-planning-poker.com/self-hosting).
+# Put this file and a `.env` made from `.env.example` in one directory, then `docker compose up -d --wait`. The same file runs the
+# end-to-end suite (docs/development.md, Image), so what the suite proves is what you run.
 #
-# For a real deployment set VISITOR_KEY (32 characters or more, secret: the key of the visitor hash), the database
-# password and ALLOWED_ORIGINS (the origin the browser sees, e.g. https://poker.example.com).
+# Two settings are secrets and have no default: POSTGRES_PASSWORD and VISITOR_KEY. Without them `docker compose` stops and
+# names the one that is missing. Every other setting has a default that works on the machine itself; .env.example lists them.
 
 services:
   postgres:
     image: postgres:18-alpine
     environment:
       POSTGRES_USER: fpp
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fpp-local}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set. Copy .env.example to .env and give it a password (openssl rand -hex 24)}
       POSTGRES_DB: fpp
     # PostgreSQL 18 images keep the cluster in a version directory below /var/lib/postgresql.
     volumes:
@@ -25,19 +25,22 @@ services:
     restart: unless-stopped
 
   api:
-    image: ${FPP_IMAGE:-fpp-api:local}
-    build:
-      context: ..
-      dockerfile: apps/api/Dockerfile
-      args:
-        OTEL_SERVICE_VERSION: ${OTEL_SERVICE_VERSION:-local}
+    image: ${FPP_IMAGE:-ghcr.io/jkrumm/free-planning-poker:latest}
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://fpp:${POSTGRES_PASSWORD:-fpp-local}@postgres:5432/fpp
-      VISITOR_KEY: ${VISITOR_KEY:-local-visitor-key-change-it-0000000}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:7740,http://127.0.0.1:7740}
+      DATABASE_URL: postgres://fpp:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set. Copy .env.example to .env and give it a password (openssl rand -hex 24)}@postgres:5432/fpp
+      VISITOR_KEY: ${VISITOR_KEY:?VISITOR_KEY is not set. Copy .env.example to .env and give it a key of at least 32 characters (openssl rand -hex 32)}
+      # The origins a browser may open the room socket from. The default is this machine on the published port.
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${FPP_PORT:-7740},http://127.0.0.1:${FPP_PORT:-7740}}
+      # Off while empty: the API treats an empty value as unset.
+      CLIENT_IP_HEADER: ${CLIENT_IP_HEADER:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      EMAIL_GATEWAY_URL: ${EMAIL_GATEWAY_URL:-}
+      EMAIL_GATEWAY_SECRET_KEY: ${EMAIL_GATEWAY_SECRET_KEY:-}
+      FACTORY_FEEDBACK_URL: ${FACTORY_FEEDBACK_URL:-}
+      FACTORY_FEEDBACK_TOKEN: ${FACTORY_FEEDBACK_TOKEN:-}
     # Loopback by default: put a reverse proxy in front, or set FPP_BIND=0.0.0.0 to publish the port.
     ports:
       - '${FPP_BIND:-127.0.0.1}:${FPP_PORT:-7740}:7740'
