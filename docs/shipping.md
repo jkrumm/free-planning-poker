@@ -113,6 +113,8 @@ The tag `v1-freeze` is not a version: `.release-it.json` sets `git.tagMatch` to 
 - **Queue:** concurrency group `deploy-next` with `cancel-in-progress: false`: a rollout in flight finishes, then the next starts.
 - **Auth:** GitHub OIDC, no secret. RollHook reads `rollhook.allowed_repos` and `rollhook.allowed_refs=refs/heads/master` off the running `fpp-api` container (vps `apps/fpp/compose.yml`); the v1 services allow `refs/heads/v1` only, so the two lines cannot deploy into each other.
 - **Proof:** `/api/version` names the commit's short hash; `make verify-next` probes `/api/health`; `make e2e-beta E2E_BASE_URL=https://next.free-planning-poker.com` runs the `@smoke` tests (`e2e/AGENTS.md`); `make logs SERVICE=fpp-api` tails the container.
+- **First start:** RollHook issues a registry credential only for a running `fpp-api` container, so a fresh VPS needs one start before the first rollout: on the VPS `docker pull ghcr.io/jkrumm/free-planning-poker:sha-<short hash>` (the image `publish-image.yml` pushes), `docker tag` it as `rollhook.jkrumm.com/fpp-api:latest`, then `make fpp-api-up` in the vps repo; then `gh workflow run deploy-next.yml`. Done on 2026-11-22.
+- **Image modes:** the runtime user is not the owner of `/app`, so every directory needs the execute bit for others; the Dockerfile sets modes with `chmod` in the build stage and `make v9-image-perms` (CI job `image`) fails on a directory it cannot search. A symbolic `COPY --chmod` left nested directories closed under the daemon's own BuildKit, which RollHook's `docker build` uses and buildx does not.
 - **Rollback:** a revert of the commit on `master`; nothing deploys from a checkout (`make deploy` is a no-op).
 
 ## Verify and monitor

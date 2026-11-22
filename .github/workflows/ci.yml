@@ -129,6 +129,7 @@ jobs:
           cache-to: type=gha,scope=fpp-api,mode=max
           outputs: type=docker,dest=${{ runner.temp }}/fpp-api.tar
       - run: docker load --input "${{ runner.temp }}/fpp-api.tar"
+      - run: make v9-image-perms
       - run: make v9-size | tee -a "$GITHUB_STEP_SUMMARY"
       - run: make v9-up V9_UP_FLAGS=--no-build
       - run: make v9-smoke

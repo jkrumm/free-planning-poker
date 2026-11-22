@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover, and the beta host, where every push that touches lane app rolls out (deploy-next.yml).
@@ -96,6 +96,13 @@ v9-image: ## Build the API image (apps/api/Dockerfile) as fpp-api:local
 v9-up: ## Start the v9 stack (API with the room app, PostgreSQL 18) and wait until it is healthy
 	@$(V9_COMPOSE) up -d --wait $(V9_UP_FLAGS)
 	@echo "==> v9 stack up on http://127.0.0.1:$(FPP_PORT)"
+
+# The runtime user (bun, uid 1000) is neither owner nor group of /app: it needs read on every file and search on every directory.
+# A symbolic COPY --chmod once left nested directories without the execute bit under the daemon's own BuildKit, which CI's buildx did not show.
+v9-image-perms: ## Fail when a directory of the image fpp-api:local is not searchable, or a file not readable, by every user
+	@bad=$$(docker run --rm --entrypoint sh fpp-api:local -c 'find /app \( -type d ! -perm -005 \) -o \( -type f ! -perm -004 \)'); \
+	if [ -n "$$bad" ]; then echo "==> not accessible to the runtime user:"; echo "$$bad"; exit 1; fi; \
+	echo "==> image modes ok"
 
 v9-size: ## Print the image's size, uncompressed and as a gzipped `docker save` (what a registry would hold, near enough)
 	@docker image inspect fpp-api:local --format 'uncompressed: {{.Size}} bytes'
