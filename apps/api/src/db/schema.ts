@@ -8,7 +8,6 @@ import {
   doublePrecision,
   index,
   integer,
-  jsonb,
   pgSchema,
   primaryKey,
   smallint,
@@ -25,6 +24,18 @@ const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({
   dataType: () => 'bytea',
 })
 
+/**
+ * A jsonb column that takes the value itself. Drizzle's own `jsonb` hands the driver `JSON.stringify(value)`, and bun-sql
+ * stores a string as a JSON string (`jsonb_typeof` is `string`); the object goes to the driver as it is and is stored as
+ * the array or object it is. The driver decodes it on the way back.
+ */
+const jsonbValue = <T>(name: string) =>
+  customType<{ data: T; driverData: T }>({
+    dataType: () => 'jsonb',
+    toDriver: (value) => value,
+    fromDriver: (value) => value,
+  })(name)
+
 const timestamptz = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' })
 
 /**
@@ -37,7 +48,7 @@ export const room = fpp.table(
   {
     id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
     name: text('name').notNull().default(''),
-    settings: jsonb('settings').notNull().default({}),
+    settings: jsonbValue<unknown>('settings').notNull().default({}),
     access: text('access', { enum: ['open', 'locked'] })
       .notNull()
       .default('open'),
@@ -88,7 +99,7 @@ export const roomSnapshot = fpp.table('room_snapshot', {
     .primaryKey()
     .references(() => room.id),
   /** Null between a claim and the first write, and after a claim that found an expired snapshot. */
-  state: jsonb('state'),
+  state: jsonbValue<unknown>('state'),
   seq: bigint('seq', { mode: 'number' }).notNull().default(0),
   epoch: bigint('epoch', { mode: 'number' }).notNull(),
   /** The claiming process; null after a release. */
@@ -149,19 +160,19 @@ export const round = fpp.table(
     no: integer('no').notNull(),
     /** Per topic: a re-vote is the next attempt. */
     attempt: integer('attempt').notNull(),
-    deck: jsonb('deck').notNull(),
+    deck: jsonbValue<unknown>('deck').notNull(),
     startedAt: timestamptz('started_at').notNull(),
     revealedAt: timestamptz('revealed_at').notNull(),
     players: smallint('players').notNull(),
     spectators: smallint('spectators').notNull(),
-    distribution: jsonb('distribution').notNull(),
+    distribution: jsonbValue<unknown>('distribution').notNull(),
     consensus: boolean('consensus').notNull(),
     autoReveal: boolean('auto_reveal').notNull(),
     /**
      * Only a round imported from v1: what v1 kept of it ({average, lowest, highest, count}). It has no distribution, so
      * `distribution` holds `[]` and `deck` the Fibonacci id; null for every round played in v9.
      */
-    summary: jsonb('summary'),
+    summary: jsonbValue<unknown>('summary'),
   },
   (t) => [
     uniqueIndex('round_room_no_unique').on(t.roomId, t.no),

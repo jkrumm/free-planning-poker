@@ -28,9 +28,9 @@ const span = (day: string) => ({
 })
 
 /**
- * A jsonb column read as the array or object it holds. Drizzle's jsonb column on Bun's driver stores what it is given as
- * a JSON string (`jsonb_typeof` is `string`), so a stored round's `deck` and `distribution` are usually that; the
- * statement accepts both, and is right again if the writer is ever fixed.
+ * A jsonb column read as the array or object it holds. Rows written before migration 0003, and by the release that
+ * ran beside it, hold a JSON string (`jsonb_typeof` is `string`); the statement accepts both. Contract step: drop this
+ * once no release that writes strings can run (docs/v9/evidence/stats-rollups.md).
  */
 const unwrapped = (column: SQL) =>
   sql`(CASE WHEN jsonb_typeof(${column}) = 'string' THEN (${column} #>> '{}')::jsonb ELSE ${column} END)`
