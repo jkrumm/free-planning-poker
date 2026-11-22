@@ -46,6 +46,10 @@ async function freePort(): Promise<number> {
   return port
 }
 
+/** The self-hosting file has no default for its two secrets; every run gets its own, as a self-hoster's .env does. */
+const secret = (bytes: number) =>
+  Buffer.from(crypto.getRandomValues(new Uint8Array(bytes))).toString('hex')
+
 const env: Record<string, string> = {
   ...Object.fromEntries(
     Object.entries(Bun.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
@@ -53,6 +57,8 @@ const env: Record<string, string> = {
   FPP_IMAGE: image,
   FPP_PORT: String(await freePort()),
   ALLOWED_ORIGINS: ORIGIN,
+  POSTGRES_PASSWORD: secret(12),
+  VISITOR_KEY: secret(24),
   COMPOSE_PROJECT_NAME: project,
 }
 
@@ -72,6 +78,8 @@ const composeArgs = [
   'compose',
   '-f',
   'deploy/compose.yml',
+  '-f',
+  'deploy/compose.build.yml',
   '-f',
   'load/compose.yml',
   '--profile',
