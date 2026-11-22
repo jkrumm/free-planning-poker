@@ -2,7 +2,7 @@ name: Nightly
 
 # What is too slow for every pull request (docs/v9/ENGINEERING.md, CI): from v9-room-runtime on, 10,000 simulator
 # seeds. A scheduled run is best effort on GitHub and nothing waits for it; a red nightly is a signal to the factory,
-# not a merge blocker. Later rows add the reduced load profile, the other browsers and the arm64 build as jobs here.
+# not a merge blocker. The reduced load profile is the job `load`; later rows add the other browsers and the arm64 build here.
 on:
   schedule:
     # Not on the hour, when every scheduled workflow on GitHub starts at once.
@@ -36,3 +36,27 @@ jobs:
         env:
           SEEDS: ${{ inputs.seeds || '10000' }}
           FROM: ${{ inputs.from || '1' }}
+
+  # The load test at a tenth of the scale (load/AGENTS.md): 50 rooms of 10 seats, then the same with the API container
+  # replaced halfway. A guard against regressions of the thresholds, not a capacity claim: the runner is not the VPS, and
+  # the claim is measured on the mini (docs/v9/evidence/load.md). Each run builds the image and starts docker compose.
+  load:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: make load LOAD_SCALE=nightly
+      - if: ${{ !cancelled() }}
+        run: make load LOAD_SCALE=nightly HANDOFF=1 NO_BUILD=1
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: load-results
+          path: load/results
+          retention-days: 14
+          if-no-files-found: ignore
