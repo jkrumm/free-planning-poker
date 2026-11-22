@@ -162,7 +162,7 @@ type Summary = {
 const upgradeLines: { t0: number; bySecond: Record<string, number> }[] = []
 let summary: Summary | undefined
 let t0 = 0
-const handoffResult: { stoppedAfterMs?: number; exitCode?: number } = {}
+const handoffResult: { stoppedAfterMs?: number; exitCode?: number; failure?: string } = {}
 
 async function replaceApi() {
   const id = (await must('compose ps', compose('ps', '-aq', 'api'))).trim()
@@ -183,7 +183,10 @@ function onLine(line: string) {
   else if (line.startsWith('LOAD_UPGRADES '))
     upgradeLines.push(JSON.parse(line.slice('LOAD_UPGRADES '.length)))
   else if (line.startsWith('LOAD_MARK start ')) t0 = Number(line.slice('LOAD_MARK start '.length))
-  else if (line === 'LOAD_MARK handoff') void replaceApi()
+  else if (line === 'LOAD_MARK handoff')
+    replaceApi().catch((error: unknown) => {
+      handoffResult.failure = error instanceof Error ? error.message : String(error)
+    })
   else if (
     line.startsWith('LOAD_MISSING') ||
     line.startsWith('LOAD_ERROR') ||
@@ -374,7 +377,9 @@ try {
     `${root}load/results/${scale}${handoff ? '-handoff' : ''}.json`,
     JSON.stringify({ scale, handoff, t0, summary, handoffResult, use: usageOf(samples) }, null, 2),
   )
-  const drainFailed = (handoff && handoffResult.exitCode !== 0) || died.length > 0
+  const drainFailed =
+    (handoff && (handoffResult.exitCode !== 0 || handoffResult.failure !== undefined)) ||
+    died.length > 0
   if (drainFailed)
     console.log('==> FAILED: a container died, or the old one did not exit 0 on SIGTERM')
   code = k6Code !== 0 ? k6Code : drainFailed ? 1 : 0
