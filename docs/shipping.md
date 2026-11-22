@@ -7,8 +7,8 @@ Read this before changing CI workflows, branch settings, releases or deploy wiri
 | | `master` | `v1` |
 |-|-|-|
 | Holds | the v9 rewrite | v1, frozen; tag `v1-freeze` is its last commit shared with `master` |
-| Production | nothing deploys | Vercel (web) and `deploy.yml` → RollHook (fpp-server, fpp-analytics, fpp-analytics-updater) |
-| Workflows | `ci.yml` on pull requests and pushes to `master`; `release.yml` (`workflow_dispatch` only) | `deploy.yml` and `sonarcloud.yml` on push to `v1`; `validate.yml`, `sonarcloud.yml` and `comment.yml` on pull requests into `v1` |
+| Production | nothing deploys to production; the beta host is rolled by `deploy-next.yml` | Vercel (web) and `deploy.yml` → RollHook (fpp-server, fpp-analytics, fpp-analytics-updater) |
+| Workflows | `ci.yml` on pull requests and pushes to `master`; `deploy-next.yml` on pushes to `master` and by dispatch; `release.yml` (`workflow_dispatch` only) | `deploy.yml` and `sonarcloud.yml` on push to `v1`; `validate.yml`, `sonarcloud.yml` and `comment.yml` on pull requests into `v1` |
 | Gate | the check `ci` of `ci.yml`, which runs `make check` | `validate.yml`, lefthook pre-commit |
 
 A workflow started by a push runs from the pushed branch's own file, so `v1` keeps its pipeline with none of it on `master`. A workflow is dispatched by hand (`workflow_dispatch`) or run on a schedule only while its file is on the default branch, so none of `v1`'s workflows can be started from the Actions tab or with `gh workflow run`.
@@ -105,6 +105,16 @@ A release window containing only hidden types therefore resolves to no version.
 
 The tag `v1-freeze` is not a version: `.release-it.json` sets `git.tagMatch` to `[0-9]*.[0-9]*.[0-9]*`, so release-it takes the last semver tag as the previous version. Without it, `git describe` returns `v1-freeze`.
 
+## Beta host
+
+`https://next.free-planning-poker.com` runs the whole of v9 (API, WebSocket, room app) from one image, noindex, until the cutover. `.github/workflows/deploy-next.yml` builds `apps/api/Dockerfile` and rolls it out through RollHook (`jkrumm/rollhook-action`, image `fpp-api`, build argument `OTEL_SERVICE_VERSION` the short commit hash).
+
+- **When:** a push to `master` that touches lane `app` of `.github/lanes` (plus the root manifests the image is built from), the workflow itself, or a dispatch (`gh workflow run deploy-next.yml`, possible because the file is on the default branch). The path list copies the lane, because a workflow's `paths:` cannot read `.github/lanes`: change both together. No required check lives in this workflow, so a path filter is safe.
+- **Queue:** concurrency group `deploy-next` with `cancel-in-progress: false`: a rollout in flight finishes, then the next starts.
+- **Auth:** GitHub OIDC, no secret. RollHook reads `rollhook.allowed_repos` and `rollhook.allowed_refs=refs/heads/master` off the running `fpp-api` container (vps `apps/fpp/compose.yml`); the v1 services allow `refs/heads/v1` only, so the two lines cannot deploy into each other.
+- **Proof:** `/api/version` names the commit's short hash; `make verify-next` probes `/api/health`; `make e2e-beta E2E_BASE_URL=https://next.free-planning-poker.com` runs the `@smoke` tests (`e2e/AGENTS.md`); `make logs SERVICE=fpp-api` tails the container.
+- **Rollback:** a revert of the commit on `master`; nothing deploys from a checkout (`make deploy` is a no-op).
+
 ## Verify and monitor
 
-`make verify` probes production, which is v1 until the cutover. Uptime Kuma monitors `FPP - Server - HTTP` and `FPP - Analytics - HTTP`. Probe URLs live in the root `Makefile` (`SERVER_URL`, `ANALYTICS_URL`, `WEB_URL`).
+`make verify` probes production, which is v1 until the cutover, and the beta host. `make verify-production` and `make verify-next` probe one each; `project.yaml` lists the beta host as the deploy target `next`. Uptime Kuma monitors `FPP - Server - HTTP` and `FPP - Analytics - HTTP`. Probe URLs live in the root `Makefile` (`SERVER_URL`, `ANALYTICS_URL`, `WEB_URL`, `NEXT_URL`).

@@ -94,13 +94,13 @@ Vitest component tests (lane `ui`) arrive with their row. `nightly.yml` runs 10,
 2. Open a pull request into `master` from `.github/pull_request_template.md`: each acceptance line met or not met with its command and output, the decisions you took, the documents you updated.
 3. CI (`.github/workflows/ci.yml`) runs `make check` in the job `check`; the job `ci` gates on every job and is the only required check. A new lane job goes into `.github/lanes`, gets `if: needs.lanes.outputs.<lane> == 'true'` and joins the `needs` of `ci`.
 4. Merge is rebase-only (linear history) through the merge window: `factory land`.
-5. Nothing on `master` deploys yet: `make deploy` is a no-op and v1 deploys from `v1`. From `v9-next-deploy` on, a push touching lane `app` rolls to the beta host.
+5. Production is v1, deployed from `v1`. A push to `master` touching lane `app` rolls to the beta host through `deploy-next.yml`; `make deploy` is a no-op.
 
 Commits: `<type>(<scope>): <subject>`, types feat, fix, perf, refactor, docs, ci, chore, test, style, build; scope optional, `JK-<number>` if present; header at most 80 characters, body lines at most 300 (`commitlint.config.ts`, run by lefthook). No AI attribution anywhere. Releases are manual (`release.yml`); never edit `CHANGELOG.md` by hand. Branch protection, workflows, Vercel: `docs/shipping.md`.
 
 ## Verify & Monitor
 
-`make verify` probes production, which is v1 until the cutover: `https://server.free-planning-poker.com/health`, `https://analytics.free-planning-poker.com/health` and the web root. Uptime Kuma monitors `FPP - Server - HTTP` and `FPP - Analytics - HTTP`; v1's OTel `service.name` is `fpp-server`. v9 emits as `fpp-api`, `fpp-room` and `fpp-site`, each registered in the vps repo's `observability/services.yaml` by the row that first emits it. `make logs` tails a v1 container.
+`make verify` probes v1, production until the cutover (server, analytics and the web root: URLs in the `Makefile`), and the beta host, `https://next.free-planning-poker.com/api/health`. Uptime Kuma: `FPP - Server - HTTP`, `FPP - Analytics - HTTP`; v1's OTel `service.name` is `fpp-server`. v9 emits as `fpp-api`, `fpp-room` and `fpp-site`, each registered in the vps repo's `observability/services.yaml` by the row that first emits it. `make logs` tails a v1 container.
 
 ## Gotchas
 

@@ -1,0 +1,61 @@
+name: Deploy next
+
+# Rolls the API image (the API, the WebSocket and the room app on one port) out to the beta host,
+# https://next.free-planning-poker.com, through RollHook (docs/shipping.md, Beta host). v1's deploy.yml lives on the
+# branch v1 and is not touched.
+#
+# Auth: GitHub OIDC; RollHook reads rollhook.allowed_repos and rollhook.allowed_refs off the running fpp-api container
+# (vps apps/fpp/compose.yml), which allows this repository's master only. No secrets in CI.
+#
+# The paths are lane app of .github/lanes plus the files the image is built from outside it: a path filter cannot read
+# that file, so a change to the lane goes here too. No required check lives in this workflow, so a filter is safe.
+on:
+  push:
+    branches: [master]
+    paths:
+      - packages/room-core/**
+      - packages/room-client/**
+      - packages/table/**
+      - packages/telemetry/**
+      - packages/test-kit/**
+      - packages/i18n/**
+      - apps/api/**
+      - apps/room/**
+      - e2e/**
+      - deploy/**
+      - .dockerignore
+      - bun.lock
+      - package.json
+      - bunfig.toml
+      - tsconfig.base.json
+      - .github/workflows/deploy-next.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+# Deploys queue and never cancel: a rollout in flight finishes, then the next one starts.
+concurrency:
+  group: deploy-next
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy fpp-api to the beta host
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: version
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: jkrumm/rollhook-action@0b71879929d964a661d2f6e7d7d4f6b496649a01 # v1
+        with:
+          url: https://rollhook.jkrumm.com
+          image_name: fpp-api
+          build_args: |
+            OTEL_SERVICE_VERSION=${{ steps.version.outputs.short_sha }}
+          dockerfile: apps/api/Dockerfile
+          context: .
