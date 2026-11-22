@@ -256,8 +256,7 @@ export function postgresRooms(deps: RoomsDeps): {
   const directory: RoomDirectory = {
     async resolve(slug) {
       const key = await keyOf(slug)
-      if (key === 'unavailable') throw new Error('the room directory could not reach Postgres')
-      if (key === null) return null
+      if (key === 'unavailable' || key === null) return key
       const day = now().toISOString().slice(0, 10)
       if (touched.get(slug) !== day) {
         touched.set(slug, day)

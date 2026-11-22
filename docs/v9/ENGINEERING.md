@@ -121,7 +121,7 @@ A rule that can be checked is a check, not a sentence. All of these run in `make
 | size-limit (CI only) | the bundle budgets |
 | `factory plan check`, `factory project check` | the plan and project files |
 
-`pure`: `packages/room-core`, the names in `packages/telemetry`, the layout function in `packages/table`. `adapter`: `apps/api/src/ws`, `apps/api/src/db`, `packages/room-client`, the facades in `packages/telemetry`. `shell`: the entry files of the three apps.
+`pure`: `packages/room-core`, the names in `packages/telemetry`, the layout function in `packages/table`. `adapter`: `apps/api/src/ws`, `apps/api/src/db`, `apps/api/src/app`, `apps/api/src/jobs`, `packages/room-client`, the facades in `packages/telemetry`. `shell`: the entry files of the three apps.
 
 ## Local checks
 

@@ -36,9 +36,12 @@ export const SOCKET_OPTIONS = {
   publishToSelf: false,
 } as const
 
-/** The rooms an address leads to. An address that leads nowhere is refused before the upgrade. */
+/**
+ * The rooms an address leads to. An address that leads nowhere is refused before the upgrade, and one the directory
+ * cannot look up now (its database is away) is answered 503, so the client tries again.
+ */
 export type RoomDirectory = {
-  readonly resolve: (slug: Slug) => Promise<RoomKey | null>
+  readonly resolve: (slug: Slug) => Promise<RoomKey | null | 'unavailable'>
 }
 
 export type RoomServerOptions = {
@@ -106,6 +109,7 @@ export async function admit(
   const slug = parseSlug(raw)
   if (slug === undefined || slug !== raw) return refused(404)
   const room = await deps.rooms.resolve(slug)
+  if (room === 'unavailable') return refused(503)
   if (room === null) return refused(404)
   return { ok: true, room, ip: clientIp(request, deps.clientIpHeader, deps.peer) }
 }

@@ -9,7 +9,7 @@ import { startPostgres, type PostgresCluster } from '@fpp/test-kit/postgres'
 import { sql } from 'drizzle-orm'
 import type { DbClient } from '../src/db/client.ts'
 import { createRoom, eventOf, prepare, query, roomIdOf, startApi, storedSeq, until } from './api.ts'
-import { join, type TestClient } from './contract/client.ts'
+import { join, ORIGIN, type TestClient, upgradeStatus } from './contract/client.ts'
 
 /** The length of the outage is what this test is about, so it is waited out on the wall clock. */
 const OUTAGE_MS = 60_000
@@ -65,6 +65,8 @@ test(
     const created = await api.http('/rooms', { method: 'POST', body: '{}' })
     expect([created.status, await created.json()]).toEqual([503, { error: 'unavailable' }])
     expect(await health()).toBe('degraded')
+    // An address this process never resolved cannot be looked up now: the upgrade says try again.
+    expect(await upgradeStatus(api.port, '/api/ws/900002', ORIGIN)).toBe(503)
 
     await Bun.sleep(Math.max(0, OUTAGE_MS - (Date.now() - halted)))
     await cluster.resume()
