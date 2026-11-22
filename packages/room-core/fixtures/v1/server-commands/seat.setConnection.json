@@ -1,0 +1,7 @@
+{
+  "type": "seat.setConnection",
+  "payload": {
+    "seat": 2,
+    "presence": "reconnecting"
+  }
+}

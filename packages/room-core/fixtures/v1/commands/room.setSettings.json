@@ -1,0 +1,9 @@
+{
+  "frame": "cmd",
+  "id": "m009",
+  "type": "room.setSettings",
+  "payload": {
+    "autoReveal": true,
+    "revealCountdown": 3
+  }
+}

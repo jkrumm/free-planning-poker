@@ -1,0 +1,8 @@
+{
+  "frame": "evt",
+  "seq": 17,
+  "type": "room.slugChanged",
+  "payload": {
+    "slug": "team-alpha"
+  }
+}

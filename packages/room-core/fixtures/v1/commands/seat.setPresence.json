@@ -1,0 +1,8 @@
+{
+  "frame": "cmd",
+  "id": "m007",
+  "type": "seat.setPresence",
+  "payload": {
+    "presence": "away"
+  }
+}

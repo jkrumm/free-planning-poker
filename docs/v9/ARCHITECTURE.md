@@ -207,9 +207,10 @@ The client runs a fourth, `evolveView(view, event): View`. It applies the same e
 
 | Entry point | Holds | Runs in |
 |-|-|-|
-| `/protocol` | schemas, types, decks | server and every browser bundle |
-| `/view` | `evolveView`, selectors | the room app, the arena, the landing demo |
-| `/server` | `decide`, `evolve`, `project`, the runtime | the API, tests |
+| `/protocol` | Zod schemas, types, decks | the server, where a frame enters |
+| `/types` | types, names, decks and value-object parsers, no Zod | every browser bundle |
+| `/view` | `evolveView`, selectors, the result builders, the paste parser | the room app, the arena, the landing demo |
+| `/server` | `decide`, `evolve`, `step`, `project`, `publish`, `check`, the runtime | the API, tests |
 | `/sim` | the simulator, bots, scenarios | tests, the arena and the landing demo, which play a room without a server |
 
 ![One vote and one reveal, from the tap to every screen](diagrams/command-flow.svg)
@@ -236,7 +237,9 @@ The client runs a fourth, `evolveView(view, event): View`. It applies the same e
 
 ## Protocol
 
-JSON text frames over one WebSocket at `/api/ws/<slug>`. Every frame is a JSON object, never a bare string or number, because Elysia parses JSON-shaped text before validation. The protocol version travels in `hello` and not in a subprotocol: Elysia 2 documents no subprotocol negotiation (`research/r15-elysia-2.md`). Maximum payload 16 KB; per-message deflate off; the server checks `Origin` before the upgrade.
+This section is the summary; `docs/v9/protocol.md` is the exact reference of every frame, command, event, rejection reason and close code, with a fixture of each under `packages/room-core/fixtures/v<version>/`.
+
+JSON text frames over one WebSocket at `/api/ws/<slug>`. Every frame is a JSON object, never a bare string or number, because Elysia parses JSON-shaped text before validation; its field `frame` names it, and the table lists the other fields. The protocol version travels in `hello` and not in a subprotocol: Elysia 2 documents no subprotocol negotiation (`research/r15-elysia-2.md`). Maximum payload 16 KB; per-message deflate off; the server checks `Origin` before the upgrade.
 
 | Direction | Frame | Fields |
 |-|-|-|
@@ -257,7 +260,7 @@ Commands carry their owner's name:
 | `seat` | `seat.rename`, `seat.setRole`, `seat.setPresence`, `seat.kick`, `seat.leave` |
 | `room` | `room.setSettings`, `room.setTitle` |
 
-Events mirror them in the past tense (`poker.voted`, `topic.decided`, `seat.left`). The lock and a room's addresses are not commands: they change the room and address tables, which is I/O, so they go through the HTTP API and reach the room as an event. The server applies a command through the reducer, assigns the next `seq`, persists, and publishes one `evt` to the room topic. Every event is identical for all seats, so one publish serves the room: `poker.voted` names the seat and never the value, and a seat reads its own hidden vote only from its own `welcome` view. A full `view` is sent only in `welcome`.
+Events mirror them in the past tense (`poker.voted`, `topic.decided`, `seat.left`). The lock and a room's addresses are not commands: they change the room and address tables, which is I/O, so they go through the HTTP API and reach the room as an event. The server issues the reducer six commands of its own, never accepted in a `cmd` frame, so that a join, a lost connection, the lock, an address and a timer that runs out also change the room only through events: `seat.join`, `seat.setConnection`, `room.setAccess`, `room.setSlug`, `poker.countdownElapsed`, `poker.timerElapsed`. The server applies a command through the reducer, assigns the next `seq`, persists, and publishes one `evt` to the room topic. Every event is identical for all seats, so one publish serves the room: `poker.voted` names the seat and never the value, and a seat reads its own hidden vote only from its own `welcome` view or its own command. A full `view` is sent only in `welcome`.
 
 Close codes (application range):
 
@@ -272,7 +275,7 @@ Close codes (application range):
 
 Limits from the first version: a token bucket per connection (burst 10, refill 5 per second), one `fx` per 2 s per seat, joins limited per IP at the proxy, ten wrong access codes per minute per room and five per address, then a pause of one minute. Room pages are served with `Referrer-Policy: no-referrer`. Reconnect backoff is full jitter, base 500 ms, cap 30 s. The client resends an unacknowledged `poker.vote` with the same `id` after resume, and re-asserts its own vote when the `welcome` view of the same round lacks it (a snapshot can trail an acknowledgement by the debounce window); the reducer treats a repeated `id` as a no-op.
 
-`docs/v9/protocol.md` is written by the row that builds `packages/room-core` and from then on is the exact reference; golden fixtures of every frame live beside the schemas, and the fixtures of the last released protocol version keep passing forever.
+The fixtures of the last released protocol version keep passing forever (rule `protocol.md`).
 
 ## Server
 
@@ -440,7 +443,7 @@ The room lock and the final value ship with 9.0.0. Webhooks, tracker import, wri
   "at": "2026-11-19T10:12:03Z",
   "room": { "slug": "team-alpha", "name": "Team Alpha" },
   "topic": { "id": "<uuid>", "title": "Checkout redesign", "url": "<link>", "source": "jira", "externalId": "10042", "externalKey": "SHOP-123", "externalSite": "<site id>" },
-  "round": { "no": 14, "attempt": 2, "deck": "fibonacci", "voters": 7, "consensus": false,
+  "round": { "id": "<uuid v7>", "no": 14, "attempt": 2, "deck": "fibonacci", "voters": 7, "consensus": false,
              "distribution": [{ "label": "5", "value": 5, "count": 6 }, { "label": "8", "value": 8, "count": 1 }] },
   "final": { "label": "5", "value": 5, "decidedBy": "agreed" }
 }

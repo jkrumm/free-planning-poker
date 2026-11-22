@@ -1,0 +1,8 @@
+{
+  "frame": "cmd",
+  "id": "m025",
+  "type": "seat.kick",
+  "payload": {
+    "seat": 2
+  }
+}

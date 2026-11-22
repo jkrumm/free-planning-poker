@@ -1,0 +1,7 @@
+{
+  "type": "room.setAccess",
+  "payload": {
+    "access": "locked",
+    "code": "k7m2qx"
+  }
+}

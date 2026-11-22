@@ -1,0 +1,9 @@
+{
+  "frame": "fx",
+  "seat": 0,
+  "type": "seat.react",
+  "payload": {
+    "emoji": "🎉",
+    "to": null
+  }
+}

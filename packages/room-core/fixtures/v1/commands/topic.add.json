@@ -1,0 +1,29 @@
+{
+  "frame": "cmd",
+  "id": "m001",
+  "type": "topic.add",
+  "payload": {
+    "topics": [
+      {
+        "title": "Checkout redesign",
+        "url": "https://acme.atlassian.net/browse/SHOP-123",
+        "ref": {
+          "source": "jira",
+          "id": null,
+          "key": "SHOP-123",
+          "site": "acme.atlassian.net"
+        }
+      },
+      {
+        "title": "Search filters",
+        "url": null,
+        "ref": null
+      },
+      {
+        "title": "Remove me",
+        "url": null,
+        "ref": null
+      }
+    ]
+  }
+}

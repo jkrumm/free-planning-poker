@@ -1,0 +1,8 @@
+{
+  "frame": "cmd",
+  "id": "m010",
+  "type": "room.setTitle",
+  "payload": {
+    "name": "Team Alpha Planning"
+  }
+}

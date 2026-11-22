@@ -1,0 +1,6 @@
+{
+  "type": "poker.timerElapsed",
+  "payload": {
+    "round": "01a1f340-6c80-7bbf-997a-40f55be6e2b9"
+  }
+}

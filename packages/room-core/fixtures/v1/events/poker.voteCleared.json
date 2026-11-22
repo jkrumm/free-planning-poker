@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 21,
+  "type": "poker.voteCleared",
+  "payload": {
+    "round": "01a1f33f-dfe0-7a29-a2b6-cc81ef6e9ee8",
+    "seat": 0
+  }
+}

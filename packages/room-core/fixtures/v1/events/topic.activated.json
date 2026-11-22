@@ -1,0 +1,8 @@
+{
+  "frame": "evt",
+  "seq": 9,
+  "type": "topic.activated",
+  "payload": {
+    "topic": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845"
+  }
+}

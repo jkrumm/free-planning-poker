@@ -1,0 +1,197 @@
+[
+  {
+    "case": "a leading ticket key",
+    "line": "SHOP-123 Checkout redesign",
+    "topic": {
+      "title": "Checkout redesign",
+      "url": null,
+      "ref": {
+        "source": null,
+        "id": null,
+        "key": "SHOP-123",
+        "site": null
+      }
+    }
+  },
+  {
+    "case": "a leading ticket key with a separator",
+    "line": "ENG-42: Rate limit the login form",
+    "topic": {
+      "title": "Rate limit the login form",
+      "url": null,
+      "ref": {
+        "source": null,
+        "id": null,
+        "key": "ENG-42",
+        "site": null
+      }
+    }
+  },
+  {
+    "case": "a key alone",
+    "line": "OPS-7",
+    "topic": {
+      "title": "OPS-7",
+      "url": null,
+      "ref": {
+        "source": null,
+        "id": null,
+        "key": "OPS-7",
+        "site": null
+      }
+    }
+  },
+  {
+    "case": "a Jira issue link",
+    "line": "https://acme.atlassian.net/browse/SHOP-123",
+    "topic": {
+      "title": "SHOP-123",
+      "url": "https://acme.atlassian.net/browse/SHOP-123",
+      "ref": {
+        "source": "jira",
+        "id": null,
+        "key": "SHOP-123",
+        "site": "acme.atlassian.net"
+      }
+    }
+  },
+  {
+    "case": "a Jira board link with a selected issue and a title",
+    "line": "Checkout redesign https://acme.atlassian.net/jira/software/projects/SHOP/boards/1?selectedIssue=SHOP-124",
+    "topic": {
+      "title": "Checkout redesign",
+      "url": "https://acme.atlassian.net/jira/software/projects/SHOP/boards/1?selectedIssue=SHOP-124",
+      "ref": {
+        "source": "jira",
+        "id": null,
+        "key": "SHOP-124",
+        "site": "acme.atlassian.net"
+      }
+    }
+  },
+  {
+    "case": "a Linear issue link",
+    "line": "https://linear.app/acme/issue/ENG-42/rate-limit-the-login-form",
+    "topic": {
+      "title": "ENG-42",
+      "url": "https://linear.app/acme/issue/ENG-42/rate-limit-the-login-form",
+      "ref": {
+        "source": "linear",
+        "id": null,
+        "key": "ENG-42",
+        "site": "acme"
+      }
+    }
+  },
+  {
+    "case": "a GitHub issue link with a title after it",
+    "line": "https://github.com/acme/shop/issues/481 - Fix the cart badge",
+    "topic": {
+      "title": "Fix the cart badge",
+      "url": "https://github.com/acme/shop/issues/481",
+      "ref": {
+        "source": "github",
+        "id": null,
+        "key": "acme/shop#481",
+        "site": "github.com"
+      }
+    }
+  },
+  {
+    "case": "a GitHub pull request link",
+    "line": "https://github.com/acme/shop/pull/12",
+    "topic": {
+      "title": "acme/shop#12",
+      "url": "https://github.com/acme/shop/pull/12",
+      "ref": {
+        "source": "github",
+        "id": null,
+        "key": "acme/shop#12",
+        "site": "github.com"
+      }
+    }
+  },
+  {
+    "case": "an Azure DevOps work item link",
+    "line": "https://dev.azure.com/acme/Shop/_workitems/edit/1234",
+    "topic": {
+      "title": "1234",
+      "url": "https://dev.azure.com/acme/Shop/_workitems/edit/1234",
+      "ref": {
+        "source": "azure-devops",
+        "id": "1234",
+        "key": "1234",
+        "site": "dev.azure.com/acme"
+      }
+    }
+  },
+  {
+    "case": "an Azure DevOps link on visualstudio.com",
+    "line": "Login timeout https://acme.visualstudio.com/Shop/_workitems/edit/77",
+    "topic": {
+      "title": "Login timeout",
+      "url": "https://acme.visualstudio.com/Shop/_workitems/edit/77",
+      "ref": {
+        "source": "azure-devops",
+        "id": "77",
+        "key": "77",
+        "site": "acme.visualstudio.com"
+      }
+    }
+  },
+  {
+    "case": "a GitLab issue link",
+    "line": "https://gitlab.com/acme/platform/shop/-/issues/9",
+    "topic": {
+      "title": "acme/platform/shop#9",
+      "url": "https://gitlab.com/acme/platform/shop/-/issues/9",
+      "ref": {
+        "source": "gitlab",
+        "id": null,
+        "key": "acme/platform/shop#9",
+        "site": "gitlab.com"
+      }
+    }
+  },
+  {
+    "case": "a link to anything else",
+    "line": "Read the spec https://example.com/specs/checkout.",
+    "topic": {
+      "title": "Read the spec",
+      "url": "https://example.com/specs/checkout",
+      "ref": null
+    }
+  },
+  {
+    "case": "plain text",
+    "line": "Make the invite link copy itself",
+    "topic": {
+      "title": "Make the invite link copy itself",
+      "url": null,
+      "ref": null
+    }
+  },
+  {
+    "case": "plain text in a list",
+    "line": "- Dark mode for the result view",
+    "topic": {
+      "title": "Dark mode for the result view",
+      "url": null,
+      "ref": null
+    }
+  },
+  {
+    "case": "a lower-case word with a dash is no key",
+    "line": "re-check the totals",
+    "topic": {
+      "title": "re-check the totals",
+      "url": null,
+      "ref": null
+    }
+  },
+  {
+    "case": "an empty line",
+    "line": "   ",
+    "topic": null
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "type": "room.setSlug",
+  "payload": {
+    "slug": "team-alpha"
+  }
+}

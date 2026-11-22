@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 40,
+  "type": "seat.roleChanged",
+  "payload": {
+    "seat": 2,
+    "role": "player"
+  }
+}
