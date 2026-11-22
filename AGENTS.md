@@ -87,14 +87,14 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 | `make arena-score ENTRY=<name>` | one arena entry's scorecard (`e2e/AGENTS.md`) | lane `arena` |
 | `make e2e` | the end-to-end suite, in a slot (`e2e/AGENTS.md`) | CI job `e2e` |
 
-Vitest component tests (lane `ui`) arrive with their row. `make load` is 5,000 sockets in 500 rooms, 3.5 min (`load/AGENTS.md`); `nightly.yml` runs 10,000 simulator seeds and 50 rooms of load. A missed budget is reported with its number, not met by removing a check. Toolchain, ports and CI: `docs/development.md`.
+Vitest component tests (lane `ui`) arrive with their row. `make load` (500 rooms, 3.5 min); `nightly.yml` runs 10,000 simulator seeds and 50 rooms of load. A missed budget is reported with its number, not met by removing a check. Toolchain and CI: `docs/development.md`.
 
 ## Deploy
 
 1. Work in your worktree; `make check-fast` before each push.
 2. Open a pull request into `master` from `.github/pull_request_template.md`: each acceptance line met or not met with its command and output, the decisions you took, the documents you updated.
 3. CI (`.github/workflows/ci.yml`) runs `make check` in the job `check`; the job `ci` gates on every job and is the only required check. A new lane job goes into `.github/lanes`, gets `if: needs.lanes.outputs.<lane> == 'true'` and joins the `needs` of `ci`.
-4. Merge is rebase-only (linear history) through the merge window: `factory land`.
+4. Merge is rebase-only through the merge window: `factory land`.
 5. Production is v1, deployed from `v1`. A push to `master` touching lane `app` rolls to the beta host through `deploy-next.yml`; `make deploy` is a no-op.
 
 Commits: `<type>(<scope>): <subject>`, types feat, fix, perf, refactor, docs, ci, chore, test, style, build; scope optional, `JK-<number>` if present; header at most 80 characters, body lines at most 300 (`commitlint.config.ts`, run by lefthook). No AI attribution anywhere. Releases are manual (`release.yml`); never edit `CHANGELOG.md` by hand. Branch protection, workflows, Vercel: `docs/shipping.md`.

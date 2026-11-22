@@ -1,4 +1,4 @@
-# What the load test adds to deploy/compose.yml (`make load`, load/run.ts): a proxy in front of the API, the container that
+# What the load test adds to deploy/compose.yml and compose.build.yml (`make load`, load/run.ts): a proxy in front of the API, the container that
 # replaces it in the handoff run, and k6. Nothing here is a deployment; the project is removed with its data when the run ends.
 # The API is reached through the proxy on the project's network, so a run listens on no fixed port; the one host port the
 # base file publishes is a free one load/run.ts picks.
@@ -22,8 +22,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://fpp:${POSTGRES_PASSWORD:-fpp-local}@postgres:5432/fpp
-      VISITOR_KEY: ${VISITOR_KEY:-local-visitor-key-change-it-0000000}
+      DATABASE_URL: postgres://fpp:${POSTGRES_PASSWORD}@postgres:5432/fpp
+      VISITOR_KEY: ${VISITOR_KEY}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://load.test}
     init: true
     mem_limit: 512m
