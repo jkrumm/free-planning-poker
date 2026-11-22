@@ -6,7 +6,7 @@
 import type { Ctx } from '../state.ts'
 
 /** mulberry32: a small seeded generator of 32-bit values. */
-function generator(seed: number): () => number {
+export function generator(seed: number): () => number {
   let a = seed >>> 0
   return () => {
     a = (a + 0x6d2b79f5) >>> 0

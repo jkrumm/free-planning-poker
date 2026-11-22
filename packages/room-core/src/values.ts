@@ -86,7 +86,16 @@ export function parseAccessCode(input: unknown): AccessCode | undefined {
 
 const fold = (code: string) => code.normalize('NFKC').toLowerCase()
 
-/** Passwords compare after NFKC normalisation and case folding, so one read out loud works. */
+/**
+ * Passwords compare after NFKC normalisation and case folding, so one read out loud works. The comparison takes the
+ * same steps wherever the two differ, so its time tells nothing about how much of a guess was right.
+ */
 export function sameAccessCode(a: AccessCode, b: AccessCode): boolean {
-  return fold(a) === fold(b)
+  const left = fold(a)
+  const right = fold(b)
+  const length = Math.max(left.length, right.length)
+  let difference = left.length ^ right.length
+  for (let index = 0; index < length; index += 1)
+    difference |= (left.charCodeAt(index) | 0) ^ (right.charCodeAt(index) | 0)
+  return difference === 0
 }

@@ -6,12 +6,16 @@ The exact reference of the room protocol, version 1. `docs/v9/ARCHITECTURE.md`, 
 
 - JSON text frames over one WebSocket at `/api/ws/<slug>`. Every frame is a JSON object with a field `frame` that names it; `cmd`, `evt` and `fx` also carry `type` and `payload`.
 - The client opens with `hello`; the server answers with `welcome` or closes with a close code. Then the client sends `cmd`, the server answers each with `ack` or `nack` and publishes `evt` to every seat.
-- Every `evt` carries the room's `seq`, one higher than the last. A client that sees a gap reconnects with `lastSeq` and gets a fresh `welcome`.
+- Every `evt` carries the room's `seq`, one higher than the last. A client that sees a gap reconnects with `lastSeq` and gets a fresh `welcome`, which always holds the full view.
+- `welcome` mints a seat token once, 32 random bytes as base64url; the room keeps its SHA-256 only. A `hello` with the token resumes the seat and its `welcome` echoes the token; an unknown token, or one minted before the room's access epoch was raised, is closed with 4004. One seat may hold several sockets (two tabs share a token); it turns `reconnecting` when its last socket is lost and `gone` 120 s later.
+- A `hello` without a token whose `name` equals a seat that is `reconnecting` or `gone` takes that seat back: its index and name, presence `active`, a new token (the old one is closed with 4004), and without its hidden vote of the running round (`poker.voteCleared`).
+- In a locked room a `hello` without a token needs `code`. Ten wrong codes within a minute on one room, or five from one IP address, pause new seats there for a minute, and a `hello` during the pause is closed with 4005 without a comparison.
 - Every `cmd` carries a client message id. A repeated id of an accepted command, one that changed nothing included, is answered with `ack` again and applied once; the room remembers the latest 256.
 - Every event is identical for all seats and never carries a hidden vote. A seat reads its own hidden card only from its own `welcome` view or its own command.
 - `fx` frames carry no `seq`, are never stored and are dropped for slow consumers.
 - Unknown fields and unknown types are ignored by both sides. Times are milliseconds since the epoch, except `at` in a result, which is ISO 8601. Ids of topics, rounds and results are UUID v7, minted by the server.
-- Maximum payload 16 KB, per-message deflate off, `Origin` checked before the upgrade, application heartbeat every 25 s.
+- Maximum payload 16 KB, per-message deflate off, `Origin` checked before the upgrade, application heartbeat every 25 s: the server pings every socket and closes one that sent nothing for 60 s.
+- Each socket has a token bucket of 10 frames refilled at 5 per second (`cmd`, `fx` and `ping`; a `pong` is free). A `cmd` over it is answered `nack rate_limited`, an `fx` within 2 s of the seat's last one is dropped, and the tenth refused frame within 10 s closes the socket with 4008.
 
 ## Frames
 
@@ -289,6 +293,8 @@ Published in an `evt` frame, the same for every seat.
 | 4004 | `expired` | live state expired or seat token unknown | rejoin as a new seat |
 | 4005 | `access_required` | access code required or wrong | ask for the code, connect again with it |
 | 4008 | `rate_limited` | rate limit exceeded | back off, reconnect |
+
+The runtime (`packages/room-core/src/runtime`) also closes with codes of the socket protocol itself (RFC 6455): 1000 after a `seat.leave`, 1001 for a socket silent for 60 s, 1008 when the first frame is not a valid `hello`, 1009 for a frame above 16 KB, 1011 for a bug while handling a frame, and 1013 when the table is full in both roles or the store did not answer. The client treats each as a lost connection and reconnects with backoff.
 
 ## The view
 

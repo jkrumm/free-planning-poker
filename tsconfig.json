@@ -6,6 +6,7 @@
     "apps/site/test",
     "packages/*/src",
     "packages/*/test",
+    "packages/*/scripts",
     "scripts"
   ]
 }
