@@ -48,7 +48,7 @@ export OTEL_SERVICE_VERSION ?= $(shell git rev-parse --short=7 HEAD 2>/dev/null 
 
 # The load test (docs/v9/evidence/load.md, load/AGENTS.md): k6 in a container against the v9 stack, in a Compose project of its
 # own that load/run.ts starts and removes. Always in a slot, which is where a lead's containers belong. LOAD_SCALE=full is
-# the claim (500 rooms, about 4 minutes); nightly is the CI guard (50 rooms). HANDOFF=1 replaces the API container halfway.
+# the claim (500 rooms, about 3.5 minutes); nightly is the CI guard (50 rooms). HANDOFF=1 replaces the API container halfway.
 LOAD_SCALE ?= full
 
 # Site tests read the built output, so they run in `make site` only.
