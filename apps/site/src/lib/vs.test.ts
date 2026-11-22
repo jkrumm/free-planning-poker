@@ -57,9 +57,8 @@ test.each(pages)('$id: the checked day is the newest day a fact was read', ({ da
 })
 
 test.each(pages)(
-  '$id: a draft until the owner has read it, with questions and a description',
+  '$id: has a description, questions and a published day not after the checked day',
   ({ data }) => {
-    // The owner removes draft: true to publish; this fails only if a page was ever published by accident in a row.
     expect(data.description.length).toBeGreaterThan(40)
     expect(data.questions.length).toBeGreaterThan(0)
     expect(data.published.getTime()).toBeLessThanOrEqual(data.checked.getTime())

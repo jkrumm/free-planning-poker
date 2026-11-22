@@ -1,3 +1,4 @@
+import { strings } from '../strings.en.ts'
 import type { VsData } from './entry-schema.ts'
 
 const isoDay = (date: Date) => date.toISOString().slice(0, 10)
@@ -15,10 +16,12 @@ export function vsTwinFacts(data: VsData): string {
     '',
   ]
   for (const fact of data.facts) {
-    const ahead = { them: data.tool.name, us: 'Free Planning Poker', even: 'Even' }[fact.ahead]
+    const ahead = { them: data.tool.name, us: strings.vs.ourName, even: strings.vs.even }[
+      fact.ahead
+    ]
     lines.push(
       `- **${fact.topic}** (ahead: ${ahead}). ${data.tool.name}: ${fact.claim} Read on ${isoDay(fact.read)}: ${fact.source}`,
-      `  Free Planning Poker: ${fact.ours}`,
+      `  ${strings.vs.ourName}: ${fact.ours}`,
     )
   }
   return lines.join('\n')

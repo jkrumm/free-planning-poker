@@ -25,7 +25,7 @@ facts:
     ahead: us
     ours: "Free. There is no paid plan."
   - topic: "Integrations"
-    claim: "\"All features available on the free plan, including integrations.\" \"Search for stories or issues from Jira, GitHub and GitLab\", and \"Estimates automatically sync back to the backlog tool they were pulled from\"."
+    claim: "\"All features available on the free plan, including integrations.\" \"Search for stories or issues from Jira, GitHub and GitLab\", and \"Estimates automatically sync back to the backlog tool they were pulled from\", into the field in Jira or the comment or label in GitHub or GitLab that you choose."
     source: "https://www.parabol.co/agile/sprint-poker/"
     read: 2026-11-22
     ahead: them
@@ -69,7 +69,7 @@ questions:
 
 ## Where Parabol is better
 
-It is a suite. Sprint Poker pulls stories from Jira, GitHub and GitLab on the free plan and writes the estimate back into a Jira field or a GitHub or GitLab comment or label. It adds a second dimension to a scale, so a team can score value and effort for WSJF. It runs retrospectives and health checks too. Free Planning Poker does estimation only, and none of this at launch.
+It is a suite. Sprint Poker pulls stories from Jira, GitHub and GitLab on the free plan and writes the estimate back to the issue. It adds a second dimension to a scale, so a team can score value and effort for WSJF. It runs retrospectives and health checks too. Free Planning Poker does estimation only, and none of this at launch.
 
 ## Where Free Planning Poker is better
 
