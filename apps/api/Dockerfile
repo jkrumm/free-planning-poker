@@ -17,6 +17,7 @@ COPY apps/room/package.json apps/room/package.json
 COPY apps/site/package.json apps/site/package.json
 COPY arena/package.json arena/package.json
 COPY e2e/package.json e2e/package.json
+COPY load/package.json load/package.json
 COPY packages/i18n/package.json packages/i18n/package.json
 COPY packages/room-client/package.json packages/room-client/package.json
 COPY packages/room-core/package.json packages/room-core/package.json

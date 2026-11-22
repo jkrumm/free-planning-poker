@@ -8,7 +8,16 @@
     "packages/*/src",
     "packages/*/test",
     "packages/*/scripts",
-    "scripts"
+    "scripts",
+    "load"
   ],
-  "exclude": ["apps/arena", "packages/table", "arena", "e2e", "apps/room", "packages/i18n"]
+  "exclude": [
+    "apps/arena",
+    "packages/table",
+    "arena",
+    "e2e",
+    "apps/room",
+    "packages/i18n",
+    "load/k6"
+  ]
 }

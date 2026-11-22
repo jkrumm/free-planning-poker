@@ -1,0 +1,9 @@
+{
+  "name": "@fpp/load",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@types/k6": "2.3.1"
+  }
+}

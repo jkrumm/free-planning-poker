@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
+.PHONY: help load check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover, and the beta host, where every push that touches lane app rolls out (deploy-next.yml).
@@ -46,6 +46,11 @@ V9_UP_FLAGS ?= --build
 export FPP_PORT ?= 7740
 export OTEL_SERVICE_VERSION ?= $(shell git rev-parse --short=7 HEAD 2>/dev/null || echo local)
 
+# The load test (docs/v9/evidence/load.md, load/AGENTS.md): k6 in a container against the v9 stack, in a Compose project of its
+# own that load/run.ts starts and removes. Always in a slot, which is where a lead's containers belong. LOAD_SCALE=full is
+# the claim (500 rooms, about 4 minutes); nightly is the CI guard (50 rooms). HANDOFF=1 replaces the API container halfway.
+LOAD_SCALE ?= full
+
 # Site tests read the built output, so they run in `make site` only.
 SITE_TESTS = **/*.site.test.ts
 
@@ -59,7 +64,7 @@ check-fast: ## Before every push: format, lint, messages, Effect lint, types, bo
 	@$(call step,lint (oxlint),bunx --no-install oxlint --deny-warnings)
 	@$(call step,messages (packages/i18n/scripts/messages.ts),bun packages/i18n/scripts/messages.ts)
 	@$(call step,effect lint (effect-tsgo oxlint),bunx --no-install effect-tsgo oxlint --type-aware -c .oxlintrc.effect.json --deny-warnings $(EFFECT_DIRS))
-	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json && bunx --no-install tsc --noEmit -p tsconfig.dom.json && bunx --no-install tsc --noEmit -p e2e/tsconfig.json)
+	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json && bunx --no-install tsc --noEmit -p tsconfig.dom.json && bunx --no-install tsc --noEmit -p e2e/tsconfig.json && bunx --no-install tsc --noEmit -p load/k6/tsconfig.json)
 	@$(call step,boundaries (scripts/boundaries.ts),bun scripts/boundaries.ts)
 	@$(call step,unit tests (bun test),bun test $(call JUNIT,unit) --path-ignore-patterns='$(SERVER_TESTS)' --path-ignore-patterns='$(SITE_TESTS)')
 	@$(MAKE) --no-print-directory factory-files
@@ -89,6 +94,9 @@ site: ## Build apps/site for production and beta, then test the output (lane sit
 site-run:
 	@$(call step,site build (production, beta, fixtures),ASTRO_TELEMETRY_DISABLED=1 bun run --filter '@fpp/site' build)
 	@$(call step,site tests,bun test apps/site $(call JUNIT,site))
+
+load: ## Load test with k6: make load [LOAD_SCALE=full|nightly] [LOAD_ROOMS=n] [HANDOFF=1] [NO_BUILD=1]; exits non-zero when a threshold fails
+	@$(call step,load (k6, $(LOAD_SCALE)$(if $(HANDOFF), + handoff)),$(call slot,load) bun load/run.ts --scale $(LOAD_SCALE) $(if $(HANDOFF),--handoff) $(if $(NO_BUILD),--no-build) $(if $(LOAD_ROOMS),--rooms $(LOAD_ROOMS)))
 
 v9-image: ## Build the API image (apps/api/Dockerfile) as fpp-api:local
 	@$(V9_COMPOSE) build api

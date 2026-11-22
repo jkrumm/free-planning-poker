@@ -4,7 +4,7 @@ Free Planning Poker is a free, open-source planning poker app for agile teams, l
 
 ## Repo map
 
-The dependency arrows point down this table only. `boundaries.toml` holds the same map as data, and `make check-fast` fails on an arrow it does not draw or a module directory it does not list.
+The dependency arrows point down this table only. `boundaries.toml` holds it as data; `make check-fast` fails on an undrawn arrow or an unlisted module directory.
 
 | Path | Package | Class | Holds | May import |
 |-|-|-|-|-|
@@ -20,6 +20,7 @@ The dependency arrows point down this table only. `boundaries.toml` holds the sa
 | `packages/telemetry` | `@fpp/telemetry` | names pure, facades adapter | attribute, event and metric names; `recordError`, `recordEvent` | nothing |
 | `packages/test-kit` | `@fpp/test-kit` | | `freePort`, `startPostgres`: for test files only | nothing |
 | `e2e` | `@fpp/e2e` | | Playwright: arena scorecard, suite against the built image | nothing at runtime |
+| `load` | `@fpp/load` | | k6 load test (`load/AGENTS.md`) | nothing |
 
 A pure module does no I/O. An adapter does I/O but reads no environment. A shell is an app's entry file: it reads the environment and the clock and wires the rest.
 
@@ -69,7 +70,7 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 - **`packages/room-core` is pure.** No `node:*`, `bun` or `bun:*` import, no `fetch`, `WebSocket`, timers, `Date.now`, `Math.random`, `process` or `Bun`: time, chance and I/O arrive as arguments or ports. `scripts/boundaries.ts` refuses the rest.
 - **Elysia** (`elysia`, `@elysia/*`) only in `apps/api/src/http` and `src/ws`: a pinned release candidate (`2.0.0-rc.3`). **Effect** (`effect`, `@effect/*`) only in `apps/api/src/app`, `src/db` and `src/jobs`; nothing from `effect/unstable/*` anywhere. oxlint and the boundaries check both refuse the rest.
 - **Install by version, never by npm tag**: `latest` of Elysia is the 1.4 line and tags have moved before. Pin every dependency exactly in the package that uses it (the isolated linker resolves nothing undeclared); check a version with `agw web package npm <name>` on the day. `bunfig.toml` refuses versions younger than 3 days.
-- **Add no visible string outside the message catalogue** (invariant 18, rule `strings.md`), English and German complete in the same change.
+- **Add no visible string outside the message catalogue** (invariant 18), English and German complete in the same change.
 - **Read v1 with `git show origin/v1:<path>`**, list it with `git ls-tree -r --name-only origin/v1`. Never merge `v1` and `master` in either direction and never push to `v1` from a row; v1's fixes and redeploys: `docs/shipping.md`, section v1.
 - Files are kebab-case with a role suffix where a module has several parts (`room.reducer.ts`), named exports only, a test beside its code as `*.test.ts`; a package exposes only what its `exports` map lists. Each app parses its environment once in `env.ts` and passes values down.
 
@@ -78,7 +79,7 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 | Command | Runs | Budget, when |
 |-|-|-|
 | `bun install --frozen-lockfile` | the workspace; Bun pinned in `package.json` `packageManager` | after a pull |
-| `make check-fast` | format check, oxlint, messages, Effect lint (`effect-tsgo oxlint`), `tsc`, boundaries, unit tests (`*.test.ts(x)`; room-core properties; 200 simulator seeds), the factory files | 60 s (`budgets.fast`), about 15 s of CPU on the mini; before every push and after every change you author |
+| `make check-fast` | format check, oxlint, messages, Effect lint (`effect-tsgo oxlint`), `tsc`, boundaries, unit tests (`*.test.ts(x)`; room-core properties; 200 simulator seeds), the factory files | 60 s (`budgets.fast`); before every push and after every change you author |
 | `make check` | `check-fast`, the server tier (`*.server.test.ts`, each with its own Postgres), the build | CI runs it on every pull request; locally only to reproduce a CI failure, as `factory slot run -- make test-server` |
 | `make site` | the site's four builds and their tests | lane `site`; CI job `site` |
 | `make fmt` | oxfmt over the repo | when the format check fails |
@@ -86,7 +87,7 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 | `make arena-score ENTRY=<name>` | one arena entry's scorecard (`e2e/AGENTS.md`) | lane `arena` |
 | `make e2e` | the end-to-end suite, in a slot (`e2e/AGENTS.md`) | CI job `e2e` |
 
-Vitest component tests (lane `ui`) arrive with their row. `nightly.yml` runs 10,000 simulator seeds. A missed budget is reported with its number, not met by removing a check. Toolchain, ports and CI: `docs/development.md`.
+Vitest component tests (lane `ui`) arrive with their row. `make load` is 5,000 sockets in 500 rooms, 3.5 min (`load/AGENTS.md`); `nightly.yml` runs 10,000 simulator seeds and 50 rooms of load. A missed budget is reported with its number, not met by removing a check. Toolchain, ports and CI: `docs/development.md`.
 
 ## Deploy
 
@@ -110,7 +111,6 @@ Commits: `<type>(<scope>): <subject>`, types feat, fix, perf, refactor, docs, ci
 
 ## Keeping this setup true
 
-- Time lost to something these files did not say: add the line to the nearest `AGENTS.md` or rule in the same pull request (this file: 12,000 bytes).
-- You find a rule wrong: change the rule and say so in the pull request.
+- Time lost to something these files did not say: add the line to the nearest `AGENTS.md` or rule in the same pull request (this file: 12,000 bytes). A wrong rule is changed, and the pull request says so.
 - Friction with the factory itself goes to `factory signal file`, never into these files.
 - A skill is added by the row that creates the loop it wraps (replaying a simulator seed, scoring an arena entry), not ahead of it.
