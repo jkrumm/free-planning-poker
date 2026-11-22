@@ -68,7 +68,7 @@ const COLOUR_PATTERNS: readonly [RegExp, string][] = [
   [/\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/g, 'colour function'],
 ]
 /** A named colour as a whole word: not part of a class name, a variable or an identifier. */
-const NAMED_WORD = new RegExp(`(?<![-\\w.#$@])(${NAMED})(?![-\\w])`, 'gi')
+const NAMED_WORD = new RegExp(`(?<![-\\w.#$@/])(${NAMED})(?![-\\w])`, 'gi')
 /** Where a named colour is a colour: a CSS declaration's value, or a string in code (a style object, a class string). */
 const CSS_VALUE = /:([^;{}]*)/g
 const STRING = /'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`/g
@@ -111,16 +111,20 @@ for (const file of files) {
       for (const match of text.matchAll(pattern))
         colours.push({ file, line: number + 1, text: match[0], kind })
   })
-  for (const region of source.matchAll(isCss ? CSS_VALUE : STRING))
-    for (const match of region[0].matchAll(NAMED_WORD))
-      colours.push({
-        file,
-        line: lineAt(source, region.index),
-        text: match[0],
-        kind: 'named colour',
-      })
+  const isCode = /\.(tsx?)$/.test(file)
+  // A stylesheet has declarations, code has strings, and an .svg or .html file has both: attributes and <style>.
+  const regions = isCss ? [CSS_VALUE] : isCode ? [STRING] : [CSS_VALUE, STRING]
+  for (const pattern of regions)
+    for (const region of source.matchAll(pattern))
+      for (const match of region[0].matchAll(NAMED_WORD))
+        colours.push({
+          file,
+          line: lineAt(source, region.index),
+          text: match[0],
+          kind: 'named colour',
+        })
 
-  const references = isCss ? CSS_REFERENCE : /\.(tsx?)$/.test(file) ? CODE_REFERENCE : null
+  const references = isCss ? CSS_REFERENCE : isCode ? CODE_REFERENCE : null
   if (references === null) continue
   for (const match of source.matchAll(references)) {
     const specifier = match[1] ?? match[2] ?? match[3] ?? ''
@@ -128,15 +132,24 @@ for (const file of files) {
     if (isRelative(specifier) || specifier === '..') {
       if (leaves(file, specifier))
         leaks.push({ file, line, specifier, why: 'reaches outside the entry directory' })
-    } else if (!isCss && FORBIDDEN.test(specifier))
+    } else if (FORBIDDEN.test(specifier))
       leaks.push({ file, line, specifier, why: 'not part of the table contract' })
   }
 }
 
+// An .svg or .html file is read as both CSS and code, so one literal may be found twice.
+const seen = new Set<string>()
+const found = colours.filter((colour) => {
+  const key = `${colour.file}:${colour.line}:${colour.kind}:${colour.text}`
+  if (seen.has(key)) return false
+  seen.add(key)
+  return true
+})
+
 const result = {
   entry: name,
   size: { ownGzip: own.bytes, addsGzip: adds.bytes, ownFiles: own.files },
-  colours,
+  colours: found,
   leaks,
 }
 const out = join(root, 'arena/scores', name)
@@ -144,5 +157,5 @@ mkdirSync(out, { recursive: true })
 writeFileSync(join(out, 'static.json'), `${JSON.stringify(result, null, 2)}\n`)
 console.log(
   `${name}: own code ${(own.bytes / 1024).toFixed(1)} kB gzip, adds ${(adds.bytes / 1024).toFixed(1)} kB gzip, ` +
-    `${colours.length} colour literal(s), ${leaks.length} import(s) outside the contract`,
+    `${found.length} colour literal(s), ${leaks.length} import(s) outside the contract`,
 )
