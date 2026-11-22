@@ -49,6 +49,15 @@ const isRecord = (input: unknown): input is Record<string, unknown> =>
 const isCount = (input: unknown): input is number =>
   typeof input === 'number' && Number.isSafeInteger(input) && input >= 0
 
+/** Whether a state another build may have written holds the room's invariants; a shape `check` cannot read is not. */
+function sound(room: RoomState): boolean {
+  try {
+    return check(room).length === 0
+  } catch {
+    return false
+  }
+}
+
 /**
  * Reads what the store returned. The store holds only what `exportSnapshot` wrote, so this checks the envelope and
  * the room's invariants and returns `undefined` for anything else: the room then starts cold.
@@ -68,6 +77,6 @@ export function importSnapshot(input: unknown): RoomSnapshot | undefined {
   )
   if (!valid) return undefined
   const room = state as RoomState
-  if (!Array.isArray(room.seats) || check(room).length > 0) return undefined
+  if (!Array.isArray(room.seats) || !sound(room)) return undefined
   return input as RoomSnapshot
 }
