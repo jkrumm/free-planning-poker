@@ -19,7 +19,8 @@
     "release": "release-it",
     "dev": "bun --filter @fpp/api dev",
     "db:migrate": "bun --filter @fpp/api db:migrate",
-    "sim": "bun packages/room-core/scripts/sim.ts"
+    "sim": "bun packages/room-core/scripts/sim.ts",
+    "bots": "bun packages/room-client/scripts/bots.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

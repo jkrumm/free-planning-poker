@@ -44,6 +44,13 @@
         "satori": "0.63.2",
       },
     },
+    "packages/room-client": {
+      "name": "@fpp/room-client",
+      "version": "0.0.0",
+      "dependencies": {
+        "@fpp/room-core": "workspace:*",
+      },
+    },
     "packages/room-core": {
       "name": "@fpp/room-core",
       "version": "0.0.0",
@@ -245,6 +252,8 @@
     "@fontsource/inter": ["@fontsource/inter@5.3.0", "", {}, "sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g=="],
 
     "@fpp/api": ["@fpp/api@workspace:apps/api"],
+
+    "@fpp/room-client": ["@fpp/room-client@workspace:packages/room-client"],
 
     "@fpp/room-core": ["@fpp/room-core@workspace:packages/room-core"],
 
