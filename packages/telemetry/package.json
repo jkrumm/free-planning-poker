@@ -6,6 +6,7 @@
   "exports": {
     "./names": "./src/names.ts",
     "./umami": "./src/umami.ts",
+    "./umami-script": "./src/umami-script.ts",
     "./browser": "./src/facade.browser.ts",
     "./server": "./src/facade.server.ts",
     "./memory": "./src/facade.memory.ts"

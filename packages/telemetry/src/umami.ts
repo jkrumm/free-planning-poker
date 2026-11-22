@@ -32,6 +32,21 @@ export const UMAMI = {
 
 export type UmamiEvent = keyof typeof UMAMI
 
+/** The event names as constants, so no other package writes one as a literal (`test/names.test.ts`). */
+export const UMAMI_EVENT = {
+  landingCta: 'landing_cta',
+  roomCreated: 'room_created',
+  roomJoined: 'room_joined',
+  inviteCopied: 'invite_copied',
+  voteCast: 'vote_cast',
+  roundRevealed: 'round_revealed',
+  topicDecided: 'topic_decided',
+  roomLocked: 'room_locked',
+  summaryExported: 'summary_exported',
+  pwaInstalled: 'pwa_installed',
+  embedLoaded: 'embed_loaded',
+} as const satisfies Record<string, UmamiEvent>
+
 /** The data of one event: every property it lists, with a value from its list. */
 export type UmamiData<E extends UmamiEvent> = {
   readonly [K in keyof (typeof UMAMI)[E]]: (typeof UMAMI)[E][K] extends 'boolean'

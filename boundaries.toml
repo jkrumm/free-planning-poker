@@ -85,6 +85,7 @@ pure = [
   "packages/room-core/src/**",
   "packages/telemetry/src/names.ts",
   "packages/telemetry/src/umami.ts",
+  "packages/telemetry/src/umami-script.ts",
   "packages/table/src/layout.ts",
   "packages/i18n/src/languages.ts",
 ]
