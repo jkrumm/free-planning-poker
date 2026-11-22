@@ -73,7 +73,7 @@ It is a suite. Sprint Poker pulls stories from Jira, GitHub and GitLab on the fr
 
 ## Where Free Planning Poker is better
 
-It is one room and nothing else. Parabol's free plan stops at 2 teams, 10 meetings a month and 30 days of history, and the next step is $8 per active user per month. Here there is no plan to outgrow. Parabol's licence is Business Source 1.1, which its own file says is not an open source licence until each version converts to AGPL-3.0 four years on; ours is AGPL-3.0 now. Parabol's pricing and Sprint Poker pages do not say whether a player can join without an account. Free Planning Poker has no account.
+It is one room and nothing else. Parabol's free plan stops at 2 teams, 10 meetings a month and 30 days of history, and the next step is $8 per active user per month. Here there is no plan to outgrow. Parabol's licence is Business Source 1.1, which its own file says is not an open source licence until each version converts to AGPL-3.0 four years on; ours is AGPL-3.0 now. Free Planning Poker has no account to create.
 
 ## Which one to pick
 
