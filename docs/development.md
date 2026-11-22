@@ -12,6 +12,7 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 | TypeScript | 7.0.2 | root `package.json` | the newest stable major, the native compiler. `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax` in `tsconfig.base.json` |
 | oxlint | 1.94.0 | root | `.oxlintrc.json`: correctness and suspicious as errors, no `any`, type-only imports, no default export, the import restrictions below |
 | oxfmt | 0.79.0 | root | `.oxfmtrc.json` copies basalt-ui's settings, so the switch to its presets in `v9-ui-foundation` reformats nothing. Markdown is left out: oxfmt pads tables, and the docs keep the minimal `|-|-|` separator |
+| @effect/tsgo, oxlint-tsgolint | 0.70.0, 7.0.2007 | root | Effect's type-aware lint rules, run by `effect-tsgo oxlint` with `.oxlintrc.effect.json` over `apps/api/src/app`, `src/db` and `src/jobs`. Stock oxlint cannot load them. They move with oxlint as a set: the `@effect/tsgo` README lists the TypeScript, oxlint and oxlint-tsgolint versions each release supports (0.70.0: TypeScript 7.0.2, oxlint 1.91 to 1.94, oxlint-tsgolint 7.0.2005 to 7.0.2007). 0.73.2 was inside the cooldown on 2026-11-22 |
 | lefthook | 2.2.2 | root | pre-commit: oxfmt check and oxlint on staged files; commit-msg: commitlint |
 | drizzle-orm, drizzle-kit | 0.45.4, 0.31.11 | `apps/api` | the 0.45 line of the ORM, not the 1.0 release candidate; drizzle-kit has its own 0.31 line. Driver `drizzle-orm/bun-sql` on Bun's built-in `SQL`: the repository tests passed 20 runs in a row on Bun 1.4.2, so no `postgres` package. `bun --env-file=.env.tpl run db:migrate` in `apps/api` (`scripts/migrate.ts`) applies the migrations to `DATABASE_URL` (local value in `apps/api/.env.tpl`); drizzle-kit's own `migrate` would need a second driver package |
 | Astro | 7.4.13 | `apps/site` | with `@astrojs/mdx` 8.1.6 and `@astrojs/sitemap` 3.7.6, checked with `agw web package` on 2026-11-22; Vite 8, Node 22.23.4 or newer, run on Bun in CI |
@@ -23,7 +24,7 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 
 | Target | Steps |
 |-|-|
-| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts` and `*.site.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
+| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, `effect-tsgo oxlint --type-aware` over the Effect folders, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts` and `*.site.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
 | `make check` | `check-fast`, then `make test-server` (the `*.server.test.ts` files), then `make build` |
 
 Each step prints `==> <step>`; a failure prints `==> FAILED: <step>` and stops the target. Measured on the mini on 2026-11-21: `make check-fast` 2.9 s wall clock. A test step writes JUnit to `$FACTORY_JUNIT_DIR/<step>.xml` only when that variable is set.
