@@ -6,6 +6,7 @@ import { breadcrumbs } from '../lib/breadcrumbs.ts'
 import { canonicalPath } from '../lib/canonical.ts'
 import { sectionEntries } from '../lib/entries.ts'
 import { socialImagePath, socialImageSize } from '../lib/social.ts'
+import { umamiTags } from '../lib/umami.ts'
 import { strings } from '../strings.en.ts'
 
 interface Props {
@@ -56,6 +57,7 @@ const vsVisible = (await sectionEntries('vs')).length > 0
     <meta property="og:image:height" content={String(socialImageSize.height)} />
     <meta property="og:image:alt" content={pageTitle} />
     <meta name="twitter:card" content="summary_large_image" />
+    <Fragment set:html={umamiTags} />
     <Organization />
     <WebSite />
     <slot name="structured-data" />

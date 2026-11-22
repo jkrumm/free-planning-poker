@@ -13,9 +13,12 @@ function describe(rel: string, what: string): string {
 /** Every executable script of one page: a script tag that is not data, an inline handler, a javascript: link. */
 export function executableIn(rel: string, html: string): string[] {
   const found: string[] = []
-  for (const tag of html.matchAll(/<script\b([^>]*)>/gi)) {
+  for (const tag of html.matchAll(/<script\b([^>]*)>(?:([\s\S]*?)<\/script>)?/gi)) {
     const type = /\btype=["']?([^"'\s>]*)/i.exec(tag[1] ?? '')?.[1]?.toLowerCase()
-    if (type === undefined || !dataTypes.has(type)) found.push(describe(rel, tag[0]))
+    if (type !== undefined && dataTypes.has(type)) continue
+    // An inline script is named by its text, so an entry allows that script and not any inline one.
+    const inline = /\ssrc=/i.test(tag[1] ?? '') ? '' : (tag[2] ?? '')
+    found.push(describe(rel, `<script${tag[1] ?? ''}>${inline}`))
   }
   for (const tag of html.matchAll(/<[a-z][^>]*>/gi)) {
     const handler = /\son[a-z]+\s*=/i.exec(tag[0])

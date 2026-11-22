@@ -12,7 +12,11 @@ describe.each(allOutputs)('zero JavaScript by default, build %s', (output) => {
 test('every allowlist entry names its page and gives a reason', () => {
   for (const entry of allowlist) {
     expect(entry.reason.length).toBeGreaterThan(40)
-    expect(entry.match).toMatch(/^[\w./-]+\.html: <script/)
+    expect(entry.match).toMatch(/^[\w./-]*\.html: <script/)
   }
-  expect(allowlist.map((entry) => entry.match)).toEqual(['contact.html: <script type="module">'])
+  expect(allowlist.map((entry) => entry.match)).toEqual([
+    'contact.html: <script type="module">',
+    '.html: <script>window.fppBeforeSend=function',
+    '.html: <script defer src="/api/u/p.js" data-website-id=',
+  ])
 })
