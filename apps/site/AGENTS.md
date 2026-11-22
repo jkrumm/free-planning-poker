@@ -11,7 +11,7 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 
 ## The draft rule
 
-`FPP_SITE_TARGET` is the one build-time variable: `beta` or anything else, which is production. `src/lib/entries.ts` (`sectionEntries`) is the only reader of the collections, and it drops drafts in production through `visibleEntries`. Read content through it and a draft gets no route, no index entry and no sitemap line; on beta a draft is built with a draft line and `robots: noindex`. A section with nothing to show in a build gets no index page. A new list (`llms.txt`, a feed) reads through `sectionEntries` too; `test/drafts.site.test.ts` fails if a draft's name appears in any production file.
+`FPP_SITE_TARGET` is the build-time variable of the target: `beta` or anything else, which is production. `FPP_SITE_CONTENT` (content root) and `FPP_SITE_OUT` (output directory) exist for the fixture builds of `make site` only; never set them in a deploy. `src/lib/entries.ts` (`sectionEntries`) is the only reader of the collections, and it drops drafts in production through `visibleEntries`. Read content through it and a draft gets no route and no index entry; on beta a draft is built with a draft line and `robots: noindex`. A section with nothing to show in a build gets no index page. A new list (sitemap, `llms.txt`, a feed; `v9-site-crawl` wires `@astrojs/sitemap`, pinned here) reads through `sectionEntries` too; `test/drafts.site.test.ts` fails if a draft's name appears in any production file.
 
 ## Facts about this setup
 

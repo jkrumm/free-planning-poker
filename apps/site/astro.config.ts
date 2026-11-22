@@ -1,9 +1,9 @@
 import mdx from '@astrojs/mdx'
-import sitemap from '@astrojs/sitemap'
 import { defineConfig } from 'astro/config'
+import { resolveTarget } from './src/lib/target.ts'
 
-// The one build-time variable: beta builds drafts, anything else is production, so a forgotten flag hides drafts.
-const target = process.env.FPP_SITE_TARGET === 'beta' ? 'beta' : 'production'
+// The same rule the content reader uses: beta builds drafts, anything else is production.
+const target = resolveTarget(process.env.FPP_SITE_TARGET)
 
 export default defineConfig({
   // Every build names production, so canonical links never point at the beta host (its noindex header is the edge's).
@@ -15,16 +15,8 @@ export default defineConfig({
   build: { format: 'file' },
   // Astro 7 defaults to 'jsx', which removes the space in "a <em>b</em>". 'true' collapses white space to one space.
   compressHTML: true,
-  integrations: [
-    mdx(),
-    sitemap({
-      filter: (page) => !page.endsWith('/404'),
-      i18n: {
-        defaultLocale: 'en',
-        locales: { en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR', zh: 'zh-Hans' },
-      },
-    }),
-  ],
+  // @astrojs/sitemap is pinned in package.json and wired by v9-site-crawl, which owns the crawl files.
+  integrations: [mdx()],
   i18n: {
     locales: ['en', 'de', 'es', 'fr', 'zh'],
     defaultLocale: 'en',

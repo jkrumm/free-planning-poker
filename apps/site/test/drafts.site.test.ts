@@ -20,15 +20,13 @@ describe('production build of the fixture content', () => {
     expect(files).not.toContain('glossary.html')
   })
 
-  test('no file names a draft: not an index, not the sitemap', async () => {
+  test('no file names a draft, in an index or anywhere else', async () => {
     const files = await listFiles(productionRoot)
     for (const rel of files) {
       const text = await readText(productionRoot, rel)
       expect(text).not.toContain('draft-guide')
       expect(text).not.toContain('draft-term')
     }
-    expect(files).toContain('sitemap-0.xml')
-    expect(await readText(productionRoot, 'sitemap-0.xml')).toContain('/guides/published-guide')
   })
 
   test('the index lists the published entry', async () => {
