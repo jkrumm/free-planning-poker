@@ -187,7 +187,7 @@ Rows are built by leads that run side by side, each in its own worktree, with no
 
 ## Ready for agents before the first feature
 
-The owner ruled on 2026-11-20 that the setup for agents and the factory comes before implementation and is improved along the way. `v9-agent-setup` builds it after the foundation, and every row that builds v9's features waits for it.
+The owner ruled on 2026-11-20 that the setup for agents and the factory comes before implementation and is improved along the way. `v9-agent-setup` builds it on the foundation's output (on master), and every row that builds v9's features waits for it.
 
 | Part | What it holds |
 |-|-|
