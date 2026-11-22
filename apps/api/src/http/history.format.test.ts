@@ -52,6 +52,11 @@ test('lines end in CRLF, the last one too', () => {
   expect(csvOfSummary(body()).endsWith('\r\n')).toBe(true)
 })
 
+test('a Markdown cell holds no link, image or HTML syntax', () => {
+  const text = markdownOfSummary(body(topic('![](https://x.test/b) <img src=y> [a](b)')))
+  expect(text).toContain(String.raw`| !\[\](https://x.test/b) \<img src=y\> \[a\](b) | 5 |`)
+})
+
 test('a Markdown cell holds no pipe and no line break', () => {
   const text = markdownOfSummary(body(topic('a | b\nc \\ d')))
   expect(text).toContain('| a \\| b c \\\\ d | 5 | 5 | 1 | 1m 1s |')
