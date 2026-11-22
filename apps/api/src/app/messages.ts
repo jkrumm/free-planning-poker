@@ -52,7 +52,7 @@ export function createMessages(options: MessagesOptions): MessagesApi {
         signal: (options.timeout ?? AbortSignal.timeout)(input.timeoutMs),
       })
       // The answer's body is never read: nothing it says is ours to relay or log.
-      void response.body?.cancel()
+      response.body?.cancel().catch(() => {})
       if (!response.ok) throw new UpstreamRefused(response.status)
       return { ok: true }
     } catch (error) {
