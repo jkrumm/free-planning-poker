@@ -50,6 +50,8 @@ export type Stats = {
 export type Checker = Observer & {
   /** After each step of the run: the room's invariants and what the store and telemetry received. */
   readonly step: () => void
+  /** The room was claimed again (a deploy, an unload): what only lived in the old process's memory is gone. */
+  readonly claimed: () => void
   /** A bot's view after it applied a frame; `self` is the seat it holds. */
   readonly viewed: (view: View, caughtUp: boolean) => void
   readonly violations: string[]
@@ -337,6 +339,10 @@ export function checker(world: {
         default:
           return
       }
+    },
+    claimed() {
+      // The fx limit lives in the owning process only: fx are never stored, so a new claim starts it afresh.
+      fxAt.clear()
     },
     closed(conn, code) {
       stats.closes[code] = (stats.closes[code] ?? 0) + 1

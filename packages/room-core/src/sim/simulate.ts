@@ -118,7 +118,13 @@ export async function simulate(options: SimOptions): Promise<SimResult> {
     clock,
     ids,
     secrets: memorySecrets,
-    store,
+    store: {
+      ...store,
+      claim: (room) => {
+        check.claimed()
+        return store.claim(room)
+      },
+    },
     history,
     telemetry,
   }

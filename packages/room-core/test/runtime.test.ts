@@ -11,6 +11,7 @@ import type { Command, ServerFrame, View } from '../src/protocol/types.ts'
 import { RUNTIME_LIMITS } from '../src/runtime/limits.ts'
 import type { Transport } from '../src/runtime/ports.ts'
 import { createRoomRuntime, type RuntimeOptions } from '../src/runtime/runtime.ts'
+import type { RoomSnapshot } from '../src/runtime/snapshot.ts'
 import {
   memoryHistory,
   memoryIds,
@@ -435,6 +436,17 @@ describe('snapshots', () => {
     expect(welcome.seat).toBe(seat)
     expect(welcome.seq).toBeGreaterThan(seq)
     expect(labels(welcome.view)).toEqual([[seat, '13']])
+  })
+
+  test('a snapshot no longer readable starts the room cold from its row, and says so once', async () => {
+    const store = memoryStore()
+    const room = harness({ store })
+    store.snapshots.set(ROOM, { v: 99 } as unknown as RoomSnapshot)
+    const ada = await room.connect({ seatToken: 'from-an-older-build' })
+    expect(room.closes.get(ada)).toBe(4004)
+    const fresh = await room.connect()
+    expect(room.welcome(fresh).view.room.name).toBe('Team Alpha')
+    expect(room.telemetry.failures.map((failure) => failure.action)).toEqual(['store'])
   })
 
   test("a write that finds another owner closes the room's sockets with 4002", async () => {

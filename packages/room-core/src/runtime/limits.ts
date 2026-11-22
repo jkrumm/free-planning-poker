@@ -7,7 +7,7 @@ export const RUNTIME_LIMITS = {
   /** Frames a connection may send at once, and how many it earns back per second. */
   burst: 10,
   refillPerSecond: 5,
-  /** One `fx` per seat in this many milliseconds. */
+  /** One `fx` per seat in this many milliseconds, counted by the process that owns the room (fx are never stored). */
   fxIntervalMs: 2_000,
   /** Refused frames within `strikeWindowMs` that close a socket with 4008. */
   strikes: 10,

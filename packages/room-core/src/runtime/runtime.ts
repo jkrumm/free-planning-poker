@@ -346,13 +346,13 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
       unload: null,
     }
     if (claim.kind === 'missing') return null
-    if (claim.kind === 'cold') {
+    const snapshot = claim.snapshot === null ? undefined : importSnapshot(claim.snapshot)
+    if (snapshot === undefined) {
+      if (claim.snapshot !== null) failed(new Error('a live snapshot could not be read'), 'store')
       const { slug, name, access, code, settings, accessEpoch } = claim.room
       const state = initialState({ slug, name, access, code, settings }, ctx())
       return { ...base, state, seq: 0, accessEpoch, secrets: new Map() }
     }
-    const snapshot = importSnapshot(claim.snapshot)
-    if (snapshot === undefined) return null
     const room: Live = {
       ...base,
       state: snapshot.state,
@@ -670,7 +670,6 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
     const room = rooms.get(conn.room)
     const index = conn.seat
     if (room === undefined || index === null) return
-    if (raw['frame'] === 'pong') return
     const taken = take(conn.bucket, clock.now())
     conn.bucket = taken.bucket
     if (!taken.ok) {
@@ -686,6 +685,8 @@ export function createRoomRuntime(ports: RuntimePorts, options: RuntimeOptions):
         return onFx(room, conn, index, raw)
       case 'ping':
         return send(conn, { frame: 'pong' })
+      case 'pong':
+        return
       default:
         return strike(conn)
     }

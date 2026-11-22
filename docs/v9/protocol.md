@@ -14,8 +14,8 @@ The exact reference of the room protocol, version 1. `docs/v9/ARCHITECTURE.md`, 
 - Every event is identical for all seats and never carries a hidden vote. A seat reads its own hidden card only from its own `welcome` view or its own command.
 - `fx` frames carry no `seq`, are never stored and are dropped for slow consumers.
 - Unknown fields and unknown types are ignored by both sides. Times are milliseconds since the epoch, except `at` in a result, which is ISO 8601. Ids of topics, rounds and results are UUID v7, minted by the server.
-- Maximum payload 16 KB, per-message deflate off, `Origin` checked before the upgrade, application heartbeat every 25 s: the server pings every socket and closes one that sent nothing for 60 s.
-- Each socket has a token bucket of 10 frames refilled at 5 per second (`cmd`, `fx` and `ping`; a `pong` is free). A `cmd` over it is answered `nack rate_limited`, an `fx` within 2 s of the seat's last one is dropped, and the tenth refused frame within 10 s closes the socket with 4008.
+- Maximum payload 16 KB, per-message deflate off, `Origin` checked before the upgrade, application heartbeat every 25 s: the server pings every seated socket and closes any socket that sent nothing for 60 s.
+- Each seated socket has a token bucket of 10 frames refilled at 5 per second, every frame counted. A `cmd` over it is answered `nack rate_limited`, an `fx` within 2 s of the seat's last one is dropped, and the tenth refused frame within 10 s closes the socket with 4008.
 
 ## Frames
 
