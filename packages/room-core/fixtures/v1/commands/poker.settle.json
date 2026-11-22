@@ -1,0 +1,9 @@
+{
+  "frame": "cmd",
+  "id": "m020",
+  "type": "poker.settle",
+  "payload": {
+    "round": "01a1f340-3da0-7f64-85ab-bd8b6c00c50f",
+    "card": "5"
+  }
+}

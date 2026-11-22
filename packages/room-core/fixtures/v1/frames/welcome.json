@@ -1,0 +1,224 @@
+{
+  "frame": "welcome",
+  "v": 1,
+  "build": "9.0.0+3f2c1a7",
+  "seat": 0,
+  "seatToken": "st_9c1e4b7a2f0d4e8b",
+  "seq": 42,
+  "view": {
+    "self": 0,
+    "room": {
+      "slug": "team-alpha",
+      "name": "Team Alpha Planning",
+      "access": "locked",
+      "code": "k7m2qx",
+      "settings": {
+        "deck": {
+          "id": "fibonacci",
+          "cards": [
+            {
+              "label": "1",
+              "value": 1
+            },
+            {
+              "label": "2",
+              "value": 2
+            },
+            {
+              "label": "3",
+              "value": 3
+            },
+            {
+              "label": "5",
+              "value": 5
+            },
+            {
+              "label": "8",
+              "value": 8
+            },
+            {
+              "label": "13",
+              "value": 13
+            },
+            {
+              "label": "21",
+              "value": 21
+            }
+          ]
+        },
+        "autoReveal": true,
+        "revealCountdown": 3,
+        "timer": 30
+      }
+    },
+    "seats": [
+      {
+        "index": 0,
+        "name": "Ada",
+        "avatar": "ada-7f3a",
+        "role": "player",
+        "presence": "active"
+      }
+    ],
+    "topics": [
+      {
+        "id": "01a1f33f-b100-749e-a454-1af55545b59d",
+        "title": null,
+        "url": null,
+        "ref": null,
+        "state": "skipped",
+        "final": null
+      },
+      {
+        "id": "01a1f33f-c870-7a3f-b810-a77fd2e12f34",
+        "title": "Search filters on mobile",
+        "url": null,
+        "ref": null,
+        "state": "active",
+        "final": null
+      },
+      {
+        "id": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845",
+        "title": "Checkout redesign",
+        "url": "https://acme.atlassian.net/browse/SHOP-123",
+        "ref": {
+          "source": "jira",
+          "id": null,
+          "key": "SHOP-123",
+          "site": "acme.atlassian.net"
+        },
+        "state": "done",
+        "final": {
+          "label": "5",
+          "value": 5,
+          "decidedBy": "settled",
+          "round": "01a1f340-3da0-7f64-85ab-bd8b6c00c50f"
+        }
+      }
+    ],
+    "activity": {
+      "kind": "poker",
+      "current": "01a1f340-6c80-7bbf-997a-40f55be6e2b9",
+      "rounds": [
+        {
+          "id": "01a1f340-3da0-7f64-85ab-bd8b6c00c50f",
+          "topic": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845",
+          "no": 3,
+          "attempt": 2,
+          "deck": {
+            "id": "fibonacci",
+            "cards": [
+              {
+                "label": "1",
+                "value": 1
+              },
+              {
+                "label": "2",
+                "value": 2
+              },
+              {
+                "label": "3",
+                "value": 3
+              },
+              {
+                "label": "5",
+                "value": 5
+              },
+              {
+                "label": "8",
+                "value": 8
+              },
+              {
+                "label": "13",
+                "value": 13
+              },
+              {
+                "label": "21",
+                "value": 21
+              }
+            ]
+          },
+          "startedAt": 1795082436000,
+          "timerEndsAt": null,
+          "state": "revealed",
+          "revealedAt": 1795082443500,
+          "countdown": null,
+          "armed": true,
+          "votes": [
+            {
+              "seat": 0,
+              "card": {
+                "label": "3",
+                "value": 3
+              }
+            },
+            {
+              "seat": 1,
+              "card": {
+                "label": "8",
+                "value": 8
+              }
+            }
+          ]
+        },
+        {
+          "id": "01a1f340-6c80-7bbf-997a-40f55be6e2b9",
+          "topic": "01a1f33f-c870-7a3f-b810-a77fd2e12f34",
+          "no": 4,
+          "attempt": 1,
+          "deck": {
+            "id": "fibonacci",
+            "cards": [
+              {
+                "label": "1",
+                "value": 1
+              },
+              {
+                "label": "2",
+                "value": 2
+              },
+              {
+                "label": "3",
+                "value": 3
+              },
+              {
+                "label": "5",
+                "value": 5
+              },
+              {
+                "label": "8",
+                "value": 8
+              },
+              {
+                "label": "13",
+                "value": 13
+              },
+              {
+                "label": "21",
+                "value": 21
+              }
+            ]
+          },
+          "startedAt": 1795082448000,
+          "timerEndsAt": 1795082478000,
+          "state": "voting",
+          "revealedAt": null,
+          "countdown": {
+            "endsAt": 1795082485000,
+            "cause": "timer"
+          },
+          "armed": true,
+          "votes": [
+            {
+              "seat": 0,
+              "card": {
+                "label": "2",
+                "value": 2
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

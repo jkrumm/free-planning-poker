@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 12,
+  "type": "seat.presenceChanged",
+  "payload": {
+    "seat": 2,
+    "presence": "away"
+  }
+}

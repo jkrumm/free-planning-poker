@@ -1,0 +1,8 @@
+{
+  "frame": "cmd",
+  "id": "m004",
+  "type": "topic.remove",
+  "payload": {
+    "topic": "01a1f33f-c870-7c22-bb1c-fd8640c964a0"
+  }
+}

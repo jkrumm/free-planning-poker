@@ -1,0 +1,6 @@
+{
+  "frame": "cmd",
+  "id": "m026",
+  "type": "seat.leave",
+  "payload": {}
+}

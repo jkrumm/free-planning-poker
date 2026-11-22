@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 41,
+  "type": "seat.kicked",
+  "payload": {
+    "seat": 2,
+    "by": 0
+  }
+}

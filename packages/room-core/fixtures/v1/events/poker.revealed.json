@@ -1,0 +1,60 @@
+{
+  "frame": "evt",
+  "seq": 26,
+  "type": "poker.revealed",
+  "payload": {
+    "round": "01a1f33f-dfe0-7a29-a2b6-cc81ef6e9ee8",
+    "at": 1795082434500,
+    "by": 0,
+    "votes": [
+      {
+        "seat": 0,
+        "card": {
+          "label": "5",
+          "value": 5
+        }
+      },
+      {
+        "seat": 1,
+        "card": {
+          "label": "5",
+          "value": 5
+        }
+      }
+    ],
+    "result": {
+      "type": "poker.revealed",
+      "v": 1,
+      "id": "01a1f340-37c4-7b61-b7fc-6eca69a9737b",
+      "at": "2026-11-19T10:00:34.500Z",
+      "room": {
+        "slug": "team-alpha",
+        "name": "Team Alpha Planning"
+      },
+      "topic": {
+        "id": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845",
+        "title": "Checkout redesign",
+        "url": "https://acme.atlassian.net/browse/SHOP-123",
+        "source": "jira",
+        "externalId": null,
+        "externalKey": "SHOP-123",
+        "externalSite": "acme.atlassian.net"
+      },
+      "round": {
+        "id": "01a1f33f-dfe0-7a29-a2b6-cc81ef6e9ee8",
+        "no": 2,
+        "attempt": 1,
+        "deck": "fibonacci",
+        "voters": 2,
+        "consensus": true,
+        "distribution": [
+          {
+            "label": "5",
+            "value": 5,
+            "count": 2
+          }
+        ]
+      }
+    }
+  }
+}

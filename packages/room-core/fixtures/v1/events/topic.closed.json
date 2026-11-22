@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 8,
+  "type": "topic.closed",
+  "payload": {
+    "topic": "01a1f33f-b100-749e-a454-1af55545b59d",
+    "state": "skipped"
+  }
+}

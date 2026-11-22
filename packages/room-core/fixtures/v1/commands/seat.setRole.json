@@ -1,0 +1,9 @@
+{
+  "frame": "cmd",
+  "id": "m024",
+  "type": "seat.setRole",
+  "payload": {
+    "seat": 2,
+    "role": "player"
+  }
+}

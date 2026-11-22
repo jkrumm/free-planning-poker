@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 16,
+  "type": "room.accessChanged",
+  "payload": {
+    "access": "locked",
+    "code": "k7m2qx"
+  }
+}

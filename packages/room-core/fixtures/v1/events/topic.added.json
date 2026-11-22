@@ -1,0 +1,38 @@
+{
+  "frame": "evt",
+  "seq": 4,
+  "type": "topic.added",
+  "payload": {
+    "topics": [
+      {
+        "id": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845",
+        "title": "Checkout redesign",
+        "url": "https://acme.atlassian.net/browse/SHOP-123",
+        "ref": {
+          "source": "jira",
+          "id": null,
+          "key": "SHOP-123",
+          "site": "acme.atlassian.net"
+        },
+        "state": "queued",
+        "final": null
+      },
+      {
+        "id": "01a1f33f-c870-7a3f-b810-a77fd2e12f34",
+        "title": "Search filters",
+        "url": null,
+        "ref": null,
+        "state": "queued",
+        "final": null
+      },
+      {
+        "id": "01a1f33f-c870-7c22-bb1c-fd8640c964a0",
+        "title": "Remove me",
+        "url": null,
+        "ref": null,
+        "state": "queued",
+        "final": null
+      }
+    ]
+  }
+}

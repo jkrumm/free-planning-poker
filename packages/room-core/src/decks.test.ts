@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { ABSTAIN, BREAK, DECKS, DEFAULT_DECK_ID, distance, findCard } from './decks.ts'
+import { ABSTAIN, BREAK, DECKS, DEFAULT_DECK_ID, distance, findCard, parseCard } from './decks.ts'
 
 const decks = Object.values(DECKS)
 
@@ -27,7 +27,7 @@ describe('decks', () => {
   test('T-shirt sizes stand on the Fibonacci numbers', () => {
     const fibonacci = new Set(DECKS.fibonacci.cards.map((card) => card.value))
     for (const card of DECKS['t-shirt'].cards) expect(fibonacci.has(card.value)).toBe(true)
-    expect(findCard(DECKS['t-shirt'], 'M')).toEqual({ label: 'M', value: 3 })
+    expect(findCard(DECKS['t-shirt'], 'M')).toEqual(parseCard({ label: 'M', value: 3 }))
   })
 
   test('modified Fibonacci carries a half', () => {

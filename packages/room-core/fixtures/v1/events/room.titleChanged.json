@@ -1,0 +1,8 @@
+{
+  "frame": "evt",
+  "seq": 15,
+  "type": "room.titleChanged",
+  "payload": {
+    "name": "Team Alpha Planning"
+  }
+}

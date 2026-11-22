@@ -1,0 +1,11 @@
+{
+  "frame": "cmd",
+  "id": "m002",
+  "type": "topic.update",
+  "payload": {
+    "topic": "01a1f33f-c870-7a3f-b810-a77fd2e12f34",
+    "title": "Search filters on mobile",
+    "url": null,
+    "ref": null
+  }
+}

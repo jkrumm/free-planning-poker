@@ -1,0 +1,46 @@
+{
+  "frame": "evt",
+  "seq": 27,
+  "type": "topic.decided",
+  "payload": {
+    "result": {
+      "type": "topic.decided",
+      "v": 1,
+      "id": "01a1f340-37c4-74e7-bc90-6fe6f1d45d45",
+      "at": "2026-11-19T10:00:34.500Z",
+      "room": {
+        "slug": "team-alpha",
+        "name": "Team Alpha Planning"
+      },
+      "topic": {
+        "id": "01a1f33f-c870-7ebc-9d1d-ec64cf9b4845",
+        "title": "Checkout redesign",
+        "url": "https://acme.atlassian.net/browse/SHOP-123",
+        "source": "jira",
+        "externalId": null,
+        "externalKey": "SHOP-123",
+        "externalSite": "acme.atlassian.net"
+      },
+      "round": {
+        "id": "01a1f33f-dfe0-7a29-a2b6-cc81ef6e9ee8",
+        "no": 2,
+        "attempt": 1,
+        "deck": "fibonacci",
+        "voters": 2,
+        "consensus": true,
+        "distribution": [
+          {
+            "label": "5",
+            "value": 5,
+            "count": 2
+          }
+        ]
+      },
+      "final": {
+        "label": "5",
+        "value": 5,
+        "decidedBy": "agreed"
+      }
+    }
+  }
+}

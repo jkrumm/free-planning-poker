@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 11,
+  "type": "seat.renamed",
+  "payload": {
+    "seat": 2,
+    "name": "Cyrus"
+  }
+}

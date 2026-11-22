@@ -10,6 +10,7 @@ One line per file under `docs/`. v9 is the contract for `master`; the files mark
 | `development.md` | toolchain and versions, check tiers, the test kit, boundaries, ports, CI and why it keeps no cache |
 | `shipping.md` | the two branches, fixing and redeploying v1, Vercel, branch protection, releases, verify and monitor |
 | `v9/ARCHITECTURE.md` | what the system is: invariants, topology, repo map, stack, room model, protocol, server, data model, HTTP API, client, measurement, testing, cutover |
+| `v9/protocol.md` | the exact room protocol: frames, commands, events, rejection reasons, close codes, the view, the result contract |
 | `v9/ENGINEERING.md` | how work goes: where v1 lives, targets, code patterns, what a script enforces, local checks, CI, the factory, basalt-ui |
 | `v9/UX.md` | what the product does: principles, the room, flows, the reveal, motion and sound, the table arena, accessibility, copy, languages, the site, what changes for a v1 user |
 | `v9/STRATEGY.md` | why each choice was made and what was rejected, with the owner's rulings and comments by date |

@@ -1,0 +1,9 @@
+{
+  "frame": "evt",
+  "seq": 6,
+  "type": "topic.moved",
+  "payload": {
+    "topic": "01a1f33f-c870-7a3f-b810-a77fd2e12f34",
+    "index": 1
+  }
+}

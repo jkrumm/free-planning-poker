@@ -1,0 +1,8 @@
+{
+  "type": "seat.join",
+  "payload": {
+    "name": "Ada",
+    "avatar": "ada-7f3a",
+    "role": "player"
+  }
+}

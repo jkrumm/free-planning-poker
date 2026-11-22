@@ -1,0 +1,14 @@
+{
+  "frame": "evt",
+  "seq": 1,
+  "type": "seat.joined",
+  "payload": {
+    "seat": {
+      "index": 0,
+      "name": "Ada",
+      "avatar": "ada-7f3a",
+      "role": "player",
+      "presence": "active"
+    }
+  }
+}

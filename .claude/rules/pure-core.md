@@ -18,7 +18,7 @@ paths:
 - A rejection is a `nack` reason from a closed enum, returned as a value; an exception means a bug. Nothing here logs or catches to log: domain events are emitted by the adapter from the reducer's output.
 - Every invariant is enforced twice: `decide` refuses the command, and `check(state)` asserts the whole state after every step in tests and the simulator.
 - Activities are namespaced (`poker.*`); a second activity adds a module and changes none of the room kernel.
-- What leaves the package is what its `exports` map lists: `/protocol` (schemas, types, decks; every browser bundle), `/view` (`evolveView`, selectors), `/server` (`decide`, `evolve`, `project`, the runtime), `/sim` (the simulator and bots).
+- What leaves the package is what its `exports` map lists: `/protocol` (Zod schemas with types and decks; the server), `/types` (types, names, decks, value-object parsers, no Zod; every browser bundle), `/view` (`evolveView`, selectors, result builders, paste parser), `/server` (`decide`, `evolve`, `step`, `project`, `publish`, `check`, the runtime), `/sim` (the seeded clock, then the simulator and bots).
 
 ## Why
 
@@ -28,4 +28,5 @@ Logic that can only be tested through a socket cannot be replayed, and a hidden 
 
 - `scripts/boundaries.ts` in `make check-fast` resolves every import of a pure file and scans its source for the globals above; `scripts/boundaries.test.ts` plants one violation of each kind.
 - oxlint refuses `effect` and `elysia` outside their folders.
-- The core tests and 200 simulator seeds in `make check-fast` (from `v9-room-core` on) run `check(state)` after every step, with fast-check properties for "no other seat's value before reveal".
+- The core tests in `make check-fast` run `check(state)` after every step of 1,000 generated sessions, with the fast-check property "no other seat's value before reveal"; 200 simulator seeds join them from `v9-room-runtime` on.
+- `packages/room-core/test/purity.test.ts` fails on `Date.now`, `Math.random`, `setTimeout`, `setInterval`, `WebSocket` or `fetch` anywhere under `src` outside `sim/`, comments included.
