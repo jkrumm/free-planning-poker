@@ -46,6 +46,25 @@ export function parseSlug(input: unknown): Slug | undefined {
   return NUMBER_SLUG.test(slug) || NAME_SLUG.test(slug) ? (slug as Slug) : undefined
 }
 
+/**
+ * The address a v1 room link leads to in v9. v1 read `/room/<x>` lowercased and trimmed and kept any 2 to 15 characters
+ * as a name, so the importer and the room shell map a v1 name by this one function: an address valid already is itself;
+ * otherwise NFKD with its combining marks dropped, every run of characters outside a-z and 0-9 one hyphen, the hyphens at
+ * the ends trimmed, and what remains must be a name. Undefined where nothing valid remains (`ab`, `!!!`, `12 34`).
+ */
+export function parseV1Address(input: string): Slug | undefined {
+  const exact = parseSlug(input)
+  if (exact !== undefined) return exact
+  const mapped = input
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/\p{M}+/gu, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return NAME_SLUG.test(mapped) ? (mapped as Slug) : undefined
+}
+
 export function parseSeatIndex(input: unknown): SeatIndex | undefined {
   return typeof input === 'number' && Number.isSafeInteger(input) && input >= 0
     ? (input as SeatIndex)
