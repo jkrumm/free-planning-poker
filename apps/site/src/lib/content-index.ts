@@ -35,12 +35,17 @@ function indexed(section: Section, dir: string, rel: string): IndexedEntry {
   const file = join(dir, rel)
   const { fields } = parseFrontmatter(readFileSync(file, 'utf8'))
   if (fields.published === undefined) throw new Error(`${file}: no published date`)
+  // The loader slugifies ids: a name that is not already a slug would get another id in the pages than here, and the
+  // draft filter would miss it. Fail the build instead.
+  const id = rel
+    .replace(/\.mdx?$/, '')
+    .split(sep)
+    .join('/')
+  if (!/^[a-z0-9-]+(\/[a-z0-9-]+)*$/.test(id))
+    throw new Error(`${file}: the file name must be a lowercase slug`)
   return {
     section,
-    id: rel
-      .replace(/\.mdx?$/, '')
-      .split(sep)
-      .join('/'),
+    id,
     data: {
       draft: fields.draft === 'true',
       published: new Date(fields.published),
