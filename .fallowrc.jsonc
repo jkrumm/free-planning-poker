@@ -1,0 +1,5 @@
+{
+  // Not imported by name, on purpose: effect-tsgo runs from the Makefile (bunx), social-image.ts resolves
+  // @fontsource/inter with createRequire, and docs/v9/TABLE-BRIEF.md installs motion for arena entries.
+  "ignoreDependencies": ["@effect/tsgo", "@fontsource/inter", "motion"],
+}
