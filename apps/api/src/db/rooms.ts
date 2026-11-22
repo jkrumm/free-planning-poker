@@ -37,7 +37,9 @@ const expiry = (now: Date) => at(new Date(now.getTime() + SNAPSHOT_TTL_MS))
 
 /**
  * Takes ownership of a room: the epoch goes up by one and `owner` is set, in one statement, so two claims never
- * share an epoch (invariant 12). An expired snapshot is not restored, but its epoch is kept: fencing never resets.
+ * share an epoch (invariant 12). An expired snapshot is not restored, but its epoch is kept until the sweep deletes the row: after that a claim
+ * starts at epoch 1 again, and a stale writer is kept out by the owner match alone, so an owner id is unique per process.
+ * A live owner whose room was idle past the sweep also gets `lost` on its next write, with nobody else owning the room.
  */
 export async function claimRoom(
   db: Executor,
