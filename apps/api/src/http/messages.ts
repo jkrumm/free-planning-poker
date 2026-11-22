@@ -2,7 +2,7 @@
  * The two routes that send a message out of the room's origin (docs/v9/ARCHITECTURE.md, HTTP API): `POST /contact` to the
  * mail gateway and `POST /feedback` to the factory's door, with v1's fields and limits. What sends lives behind
  * `MessagesApi`, which the composition root implements; every refusal is a typed `{ error }` response, so nothing here
- * throws for a user mistake. A body is never logged or recorded: the message text, the e-mail address and the subject
+ * throws for a user mistake; a body past the server's cap (`MAX_BODY_BYTES`) is refused by Bun with its own 413 before any route runs. A body is never logged or recorded: the message text, the e-mail address and the subject
  * stay in the request (rule `telemetry.md`).
  */
 import { Elysia, ParseError, t, ValidationError } from 'elysia'
