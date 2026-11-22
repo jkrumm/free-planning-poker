@@ -5,7 +5,10 @@ export type Env = {
   readonly commit: string
   /** Origins that may open a room socket (`ALLOWED_ORIGINS`, comma-separated); local development's by default. */
   readonly origins: readonly string[]
-  /** The header the edge sets to the client's address (`CLIENT_IP_HEADER`, e.g. `cf-connecting-ip`); unset in development. */
+  /**
+   * The single-valued header the edge overwrites with the client's address (`CLIENT_IP_HEADER`, e.g.
+   * `cf-connecting-ip`); unset in development. Never `x-forwarded-for`: a client writes its first entry.
+   */
   readonly clientIpHeader: string | undefined
 }
 

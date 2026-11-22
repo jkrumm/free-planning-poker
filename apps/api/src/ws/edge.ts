@@ -110,11 +110,14 @@ export async function admit(
   return { ok: true, room, ip: clientIp(request, deps.clientIpHeader, deps.peer) }
 }
 
-/** The client's address: the first entry of the edge's header when one is named and present, else the peer's. */
+/**
+ * The client's address: the edge's header when one is named and present, else the peer's. The header holds one
+ * address the edge overwrites (`cf-connecting-ip`); a list a client can prepend to, such as `x-forwarded-for`, is
+ * no source for it.
+ */
 function clientIp(request: Request, header: string | undefined, peer: string): string {
-  const named = header === undefined ? null : request.headers.get(header)
-  const first = named?.split(',')[0]?.trim()
-  return first === undefined || first === '' ? peer : first
+  const named = header === undefined ? undefined : request.headers.get(header)?.trim()
+  return named === undefined || named === '' ? peer : named
 }
 
 /** A frame as the text a socket sends; one that the protocol's schemas refuse is a bug and throws. */
