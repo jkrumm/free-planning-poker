@@ -34,6 +34,7 @@ export const strings = {
     { title: 'Guide', href: '/guide' },
     { title: 'Analytics', href: '/analytics' },
     { title: 'Roadmap', href: '/roadmap' },
+    { title: 'Self-hosting', href: '/self-hosting' },
     { title: 'Contact', href: '/contact' },
   ],
   footerLegal: [

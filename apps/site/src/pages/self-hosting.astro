@@ -1,0 +1,99 @@
+---
+import Base from '../layouts/base.astro'
+---
+
+<!--
+  The commands in the <pre data-commands> blocks are what .github/workflows/selfhost.yml runs, read from this file by
+  apps/site/scripts/page-commands.ts: change one here and the workflow runs the change. Write no braces and no opening angle
+  bracket inside a block (Astro reads them).
+-->
+<Base
+  title="Self-hosting"
+  description="Run Free Planning Poker on your own machine with one compose file: the published image and PostgreSQL, started with a few commands."
+>
+  <h1>Self-hosting</h1>
+  <p>
+    Free Planning Poker is open source (AGPLv3). The room, the API and the database run from one compose file: the
+    published image of the app and a PostgreSQL 18 container with a volume for its data. A workflow follows this page on
+    a clean machine every night, so the commands below are the ones that work.
+  </p>
+
+  <h2 id="needs">What you need</h2>
+  <ul>
+    <li>Docker with Compose v2, the <code>docker compose</code> command, on Linux with an amd64 processor.</li>
+    <li><code>curl</code> and <code>openssl</code> for the commands below; about 1 GB of memory for the two containers.</li>
+  </ul>
+
+  <h2 id="start">Start</h2>
+  <p>
+    The commands fetch the compose file and the example settings, write two generated secrets into <code>.env</code>
+    and start both containers. They wait until both are healthy.
+  </p>
+  <pre data-commands="start"><code>mkdir free-planning-poker
+cd free-planning-poker
+curl -fsSLO https://raw.githubusercontent.com/jkrumm/free-planning-poker/master/deploy/compose.yml
+curl -fsSL https://raw.githubusercontent.com/jkrumm/free-planning-poker/master/deploy/.env.example -o .env
+sed -i.bak "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 24)|; s|^VISITOR_KEY=.*|VISITOR_KEY=$(openssl rand -hex 32)|" .env
+rm .env.bak
+docker compose up -d --wait</code></pre>
+  <p>
+    Then open <a href="http://localhost:7740/room">http://localhost:7740/room</a>, create a room and share its link.
+    Rooms live in the Docker volume <code>free-planning-poker_postgres-data</code>, so they survive a restart of the
+    machine.
+  </p>
+  <p>
+    Without the two secrets <code>docker compose up</code> stops and names the one that is missing. Every other setting
+    has a default; <code>.env.example</code> lists each one with what happens when it is unset.
+    The files are in the repository's
+    <a href="https://github.com/jkrumm/free-planning-poker/tree/master/deploy">deploy folder</a>.
+  </p>
+
+  <h2 id="domain">Your own domain</h2>
+  <p>
+    The port is published on this machine only. To reach it from other machines, put a reverse proxy in front of it, or
+    set <code>FPP_BIND=0.0.0.0</code> in <code>.env</code>. Then set <code>ALLOWED_ORIGINS</code> to the address people
+    type, for example <code>https://poker.example.com</code>: the room refuses a browser whose origin is not listed.
+    Behind a proxy that sets the client's address in a header, name the header in <code>CLIENT_IP_HEADER</code>.
+  </p>
+
+  <h2 id="update">Update</h2>
+  <p>
+    The image is <code>ghcr.io/jkrumm/free-planning-poker</code>. <code>latest</code> is the newest build of the main
+    branch, <code>9.0.0</code> and the like are releases, and <code>sha-</code> followed by a commit's first seven
+    characters is one commit. Set <code>FPP_IMAGE</code> in <code>.env</code> to stay on one of them. The database is
+    migrated when the new container starts.
+  </p>
+  <pre data-commands="update"><code>docker compose pull
+docker compose up -d --wait</code></pre>
+
+  <h2 id="backup">Back up and restore</h2>
+  <p>
+    Back up with a dump of the database, not a copy of the volume: a copy taken while PostgreSQL runs may not be
+    readable. The dump is one compressed file.
+  </p>
+  <pre data-commands="backup"><code>docker compose exec -T postgres pg_dump -U fpp --clean --if-exists fpp | gzip > fpp-backup.sql.gz</code></pre>
+  <p>To restore it, stop the app, load the dump and start the app again.</p>
+  <pre data-commands="restore"><code>docker compose stop api
+gunzip -c fpp-backup.sql.gz | docker compose exec -T postgres psql -U fpp -d fpp
+docker compose start api --wait</code></pre>
+
+  <h2 id="not-included">What is not included</h2>
+  <ul>
+    <li>
+      <strong>A TLS proxy.</strong> The app speaks plain HTTP. Put Caddy, nginx, Traefik or your cloud's load balancer
+      in front of it, and keep WebSocket upgrades on.
+    </li>
+    <li>
+      <strong>Analytics.</strong> The image sends nothing to Umami or any other analytics host, and none runs beside it.
+    </li>
+    <li>
+      <strong>Telemetry.</strong> Off until you set <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> to your own OpenTelemetry
+      collector, which you run yourself.
+    </li>
+    <li>
+      <strong>Mail for the contact form.</strong> The form answers that it is unavailable until you set a mail gateway
+      in <code>.env</code>.
+    </li>
+    <li><strong>An image for arm64.</strong> The published image is for amd64 only.</li>
+  </ul>
+</Base>
