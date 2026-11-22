@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { NO_ROOMS } from '../../test/support.ts'
+import { NO_MESSAGES, NO_ROOMS } from '../../test/support.ts'
 import { createApp } from './app.ts'
 import { STATS_CACHE_CONTROL, STATS_VERSION, type StatsApi, type StatsBody } from './stats.ts'
 
@@ -25,6 +25,9 @@ const appOf = (stats: StatsApi) =>
   createApp({
     build: { version: '9.0.0', commit: 'abc123' },
     rooms: NO_ROOMS,
+    messages: NO_MESSAGES,
+    origins: new Set(),
+    client: () => 'test',
     stats,
     health: async () => 'ok',
   })
