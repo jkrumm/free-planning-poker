@@ -128,7 +128,8 @@ export function csvOfSummary(body: SummaryBody): string {
   )
 }
 
-const cell = (text: string) => text.replace(/[\\|]/g, '\\$&').replace(/\s*[\r\n]+\s*/g, ' ')
+// A title is a participant's text and the table is meant to be pasted: link, image and HTML syntax stay inert.
+const cell = (text: string) => text.replace(/[\\|<>[\]`*_]/g, '\\$&').replace(/\s*[\r\n]+\s*/g, ' ')
 
 const table = (header: readonly string[], rows: readonly (readonly string[])[]) =>
   [header, header.map(() => '-'), ...rows]
