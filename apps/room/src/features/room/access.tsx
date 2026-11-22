@@ -35,7 +35,9 @@ export function Access(props: { readonly view: View; readonly slug: string }) {
         body: JSON.stringify(body),
       })
       if (response.status === 200) return 'saved'
-      if (response.status === 400) return path === 'access' ? 'invalid-code' : 'invalid-name'
+      // 400 is the rule of the value, 422 the route's own length limit: both are the same answer to a person.
+      if (response.status === 400 || response.status === 422)
+        return path === 'access' ? 'invalid-code' : 'invalid-name'
       if (response.status === 409) return 'taken'
       if (response.status === 403 || response.status === 404) return 'refused'
       return 'unavailable'

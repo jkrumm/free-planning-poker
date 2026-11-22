@@ -11,6 +11,7 @@ const { ADDRESS, createWorld, openSeat } = await import('./harness.tsx')
 
 const created = async () => ({ status: 201, json: async () => ({ slug: ADDRESS }) })
 const refused = async () => ({ status: 400, json: async () => ({}) })
+const tooLong = async () => ({ status: 422, json: async () => ({}) })
 const saved = async () => ({ status: 200, json: async () => ({}) })
 
 beforeAll(registerDom)
@@ -194,6 +195,41 @@ test('a refused password and a refused name say different things; an unknown pag
   expect(ann.byId('access-outcome').dataset['outcome']).toBe('invalid-name')
   await ann.navigate('/room/a/b/c')
   expect(ann.byId('back-to-rooms')).toBeDefined()
-  expect(document.title).not.toBe('')
+  await ann.unmount()
+})
+
+test('every page sets its tab title from a message', async () => {
+  const world = createWorld()
+  const ann = await openSeat(world, { path: '/room', ip: '10.0.0.11', profile: 'Ann' })
+  expect(document.title).toBe('Free Planning Poker')
+  await ann.choose(ann.byId('language'), 'de')
+  await ann.navigate('/room')
+  expect(document.title).toBe('Free Planning Poker')
+  await ann.choose(ann.byId('language'), 'en')
+  const pending = new Promise<never>(() => {})
+  const waiting = await openSeat(world, {
+    path: '/room/new',
+    ip: '10.0.0.12',
+    fetch: () => pending,
+  })
+  expect(document.title).toBe('Creating your room…')
+  await waiting.unmount()
+  const room = await openSeat(world, { path: `/room/${ADDRESS}`, ip: '10.0.0.13', profile: 'Ben' })
+  expect(document.title).toBe('Test room')
+  await room.unmount()
+  await ann.unmount()
+})
+
+test('a value the route rejects for its length is the same answer as one the rule rejects', async () => {
+  const world = createWorld()
+  const ann = await openSeat(world, {
+    path: `/room/${ADDRESS}`,
+    ip: '10.0.0.14',
+    profile: 'Ann',
+    fetch: tooLong,
+  })
+  await ann.type(ann.byId('lock-code'), 'x'.repeat(300))
+  await ann.submit(ann.byId('lock-typed'))
+  expect(ann.byId('access-outcome').dataset['outcome']).toBe('invalid-code')
   await ann.unmount()
 })
