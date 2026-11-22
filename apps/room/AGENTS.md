@@ -20,12 +20,13 @@ The room app: a Vite SPA, client only, served by the API under `/room` and `/_ro
 - **Name a value before a message uses it** (``const name = seat.name`` first, then ``t`Remove ${name}` ``): a member expression becomes the placeholder `{0}`, which a translator cannot read.
 - **Nothing here reads `window` or storage but `main.tsx`** (a page sets only `document.title`); components take `useAppEnv()`. That is what lets the tests run the app on the simulator's network and clock.
 - **A new element a person can use gets a `data-testid`** and a row in `e2e/TESTIDS.md`; the room test fails otherwise.
-- **Umami's two tags** reach the shell at build time from `FPP_UMAMI_WEBSITE_ID` and `FPP_UMAMI_DOMAINS` (`vite.config.ts`; the image takes them as build arguments, `deploy-next.yml` passes them); unset, there is no tag. `test/measure.test.tsx` plays a round with markers as names, slug, code, topic and votes and holds every `track` call to the registry; extend its markers when a new kind of user input reaches an event.
+- **Umami's two tags** reach the shell at build time from `FPP_UMAMI_WEBSITE_ID` and `FPP_UMAMI_DOMAINS` (`vite.config.ts`; the image takes them as build arguments, `deploy-next.yml` passes them); unset, there is no tag. The last block of `test/room.test.tsx` plays a round with markers as names, slug, code, topic and votes and holds every `track` call to the registry; extend its markers when a new kind of user input reaches an event.
 - No `basalt-ui`, Tailwind or CSS here yet (a test greps for them); no browser error or connection telemetry yet; no dev server (`bun run dev` is the owner's).
 - The entry JavaScript is at most 130 kB gzip (`scripts/budget.ts`, run by `make build`); a language's catalogue files load on demand and do not count. Report the number in the pull request.
 
 ## Tests
 
 - A test file that renders imports `./dom.ts` first and loads `./harness.tsx` with a dynamic `import()` after it: React decides at load time whether the page supports `input` events, so a DOM that arrives later is never seen. Its `afterAll` unregisters the DOM so other tests keep Bun's `fetch` and timers.
+- **One file renders.** A second rendering file ran after the first's `afterAll` had unregistered the DOM, and `room.test.tsx` then hung in CI (it did not locally); new render tests join its last block or a new `describe` there.
 - `test/lingui-bun.ts` (preload in `bunfig.toml`) compiles the Lingui macros and `.po` files for Bun; the app itself builds with `@lingui/vite-plugin`.
 - Time moves with `world.advance(ms)`; no test sleeps. Type into a field with `seat.type` and submit with `seat.submit`: happy-dom does not submit a form on a button's click.
