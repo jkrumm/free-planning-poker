@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help load check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
+.PHONY: help load check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta site-deploy indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover, and the beta host, where every push that touches lane app rolls out (deploy-next.yml).
@@ -7,7 +7,10 @@
 WEB_URL ?= https://free-planning-poker.com/
 SERVER_URL ?= https://server.free-planning-poker.com/health
 ANALYTICS_URL ?= https://analytics.free-planning-poker.com/health
-NEXT_URL ?= https://next.free-planning-poker.com/api/health
+NEXT_ORIGIN ?= https://next.free-planning-poker.com
+NEXT_URL ?= $(NEXT_ORIGIN)/api/health
+# The site's pages verify-next probes on the beta host: each answers 200 from the Worker with the noindex header.
+NEXT_SITE_PATHS ?= / /guide
 
 # Compose service whose logs `make logs` tails. v1's server by default; override for
 # another container, e.g. `make logs SERVICE=fpp-analytics`, or the beta host's: `make logs SERVICE=fpp-api`.
@@ -206,9 +209,25 @@ verify-production: ## Probe production health (v1: web + server + analytics)
 	@curl -fsS $(WEB_URL) >/dev/null
 	@echo "production healthy"
 
-verify-next: ## Probe the beta host (v9): /api/health answers 200
+verify-next: ## Probe the beta host (v9): /api/health answers 200; / and /guide answer 200 with X-Robots-Tag noindex
 	@curl -fsS $(NEXT_URL) >/dev/null
-	@echo "beta host healthy: $(NEXT_URL)"
+	@for path in $(NEXT_SITE_PATHS); do \
+		headers=$$(curl -sS -o /dev/null -D - "$(NEXT_ORIGIN)$$path") || exit 1; \
+		status=$$(printf '%s\n' "$$headers" | head -n1 | tr -d '\r'); \
+		case "$$status" in *" 200"*) ;; *) echo "==> $(NEXT_ORIGIN)$$path answered $$status, not 200"; exit 1;; esac; \
+		printf '%s\n' "$$headers" | grep -qi '^x-robots-tag: *noindex' || { echo "==> $(NEXT_ORIGIN)$$path has no X-Robots-Tag: noindex"; exit 1; }; \
+	done
+	@echo "beta host healthy: $(NEXT_URL), site $(NEXT_SITE_PATHS) noindex"
+
+# The site's deploy to the beta host (docs/shipping.md, Site): first the routes with no Worker for /room*, /_room/* and
+# /api/*, so those paths never reach the Worker, then the beta build as the Worker's static assets (apps/site/wrangler.jsonc).
+# CI runs it (deploy-site.yml) after make site, with CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID; a checkout has neither.
+SITE_HOST ?= next.free-planning-poker.com
+site-deploy: ## Deploy apps/site's beta build to the beta host (CI only: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID; after make site)
+	@test -n "$$CLOUDFLARE_API_TOKEN" && test -n "$$CLOUDFLARE_ACCOUNT_ID" || { echo "==> CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID unset: the site deploys from CI (deploy-site.yml)"; exit 2; }
+	@test -f apps/site/dist/beta/_headers || { echo "==> no beta build at apps/site/dist/beta: run make site first"; exit 2; }
+	@$(call step,routes with no Worker ($(SITE_HOST)),bun apps/site/scripts/edge-routes.ts --host $(SITE_HOST))
+	@$(call step,wrangler deploy (fpp-site-beta),cd apps/site && WRANGLER_SEND_METRICS=false node_modules/.bin/wrangler deploy)
 
 # The production URLs new or changed since the last deploy go to IndexNow (apps/site/scripts/indexnow.ts). The beta
 # target skips; DRY_RUN=1 prints the list and sends nothing.

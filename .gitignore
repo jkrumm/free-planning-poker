@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .astro/
+# wrangler's local state (apps/site).
+.wrangler/
 coverage/
 *.tsbuildinfo
 .DS_Store

@@ -1,6 +1,6 @@
 # apps/site
 
-The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on npm). Contract: `docs/v9/ARCHITECTURE.md` (Topology, Stack), `docs/v9/UX.md` (The marketing site, Languages), `docs/v9/research/r25-astro7-i18n.md`. The site is not deployed from here (`v9-edge-routing`).
+The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on npm). Contract: `docs/v9/ARCHITECTURE.md` (Topology, Stack), `docs/v9/UX.md` (The marketing site, Languages), `docs/v9/research/r25-astro7-i18n.md`. It runs on the beta host as a Worker with static assets and no Worker code, deployed by `deploy-site.yml` (`docs/shipping.md`, Site).
 
 ## Commands
 
@@ -28,11 +28,17 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 - **`/self-hosting`.** Its `<pre data-commands>` blocks are what `selfhost.yml` runs; no braces or `<` inside one.
 - **Blog.** `src/pages/blog/` builds `/blog` and `/blog/rss.xml` only while `sectionEntries('blog')` is non-empty; the footer links `/blog` on the same condition. The generic `[section]` route skips blog. `updated` is set by hand, when the body changes.
 
+## The edge
+
+- `wrangler.jsonc` deploys `dist/beta` as `fpp-site-beta` with no Worker code; `make site-deploy` runs only in CI. Adding Worker code (`main`, `run_worker_first`) makes every request it serves count against the free plan's 100,000 a day and drops `_headers` from its responses: set the headers in code then.
+- `_headers` is written per build by `src/integrations/headers.ts` from `src/lib/headers.ts`, not kept in `public`: beta sets `X-Robots-Tag: noindex` on every path, production none (`test/headers.site.test.ts`). The security headers copy the API route's; change both together.
+- `/room*`, `/_room/*` and `/api/*` never reach the Worker: `scripts/edge-routes.ts` keeps routes with no Worker for them.
+
 ## Crawl files
 
 - `src/lib/robots.ts`: the crawler list, each token's source and read date above it; re-read the vendor page when the list changes. Served as `robots.txt`; every group disallows `/room`, `/_room/`, `/api/`.
 - `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar.
-- IndexNow: `make indexnow` (`scripts/indexnow.ts`) sends the URLs whose sitemap entry is new or whose lastmod moved, skips on beta, and `DRY_RUN=1` lists them; the key file `public/<key>.txt` is committed because the protocol serves it publicly. `v9-edge-routing` calls it at the end of the deploy job.
+- IndexNow: `make indexnow` (`scripts/indexnow.ts`) sends the URLs whose sitemap entry is new or whose lastmod moved, skips on beta, and `DRY_RUN=1` lists them; the key file `public/<key>.txt` is committed because the protocol serves it publicly. `deploy-site.yml` calls it after the deploy.
 
 ## Structured data and social images
 

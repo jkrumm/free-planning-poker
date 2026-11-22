@@ -1,0 +1,59 @@
+name: Deploy site
+
+# Deploys apps/site to the beta host, https://next.free-planning-poker.com, as a Cloudflare Worker with static assets and
+# no Worker code (docs/shipping.md, Site): make site builds and tests both targets, make site-deploy keeps the routes with
+# no Worker for /room*, /_room/* and /api/* (they fall through to the tunnel and the API) and runs wrangler deploy, then
+# make indexnow (which skips on the beta target) and make verify-next. v1's site on Vercel is not touched.
+#
+# Auth: the repository secrets CLOUDFLARE_API_TOKEN (the token fpp-site-deploy: Workers Scripts edit on the account,
+# Workers Routes edit on the zone) and CLOUDFLARE_ACCOUNT_ID, seeded from 1Password (docs/shipping.md, Site).
+#
+# The paths are lane site of .github/lanes plus the root manifests the build installs from: a path filter cannot read
+# that file, so a change to the lane goes here too. No required check lives in this workflow, so a filter is safe.
+on:
+  push:
+    branches: [master]
+    paths:
+      - apps/site/**
+      - CHANGELOG.md
+      - bun.lock
+      - package.json
+      - bunfig.toml
+      - tsconfig.base.json
+      - .github/workflows/deploy-site.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Deploys queue and never cancel: a deploy in flight finishes, then the next one starts.
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy apps/site to the beta host
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      # wrangler wants Node 22.12 or newer; Astro itself runs on Bun.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - run: make site
+      - run: make site-deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - run: make indexnow
+        env:
+          FPP_SITE_TARGET: beta
+      - run: make verify-next

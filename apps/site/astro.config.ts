@@ -1,6 +1,7 @@
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import { defineConfig } from 'astro/config'
+import { edgeHeaders } from './src/integrations/headers.ts'
 import { socialImages } from './src/integrations/social-images.ts'
 import { readContentIndex, readPillarDate } from './src/lib/content-index.ts'
 import { siteOrigin } from './src/lib/site.ts'
@@ -11,7 +12,7 @@ import { resolveTarget } from './src/lib/target.ts'
 const target = resolveTarget(process.env.FPP_SITE_TARGET)
 
 export default defineConfig({
-  // Every build names production, so canonical links never point at the beta host (its noindex header is the edge's).
+  // Every build names production, so canonical links never point at the beta host (its noindex header is _headers').
   site: siteOrigin,
   output: 'static',
   outDir: process.env.FPP_SITE_OUT ?? `dist/${target}`,
@@ -25,6 +26,8 @@ export default defineConfig({
     mdx(),
     sitemap(sitemapOptions(target, readContentIndex(), readPillarDate())),
     socialImages(),
+    // _headers for Workers static assets: noindex on every path of the beta build only (docs/shipping.md, Site).
+    edgeHeaders(target),
   ],
   i18n: {
     locales: ['en', 'de', 'es', 'fr', 'zh'],
