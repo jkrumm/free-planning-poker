@@ -78,6 +78,7 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 | `bun install --frozen-lockfile` | the workspace; Bun pinned in `package.json` `packageManager` | after a pull |
 | `make check-fast` | format check, oxlint, `tsc`, boundaries, unit tests (`*.test.ts`; from `v9-room-core` on, 200 simulator seeds), the factory files | 60 s (`budgets.fast`), about 3 s on the mini; before every push and after every change you author |
 | `make check` | `check-fast`, the server tier (`*.server.test.ts`, each with its own Postgres), the build | CI runs it on every pull request; locally only to reproduce a CI failure, as `factory slot run -- make test-server` |
+| `make site` | the site's four builds and their tests | lane `site`; CI job `site` |
 | `make fmt` | oxfmt over the repo | when the format check fails |
 | `make lanes` | which CI lanes this branch touches | when a row adds a lane job |
 

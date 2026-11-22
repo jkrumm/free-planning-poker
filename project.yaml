@@ -14,6 +14,9 @@ checks: { fast: make check-fast, full: make check, ci: true }
 budgets:
   fast: 60s # docs/v9/ENGINEERING.md Targets: check-fast warm on the mini in 60 s at most, so leads run it before every push
 steps:
+  # The marketing site: builds production, beta and the fixture content with Astro on Bun, then tests the output (lane site in .github/lanes).
+  # Not remote yet: the step image is unproven for Astro 7; add remote: true once a run there is green.
+  site: { make: site }
   # The server tier: each test starts a private PostgreSQL cluster from PG_BIN_DIR (the step image has PostgreSQL 16; CI proves 18).
   # remote: true because it needs nothing the step image lacks: bun of packageManager and the PostgreSQL 16 binaries.
   test-server: { make: test-server, remote: true }

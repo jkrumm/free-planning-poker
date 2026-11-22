@@ -1,0 +1,68 @@
+---
+import { render } from 'astro:content'
+import type { GetStaticPaths } from 'astro'
+import Base from '../../layouts/base.astro'
+import { sectionEntries, sections } from '../../lib/entries.ts'
+import { strings } from '../../strings.en.ts'
+
+// One route file for every collection: /guides/x, /glossary/x, /vs/x, /blog/x, /docs/x. A section with nothing to
+// show in this build gets no index page either (an empty list is a thin page), and a draft has a route on beta only.
+export const getStaticPaths = (async () => {
+  const paths = []
+  for (const section of sections) {
+    const entries = await sectionEntries(section)
+    if (entries.length === 0) continue
+    paths.push({ params: { section, slug: undefined }, props: { section, entry: undefined, entries } })
+    for (const entry of entries) {
+      paths.push({ params: { section, slug: entry.id }, props: { section, entry, entries } })
+    }
+  }
+  return paths
+}) satisfies GetStaticPaths
+
+const { section, entry, entries } = Astro.props
+const Content = entry ? (await render(entry)).Content : undefined
+---
+
+{
+  entry && Content ? (
+    <Base title={entry.data.title} description={entry.data.description} draft={entry.data.draft}>
+      <article>
+        <h1>{entry.data.title}</h1>
+        <p>
+          <time datetime={entry.data.published.toISOString()}>{entry.data.published.toISOString().slice(0, 10)}</time>
+        </p>
+        <Content />
+        {
+          entry.data.questions.length > 0 && (
+            <section>
+              <h2>{strings.questionsHeading}</h2>
+              <dl>
+                {entry.data.questions.map((item) => (
+                  <>
+                    <dt>{item.question}</dt>
+                    <dd>{item.answer}</dd>
+                  </>
+                ))}
+              </dl>
+            </section>
+          )
+        }
+      </article>
+    </Base>
+  ) : (
+    <Base title={section} description={`${section}: every published page of Free Planning Poker.`}>
+      <h1>{section}</h1>
+      <ul>
+        {
+          entries.map((item) => (
+            <li>
+              <a href={`/${section}/${item.id}`}>{item.data.title}</a>
+              {item.data.draft && ` (${strings.draftLine})`}
+            </li>
+          ))
+        }
+      </ul>
+    </Base>
+  )
+}

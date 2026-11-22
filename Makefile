@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build factory-files bun-version lanes deploy verify logs
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run factory-files bun-version lanes deploy verify logs
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover. Overridable so `verify` can be pointed at another host.
@@ -23,6 +23,9 @@ slot = $(if $(shell command -v factory 2>/dev/null),factory slot run --name "fre
 # Server-tier tests start Postgres and run in `make check` only.
 SERVER_TESTS = **/*.server.test.ts
 
+# Site tests read the built output, so they run in `make site` only.
+SITE_TESTS = **/*.site.test.ts
+
 help: ## List available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -33,7 +36,7 @@ check-fast: ## Before every push: format, lint, types, boundaries, unit tests, f
 	@$(call step,lint (oxlint),bunx --no-install oxlint --deny-warnings)
 	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json)
 	@$(call step,boundaries (scripts/boundaries.ts),bun scripts/boundaries.ts)
-	@$(call step,unit tests (bun test),bun test $(call JUNIT,unit) --path-ignore-patterns='$(SERVER_TESTS)')
+	@$(call step,unit tests (bun test),bun test $(call JUNIT,unit) --path-ignore-patterns='$(SERVER_TESTS)' --path-ignore-patterns='$(SITE_TESTS)')
 	@$(MAKE) --no-print-directory factory-files
 	@echo "==> check-fast passed"
 
@@ -50,6 +53,15 @@ test-server: ## Server-tier tests: each starts its own Postgres from PG_BIN_DIR
 
 build: ## Build the API bundle
 	@bun run --filter '@fpp/api' build
+
+# The marketing site (lane site): both targets plus the fixture content, then the tests over the built output.
+site: ## Build apps/site for production and beta, then test the output (lane site)
+	@$(call step,site,$(call slot,site) $(MAKE) --no-print-directory site-run)
+	@echo "==> site passed"
+
+site-run:
+	@$(call step,site build (production, beta, fixtures),ASTRO_TELEMETRY_DISABLED=1 bun run --filter '@fpp/site' build)
+	@$(call step,site tests,bun test apps/site $(call JUNIT,site))
 
 # The plan and the project file must parse; skipped where the factory CLI is not installed (CI).
 factory-files:
