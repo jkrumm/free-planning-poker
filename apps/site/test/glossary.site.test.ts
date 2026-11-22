@@ -93,7 +93,7 @@ describe('beta build: every term, drafts included', () => {
     expect(html).toMatch(/<nav aria-label="Related terms">[\s\S]*<a href="\/glossary\//)
   })
 
-  test('the pillar guide links the terms where they first appear', async () => {
+  test('the pillar guide links its terms in a list below the text', async () => {
     const guide = await readText(root, 'guide.html')
     for (const id of [
       'planning-poker',

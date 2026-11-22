@@ -47,7 +47,7 @@ Structured data and social tags go into the `structured-data` and `social` slots
 
 ## The guides
 
-`src/content/pillar/guide.md` is the one entry of the `pillar` collection, read through `pillarEntry`; `guide.astro` keeps v1's anchor `master-the-art-of-planning-poker`. Cluster pages are drafts, `src/content/guides/<slug>.md` at `/guides/<slug>`; the slugs are `guideClusters` (`src/lib/entry-schema.ts`), and renaming one loses links. Pages link each other through `visibleEntry`, never in a Markdown body. A cluster page asks its question in the title, follows `docs/v9/UX.md` for the room and dates a source per method claim.
+`src/content/pillar/guide.md` is the one entry of the `pillar` collection, read through `pillarEntry`; `guide.astro` keeps v1's anchor `master-the-art-of-planning-poker`. Cluster pages are drafts, `src/content/guides/<slug>.md` at `/guides/<slug>`; the slugs are `guideClusters`, and renaming one loses links. Pages link each other through `visibleEntry`, never in a Markdown body; `guide.astro` lists the glossary terms under the text. A cluster page asks its question in the title, follows `docs/v9/UX.md` and dates its sources.
 
 ## Left out of v1's pages on purpose
 
