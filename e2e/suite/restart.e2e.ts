@@ -30,8 +30,8 @@ test('the API container is replaced mid-round: every seat resumes and the reveal
   const make = (target: string) =>
     run('make', ['-C', ROOT, '--no-print-directory', target], { env })
 
-  await test.step('start a stack of its own', () => make('v9-up'))
   try {
+    await test.step('start a stack of its own', () => make('v9-up'))
     const { seats } = await room(3, { baseURL })
     const [a, b, c] = seats
     if (a === undefined || b === undefined || c === undefined) throw new Error('three seats')
