@@ -84,6 +84,32 @@ export function parseAccessCode(input: unknown): AccessCode | undefined {
   return length >= 2 && length <= 32 && !CONTROL.test(code) ? (code as AccessCode) : undefined
 }
 
+/**
+ * The characters of a generated password: digits and lower-case letters without 0, 1, i, l and o, which are read as
+ * one another (docs/v9/ARCHITECTURE.md, Room model: the lock). Passwords compare case-folded, so upper case adds nothing.
+ */
+export const ACCESS_CODE_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz'
+
+/** A generated password has this many characters, about 30 bits. */
+export const ACCESS_CODE_LENGTH = 6
+
+/**
+ * A password drawn from `ACCESS_CODE_ALPHABET`. `bytes` is the caller's source of random bytes (the id port); a byte
+ * at or above the largest multiple of the alphabet's length is drawn again, so every character is equally likely.
+ */
+export function generateAccessCode(bytes: (n: number) => Uint8Array): AccessCode {
+  const size = ACCESS_CODE_ALPHABET.length
+  const limit = 256 - (256 % size)
+  let code = ''
+  while (code.length < ACCESS_CODE_LENGTH) {
+    for (const byte of bytes(ACCESS_CODE_LENGTH)) {
+      if (byte >= limit || code.length === ACCESS_CODE_LENGTH) continue
+      code += ACCESS_CODE_ALPHABET[byte % size]
+    }
+  }
+  return code as AccessCode
+}
+
 const fold = (code: string) => code.normalize('NFKC').toLowerCase()
 
 /**

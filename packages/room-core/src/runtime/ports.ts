@@ -8,8 +8,10 @@ import type {
   DecidedResult,
   NackReason,
   RevealedResult,
+  RoomInfo,
   ServerFrame,
   Settings,
+  Topic,
 } from '../protocol/types.ts'
 import type { RoundRecord } from '../state.ts'
 import type { AccessCode, SeatIndex, Slug } from '../values.ts'
@@ -64,6 +66,19 @@ export type ColdRoom = {
   readonly code: AccessCode | null
   readonly settings: Settings
   readonly accessEpoch: number
+  /**
+   * The room's open topics (queued or active) in queue order, as history kept them; none for a room that never had
+   * a live snapshot written through. A cold start resumes this queue.
+   */
+  readonly topics?: readonly Topic[]
+  /** Rounds history holds: the room's highest round number, and the rounds of the active topic. */
+  readonly rounds?: RoundCounters
+}
+
+/** Where a cold room's numbering continues, so a new round never repeats a stored number or attempt. */
+export type RoundCounters = {
+  readonly no: number
+  readonly attempt: number
 }
 
 export type RoomClaim =
@@ -90,6 +105,18 @@ export type RoomStore = {
 }
 
 export type History = {
+  /**
+   * The room's row and its queue as they are now: after every `room.*` or `topic.*` event, after an access epoch
+   * change and when the room starts. Topics are in queue order; a topic missing from an earlier call was removed.
+   */
+  readonly room: (
+    room: RoomKey,
+    entry: {
+      readonly room: RoomInfo
+      readonly accessEpoch: number
+      readonly topics: readonly Topic[]
+    },
+  ) => Promise<void> | void
   /** A revealed round with its votes, by seat index. */
   readonly round: (
     room: RoomKey,
