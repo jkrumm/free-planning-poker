@@ -195,6 +195,7 @@ test('a refused password and a refused name say different things; an unknown pag
   expect(ann.byId('access-outcome').dataset['outcome']).toBe('invalid-name')
   await ann.navigate('/room/a/b/c')
   expect(ann.byId('back-to-rooms')).toBeDefined()
+  expect(document.title).toBe('This page does not exist')
   await ann.unmount()
 })
 
