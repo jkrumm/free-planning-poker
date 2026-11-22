@@ -390,6 +390,9 @@ try {
   console.error(error instanceof Error ? error.message : error)
   const logs = await compose('logs', '--no-color', '--tail', '40', 'api', 'proxy')
   console.error(logs.out)
+  console.error(
+    (await run(['docker', 'run', '--rm', '--entrypoint', 'ls', image, '-laR', '/app/drizzle'])).out,
+  )
 } finally {
   await stop()
 }
