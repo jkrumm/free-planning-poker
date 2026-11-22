@@ -1894,8 +1894,6 @@ rows:
     prio: 1
     seat: {role: lead}
     repo: vps
-    after: [v9-edge-routing]
-    after_needs: shipped
     facts:
       why: |-
         The rewrite of Free Planning Poker (free-planning-poker docs/v9/ARCHITECTURE.md section Topology, row /api/u/*, and section Measurement) serves Umami's tracker script and its collect endpoint on its own origin, so the browser contacts no second host. The hop in front of Umami must hand it the visitor's address, or every visitor with the same browser merges into one session (free-planning-poker docs/v9/research/r16-umami-tracker-import.md, section Server env vars and first-party serving). On next.free-planning-poker.com the paths /api/* already reach Traefik through the tunnel (free-planning-poker row v9-edge-routing).
