@@ -66,14 +66,23 @@ const NAMED =
 const COLOUR_PATTERNS: readonly [RegExp, string][] = [
   [/#[0-9a-fA-F]{3,8}\b/g, 'hex colour'],
   [/\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/g, 'colour function'],
-  // A named colour as a CSS value (after a colon) or as a whole string literal.
-  [new RegExp(`:\\s*(${NAMED})\\b|['"\`](${NAMED})['"\`]`, 'gi'), 'named colour'],
 ]
+/** A named colour as a whole word: not part of a class name, a variable or an identifier. */
+const NAMED_WORD = new RegExp(`(?<![-\\w.#$@])(${NAMED})(?![-\\w])`, 'gi')
+/** Where a named colour is a colour: a CSS declaration's value, or a string in code (a style object, a class string). */
+const CSS_VALUE = /:([^;{}]*)/g
+const STRING = /'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`/g
+/** What a stylesheet loads: `@import`, `composes ... from` and `url()`. */
+const CSS_REFERENCE =
+  /@import\s+(?:url\(\s*)?['"]?([^'")\s;]+)|composes:[^;]*?from\s+['"]([^'"]+)['"]|url\(\s*['"]?([^'")\s]+)['"]?\s*\)/g
+const CODE_REFERENCE = /(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g
 
 const stripComments = (source: string) =>
   source
     .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '))
     .replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1')
+
+const lineAt = (source: string, offset: number) => source.slice(0, offset).split('\n').length
 
 const SOURCE = /\.(tsx?|css|svg|html)$/
 const files = [...new Bun.Glob('**/*').scanSync({ cwd: dir })]
@@ -86,26 +95,40 @@ const leaks: { file: string; line: number; specifier: string; why: string }[] = 
 const FORBIDDEN =
   /^@fpp\/(room-client|telemetry|api|room|site|arena|e2e)(\/|$)|^@fpp\/room-core\/(server|sim|protocol)$/
 
+const isRelative = (specifier: string) => specifier.startsWith('./') || specifier.startsWith('../')
+
+/** A relative reference that resolves outside the entry's directory. */
+function leaves(file: string, specifier: string): boolean {
+  const inside = relative(dir, resolve(dirname(join(dir, file)), specifier))
+  return inside === '..' || inside.startsWith(`..${sep}`)
+}
+
 for (const file of files) {
   const source = stripComments(readFileSync(join(dir, file), 'utf8'))
-  const lines = source.split('\n')
-  lines.forEach((text, number) => {
-    for (const [pattern, kind] of COLOUR_PATTERNS) {
-      // A hex-looking token inside an id or a url is still a colour to a browser only in CSS; keep it simple and strict.
+  const isCss = file.endsWith('.css')
+  source.split('\n').forEach((text, number) => {
+    for (const [pattern, kind] of COLOUR_PATTERNS)
       for (const match of text.matchAll(pattern))
         colours.push({ file, line: number + 1, text: match[0], kind })
-    }
   })
-  if (!/\.(tsx?)$/.test(file)) continue
-  for (const match of source.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
-    const specifier = match[1]!
-    const line = source.slice(0, match.index).split('\n').length
-    if (specifier.startsWith('.')) {
-      const target = resolve(dirname(join(dir, file)), specifier)
-      const inside = relative(dir, target)
-      if (inside === '..' || inside.startsWith(`..${sep}`))
+  for (const region of source.matchAll(isCss ? CSS_VALUE : STRING))
+    for (const match of region[0].matchAll(NAMED_WORD))
+      colours.push({
+        file,
+        line: lineAt(source, region.index),
+        text: match[0],
+        kind: 'named colour',
+      })
+
+  const references = isCss ? CSS_REFERENCE : /\.(tsx?)$/.test(file) ? CODE_REFERENCE : null
+  if (references === null) continue
+  for (const match of source.matchAll(references)) {
+    const specifier = match[1] ?? match[2] ?? match[3] ?? ''
+    const line = lineAt(source, match.index)
+    if (isRelative(specifier) || specifier === '..') {
+      if (leaves(file, specifier))
         leaks.push({ file, line, specifier, why: 'reaches outside the entry directory' })
-    } else if (FORBIDDEN.test(specifier))
+    } else if (!isCss && FORBIDDEN.test(specifier))
       leaks.push({ file, line, specifier, why: 'not part of the table contract' })
   }
 }
