@@ -20,6 +20,10 @@ describe('production sitemap', () => {
       (url) => new URL(url.loc).pathname,
     )
     expect(locs).toContain('/guide')
+    const guide = urlsOf(await readText(root, 'sitemap-0.xml')).find((url) =>
+      url.loc.endsWith('/guide'),
+    )
+    expect(guide?.lastmod).toBe('2026-11-22T00:00:00.000Z')
     expect(locs.filter((path) => /^\/(?:room|_room|api)(?:\/|$)/.test(path))).toEqual([])
   })
 })
