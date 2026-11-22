@@ -3,6 +3,7 @@
   "include": [
     "apps/*/src",
     "apps/*/scripts",
+    "apps/api/test",
     "apps/site/test",
     "packages/*/src",
     "packages/*/test",

@@ -27,7 +27,13 @@ type Table = { modules: Module[]; classes: Record<ClassName, string[]> }
 type Import = { specifier: string; typeOnly: boolean }
 
 /** Where Effect may be imported (docs/v9/ARCHITECTURE.md, Repo map). */
-const EFFECT_ALLOWED = ['apps/api/src/app/', 'apps/api/src/db/', 'apps/api/src/jobs/']
+const EFFECT_ALLOWED = [
+  'apps/api/src/app/',
+  'apps/api/src/db/',
+  'apps/api/src/jobs/',
+  // The bake-off's Effect candidate (v9-api-ws); it leaves the tree with the losing adapters.
+  'apps/api/src/ws/effect.transport.ts',
+]
 const EFFECT = /^(effect|@effect\/[^/]+)(\/|$)/
 const EFFECT_UNSTABLE = /^effect\/unstable(\/|$)/
 
