@@ -108,8 +108,6 @@ rows:
     kind: docs
     prio: 1
     seat: {tier: opus, effort: high}
-    after: [v9-foundation]
-    after_needs: shipped
     facts:
       why: |-
         The owner ruled on 2026-11-20 that the setup for agents and the factory must be thorough before any feature is built, and improved along the way. Every later row is built by a lead that starts cold and knows only what AGENTS.md, the rules and its facts tell it. v9-foundation wrote a short AGENTS.md beside the tooling; this row makes the setup complete and proves that a cold agent can work from it. An opus seat because every later lead inherits what is written here. The contract for the files is ~/SourceRoot/dotfiles/docs/agents-md.md and rules/writing-for-agents.md there; the content comes from docs/v9/ENGINEERING.md (all sections) and docs/v9/ARCHITECTURE.md (Invariants, Repo map, How a change happens).
