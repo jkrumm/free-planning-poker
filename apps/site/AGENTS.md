@@ -20,9 +20,10 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 - **`compressHTML: true`**: Astro 7's default `jsx` removes white space between text and an inline element (`a<b>b</b>`); `test/whitespace.site.test.ts` fails on it.
 - **Astro 7**: Vite 8, Sätteri as the Markdown pipeline with no remark or rehype plugin (one needs `@astrojs/markdown-remark` with `unified()`; prefer none), collections only as the Content Layer in `src/content.config.ts`, `src/fetch.ts` reserved (unused).
 - **Languages.** `astro.config.ts` sets both routing flags to false and no `i18n.fallback`: a fallback would build a thin duplicate page in every language. A translated page is added whole, as `src/pages/<locale>/...`, by its own row; nothing redirects by browser language. `test/i18n.site.test.ts` holds this.
-- **Zero JavaScript.** `test/scripts.site.test.ts` fails on any executable script, inline handler or emitted `.js` in any output unless `test/script-allowlist.ts` lists it with a reason. It is empty; the row that adds a script adds its entry.
+- **Zero JavaScript.** `test/scripts.site.test.ts` fails on any executable script, inline handler or emitted `.js` in any output unless `test/script-allowlist.ts` lists it with a reason. It lists one script, the contact form's (`src/scripts/contact-form.ts`, which Astro inlines into `contact.html`); `legal.site.test.ts` fails if another page carries one. The row that adds a script adds its entry.
 - **Links and budgets.** Every internal link and anchor must resolve (`/room*`, `/_room/*`, `/api/*` belong to other apps); a page is at most 12 kB gzip.
 - **Strings.** Navigation and footer text is in `src/strings.en.ts`; page bodies are content in the `.astro` files.
+- **Legal pages.** Every figure `/privacy` prints is a fact in `src/lib/privacy-facts.ts`, backed by a constant in `apps/api/src/db/holds.ts` or a quoted sentence of `docs/v9/ARCHITECTURE.md`; `privacy-facts.test.ts` fails when either moves, so change the page's number there, not in the page. `/imprint` is v1's text (`test/fixtures/v1-imprint.ts`) and publishes no address or e-mail on purpose. The contact form's limits are v1's (`src/lib/contact.ts`); it posts to `POST /api/contact`, whose answers (`v9-api-contact`: 400, 429, 503, 502) `answerFor` maps to four messages.
 
 ## Where the later rows plug in
 
@@ -30,4 +31,4 @@ Structured data and social tags go into the `structured-data` and `social` slots
 
 ## Left out of v1's pages on purpose
 
-The room form and screenshots of `/` (no JavaScript, no images yet), the Todoist-backed board of `/roadmap`, the figures of `/analytics` (v1's invented fallbacks are not ported), the contact form (`v9-site-legal`), the release tag in the footer (a link to the releases instead), and the icon and manifest links.
+The room form and screenshots of `/` (no JavaScript, no images yet), the Todoist-backed board of `/roadmap`, the figures of `/analytics` (v1's invented fallbacks are not ported), the release tag in the footer (a link to the releases instead), and the icon and manifest links.

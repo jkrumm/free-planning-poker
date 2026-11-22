@@ -1,10 +1,11 @@
 ---
 import Base from '../layouts/base.astro'
+import { contactEndpoint, contactLimits as limit } from '../lib/contact.ts'
 ---
 
 <Base
   title="Contact"
-  description="Questions, suggestions or feedback about Free Planning Poker: how to reach the maintainer."
+  description="Questions, suggestions or feedback about Free Planning Poker: write to the maintainer with this form or open an issue on GitHub."
 >
   <h1>Contact</h1>
   <p>Do you have any questions, suggestions, or feedback? I would love to hear from you!</p>
@@ -17,4 +18,63 @@ import Base from '../layouts/base.astro'
       Create GitHub Issue
     </a>
   </p>
+  <form method="post" action={contactEndpoint} data-contact>
+    <p>
+      <label for="contact-name">Name</label>
+      <input
+        id="contact-name"
+        name="name"
+        type="text"
+        placeholder="Your name"
+        autocomplete="name"
+        maxlength={limit.name.max}
+      />
+    </p>
+    <p>
+      <label for="contact-email">Email</label>
+      <input
+        id="contact-email"
+        name="email"
+        type="email"
+        placeholder="Your email"
+        autocomplete="email"
+        required
+        maxlength={limit.email.max}
+      />
+    </p>
+    <p>
+      <label for="contact-subject">Subject</label>
+      <input
+        id="contact-subject"
+        name="subject"
+        type="text"
+        placeholder="Subject"
+        required
+        minlength={limit.subject.min}
+        maxlength={limit.subject.max}
+      />
+    </p>
+    <p>
+      <label for="contact-message">Message</label>
+      <textarea
+        id="contact-message"
+        name="message"
+        rows="6"
+        placeholder="Your message"
+        maxlength={limit.message.max}></textarea>
+    </p>
+    <p><button type="submit">Send message</button></p>
+    <p
+      role="status"
+      data-contact-status
+      data-sending="Sending your message…"
+      data-sent="Email sent. Thank you for your message, I will get back to you as soon as possible."
+      data-invalid="Email not sent: please check the fields and try again."
+      data-busy="Email not sent: too many messages in a short time. Please try again in a few minutes."
+      data-unavailable="Email not sent: something went wrong, please try again later. You can also create an issue on GitHub (link above)."
+    >
+    </p>
+  </form>
+  <p>What the form sends, and to whom, is described on the <a href="/privacy#contact-form">privacy page</a>.</p>
+  <script src="../scripts/contact-form.ts"></script>
 </Base>

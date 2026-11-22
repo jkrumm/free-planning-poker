@@ -1,0 +1,209 @@
+---
+import Base from '../layouts/base.astro'
+import { privacyFacts as f } from '../lib/privacy-facts.ts'
+---
+
+<Base
+  title="Privacy"
+  description="What Free Planning Poker stores about your team, what it measures and how, how long everything is kept, and how to have it deleted."
+>
+  <h1>Privacy</h1>
+  <p>
+    This page says in plain words what Free Planning Poker stores, what it measures and for how long. There is no
+    account, no cookie and no consent banner. The full source code is on
+    <a href="https://github.com/jkrumm/free-planning-poker" target="_blank" rel="noopener noreferrer">GitHub</a>, so
+    every claim here can be checked.
+  </p>
+  <p><small>Last updated: 22 November 2026</small></p>
+
+  <section id="summary">
+    <h2>In short</h2>
+    <ul>
+      <li>A room keeps what a team estimated, not who estimated it. History names a seat by its number, never by name.</li>
+      <li>Nothing is written to your device by our measurement. No cookie, no identifier from us.</li>
+      <li>No advertising, no third-party trackers, no external analytics service.</li>
+      <li>Visitors are counted with a keyed hash of an anonymous device id and a date, and that is deleted after {f.visitorRetention.words}.</li>
+    </ul>
+  </section>
+
+  <section id="who">
+    <h2>Who runs the service</h2>
+    <p>
+      The person named in the <a href="/imprint">imprint</a> runs Free Planning Poker and is responsible for the data
+      described here. The fastest way to reach them about privacy is the <a href="/contact">contact form</a>.
+    </p>
+  </section>
+
+  <section id="rooms">
+    <h2>What a room stores</h2>
+    <ul>
+      <li>
+        <strong>The room.</strong> Its settings, its display name, its topics (the titles and links you type or
+        import, with a tracker reference if you import one), and its rounds with their results: the cards each seat
+        played, the spread and the agreed value. Rounds and results are kept; no job deletes them by age.
+      </li>
+      <li>
+        <strong>No names in history.</strong> History records a vote under the seat's number at the table. Who sat
+        there is known only to the live state.
+      </li>
+      <li>
+        <strong>The live state.</strong> Who sits where, their display names and the votes not yet revealed are kept
+        so a room survives a reconnect or a restart. They expire {f.snapshotTtl.words} after the room's last event.
+        A vote leaves the server only after the reveal; before it, only its own seat sees it.
+      </li>
+      <li>
+        <strong>The address.</strong> A room is reached by a number, and by a name if its team books one. A number is
+        held for {f.numberHold.words} after the room's last visit and a booked name for {f.nameHold.words}; every
+        visit renews the hold. After that the address can go to another room. The room's rows stay.
+      </li>
+      <li>
+        <strong>The access code of a locked room</strong> is stored readable and shown to every seat. It keeps
+        strangers out; it is not a secret between the people in the room. Do not reuse a password for it.
+      </li>
+      <li>
+        <strong>Guessing the code</strong> is slowed down: after {f.accessAttempts.words}, further attempts are
+        refused for a minute.
+      </li>
+    </ul>
+  </section>
+
+  <section id="counting">
+    <h2>Counting visitors</h2>
+    <p>
+      To know how many people use the tool, the server writes one row per device and day on which that device cast a
+      vote. The row holds a date and a keyed hash of the anonymous device id your browser made up. The key is a
+      secret on our server, so a copy of the database cannot be matched to a browser. Rows are deleted after
+      {f.visitorRetention.words}. The same tables feed the public statistics.
+    </p>
+  </section>
+
+  <section id="measurement">
+    <h2>What is measured</h2>
+    <p>
+      We run Umami, an analytics tool, on our own server. Its script is loaded from our own address under
+      <code>/api/u</code>, so your browser contacts no other host for it.
+    </p>
+    <ul>
+      <li><strong>No cookie, nothing stored on your device,</strong> and no identifier from us. Your device id is not given to it.</li>
+      <li>
+        <strong>What it receives</strong> for each page view: the page path, the referring page, the page title, your
+        screen size and your browser language. Your IP address is used in memory to derive a coarse location and an
+        anonymous session value; it is not stored.
+      </li>
+      <li>
+        <strong>Room addresses are rewritten</strong> to <code>/room/:slug</code>, and query strings and fragments are
+        dropped, so neither a room name nor an access code reaches it.
+      </li>
+      <li>
+        <strong>Actions it counts:</strong> the landing page button, a room created, a room joined (with a size
+        bucket of the table), an invite link copied, the first vote cast in a room, a round revealed (with a bucket
+        of votes and whether the team agreed), a topic decided (and how), a room locked, a summary exported, the
+        app installed and an embedded room loaded. These never carry a vote value, a display name or a room address.
+      </li>
+      <li>
+        <strong>Its session</strong> rotates {f.umamiSession.words}: someone who comes back after the month is a new
+        session to it.
+      </li>
+    </ul>
+    <p>
+      <strong>Why there is no banner.</strong> The measurement sets no cookie, keeps nothing on your device and builds
+      no profile of you, so we run it without asking. That is our reading of the law; some data-protection
+      authorities read it more strictly, because the script reads screen size and language from your browser. If you
+      would rather not be counted, block requests to <code>/api/u</code> in your browser; the app works the same
+      without it, and no product number depends on it.
+    </p>
+    <p>
+      <strong>Error reports.</strong> The pages report uncaught errors and changes of the room connection (such as
+      reconnecting) to our own server, with a random session id kept in memory for {f.errorSession.words}. They carry
+      no vote, display name, room name, topic title, tracker key or access code. There is no screen recording and no
+      measurement of how fast the page was for you.
+    </p>
+  </section>
+
+  <section id="device">
+    <h2>What stays on your device</h2>
+    <p>
+      Your browser's local storage holds the following, all under keys that start with <code>fpp:v9:</code>. Nothing
+      is a cookie, and none of it is sent anywhere except what a room needs to seat you.
+    </p>
+    <ul>
+      <li><code>profile</code>: your name and avatar.</li>
+      <li><code>prefs</code>: sound, calm mode, view, theme and language.</li>
+      <li><code>seat:&lt;room&gt;</code>: the secret that proves your seat in that room.</li>
+      <li>
+        <code>recent</code>: the rooms you visited, with address, display name, creation time, the access code of a
+        locked room, and whether it is pinned. You can remove each one; an unpinned one is dropped after
+        {f.recentDropped.words} without a visit.
+      </li>
+      <li><code>device</code>: the anonymous device id behind the count above.</li>
+      <li><code>stats</code>: your personal record, which stays on the device.</li>
+    </ul>
+    <p>
+      On your first visit after the move from the earlier version, its stored name, preferences, recent room and
+      device id are read once and copied into these keys. Clearing your browser's site data removes all of it; you
+      lose your seats and your recent rooms with it.
+    </p>
+  </section>
+
+  <section id="contact-form">
+    <h2>The contact form</h2>
+    <p>
+      The form sends the email address you type, a subject, and your name and message if you add them, to our server.
+      Our own email service in Germany receives it and passes it to our inbox through Resend (Resend, Inc., USA),
+      which acts as our processor under a data processing agreement and the EU standard contractual clauses. We use
+      it only to answer you. We do not store messages in the application's database and never use them for marketing.
+      <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Resend privacy policy</a>.
+    </p>
+  </section>
+
+  <section id="hosting">
+    <h2>Who handles your requests</h2>
+    <ul>
+      <li>
+        <strong>Cloudflare</strong> serves the marketing pages and sits in front of the whole site, so it sees the
+        technical data of every request, such as your IP address and the address you ask for, as any host does.
+      </li>
+      <li>
+        <strong>Our own server</strong> in Nuremberg, Germany runs the room, the API, the database, the measurement and
+        the error reports. All transfers are encrypted. No third-party analytics or monitoring service is involved.
+      </li>
+    </ul>
+  </section>
+
+  <section id="basis">
+    <h2>Legal basis</h2>
+    <p>
+      Running the service, counting visitors and measuring use rest on our legitimate interest in understanding and
+      improving the tool and keeping it secure and reliable (Art. 6(1)(f) GDPR). The data is minimal and does not
+      identify you directly. The contact form rests on taking steps at your request and answering your enquiry
+      (Art. 6(1)(b) and (f) GDPR).
+    </p>
+  </section>
+
+  <section id="deletion">
+    <h2>Having something deleted</h2>
+    <p>
+      Ask through the <a href="/contact">contact form</a>. By hand we can delete a room: send its address, and its
+      topics, rounds and votes go with it. We can delete the counting rows of a device if you send us the value stored
+      under <code>fpp:v9:device</code> in your browser, because with it we can compute the hash. We cannot tie a
+      vote or a seat to a person: names exist only in the live state, which expires on its own.
+    </p>
+  </section>
+
+  <section id="rights">
+    <h2>Your rights</h2>
+    <p>
+      Under the GDPR you have the right to access your data, to have it rectified or erased, to restrict or object to
+      its processing, and to data portability, as well as the right to withdraw any consent you have given. Because we
+      keep nothing that identifies a person directly, we may be unable to find data about you without help from you;
+      we act on every genuine request.
+    </p>
+    <p>
+      You may also lodge a complaint with a data protection supervisory authority. The one responsible for us is the
+      Bavarian State Office for Data Protection Supervision (Bayerisches Landesamt für Datenschutzaufsicht, BayLDA),
+      Ansbach, Germany,
+      <a href="https://www.lda.bayern.de" target="_blank" rel="noopener noreferrer">www.lda.bayern.de</a>. You can
+      also contact the authority of your habitual residence.
+    </p>
+  </section>
+</Base>
