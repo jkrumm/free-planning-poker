@@ -35,12 +35,14 @@ const exec = (command: string, args: readonly string[]): Promise<number> =>
   })
 const make = (target: string) => exec('make', ['--no-print-directory', target])
 
-let down = false
-const cleanup = async () => {
-  if (down) return
-  down = true
-  await make('v9-down')
-  if (build) await exec('docker', ['image', 'rm', '--force', image])
+// One cleanup, awaited by whoever asks first: a signal during the run and the end of the run share it.
+let cleaning: Promise<void> | undefined
+const cleanup = () => {
+  cleaning ??= (async () => {
+    await make('v9-down')
+    if (build) await exec('docker', ['image', 'rm', '--force', image])
+  })()
+  return cleaning
 }
 for (const signal of ['SIGINT', 'SIGTERM'] as const)
   process.on(signal, () => void cleanup().then(() => process.exit(130)))

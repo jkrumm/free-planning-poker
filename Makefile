@@ -128,7 +128,7 @@ arena-score: ## Score one table entry: make arena-score ENTRY=<name> (writes are
 # the image, starts its own stack on a port the system picks, runs Playwright in the bundled headless shell and removes the
 # stack; arguments go to Playwright: make e2e E2E_ARGS='--grep "reload"'. CI starts it with E2E_NO_BUILD and the loaded image.
 E2E_ARGS ?=
-e2e: ## End-to-end suite against a stack of its own, in a slot (about 4 min; ARGS to Playwright: E2E_ARGS='--grep reload')
+e2e: ## End-to-end suite against a stack of its own, in a slot (about 20 s of tests plus the image build; E2E_ARGS to Playwright)
 	@$(call step,e2e browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium >/dev/null)
 	@$(call step,e2e suite (stack + playwright),$(call slot,e2e) bun e2e/suite/run.ts $(E2E_ARGS))
 
