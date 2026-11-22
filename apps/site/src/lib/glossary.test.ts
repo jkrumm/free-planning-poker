@@ -72,9 +72,11 @@ test.each(terms)('$id: related terms exist, are not itself and are not repeated'
   }
 })
 
-test('every term of the guide links is a term of the glossary', () => {
+test('every term the pillar guide lists is a term of the glossary', () => {
+  // The pillar is Markdown, which carries no component: guide.astro lists the terms under the text.
   const guide = readFileSync(join(import.meta.dir, '..', 'pages', 'guide.astro'), 'utf8')
+  const listed = /const terms = \[([^\]]*)\]/.exec(guide)?.[1]
+  expect(listed).toBeDefined()
   const ids = terms.map((term) => term.id)
-  for (const match of guide.matchAll(/<TermLink id="([^"]+)"/g))
-    expect(ids).toContain(match[1] ?? '')
+  for (const match of (listed ?? '').matchAll(/'([^']+)'/g)) expect(ids).toContain(match[1] ?? '')
 })
