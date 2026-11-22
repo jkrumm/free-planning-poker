@@ -77,3 +77,31 @@ test('the upstream variables reach their own route: contact to the gateway, feed
     await door.stop()
   }
 })
+
+test('behind the edge the limits count the clients the edge names, through the composed API', async () => {
+  const door = await startUpstream(await freePort())
+  const origin = 'https://next.free-planning-poker.com'
+  const api = await compose({
+    PORT: String(await freePort()),
+    ALLOWED_ORIGINS: origin,
+    CLIENT_IP_HEADER: 'CF-Connecting-IP',
+    FACTORY_FEEDBACK_URL: door.url,
+    FACTORY_FEEDBACK_TOKEN: 'door-token',
+  })
+  const server = await serveBun({ ...api.options, hostname: '127.0.0.1' })
+  const send = (address: string) =>
+    fetch(`http://127.0.0.1:${server.port}/api/feedback`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin, 'cf-connecting-ip': address },
+      body: JSON.stringify({ title: 'A title', version: '9', route: '/' }),
+    })
+  try {
+    for (let sent = 0; sent < 3; sent++) expect((await send('203.0.113.1')).status).toBe(200)
+    expect((await send('203.0.113.1')).status).toBe(429)
+    expect((await send('203.0.113.2')).status).toBe(200)
+  } finally {
+    await server.stop()
+    await api.close()
+    await door.stop()
+  }
+})
