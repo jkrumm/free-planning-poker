@@ -9,13 +9,14 @@ The dependency arrows point down this table only. `boundaries.toml` holds the sa
 | Path | Package | Class | Holds | May import |
 |-|-|-|-|-|
 | `apps/site` | `@fpp/site` | shell at its entry | Astro marketing site | table, room-core, telemetry |
-| `apps/room` | `@fpp/room` | shell at `src/main.tsx` | Vite SPA: the room | table, room-client, room-core, telemetry |
+| `apps/room` | `@fpp/room` | shell at `src/main.tsx` | Vite SPA: the room | table, room-client, room-core, telemetry, i18n |
 | `apps/api` | `@fpp/api` | shell at `src/main.ts`; `src/ws`, `db`, `app`, `jobs` adapter | Elysia HTTP API, WebSocket room server, Postgres, jobs | room-core, telemetry |
 | `apps/arena` | `@fpp/arena` | | the table arena's gallery | table, room-core |
 | `arena` | `@fpp/arena-entries` | | the arena's entries | table, room-core |
 | `packages/table` | `@fpp/table` | `src/layout.ts` pure | the game surface as React components | room-core (types only) |
 | `packages/room-client` | `@fpp/room-client` | adapter | headless client: connection, pending commands, resume | room-core |
 | `packages/room-core` | `@fpp/room-core` | pure | protocol, room kernel, `poker` activity, decks, runtime behind ports, simulator | nothing |
+| `packages/i18n` | `@fpp/i18n` | `src/languages.ts` pure | the five languages, the message catalogues (Lingui) | nothing |
 | `packages/telemetry` | `@fpp/telemetry` | names pure, facades adapter | attribute, event and metric names; `recordError`, `recordEvent` | nothing |
 | `packages/test-kit` | `@fpp/test-kit` | | `freePort`, `startPostgres`: for test files only | nothing |
 | `e2e` | `@fpp/e2e` | | Playwright: arena scorecard, suite against the built image | nothing at runtime |
@@ -33,7 +34,7 @@ Each file under `.claude/rules/` states one rule, its reason and the check that 
 - `effect.md`: Effect in `apps/api/src/app`, `src/db`, `src/jobs`.
 - `transport.md`: the WebSocket and HTTP adapters in `apps/api/src/ws` and `src/http`, and Elysia.
 - `tests.md`: any test: ports, Postgres, time, simulator seeds, flakes.
-- `strings.md`: anything a person reads: the message catalogue, languages, `Intl`, layout direction.
+- `strings.md`: anything a person reads: messages, languages, `Intl`, layout direction.
 - `basalt-ui.md`: the interface, and what to do when basalt-ui lacks something.
 - `telemetry.md`: names, `recordError`, `recordEvent`, Umami events, what telemetry never carries.
 - `migrations.md`: the schema and its migrations.
@@ -77,14 +78,14 @@ From `docs/v9/ARCHITECTURE.md`, section Invariants, which holds the full text. T
 | Command | Runs | Budget, when |
 |-|-|-|
 | `bun install --frozen-lockfile` | the workspace; Bun pinned in `package.json` `packageManager` | after a pull |
-| `make check-fast` | format check, oxlint, Effect's type-aware lint (`effect-tsgo oxlint`), `tsc`, boundaries, unit tests (`*.test.ts`; the room-core properties; 200 simulator seeds), the factory files | 60 s (`budgets.fast`), about 15 s of CPU on the mini; before every push and after every change you author |
+| `make check-fast` | format check, oxlint, messages, Effect lint (`effect-tsgo oxlint`), `tsc`, boundaries, unit tests (`*.test.ts(x)`; room-core properties; 200 simulator seeds), the factory files | 60 s (`budgets.fast`), about 15 s of CPU on the mini; before every push and after every change you author |
 | `make check` | `check-fast`, the server tier (`*.server.test.ts`, each with its own Postgres), the build | CI runs it on every pull request; locally only to reproduce a CI failure, as `factory slot run -- make test-server` |
 | `make site` | the site's four builds and their tests | lane `site`; CI job `site` |
 | `make fmt` | oxfmt over the repo | when the format check fails |
 | `make lanes` | which CI lanes this branch touches | when a row adds a lane job |
 | `make arena-score ENTRY=<name>` | one arena entry's scorecard (`e2e/AGENTS.md`) | lane `arena` |
 
-Each step prints its name and, on failure, `FAILED: <step>`. Later tiers arrive with their rows: component tests (Vitest browser, lane `ui`), the end-to-end suite (`*.e2e.ts`, `make e2e` in a slot, lane `browser`). `nightly.yml` runs 10,000 simulator seeds. A missed budget is reported with its number, never met by removing a check. Toolchain, ports and CI: `docs/development.md`.
+Later tiers arrive with their rows: Vitest browser component tests (lane `ui`), the end-to-end suite (`*.e2e.ts`, lane `browser`). `nightly.yml` runs 10,000 simulator seeds. A missed budget is reported with its number, never met by removing a check. Toolchain, ports and CI: `docs/development.md`.
 
 ## Deploy
 
@@ -108,7 +109,7 @@ Commits: `<type>(<scope>): <subject>`, types feat, fix, perf, refactor, docs, ci
 
 ## Keeping this setup true
 
-- You lost time to something these files did not say: add the missing line to the nearest `AGENTS.md` or rule in the same pull request, within its budget (this file: 12,000 bytes).
+- Time lost to something these files did not say: add the line to the nearest `AGENTS.md` or rule in the same pull request (this file: 12,000 bytes).
 - You find a rule wrong: change the rule and say so in the pull request.
 - Friction with the factory itself goes to `factory signal file`, never into these files.
 - A skill is added by the row that creates the loop it wraps (replaying a simulator seed, scoring an arena entry), not ahead of it.

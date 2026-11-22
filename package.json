@@ -22,7 +22,8 @@
     "dev": "bun --filter @fpp/api dev",
     "db:migrate": "bun --filter @fpp/api db:migrate",
     "sim": "bun packages/room-core/scripts/sim.ts",
-    "bots": "bun packages/room-client/scripts/bots.ts"
+    "bots": "bun packages/room-client/scripts/bots.ts",
+    "i18n": "bun --filter @fpp/i18n run extract"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

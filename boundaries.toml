@@ -13,7 +13,7 @@ imports = ["@fpp/table", "@fpp/room-core", "@fpp/telemetry"]
 [[module]]
 path = "apps/room"
 package = "@fpp/room"
-imports = ["@fpp/table", "@fpp/room-client", "@fpp/room-core", "@fpp/telemetry"]
+imports = ["@fpp/table", "@fpp/room-client", "@fpp/room-core", "@fpp/telemetry", "@fpp/i18n"]
 
 [[module]]
 path = "apps/api"
@@ -48,6 +48,11 @@ package = "@fpp/room-core"
 imports = []
 
 [[module]]
+path = "packages/i18n"
+package = "@fpp/i18n"
+imports = []
+
+[[module]]
 path = "packages/telemetry"
 package = "@fpp/telemetry"
 imports = []
@@ -75,6 +80,7 @@ pure = [
   "packages/telemetry/src/names.ts",
   "packages/telemetry/src/umami.ts",
   "packages/table/src/layout.ts",
+  "packages/i18n/src/languages.ts",
 ]
 adapter = [
   "apps/api/src/ws/**",

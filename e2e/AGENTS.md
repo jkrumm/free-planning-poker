@@ -6,4 +6,5 @@ Playwright. Today it holds the table arena's scorecard; `v9-e2e` adds the suite 
 - Each test writes a part under `arena/scores/<entry>/parts` before it asserts, and `arena/report.ts` (global teardown) turns the parts into `index.html` and `score.json`, failed tests included. A floor rule is recorded with `floor()` from `arena/support.ts`, and named in `RULES` of `report.ts` and in `docs/v9/TABLE-BRIEF.md`.
 - The page is served from `apps/arena/dist` on a port the system picks (`arena/setup.ts`); nothing listens on a fixed port.
 - Two waits on the wall clock are deliberate and say so: the reduced-motion check and the recordings measure real animation. Add no other.
+- `TESTIDS.md` lists the `data-testid` of the room app. A suite selects by those ids and by role, never by text: the text is in the user's language. A test in `apps/room/test` fails when the list and the source differ.
 - Types: `e2e/tsconfig.json`, run by `make check-fast`.

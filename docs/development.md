@@ -16,6 +16,9 @@ Every version is pinned exactly and was checked with `agw web package` on 2026-1
 | lefthook | 2.2.2 | root | pre-commit: oxfmt check and oxlint on staged files; commit-msg: commitlint |
 | drizzle-orm, drizzle-kit | 0.45.4, 0.31.11 | `apps/api` | the 0.45 line of the ORM, not the 1.0 release candidate; drizzle-kit has its own 0.31 line. Driver `drizzle-orm/bun-sql` on Bun's built-in `SQL`: the repository tests passed 20 runs in a row on Bun 1.4.2, so no `postgres` package. `bun --env-file=.env.tpl run db:migrate` in `apps/api` (`scripts/migrate.ts`) applies the migrations to `DATABASE_URL` (local value in `apps/api/.env.tpl`); drizzle-kit's own `migrate` would need a second driver package |
 | Astro | 7.4.13 | `apps/site` | with `@astrojs/mdx` 8.1.6 and `@astrojs/sitemap` 3.7.6, checked with `agw web package` on 2026-11-22; Vite 8, Node 22.23.4 or newer, run on Bun in CI |
+| Vite, React, TanStack Router | 8.3.8, 19.3.1, 1.170.46 | `apps/room` | checked with `agw web package` on 2026-11-22. `@vitejs/plugin-react` 6.3.0 with `@rolldown/plugin-babel` 0.3.1 and `babel-plugin-react-compiler` 1.0.0 runs the React Compiler; `@tanstack/router-plugin` 1.169.0 writes the committed `routeTree.gen.ts`. Peers the isolated linker needs are declared beside them (`@babel/*`, `rolldown`). Versions inside the 3-day cooldown were stepped back (`@babel/runtime` 7.29.14) |
+| Lingui | 6.12.0 | `packages/i18n`, `apps/room` | `@lingui/core`, `react`, `cli`, `vite-plugin` (native macro transform: no Babel step for macros). Its Bun twin for tests is `apps/room/test/lingui-bun.ts` |
+| happy-dom | 21.0.4 | `apps/room` | the DOM of the component tests, through `@happy-dom/global-registrator` |
 | Effect | 4.1.4 | `apps/api` | checked with `agw web package` on 2026-11-22; 4.1.5 was two days old and inside the cooldown. Only in `apps/api/src/app`, `src/db`, `src/jobs`; nothing from `effect/unstable`. Drizzle 0.45 has no Effect integration, so the adapters wrap each repository call in `Effect.tryPromise` (`src/db/resilience.ts`) |
 | Elysia | 2.0.0-rc.3 | `apps/api` | by the owner's ruling; never installed by tag. Its peers `typebox` 1.4.7, `exact-mirror` 1.2.7 and `openapi-types` 12.1.3 are pinned beside it |
 
@@ -27,8 +30,8 @@ The API needs `DATABASE_URL` and `VISITOR_KEY` (the device hash's key, 32 charac
 
 | Target | Steps |
 |-|-|
-| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, `effect-tsgo oxlint --type-aware` over the Effect folders, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts` and `*.site.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
-| `make check` | `check-fast`, then `make test-server` (the `*.server.test.ts` files), then `make build` |
+| `make check-fast` | oxfmt `--check`, oxlint `--deny-warnings`, the message check (`packages/i18n/scripts/messages.ts`), `effect-tsgo oxlint --type-aware` over the Effect folders, `tsc --noEmit`, `scripts/boundaries.ts`, `bun test` without `*.server.test.ts` and `*.site.test.ts`, `factory plan check` and `factory project check` (skipped where the CLI is absent, as in CI) |
+| `make check` | `check-fast`, then `make test-server` (the `*.server.test.ts` files), then `make build` (the room app into `apps/room/dist`, its entry-size budget of 130 kB gzip, the API bundle) |
 
 Each step prints `==> <step>`; a failure prints `==> FAILED: <step>` and stops the target. Measured on the mini on 2026-11-21: `make check-fast` 2.9 s wall clock. A test step writes JUnit to `$FACTORY_JUNIT_DIR/<step>.xml` only when that variable is set.
 
@@ -58,6 +61,8 @@ Test files are exempt from the class rules, not from the arrows. `scripts/bounda
 | 7738 | the Astro site (from stage 3) |
 | 7739 | the room app (Vite) |
 | 7740 | the API; `bun run dev` starts it with `--watch` |
+
+The API serves the built room app from `apps/room/dist` (`ROOM_APP_DIR` names another directory, as the image will) under `/room`, `/room/*` and `/_room/*`: the shell is never cached, a hashed file is cached as immutable. Without a build `/room` answers 404 and `src/main.ts` says so on start.
 
 Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port. Behind a proxy, `CLIENT_IP_HEADER` names the single-valued header the edge overwrites with the client's address (`cf-connecting-ip` behind Cloudflare, never `x-forwarded-for`), so the per-address limit on wrong access codes counts clients and not the proxy; unset, the socket's peer address counts. `POST /api/contact` and `POST /api/feedback` need the same `Origin` list and send through `EMAIL_GATEWAY_URL` with `EMAIL_GATEWAY_SECRET_KEY`, and `FACTORY_FEEDBACK_URL` with `FACTORY_FEEDBACK_TOKEN`; a route whose two variables are not both set answers 503, so a local API sends nothing unless you set them (`apps/api/.env.tpl`).
 

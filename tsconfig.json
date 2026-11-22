@@ -10,5 +10,5 @@
     "packages/*/scripts",
     "scripts"
   ],
-  "exclude": ["apps/arena", "packages/table", "arena", "e2e"]
+  "exclude": ["apps/arena", "packages/table", "arena", "e2e", "apps/room", "packages/i18n"]
 }
