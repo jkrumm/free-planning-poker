@@ -31,6 +31,7 @@ export const strings = {
     { title: 'Donate', href: 'https://paypal.me/johanneskrum' },
     { title: 'GitHub', href: 'https://github.com/jkrumm/free-planning-poker' },
   ],
+  blog: { title: 'Blog', href: '/blog' },
   releases: { title: 'Releases', href: 'https://github.com/jkrumm/free-planning-poker/releases' },
   license: { title: 'AGPLv3', href: '/imprint#license' },
   credit: 'Created by Johannes Krumm',

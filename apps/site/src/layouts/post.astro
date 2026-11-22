@@ -1,0 +1,32 @@
+---
+import type { EntryData } from '../lib/entry-schema.ts'
+import Questions from '../components/questions.astro'
+import { strings } from '../strings.en.ts'
+import Base from './base.astro'
+
+interface Props {
+  data: EntryData
+}
+
+const { data } = Astro.props
+const day = (value: Date) => value.toISOString().slice(0, 10)
+---
+
+<Base title={data.title} description={data.description} draft={data.draft}>
+  <article>
+    <h1>{data.title}</h1>
+    <p>
+      <time datetime={data.published.toISOString()}>{day(data.published)}</time>
+      {
+        data.updated && (
+          <>
+            {' • '}
+            {strings.updatedLabel} <time datetime={data.updated.toISOString()}>{day(data.updated)}</time>
+          </>
+        )
+      }
+    </p>
+    <slot />
+    <Questions questions={data.questions} />
+  </article>
+</Base>
