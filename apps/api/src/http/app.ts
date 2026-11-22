@@ -6,8 +6,11 @@ export type BuildInfo = {
   readonly commit: string
 }
 
-/** `degraded`: Postgres is away; rooms play on from memory and their writes wait (docs/v9/ARCHITECTURE.md, Server). */
-export type Health = 'ok' | 'degraded'
+/**
+ * `degraded`: Postgres is away; rooms play on from memory and their writes wait. `draining`: the process got SIGTERM and
+ * hands its rooms on, answered 503 so the proxy stops routing here (docs/v9/ARCHITECTURE.md, Server).
+ */
+export type Health = 'ok' | 'degraded' | 'draining'
 
 /** The HTTP API under `/api`. Everything it needs arrives as an argument; it reads no environment. */
 export function createApp(deps: {
@@ -18,8 +21,17 @@ export function createApp(deps: {
   return new Elysia({ prefix: '/api' })
     .get(
       '/health',
-      { response: t.Object({ status: t.Union([t.Literal('ok'), t.Literal('degraded')]) }) },
-      async () => ({ status: await deps.health() }),
+      {
+        response: {
+          200: t.Object({ status: t.Union([t.Literal('ok'), t.Literal('degraded')]) }),
+          503: t.Object({ status: t.Literal('draining') }),
+        },
+      },
+      async ({ status }) => {
+        const health = await deps.health()
+        if (health === 'draining') return status(503, { status: health })
+        return status(200, { status: health })
+      },
     )
     .get('/version', { response: t.Object({ version: t.String(), commit: t.String() }) }, () => ({
       version: deps.build.version,

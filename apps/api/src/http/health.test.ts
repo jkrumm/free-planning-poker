@@ -17,3 +17,9 @@ test('GET /api/health answers ok, and degraded while Postgres is away', async ()
   expect(degraded.status).toBe(200)
   expect(await degraded.json()).toEqual({ status: 'degraded' })
 })
+
+test('GET /api/health answers 503 while the process drains', async () => {
+  const draining = await app('draining').handle(new Request('http://localhost/api/health'))
+  expect(draining.status).toBe(503)
+  expect(await draining.json()).toEqual({ status: 'draining' })
+})

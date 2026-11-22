@@ -66,7 +66,10 @@ export type RoomServer = {
   readonly runtime: RoomRuntime
   /** The adapter's transport port, for the contract suite and the bake-off. */
   readonly transport: RuntimePorts['transport']
-  /** Closes every socket with 4002, then stops the server, raced against `timeoutMs`. */
+  /**
+   * Drains the runtime (every socket closed with 4002, every room written and given up), waits until no socket is
+   * left, then stops the server: all of it within `timeoutMs`, after which what is left is cut.
+   */
   readonly stop: (timeoutMs?: number) => Promise<void>
 }
 
@@ -142,3 +145,9 @@ export function within(work: Promise<unknown>, ms: number, clock: Clock): Promis
 
 /** How long a stop waits for the server to let go of its sockets. */
 export const STOP_TIMEOUT_MS = 5_000
+
+/**
+ * How long the drain on SIGTERM may take before the process exits anyway: inside the 30 s grace the compose file
+ * gives, with room left for the last writes (`FLUSH_WAIT`).
+ */
+export const DRAIN_DEADLINE_MS = 20_000

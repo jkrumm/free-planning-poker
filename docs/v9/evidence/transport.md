@@ -42,3 +42,7 @@ The reading seat's flood takes about two seconds in every case because the flood
 ## The decision
 
 Kept: `apps/api/src/ws/bun.transport.ts`, `edge.ts`, `clock.ts`. Deleted: `elysia.transport.ts`, `effect.transport.ts`, and the `effect` and `@effect/platform-bun` pins they needed. Elysia serves every HTTP route through `Bun.serve`'s fetch. A bump of Bun or Elysia passes `apps/api/test/contract/transport.server.test.ts` before it merges; a candidate for a later bake-off joins `ADAPTERS` in `apps/api/test/contract/harness.ts` and runs the same suite and script.
+
+## The stop after server-side closes (Bun issue 36223)
+
+Bun issue 36223 reported that `server.stop()` never resolves once the server closed a WebSocket itself (Bun 1.3.14); it was closed on 28 July 2026 as fixed on main, in the 1.4.0 canary, with no release named. `apps/api/scripts/stop-after-close.ts` checked the pinned Bun on 22 November 2026: on 1.4.4 (and on 1.4.2), `stop()` and `stop(true)` resolve in under 1 ms after `close(4002)` and after `terminate()`, whether or not the clients had answered. The pin needs no bump. The drain still races every step against its deadline (`DRAIN_DEADLINE_MS`), and the script runs again with each Bun bump.
