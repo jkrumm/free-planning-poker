@@ -11,6 +11,7 @@ const rooms = memoryRooms()
 const server = await serveBun({
   port: env.port,
   origins: env.origins,
+  ...(env.clientIpHeader === undefined ? {} : { clientIpHeader: env.clientIpHeader }),
   http: createApp({ build: { version: env.version, commit: env.commit } }),
   rooms: rooms.directory,
   ports: {

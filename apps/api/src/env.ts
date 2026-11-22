@@ -5,6 +5,8 @@ export type Env = {
   readonly commit: string
   /** Origins that may open a room socket (`ALLOWED_ORIGINS`, comma-separated); local development's by default. */
   readonly origins: readonly string[]
+  /** The header the edge sets to the client's address (`CLIENT_IP_HEADER`, e.g. `cf-connecting-ip`); unset in development. */
+  readonly clientIpHeader: string | undefined
 }
 
 /** Local development listens on 7740 (docs/v9/ARCHITECTURE.md, Checks, CI and deploy). */
@@ -41,5 +43,6 @@ export function parseEnv(source: Readonly<Record<string, string | undefined>>): 
     version: source.APP_VERSION || 'dev',
     commit: source.GIT_SHA || 'unknown',
     origins,
+    clientIpHeader: source.CLIENT_IP_HEADER?.trim().toLowerCase() || undefined,
   }
 }

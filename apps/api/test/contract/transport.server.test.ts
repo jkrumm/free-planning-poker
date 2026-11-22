@@ -25,6 +25,8 @@ const fixtures = (dir: string) =>
     .filter((name) => name.endsWith('.json'))
     .toSorted()
     .map((name) => ({ name, frame: JSON.parse(readFileSync(FIXTURES + dir + '/' + name, 'utf8')) }))
+/** The edge's header with a client's address. */
+const from = (ip: string) => ({ 'cf-connecting-ip': ip })
 const frameFixture = (name: string) =>
   fixtures('frames').find((entry) => entry.name === name)?.frame
 const slug = (text: string) => {
@@ -160,6 +162,30 @@ describe.each(Object.keys(ADAPTERS) as AdapterName[])('transport contract: %s', 
 
     const right = track(await join(room.url('team-alpha'), { name: 'Alice', code: 'K7M2QX' }))
     expect(right.welcome.view.room.access).toBe('locked')
+  })
+
+  test("wrong codes pause the client's address taken from the edge's header, not every client behind the proxy", async () => {
+    await room.stop()
+    room = await startServer(adapter, await freePort(), { clientIpHeader: 'cf-connecting-ip' })
+    const code = parseAccessCode('k7m2qx')
+    if (code === undefined) throw new Error('not an access code')
+    room.rooms.put(slug('team-alpha'), { access: 'locked', code })
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const wrong = await TestClient.open(room.url('team-alpha'), from('203.0.113.7'))
+      open.push(wrong)
+      wrong.send(hello({ name: 'Mallory', code: 'nope42' }))
+      expect((await wrong.closed).code).toBe(CLOSE_CODES.access_required)
+    }
+    // That address is paused, the right code included; another address behind the same proxy is not.
+    const paused = await TestClient.open(room.url('team-alpha'), from('203.0.113.7'))
+    open.push(paused)
+    paused.send(hello({ name: 'Mallory', code: 'k7m2qx' }))
+    expect((await paused.closed).code).toBe(CLOSE_CODES.access_required)
+    const other = track(
+      await join(room.url('team-alpha'), { name: 'Alice', code: 'k7m2qx' }, from('198.51.100.4')),
+    )
+    expect(other.welcome.view.room.access).toBe('locked')
   })
 
   test('a slow consumer is closed at the backpressure limit, and the other seat receives every frame', async () => {

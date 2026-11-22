@@ -2,7 +2,12 @@
  * The transport port on `Bun.serve`'s native WebSocket handler, beside Elysia's fetch for every HTTP route
  * (docs/v9/evidence/transport.md). Publish goes to Bun's topic of the room, so one call serves every seat.
  */
-import { createRoomRuntime, type ConnectionId, type Transport } from '@fpp/room-core/server'
+import {
+  createRoomRuntime,
+  type ConnectionId,
+  type RoomKey,
+  type Transport,
+} from '@fpp/room-core/server'
 import type { ServerWebSocket } from 'bun'
 import {
   admit,
@@ -16,7 +21,7 @@ import {
   within,
 } from './edge.ts'
 
-type Data = { readonly id: ConnectionId; readonly room: string }
+type Data = { readonly id: ConnectionId; readonly room: RoomKey; readonly ip: string }
 
 export async function serveBun(options: RoomServerOptions): Promise<RoomServer> {
   const sockets = new Map<ConnectionId, ServerWebSocket<Data>>()
@@ -48,9 +53,14 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
     async fetch(request, bun) {
       if (slugOfPath(new URL(request.url).pathname) === undefined)
         return options.http.handle(request)
-      const admission = await admit(request, { origins, rooms: options.rooms })
+      const admission = await admit(request, {
+        origins,
+        rooms: options.rooms,
+        clientIpHeader: options.clientIpHeader,
+        peer: bun.requestIP(request)?.address ?? '',
+      })
       if (!admission.ok) return admission.response
-      const data: Data = { id: crypto.randomUUID(), room: admission.room }
+      const data: Data = { id: crypto.randomUUID(), room: admission.room, ip: admission.ip }
       if (bun.upgrade(request, { data })) return undefined
       return new Response('expected a WebSocket upgrade', { status: 426 })
     },
@@ -58,7 +68,7 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
       ...SOCKET_OPTIONS,
       open(ws) {
         sockets.set(ws.data.id, ws)
-        runtime.open(ws.data.id, { room: ws.data.room, ip: ws.remoteAddress })
+        runtime.open(ws.data.id, { room: ws.data.room, ip: ws.data.ip })
       },
       message(ws, message) {
         // The protocol is JSON text; a binary frame reaches the runtime as no frame at all and is refused there.

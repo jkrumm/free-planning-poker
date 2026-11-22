@@ -47,8 +47,8 @@ export class TestClient {
     })
   }
 
-  static open(url: string, origin: string = ORIGIN): Promise<TestClient> {
-    const socket = new BunWebSocket(url, { headers: { Origin: origin } })
+  static open(url: string, headers: Record<string, string> = {}): Promise<TestClient> {
+    const socket = new BunWebSocket(url, { headers: { Origin: ORIGIN, ...headers } })
     const client = new TestClient(socket)
     return new Promise((resolve, reject) => {
       socket.addEventListener('open', () => resolve(client), { once: true })
@@ -111,8 +111,8 @@ export const hello = (input: Hello) => ({
 })
 
 /** Opens a socket, says hello and waits for the welcome. */
-export async function join(url: string, input: Hello) {
-  const client = await TestClient.open(url)
+export async function join(url: string, input: Hello, headers: Record<string, string> = {}) {
+  const client = await TestClient.open(url, headers)
   client.send(hello(input))
   const welcome = await client.next('welcome')
   return { client, welcome }
