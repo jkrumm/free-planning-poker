@@ -31,10 +31,13 @@ EFFECT_DIRS = apps/api/src/app apps/api/src/db apps/api/src/jobs
 # the stack inside a slot (`factory slot run -- make v9-up`), never from a bare shell.
 V9_PROJECT ?= fpp-v9
 V9_COMPOSE = docker compose -p $(V9_PROJECT) -f deploy/compose.yml -f deploy/compose.build.yml
-# The self-hosting file has no default for its two secrets; a local stack gets these values (never a deployment's). The suite
+# The self-hosting file has no default for its two secrets; a local stack gets these values (never a deployment's), unless
+# deploy/.env exists: Compose ranks the environment above that file, so exporting them would override a real `.env`. The suite
 # (e2e/suite/run.ts) and a caller's environment override them.
+ifeq ($(wildcard deploy/.env),)
 export POSTGRES_PASSWORD ?= fpp-local
 export VISITOR_KEY ?= local-visitor-key-change-it-0000000
+endif
 export FPP_IMAGE ?= fpp-api:local
 # CI loads the built image and starts it with V9_UP_FLAGS=--no-build; locally the stack builds its own.
 V9_UP_FLAGS ?= --build

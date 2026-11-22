@@ -128,10 +128,14 @@ jobs:
       - name: Back up and restore, as the page says
         working-directory: ${{ runner.temp }}/site/free-planning-poker
         run: |
+          tables() { docker compose exec -T postgres psql -U fpp -d fpp -tAc "select count(*) from information_schema.tables where table_schema in ('public', 'drizzle')"; }
+          before=$(tables)
+          test "$before" -gt 0
           bash -euo pipefail "$RUNNER_TEMP/blocks/backup.sh"
           gzip -t fpp-backup.sql.gz
           test "$(gunzip -c fpp-backup.sql.gz | grep -c 'CREATE TABLE')" -gt 0
           bash -euo pipefail "$RUNNER_TEMP/blocks/restore.sh"
+          test "$(tables)" = "$before"
           curl -fsS --retry 30 --retry-delay 2 --retry-connrefused http://localhost:7740/api/health
       - name: Update, as the page says
         # On a pull request the published tag may not exist yet, and pulling it would replace the image built above.
