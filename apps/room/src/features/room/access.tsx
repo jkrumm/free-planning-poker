@@ -3,7 +3,14 @@ import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { useAppEnv } from '../../app-env.tsx'
 
-type Outcome = 'saved' | 'invalid' | 'taken' | 'refused' | 'unavailable' | null
+type Outcome =
+  | 'saved'
+  | 'invalid-code'
+  | 'invalid-name'
+  | 'taken'
+  | 'refused'
+  | 'unavailable'
+  | null
 
 /**
  * The lock and the address, both over HTTP with the seat's secret: a typed or a generated password, unlocking,
@@ -28,7 +35,7 @@ export function Access(props: { readonly view: View; readonly slug: string }) {
         body: JSON.stringify(body),
       })
       if (response.status === 200) return 'saved'
-      if (response.status === 400) return 'invalid'
+      if (response.status === 400) return path === 'access' ? 'invalid-code' : 'invalid-name'
       if (response.status === 409) return 'taken'
       if (response.status === 403 || response.status === 404) return 'refused'
       return 'unavailable'
@@ -121,13 +128,15 @@ export function Access(props: { readonly view: View; readonly slug: string }) {
         <p role="status" data-testid="access-outcome" data-outcome={outcome}>
           {outcome === 'saved'
             ? t`Saved.`
-            : outcome === 'invalid'
-              ? t`That is not allowed. Use letters, digits and hyphens.`
-              : outcome === 'taken'
-                ? t`That name is taken. Try another.`
-                : outcome === 'refused'
-                  ? t`Only players seated in this room can change this.`
-                  : t`The room could not be reached. Try again.`}
+            : outcome === 'invalid-code'
+              ? t`That password is not allowed. Use 2 to 32 characters, no control characters.`
+              : outcome === 'invalid-name'
+                ? t`That name is not allowed. Use letters, digits and hyphens.`
+                : outcome === 'taken'
+                  ? t`That name is taken. Try another.`
+                  : outcome === 'refused'
+                    ? t`Only players seated in this room can change this.`
+                    : t`The room could not be reached. Try again.`}
         </p>
       )}
     </section>

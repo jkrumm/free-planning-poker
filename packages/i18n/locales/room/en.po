@@ -39,10 +39,6 @@ msgstr "Take a seat"
 msgid "Lock and address"
 msgstr "Lock and address"
 
-#: ../../apps/room/src/features/room/access.tsx
-msgid "That is not allowed. Use letters, digits and hyphens."
-msgstr "That is not allowed. Use letters, digits and hyphens."
-
 #: ../../apps/room/src/features/room/settings.tsx
 msgid "T-shirt sizes"
 msgstr "T-shirt sizes"
@@ -237,6 +233,10 @@ msgstr "player"
 msgid "Next topic"
 msgstr "Next topic"
 
+#: ../../apps/room/src/features/room/access.tsx
+msgid "That password is not allowed. Use 2 to 32 characters, no control characters."
+msgstr "That password is not allowed. Use 2 to 32 characters, no control characters."
+
 #: ../../apps/room/src/features/room/invite.tsx
 msgid "Invite"
 msgstr "Invite"
@@ -276,6 +276,10 @@ msgstr "Save title"
 #: ../../apps/room/src/features/room/access.tsx
 msgid "The room could not be reached. Try again."
 msgstr "The room could not be reached. Try again."
+
+#: ../../apps/room/src/features/room/access.tsx
+msgid "That name is not allowed. Use letters, digits and hyphens."
+msgstr "That name is not allowed. Use letters, digits and hyphens."
 
 #: ../../apps/room/src/features/room/round.tsx
 msgid "{secondsLeft, plural, one {Revealing in # second} other {Revealing in # seconds}}"

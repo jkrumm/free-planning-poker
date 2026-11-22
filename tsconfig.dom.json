@@ -14,6 +14,7 @@
     "apps/room/src",
     "apps/room/test",
     "apps/room/vite.config.ts",
-    "packages/i18n"
+    "packages/i18n",
+    "apps/room/scripts"
   ]
 }

@@ -19,6 +19,7 @@ Words follow `docs/v9/UX.md`: seat, card, reveal, final value, next topic, topic
 | `recent` | list of rooms this device visited |
 | `recent-room` | one of them; `data-slug` |
 | `recent-remove` | button: drop it from the list |
+| `back-to-rooms` | link on the page for an address the app has no page for |
 | **Creating (/room/new)** | |
 | `new-creating` | status while the room is created |
 | `new-failed` | alert: it failed |

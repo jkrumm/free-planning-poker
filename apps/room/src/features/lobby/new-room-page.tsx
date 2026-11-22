@@ -11,6 +11,10 @@ export function NewRoomPage() {
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const started = useRef(-1)
+  const title = t`Creating your room…`
+  useEffect(() => {
+    document.title = title
+  }, [title])
 
   useEffect(() => {
     // One request per attempt, whatever the development double mount does.

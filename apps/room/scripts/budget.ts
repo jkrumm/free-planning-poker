@@ -21,6 +21,8 @@ export function entryFiles(shell: string): string[] {
 
 export function entrySize(directory: string): { files: string[]; gzip: number } {
   const files = entryFiles(readFileSync(join(directory, 'index.html'), 'utf8'))
+  if (files.length === 0)
+    throw new Error('the shell loads no script: the budget would measure nothing')
   const gzip = files.reduce(
     (sum, file) => sum + Bun.gzipSync(readFileSync(join(directory, file)), { level: 9 }).length,
     0,

@@ -10,6 +10,7 @@ registerDom()
 const { ADDRESS, createWorld, openSeat } = await import('./harness.tsx')
 
 const created = async () => ({ status: 201, json: async () => ({ slug: ADDRESS }) })
+const refused = async () => ({ status: 400, json: async () => ({}) })
 const saved = async () => ({ status: 200, json: async () => ({}) })
 
 beforeAll(registerDom)
@@ -175,4 +176,24 @@ test('topics are pasted, renamed, moved and removed; a seat becomes a spectator 
   expect(ben.byId('status').dataset['status']).toBe('kicked')
   await ann.unmount()
   await ben.unmount()
+})
+
+test('a refused password and a refused name say different things; an unknown page offers the way back', async () => {
+  const world = createWorld()
+  const ann = await openSeat(world, {
+    path: `/room/${ADDRESS}`,
+    ip: '10.0.0.10',
+    profile: 'Ann',
+    fetch: refused,
+  })
+  await ann.type(ann.byId('lock-code'), 'a')
+  await ann.submit(ann.byId('lock-typed'))
+  expect(ann.byId('access-outcome').dataset['outcome']).toBe('invalid-code')
+  await ann.type(ann.byId('book-name'), 'x y')
+  await ann.submit(ann.byId('book-name-submit'))
+  expect(ann.byId('access-outcome').dataset['outcome']).toBe('invalid-name')
+  await ann.navigate('/room/a/b/c')
+  expect(ann.byId('back-to-rooms')).toBeDefined()
+  expect(document.title).not.toBe('')
+  await ann.unmount()
 })
