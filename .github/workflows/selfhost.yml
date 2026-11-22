@@ -128,7 +128,7 @@ jobs:
       - name: Back up and restore, as the page says
         working-directory: ${{ runner.temp }}/site/free-planning-poker
         run: |
-          tables() { docker compose exec -T postgres psql -U fpp -d fpp -tAc "select count(*) from information_schema.tables where table_schema in ('public', 'drizzle')"; }
+          tables() { docker compose exec -T postgres psql -U fpp -d fpp -tAc "select count(*) from information_schema.tables where table_schema = 'fpp'"; }
           before=$(tables)
           test "$before" -gt 0
           bash -euo pipefail "$RUNNER_TEMP/blocks/backup.sh"
