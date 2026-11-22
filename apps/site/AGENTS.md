@@ -33,9 +33,9 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 - `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar.
 - IndexNow: `make indexnow` (`scripts/indexnow.ts`) sends the URLs whose sitemap entry is new or whose lastmod moved, skips on beta, and `DRY_RUN=1` lists them; the key file `public/<key>.txt` is committed because the protocol serves it publicly. `v9-edge-routing` calls it at the end of the deploy job.
 
-## Where the later rows plug in
+## Structured data and social images
 
-Structured data and social tags go into the `structured-data` and `social` slots of `src/layouts/base.astro`. `questions` of an entry print as plain text until `v9-site-schema` marks them up.
+Before changing `src/components/schema`, `src/layouts/base.astro` or `src/integrations`, Read `src/components/schema/AGENTS.md`.
 
 ## The comparisons
 

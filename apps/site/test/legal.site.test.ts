@@ -9,6 +9,7 @@ import {
   realOutputs,
   sectionsOf,
   textOf,
+  visibleText,
 } from './output.ts'
 import { executableIn } from './scripts.ts'
 
@@ -33,7 +34,7 @@ describe.each(realOutputs)('legal pages, build %s', (output) => {
   test('/imprint publishes no e-mail address', async () => {
     const html = await readText(root, 'imprint.html')
     expect(html).not.toMatch(/mailto:/i)
-    expect(textOf(html)).not.toMatch(/[^\s@]+@[^\s@]+\.[a-z]{2,}/i)
+    expect(visibleText(html)).not.toMatch(/[^\s@]+@[^\s@]+\.[a-z]{2,}/i)
     expect(html).toContain('<a href="/privacy">privacy page</a>')
   })
 

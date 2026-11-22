@@ -1,4 +1,13 @@
 // Every string of the navigation and the footer, in one place (invariant 18). The page bodies are content.
+// The names of the collections, shared by llms.txt and the breadcrumbs.
+const sectionNames = {
+  guides: 'Guides',
+  glossary: 'Glossary',
+  vs: 'Comparisons',
+  blog: 'Blog',
+  docs: 'Docs',
+} as const
+
 export const strings = {
   siteName: 'Free-Planning-Poker.com',
   homeTitle: 'Free Planning Poker | Quick & Easy Estimates',
@@ -8,6 +17,8 @@ export const strings = {
   draftLine: 'Draft: this page is not published yet.',
   questionsHeading: 'Questions',
   updatedLabel: 'Updated',
+  breadcrumbHome: 'Home',
+  sectionNames,
   relatedTerms: 'Related terms',
   inTheGuide: 'In the guide',
   moreGuides: 'Go deeper',
@@ -40,13 +51,7 @@ export const strings = {
     summary:
       'Free Planning Poker is a free, open-source planning poker app for agile teams: open a room, share the link, estimate together, no account.',
     startHeading: 'Start here',
-    sections: {
-      guides: 'Guides',
-      glossary: 'Glossary',
-      vs: 'Comparisons',
-      blog: 'Blog',
-      docs: 'Docs',
-    },
+    sections: sectionNames,
   },
   vs: {
     ourName: 'Free Planning Poker',

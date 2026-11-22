@@ -1,0 +1,14 @@
+---
+import type { Crumb } from '../../lib/breadcrumbs.ts'
+import { breadcrumbList } from './breadcrumb-list.ts'
+import { jsonLd } from './json-ld.ts'
+
+interface Props {
+  crumbs: Crumb[]
+}
+
+const { crumbs } = Astro.props
+const data = breadcrumbList(crumbs.map((crumb) => ({ name: crumb.name, url: new URL(crumb.path, Astro.site).href })))
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd(data)} />

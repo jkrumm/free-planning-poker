@@ -1,0 +1,25 @@
+---
+import { canonicalPath } from '../../lib/canonical.ts'
+import { socialImagePath } from '../../lib/social.ts'
+import { article } from './article.ts'
+import { jsonLd } from './json-ld.ts'
+
+interface Props {
+  headline: string
+  description: string
+  published: Date
+  updated?: Date | undefined
+}
+
+const { headline, description, published, updated } = Astro.props
+const data = article({
+  headline,
+  description,
+  url: new URL(canonicalPath(Astro.url.pathname), Astro.site).href,
+  image: new URL(socialImagePath(Astro.url.pathname), Astro.site).href,
+  published,
+  updated,
+})
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd(data)} />

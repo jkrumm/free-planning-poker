@@ -50,6 +50,19 @@ export function metaOf(html: string, name: string): string | undefined {
   return match?.[1] === undefined ? undefined : decode(match[1])
 }
 
+export function propertyOf(html: string, property: string): string | undefined {
+  const match = new RegExp(`<meta property="${property}" content="([^"]*)"`).exec(html)
+  return match?.[1] === undefined ? undefined : decode(match[1])
+}
+
+/** The width and height in the header of a PNG file, or undefined when the bytes are not a PNG. */
+export function pngSize(bytes: Uint8Array): { width: number; height: number } | undefined {
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+  if (bytes.length < 24 || signature.some((byte, index) => bytes[index] !== byte)) return undefined
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  return { width: view.getUint32(16), height: view.getUint32(20) }
+}
+
 export function canonicalOf(html: string): string | undefined {
   return /<link rel="canonical" href="([^"]*)"/.exec(html)?.[1]
 }
@@ -64,6 +77,11 @@ export function textOf(html: string): string {
     .replace(/\s+/g, ' ')
     .replace(/\s+([.,;:])/g, '$1')
     .trim()
+}
+
+/** The text a visitor reads: the page without its scripts (JSON-LD included) and styles, tags removed. */
+export function visibleText(html: string): string {
+  return textOf(html.replace(/<(script|style)[\s\S]*?<\/\1>/g, ' '))
 }
 
 /** The text of each `h2` section of a page, by heading, in page order. */

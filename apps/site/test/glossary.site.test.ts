@@ -21,11 +21,11 @@ const published = entries.filter((entry) => !entry.draft)
 
 type Block = Record<string, unknown>
 
-/** Every JSON-LD block of a page, parsed. */
+/** The DefinedTerm and DefinedTermSet blocks of a page, parsed: the other types are schema.test.ts's. */
 function blocksOf(html: string): Block[] {
-  return [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(
-    (match) => JSON.parse(match[1] ?? '') as Block,
-  )
+  return [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+    .map((match) => JSON.parse(match[1] ?? '') as Block)
+    .filter((block) => String(block['@type']).startsWith('DefinedTerm'))
 }
 
 // Required properties, from https://schema.org/DefinedTerm and https://schema.org/DefinedTermSet (read 2026-11-22):

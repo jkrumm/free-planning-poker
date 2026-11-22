@@ -1,6 +1,7 @@
 ---
 import { render } from 'astro:content'
-import Questions from '../components/questions.astro'
+import Article from '../components/schema/article.astro'
+import Questions from '../components/schema/questions.astro'
 import Base from '../layouts/base.astro'
 import { pillarEntry, visibleEntry } from '../lib/entries.ts'
 import { guideClusters } from '../lib/entry-schema.ts'
@@ -26,7 +27,14 @@ for (const id of terms) {
 const isoDay = (date: Date) => date.toISOString().slice(0, 10)
 ---
 
-<Base title={entry.data.title} description={entry.data.description}>
+<Base title={entry.data.title} description={entry.data.description} type="article">
+  <Article
+    slot="structured-data"
+    headline={entry.data.title}
+    description={entry.data.description}
+    published={entry.data.published}
+    updated={entry.data.updated}
+  />
   <article id="master-the-art-of-planning-poker">
     <Content />
     <p>
