@@ -21,7 +21,7 @@ The room app: a Vite SPA, client only, served by the API under `/room` and `/_ro
 - **Nothing here reads `window` or storage but `main.tsx`** (a page sets only `document.title`); components take `useAppEnv()`. That is what lets the tests run the app on the simulator's network and clock.
 - **A new element a person can use gets a `data-testid`** and a row in `e2e/TESTIDS.md`; the room test fails otherwise.
 - **Umami's two tags** reach the shell at build time from `FPP_UMAMI_WEBSITE_ID` and `FPP_UMAMI_DOMAINS` (`vite.config.ts`; the image takes them as build arguments, `deploy-next.yml` passes them); unset, there is no tag. `test/measure.test.tsx` plays a round with markers as names, slug, code, topic and votes and holds every `track` call to the registry; extend its markers when a new kind of user input reaches an event.
-- No `basalt-ui`, Tailwind or CSS here yet (a test greps for them); no browser telemetry; no dev server (`bun run dev` is the owner's).
+- No `basalt-ui`, Tailwind or CSS here yet (a test greps for them); no browser error or connection telemetry yet; no dev server (`bun run dev` is the owner's).
 - The entry JavaScript is at most 130 kB gzip (`scripts/budget.ts`, run by `make build`); a language's catalogue files load on demand and do not count. Report the number in the pull request.
 
 ## Tests
