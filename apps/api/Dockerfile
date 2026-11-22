@@ -37,6 +37,12 @@ ENV NODE_ENV=production
 RUN bun run --filter '@fpp/room' build \
  && bun run --filter '@fpp/api' build
 
+# What the runtime image copies gets its modes here, with chmod, because a checkout's umask (0600 files, 0700 directories)
+# would otherwise reach the image. `COPY --chmod` with a symbolic mode is not used: the daemon's own BuildKit (what
+# `docker build` runs on a host, as the RollHook deploy does) left nested directories without the execute bit, so the
+# runtime user could not open /app/drizzle/meta or /app/room/assets, while buildx did it right (make v9-image-perms).
+RUN chmod -R u=rwX,go=rX apps/api/dist/main.js apps/api/drizzle apps/room/dist
+
 FROM oven/bun:${BUN_VERSION}-alpine AS runtime
 WORKDIR /app
 
@@ -46,11 +52,11 @@ ENV NODE_ENV=production \
     MIGRATE_ON_START=true \
     MIGRATIONS_DIR=/app/drizzle
 
-# Owned by root and read-only to the user the process runs as (the base image's `bun`, uid 1000). The mode is set
-# here because a checkout's umask (0600 files) would otherwise reach the image.
-COPY --chmod=u=rwX,go=rX --from=build /app/apps/api/dist/main.js /app/main.js
-COPY --chmod=u=rwX,go=rX --from=build /app/apps/api/drizzle /app/drizzle
-COPY --chmod=u=rwX,go=rX --from=build /app/apps/room/dist /app/room
+# Owned by root and read-only to the user the process runs as (the base image's `bun`, uid 1000); the modes come from
+# the build stage.
+COPY --from=build /app/apps/api/dist/main.js /app/main.js
+COPY --from=build /app/apps/api/drizzle /app/drizzle
+COPY --from=build /app/apps/room/dist /app/room
 
 # The commit the image was built from, as the estate's service.version (the short hash, or local). Last, so a new
 # commit rebuilds one metadata layer and not the copies above.
