@@ -7,6 +7,7 @@ import {
 import type { Command } from '@fpp/room-core/types'
 import { useMemo, useSyncExternalStore } from 'react'
 import { type AppEnv, useAppEnv } from '../../app-env.tsx'
+import { createFunnel } from './funnel.ts'
 
 const CONNECTING: RoomClientState = {
   status: 'connecting',
@@ -45,6 +46,8 @@ function codeOf(fragment: string): string | undefined {
 function roomStore(env: AppEnv, slug: string) {
   let client: RoomClient | null = null
   let listeners = 0
+  let unwatch: (() => void) | null = null
+  const funnel = createFunnel()
   const open = (): RoomClient => {
     const code = codeOf(env.hash())
     return createRoomClient({
@@ -58,20 +61,31 @@ function roomStore(env: AppEnv, slug: string) {
   }
   return {
     subscribe: (listener: () => void) => {
-      client ??= open()
+      if (client === null) {
+        const opened = open()
+        client = opened
+        unwatch = opened.state.subscribe(() => funnel.view(opened.state.getSnapshot().view))
+        funnel.view(opened.state.getSnapshot().view)
+      }
       listeners += 1
       const off = client.state.subscribe(listener)
       return () => {
         off()
         listeners -= 1
         if (listeners > 0) return
+        unwatch?.()
+        unwatch = null
         client?.dispose()
         client = null
       }
     },
     getSnapshot: (): RoomClientState => client?.state.getSnapshot() ?? CONNECTING,
-    send: (command: Command): Promise<CommandResult> =>
-      client === null ? Promise.resolve({ ok: false, reason: 'offline' }) : client.send(command),
+    send: async (command: Command): Promise<CommandResult> => {
+      if (client === null) return { ok: false, reason: 'offline' }
+      const result = await client.send(command)
+      funnel.command(command, result.ok)
+      return result
+    },
     submitCode: (code: string) => client?.submitCode(code),
     acceptNewRoom: () => client?.acceptNewRoom(),
     rejoin: () => client?.rejoin(),

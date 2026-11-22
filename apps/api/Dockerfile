@@ -34,6 +34,9 @@ COPY apps/room apps/room
 
 # The room app (Vite), then the API as one file with its dependencies. Identifiers are not minified: the names of
 # spans come from function names (docs/v9/research/r05-elysia-bun-backend.md, section 9).
+# Umami's two public build values for the room's shell (apps/room/vite.config.ts): no website id, no script tag.
+ARG FPP_UMAMI_WEBSITE_ID=""
+ARG FPP_UMAMI_DOMAINS=""
 ENV NODE_ENV=production
 RUN bun run --filter '@fpp/room' build \
  && bun run --filter '@fpp/api' build
