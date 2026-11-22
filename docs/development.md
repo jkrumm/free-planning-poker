@@ -1,6 +1,6 @@
 # Development
 
-How the v9 workspace is built and checked. The rules every change follows are in `AGENTS.md`; the reasons behind them in `docs/v9/ENGINEERING.md`.
+How the v9 workspace is built and checked. The rules every change follows are in `AGENTS.md` and, by concern, in `.claude/rules/`; the reasons behind them in `docs/v9/ENGINEERING.md`.
 
 ## Toolchain
 
