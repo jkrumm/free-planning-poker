@@ -35,5 +35,17 @@ export const strings = {
   releases: { title: 'Releases', href: 'https://github.com/jkrumm/free-planning-poker/releases' },
   license: { title: 'AGPLv3', href: '/imprint#license' },
   credit: 'Created by Johannes Krumm',
+  llms: {
+    summary:
+      'Free Planning Poker is a free, open-source planning poker app for agile teams: open a room, share the link, estimate together, no account.',
+    startHeading: 'Start here',
+    sections: {
+      guides: 'Guides',
+      glossary: 'Glossary',
+      vs: 'Comparisons',
+      blog: 'Blog',
+      docs: 'Docs',
+    },
+  },
   backToTop: 'Back to Top',
 } as const

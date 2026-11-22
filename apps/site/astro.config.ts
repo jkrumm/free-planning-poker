@@ -1,5 +1,9 @@
 import mdx from '@astrojs/mdx'
+import sitemap from '@astrojs/sitemap'
 import { defineConfig } from 'astro/config'
+import { readContentIndex } from './src/lib/content-index.ts'
+import { siteOrigin } from './src/lib/site.ts'
+import { sitemapOptions } from './src/lib/sitemap.ts'
 import { resolveTarget } from './src/lib/target.ts'
 
 // The same rule the content reader uses: beta builds drafts, anything else is production.
@@ -7,7 +11,7 @@ const target = resolveTarget(process.env.FPP_SITE_TARGET)
 
 export default defineConfig({
   // Every build names production, so canonical links never point at the beta host (its noindex header is the edge's).
-  site: 'https://free-planning-poker.com',
+  site: siteOrigin,
   output: 'static',
   outDir: process.env.FPP_SITE_OUT ?? `dist/${target}`,
   // Workers static assets serve /guide from guide.html with no redirect; a directory per page would redirect to /guide/.
@@ -15,8 +19,8 @@ export default defineConfig({
   build: { format: 'file' },
   // Astro 7 defaults to 'jsx', which removes the space in "a <em>b</em>". 'true' collapses white space to one space.
   compressHTML: true,
-  // @astrojs/sitemap is pinned in package.json and wired by v9-site-crawl, which owns the crawl files.
-  integrations: [mdx()],
+  // @astrojs/sitemap (pinned in package.json): its filter and lastmod come from src/lib/sitemap.ts, read at build start.
+  integrations: [mdx(), sitemap(sitemapOptions(target, readContentIndex()))],
   i18n: {
     locales: ['en', 'de', 'es', 'fr', 'zh'],
     defaultLocale: 'en',

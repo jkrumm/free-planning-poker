@@ -1,10 +1,11 @@
 import { getCollection } from 'astro:content'
 import { visibleEntries } from './drafts.ts'
 import type { EntryData, GlossaryData } from './entry-schema.ts'
+import type { Section } from './sections.ts'
 import { target } from './target.ts'
 
-export const sections = ['guides', 'glossary', 'vs', 'blog', 'docs'] as const
-export type Section = (typeof sections)[number]
+export { sections } from './sections.ts'
+export type { Section } from './sections.ts'
 
 type SectionData = {
   guides: EntryData
@@ -14,7 +15,7 @@ type SectionData = {
   docs: EntryData
 }
 
-export type SectionEntry<S extends Section> = { id: string; data: SectionData[S] }
+export type SectionEntry<S extends Section> = { id: string; body?: string; data: SectionData[S] }
 
 /** The entries of a section that this build shows, newest first. The only reader of the collections. */
 export async function sectionEntries<S extends Section>(section: S): Promise<SectionEntry<S>[]> {
