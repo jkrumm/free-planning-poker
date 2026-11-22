@@ -49,7 +49,8 @@ export const METRICS: readonly MetricSpec[] = [
     dimension: null,
     unit: 'votes',
     owner: 'job',
-    means: 'votes cast in the rounds revealed on the day, special cards included',
+    means:
+      "votes cast in the rounds revealed on the day, special cards included; a round imported from v1 adds its summary's count",
   },
   {
     name: METRIC.roundsConsensus,

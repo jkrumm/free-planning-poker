@@ -48,9 +48,12 @@ export async function computeDay(db: Executor, day: string): Promise<StatRow[]> 
   const hours = await query(sql`
     SELECT extract(hour FROM revealed_at AT TIME ZONE 'UTC')::int AS hour, count(*) AS rounds
     FROM fpp.round WHERE revealed_at >= ${from} AND revealed_at < ${to} GROUP BY 1`)
+  // A round imported from v1 has no round_vote rows: its votes are the count of its summary.
   const [votes = {}] = await query(sql`
-    SELECT count(*) AS votes FROM fpp.round_vote v JOIN fpp.round r ON r.id = v.round_id
-    WHERE r.revealed_at >= ${from} AND r.revealed_at < ${to}`)
+    SELECT (SELECT count(*) FROM fpp.round_vote v JOIN fpp.round r ON r.id = v.round_id
+            WHERE r.revealed_at >= ${from} AND r.revealed_at < ${to})
+         + (SELECT coalesce(sum((${unwrapped(sql`summary`)}->>'count')::int), 0) FROM fpp.round
+            WHERE summary IS NOT NULL AND revealed_at >= ${from} AND revealed_at < ${to}) AS votes`)
   const cards = await query(sql`
     SELECT ${unwrapped(sql`r.deck`)}->>'id' AS deck, e->>'label' AS label, sum((e->>'count')::int) AS votes
     FROM fpp.round r, jsonb_array_elements(${unwrapped(sql`r.distribution`)}) AS e
