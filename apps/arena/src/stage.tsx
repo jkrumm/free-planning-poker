@@ -9,13 +9,21 @@ import type { Container } from '@fpp/table/scenarios'
 import type { LoadedEntry } from './entry-check.ts'
 import type { Motion } from './selection.ts'
 
-type BoundaryProps = { readonly fallback: ReactNode; readonly children: ReactNode }
+type BoundaryProps = {
+  readonly fallback: ReactNode
+  /** A new value (another frame) clears a failure, so a frame that renders is shown again. */
+  readonly reset: string
+  readonly children: ReactNode
+}
 
 /** React offers error boundaries as class components only. */
-class Boundary extends Component<BoundaryProps, { failed: boolean }> {
-  override state = { failed: false }
+class Boundary extends Component<BoundaryProps, { failed: boolean; reset: string }> {
+  override state = { failed: false, reset: this.props.reset }
   static getDerivedStateFromError() {
     return { failed: true }
+  }
+  static getDerivedStateFromProps(props: BoundaryProps, state: { failed: boolean; reset: string }) {
+    return props.reset === state.reset ? null : { failed: false, reset: props.reset }
   }
   override render() {
     return this.state.failed ? this.props.fallback : this.props.children
@@ -64,6 +72,7 @@ export function Stage(props: StageProps) {
         ) : (
           <Boundary
             key={`${loaded.name}:${props.scenario}`}
+            reset={String(props.frame.index)}
             fallback={<p className="arena-problem">{props.broken}</p>}
           >
             <entry.Table
