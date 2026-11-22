@@ -9,10 +9,14 @@ case "${EVENT:-}" in
     *) base= ;;
 esac
 
-entries=reference
-if [ -n "$base" ] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+# A base that cannot be read scores every entry, as lanes.sh runs every lane.
+if [ -n "$base" ] && [ -n "${base//0/}" ] &&
+    { git cat-file -e "$base^{commit}" 2>/dev/null || git fetch --quiet --no-tags --depth=1 origin "$base"; }; then
     changed=$(git diff --name-only "$base" HEAD -- arena/entries | cut -d/ -f3 | sort -u)
     entries=$(printf '%s\n%s\n' reference "$changed" | grep . | sort -u)
+else
+    echo "arena: no readable base, scoring every entry"
+    entries=$(find arena/entries -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort)
 fi
 
 failed=

@@ -102,7 +102,7 @@ for (const file of files) {
     const line = source.slice(0, match.index).split('\n').length
     if (specifier.startsWith('.')) {
       const target = resolve(dirname(join(dir, file)), specifier)
-      if (!target.startsWith(dir))
+      if (relative(dir, target).startsWith('..'))
         leaks.push({ file, line, specifier, why: 'reaches outside the entry directory' })
     } else if (FORBIDDEN.test(specifier))
       leaks.push({ file, line, specifier, why: 'not part of the table contract' })

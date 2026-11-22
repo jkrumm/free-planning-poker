@@ -3,7 +3,7 @@
  * same React as the gallery, and the scorecards under arena/scores served at /scores for `vite preview`.
  */
 import { existsSync, readFileSync, statSync } from 'node:fs'
-import { extname, join, normalize, resolve } from 'node:path'
+import { extname, join, normalize, resolve, sep } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 
@@ -23,7 +23,7 @@ const handle = (url: string | undefined, send: (type: string, body: Buffer) => v
   const path = normalize(
     join(scores, decodeURIComponent(url.slice('/scores/'.length).split('?')[0] ?? '')),
   )
-  if (!path.startsWith(scores) || !existsSync(path) || !statSync(path).isFile()) return false
+  if (!path.startsWith(scores + sep) || !existsSync(path) || !statSync(path).isFile()) return false
   send(TYPES[extname(path)] ?? 'application/octet-stream', readFileSync(path))
   return true
 }

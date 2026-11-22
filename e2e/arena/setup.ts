@@ -5,7 +5,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { extname, join, normalize, resolve } from 'node:path'
+import { extname, join, normalize, resolve, sep } from 'node:path'
 
 const TYPES: Readonly<Record<string, string>> = {
   '.html': 'text/html; charset=utf-8',
@@ -27,7 +27,7 @@ export default async function setup(): Promise<() => Promise<void>> {
       join(dist, decodeURIComponent((request.url ?? '/').split('?')[0] ?? '/')),
     )
     const file =
-      path.startsWith(dist) && existsSync(path) && statSync(path).isFile()
+      path.startsWith(dist + sep) && existsSync(path) && statSync(path).isFile()
         ? path
         : join(dist, 'index.html')
     response.setHeader('content-type', TYPES[extname(file)] ?? 'application/octet-stream')
