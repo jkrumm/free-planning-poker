@@ -1,7 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { contentRoot } from './content-root.ts'
+import { contentRoot, pillarRoot } from './content-root.ts'
 import { parseFrontmatter } from './frontmatter.ts'
 import { type Section, sections } from './sections.ts'
 
@@ -26,9 +25,7 @@ export function readContentIndex(root: string = contentRoot): IndexedEntry[] {
 }
 
 /** The date the pillar guide's sitemap entry carries: its updated date, else its published date. */
-export function readPillarDate(
-  file: string = fileURLToPath(new URL('../content/pillar/guide.md', import.meta.url)),
-): Date {
+export function readPillarDate(file: string = join(pillarRoot, 'guide.md')): Date {
   const { fields } = parseFrontmatter(readFileSync(file, 'utf8'))
   const date = fields.updated ?? fields.published
   if (date === undefined) throw new Error(`${file}: no published date`)

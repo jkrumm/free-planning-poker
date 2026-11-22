@@ -39,8 +39,6 @@ Fibonacci is the default, not the only deck. The room also offers a modified Fib
 
 In Planning Poker, team members vote anonymously, which enhances objectivity and promotes a **diversity of viewpoints**. The integration of gamification increases engagement and ensures that task estimates are **unbiased** and accurate.
 
-Nobody sees a vote before the reveal. The server withholds the values until then, so they do not show up in the network tab either.
-
 ## Interpreting Estimations and Splitting Tasks
 
 Once votes are revealed, the room leads with the spread: the lowest and the highest card, and the names of the two people who played them. Those two explain their reasoning, which gives the team valuable insight into the complexity of the task. Tasks estimated at 13 points or more are typically split into smaller, **more manageable tasks to prevent sprint overload and improve visibility**.
