@@ -23,3 +23,14 @@ test('an allowed origin with a path or no scheme is refused at startup', () => {
   expect(() => parseEnv({ ALLOWED_ORIGINS: 'https://free-planning-poker.com/' })).toThrow()
   expect(() => parseEnv({ ALLOWED_ORIGINS: 'free-planning-poker.com' })).toThrow()
 })
+
+test('telemetry is exported only where a collector is named, and the environment is prod or dev', () => {
+  expect(parseEnv({}).otlpEndpoint).toBeUndefined()
+  expect(parseEnv({ OTEL_EXPORTER_OTLP_ENDPOINT: ' ' }).otlpEndpoint).toBeUndefined()
+  expect(parseEnv({ OTEL_EXPORTER_OTLP_ENDPOINT: 'http://collector:4318' }).otlpEndpoint).toBe(
+    'http://collector:4318',
+  )
+  expect(parseEnv({}).environment).toBe('dev')
+  expect(parseEnv({ NODE_ENV: 'staging' }).environment).toBe('dev')
+  expect(parseEnv({ NODE_ENV: 'production' }).environment).toBe('prod')
+})

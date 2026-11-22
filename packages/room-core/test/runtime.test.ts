@@ -493,3 +493,48 @@ describe('snapshots', () => {
     expect(room.telemetry.failures).toEqual([])
   })
 })
+
+describe('what the runtime reports to telemetry', () => {
+  test('a command runs inside its span with its type, the room key, the seat index and its traceparent', async () => {
+    const room = harness()
+    const conn = await room.connect()
+    const traceparent = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
+    await room.runtime.receive(
+      conn,
+      JSON.stringify({ frame: 'cmd', id: 't1', traceparent, ...vote(room.current()) }),
+    )
+    expect(room.telemetry.commands).toEqual([
+      {
+        info: { type: 'poker.vote', room: ROOM, seat: 0 as SeatIndex, traceparent },
+        outcome: { ok: true },
+      },
+    ])
+  })
+
+  test('a refused command carries its reason, and a frame refused before it is a command is counted apart', async () => {
+    const room = harness()
+    const conn = await room.connect()
+    await room.send(conn, vote('00000000-0000-7000-8000-000000000000'))
+    await room.runtime.receive(conn, JSON.stringify({ frame: 'cmd', id: 'bad', type: 'nope' }))
+    expect(room.telemetry.commands.map((entry) => entry.outcome)).toEqual([
+      { ok: false, reason: 'round_unknown' },
+    ])
+    expect(room.telemetry.rejections).toEqual(['invalid'])
+  })
+
+  test('a resume, the reveal, a room loaded and released, its seats and the drain are reported', async () => {
+    const room = harness()
+    const first = await room.connect()
+    const { seatToken } = room.welcome(first)
+    await room.send(first, vote(room.current()))
+    await room.send(first, { type: 'poker.reveal', payload: { round: room.current() } })
+    room.runtime.closed(first)
+    await room.connect({ seatToken })
+    expect(room.telemetry.resumes.count).toBe(1)
+    expect(room.runtime.stats()).toEqual({ connections: 1, rooms: 1 })
+    await room.runtime.drain()
+    expect(room.telemetry.events).toEqual(['room_loaded', 'round_revealed', 'room_released'])
+    expect(room.telemetry.ended).toEqual([1])
+    expect(room.telemetry.handoffs.length).toBe(1)
+  })
+})

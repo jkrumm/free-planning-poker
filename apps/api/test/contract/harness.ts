@@ -2,7 +2,7 @@
  * One room server for the transport contract suite and the bake-off: an adapter, rooms in memory and the production
  * clock, ids and secrets. Tests pass the port in from `freePort()`.
  */
-import { DEFAULT_SETTINGS } from '@fpp/room-core/server'
+import { DEFAULT_SETTINGS, type RuntimeTelemetry } from '@fpp/room-core/server'
 import { telemetryRecorder } from '@fpp/room-core/sim'
 import { DECKS } from '@fpp/room-core/types'
 import { memoryRooms } from '../../src/app/memory-rooms.ts'
@@ -29,10 +29,11 @@ export const SETTINGS = { ...DEFAULT_SETTINGS, deck: DECKS['t-shirt'], revealCou
 export async function startServer(
   adapter: AdapterName,
   port: number,
-  options: { readonly clientIpHeader?: string } = {},
+  options: { readonly clientIpHeader?: string; readonly telemetry?: RuntimeTelemetry } = {},
 ) {
   const rooms = memoryRooms()
-  const telemetry = telemetryRecorder()
+  const recorder = telemetryRecorder()
+  const telemetry = options.telemetry ?? recorder
   const clock = timerClock({
     now: Date.now,
     failed: (error) => telemetry.failure(error, { action: 'timer' }),
@@ -41,7 +42,7 @@ export async function startServer(
     port,
     hostname: '127.0.0.1',
     origins: [ORIGIN],
-    ...options,
+    ...(options.clientIpHeader === undefined ? {} : { clientIpHeader: options.clientIpHeader }),
     http: createApp({ build: { version: 'contract', commit: 'contract' } }),
     rooms: rooms.directory,
     ports: {
@@ -57,7 +58,7 @@ export async function startServer(
   return {
     server,
     rooms,
-    telemetry,
+    telemetry: recorder,
     url: (slug: string) => `ws://127.0.0.1:${server.port}/api/ws/${slug}`,
     async stop() {
       await server.stop()

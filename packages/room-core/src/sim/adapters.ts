@@ -9,7 +9,10 @@ import type {
   Ownership,
   RoomKey,
   RoomStore,
+  CommandInfo,
+  CommandOutcome,
   RuntimeAction,
+  RuntimeEvent,
   RuntimeTelemetry,
   Secrets,
 } from '../runtime/ports.ts'
@@ -115,14 +118,52 @@ export function memoryHistory(): MemoryHistory {
 export type TelemetryRecorder = RuntimeTelemetry & {
   readonly failures: { readonly error: unknown; readonly action: RuntimeAction }[]
   readonly closes: number[]
+  /** Every command run through its span, with how it ended. */
+  readonly commands: { readonly info: CommandInfo; readonly outcome: CommandOutcome }[]
+  readonly rejections: string[]
+  readonly events: RuntimeEvent[]
+  readonly resumes: { count: number }
+  readonly ended: number[]
+  readonly handoffs: number[]
 }
 
 export function telemetryRecorder(): TelemetryRecorder {
   const failures: TelemetryRecorder['failures'] = []
   const closes: number[] = []
+  const commands: TelemetryRecorder['commands'] = []
+  const rejections: string[] = []
+  const events: RuntimeEvent[] = []
+  const resumes = { count: 0 }
+  const ended: number[] = []
+  const handoffs: number[] = []
   return {
     failures,
     closes,
+    commands,
+    rejections,
+    events,
+    resumes,
+    ended,
+    handoffs,
+    command: (info, run) => {
+      commands.push({ info, outcome: run() })
+    },
+    fanout: (run) => run(),
+    rejected: (reason) => {
+      rejections.push(reason)
+    },
+    resumed: () => {
+      resumes.count += 1
+    },
+    event: (event) => {
+      events.push(event)
+    },
+    roomEnded: (seats) => {
+      ended.push(seats)
+    },
+    handoff: (ms) => {
+      handoffs.push(ms)
+    },
     failure: (error, { action }) => {
       failures.push({ error, action })
     },
