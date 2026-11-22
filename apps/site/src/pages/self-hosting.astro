@@ -74,7 +74,7 @@ docker compose up -d --wait</code></pre>
   <pre data-commands="backup"><code>docker compose exec -T postgres pg_dump -U fpp --clean --if-exists fpp | gzip > fpp-backup.sql.gz</code></pre>
   <p>To restore it, stop the app, load the dump and start the app again.</p>
   <pre data-commands="restore"><code>docker compose stop api
-gunzip -c fpp-backup.sql.gz | docker compose exec -T postgres psql -U fpp -d fpp
+gunzip -c fpp-backup.sql.gz | docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U fpp -d fpp
 docker compose start api --wait</code></pre>
 
   <h2 id="not-included">What is not included</h2>
