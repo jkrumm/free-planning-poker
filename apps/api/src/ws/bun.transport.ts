@@ -65,7 +65,7 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
     async fetch(request, bun) {
       if (slugOfPath(new URL(request.url).pathname) === undefined) {
         peers.set(request, bun.requestIP(request)?.address ?? '')
-        return http.handle(request)
+        return (await options.spa?.(request)) ?? http.handle(request)
       }
       const admission = await admit(request, {
         origins,

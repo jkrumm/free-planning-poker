@@ -14,6 +14,7 @@ import type {
 } from '@fpp/room-core/server'
 import { parseSlug, type ServerFrame, type Slug } from '@fpp/room-core/types'
 import type { App } from '../http/app.ts'
+import type { Spa } from '../http/spa.ts'
 
 export const WS_PREFIX = '/api/ws/'
 
@@ -59,6 +60,8 @@ export type RoomServerOptions = {
   readonly clientIpHeader?: string
   /** The HTTP routes, given the runtime they act on; Elysia keeps them whichever adapter carries the sockets. */
   readonly http: (runtime: RoomRuntime) => App
+  /** The built room app: the shell and its files (docs/v9/ARCHITECTURE.md, Topology). Absent where no build is there. */
+  readonly spa?: Spa
   readonly rooms: RoomDirectory
   readonly ports: Omit<RuntimePorts, 'transport'>
   readonly runtime: RuntimeOptions

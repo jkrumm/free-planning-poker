@@ -16,6 +16,12 @@ test('the allowed origins default to local development and are read as a list', 
   ).toEqual(['https://free-planning-poker.com', 'https://beta.free-planning-poker.com'])
 })
 
+test('the room app is served from its build, or from the directory ROOM_APP_DIR names', () => {
+  expect(parseEnv(ENV).roomAppDir.endsWith('/apps/room/dist')).toBe(true)
+  expect(parseEnv({ ...ENV, ROOM_APP_DIR: ' /srv/room ' }).roomAppDir).toBe('/srv/room')
+  expect(parseEnv({ ...ENV, ROOM_APP_DIR: '' }).roomAppDir.endsWith('/apps/room/dist')).toBe(true)
+})
+
 test('the client address header is read in lower case, and absent by default', () => {
   expect(parseEnv(ENV).clientIpHeader).toBeUndefined()
   expect(parseEnv({ ...ENV, CLIENT_IP_HEADER: 'CF-Connecting-IP' }).clientIpHeader).toBe(

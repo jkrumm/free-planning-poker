@@ -9,6 +9,7 @@ import { memoryRooms } from '../../src/app/memory-rooms.ts'
 import { systemIds, systemSecrets } from '../../src/app/system.ts'
 import { createApp } from '../../src/http/app.ts'
 import type { MessagesApi } from '../../src/http/messages.ts'
+import type { Spa } from '../../src/http/spa.ts'
 import { timerClock } from '../../src/ws/clock.ts'
 import { clientOf, type RoomServer, type RoomServerOptions } from '../../src/ws/edge.ts'
 import { serveBun } from '../../src/ws/bun.transport.ts'
@@ -35,6 +36,7 @@ export async function startServer(
     readonly clientIpHeader?: string
     readonly telemetry?: RuntimeTelemetry
     readonly messages?: MessagesApi
+    readonly spa?: Spa
   } = {},
 ) {
   const rooms = memoryRooms()
@@ -48,6 +50,7 @@ export async function startServer(
     port,
     hostname: '127.0.0.1',
     origins: [ORIGIN],
+    ...(options.spa === undefined ? {} : { spa: options.spa }),
     ...(options.clientIpHeader === undefined ? {} : { clientIpHeader: options.clientIpHeader }),
     http: () =>
       createApp({
