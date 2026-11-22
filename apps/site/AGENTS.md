@@ -30,12 +30,12 @@ The marketing site: Astro 7.4, static output, no look yet (basalt-ui 3 is not on
 ## Crawl files
 
 - `src/lib/robots.ts`: the crawler list, each token's source and read date above it; re-read the vendor page when the list changes. Served as `robots.txt`; every group disallows `/room`, `/_room/`, `/api/`.
-- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar (entries via `sectionEntries`, the pillar via `pillarEntry`).
-- IndexNow: `public/<key>.txt` is committed, because the protocol serves the key publicly. `make indexnow` runs `scripts/indexnow.ts`: it sends the URLs whose sitemap entry is new or whose lastmod moved against the live sitemap, skips on beta, and `DRY_RUN=1` lists them without sending. Not called from a deploy yet: `v9-edge-routing` runs `make indexnow` as the last step of the site's deploy job, once the new sitemap is live.
+- `/llms.txt` (`src/pages/llms.txt.ts`) and the `.md` twins: `src/pages/[section]/[...slug].md.ts` for entries, `src/pages/guide.md.ts` for the pillar.
+- IndexNow: `make indexnow` (`scripts/indexnow.ts`) sends the URLs whose sitemap entry is new or whose lastmod moved, skips on beta, and `DRY_RUN=1` lists them; the key file `public/<key>.txt` is committed because the protocol serves it publicly. `v9-edge-routing` calls it at the end of the deploy job.
 
 ## Where the later rows plug in
 
-Structured data and social tags go into the `structured-data` and `social` slots of `src/layouts/base.astro`; the look replaces nothing in the markup. `questions` of an entry print as plain text until `v9-site-schema` marks them up.
+Structured data and social tags go into the `structured-data` and `social` slots of `src/layouts/base.astro`. `questions` of an entry print as plain text until `v9-site-schema` marks them up.
 
 ## The comparisons
 
@@ -47,8 +47,8 @@ Structured data and social tags go into the `structured-data` and `social` slots
 
 ## The guides
 
-The pillar is `src/content/pillar/guide.md`, the one entry of the `pillar` collection (never a draft), read through `pillarEntry` and rendered by `guide.astro` inside `<article id="master-the-art-of-planning-poker">`; `test/guide.site.test.ts` checks v1's ids, read from `test/fixtures/v1-guide`. The cluster pages are drafts, `src/content/guides/<slug>.md` at `/guides/<slug>`. Slugs: `/guide` for the pillar (v1's address), `/guides/<slug>` for a cluster, a lowercase slug from `guideClusters` (`src/lib/entry-schema.ts`); renaming one loses links. Pages link each other through `visibleEntry`, never in a Markdown body, so a published page never links a draft. A cluster page asks its question in the title, describes the room as `docs/v9/UX.md` does and dates a source per method claim; `bun apps/site/scripts/check-links.ts` checks the external links.
+`src/content/pillar/guide.md` is the one entry of the `pillar` collection, read through `pillarEntry`; `guide.astro` keeps v1's anchor `master-the-art-of-planning-poker`. Cluster pages are drafts, `src/content/guides/<slug>.md` at `/guides/<slug>`; the slugs are `guideClusters` (`src/lib/entry-schema.ts`), and renaming one loses links. Pages link each other through `visibleEntry`, never in a Markdown body. A cluster page asks its question in the title, follows `docs/v9/UX.md` for the room and dates a source per method claim.
 
 ## Left out of v1's pages on purpose
 
-The room form and screenshots of `/` (no JavaScript, no images yet), the Todoist-backed board of `/roadmap`, the figures of `/analytics` (v1's invented fallbacks are not ported), the release tag in the footer (a link to the releases instead), and the icon and manifest links.
+The room form and screenshots of `/`, the Todoist board of `/roadmap`, the figures of `/analytics`, the footer's release tag, the icon and manifest links.
