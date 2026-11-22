@@ -246,10 +246,10 @@ describe('the import', () => {
     const stored = await query<{ metric: string; dimension: string; value: number }>(
       db,
       sql`SELECT metric, dimension, value FROM fpp.stat_daily WHERE day = '2024-03-04'
-          AND metric IN ('rounds', 'votes', 'rounds_consensus', 'rounds_active', 'rounds_by_hour') ORDER BY metric, dimension`,
+          AND metric IN ('rounds', 'votes', 'rounds_consensus', 'rooms_active', 'rounds_by_hour') ORDER BY metric, dimension`,
     )
     const rolled = (await computeDay(db.db, '2024-03-04')).filter((row) =>
-      ['rounds', 'votes', 'rounds_consensus', 'rounds_active', 'rounds_by_hour'].includes(
+      ['rounds', 'votes', 'rounds_consensus', 'rooms_active', 'rounds_by_hour'].includes(
         row.metric,
       ),
     )
