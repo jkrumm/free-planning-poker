@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 /** The API's environment, parsed once at startup (docs/v9/ENGINEERING.md, Files and names). */
 export type Env = {
   readonly port: number
@@ -26,12 +28,16 @@ export type Env = {
    * `FACTORY_FEEDBACK_TOKEN`); unset, or only one of the two, the route answers 503.
    */
   readonly feedbackDoor: Upstream | undefined
+  /** The built room app the API serves under `/room` and `/_room` (`ROOM_APP_DIR`); the build of `apps/room` by default. */
+  readonly roomAppDir: string
   /** The server secret of the device hash in `visitor_day` (`VISITOR_KEY`, at least 32 characters). */
   readonly visitorKey: string
 }
 
 /** Where a message goes and what proves us to it. */
 export type Upstream = { readonly url: string; readonly secret: string }
+/** Where `bun run build` in `apps/room` writes the app, beside the API's sources. */
+const DEFAULT_ROOM_APP_DIR = fileURLToPath(new URL('../../room/dist', import.meta.url))
 
 /** A shorter key than this is refused: it would make the device hash guessable. */
 const VISITOR_KEY_MIN = 32
@@ -108,6 +114,7 @@ export function parseEnv(source: Readonly<Record<string, string | undefined>>): 
       url: 'FACTORY_FEEDBACK_URL',
       secret: 'FACTORY_FEEDBACK_TOKEN',
     }),
+    roomAppDir: source.ROOM_APP_DIR?.trim() || DEFAULT_ROOM_APP_DIR,
     databaseUrl,
     visitorKey,
   }

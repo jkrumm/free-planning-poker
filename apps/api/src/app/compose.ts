@@ -11,6 +11,7 @@ import { postgresStore } from '../db/store.ts'
 import type { Env } from '../env.ts'
 import { createApp } from '../http/app.ts'
 import { clientOf } from '../ws/edge.ts'
+import { createSpa } from '../http/spa.ts'
 import { expiryJob } from '../jobs/expiry.ts'
 import { rollupJob } from '../jobs/rollup.ts'
 import type { ApiTelemetry } from '../telemetry.ts'
@@ -84,8 +85,10 @@ const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
       failed: (error, at) => server.recordError(error, at, 'high'),
     })
     const origins = new Set(env.origins)
+    const spa = createSpa(env.roomAppDir)
     const options: RoomServerOptions = {
       port: env.port,
+      ...(spa === undefined ? {} : { spa }),
       origins: env.origins,
       ...(env.clientIpHeader === undefined ? {} : { clientIpHeader: env.clientIpHeader }),
       http: (live) => {
