@@ -70,7 +70,7 @@ Versions as read on 2026-11-18; a row that installs one checks it with `agw web 
 | Validation | Zod 4 for protocol frames in `packages/room-core`, Elysia's `t` (TypeBox 1.x) for HTTP routes. The SPA imports protocol types only and ships no validator | Zod 4.x |
 | Languages | a compiled message catalogue shared by the room app and the site: Paraglide JS, which compiles each message to a typed function and drops the unused ones, if its spike in `v9-room-plain` holds the bundle budget; Lingui 6 otherwise (`research/r24-i18n.md`) | pinned exactly |
 | Database | PostgreSQL on the shared VPS instance, schema `fpp` | 18 |
-| ORM and migrations | Drizzle | 0.45.x; the 1.0 line is a release candidate |
+| ORM and migrations | Drizzle | drizzle-orm 0.45.x on `drizzle-orm/bun-sql`, drizzle-kit 0.31.x; the 1.0 line is a release candidate |
 | Room app | React with the React Compiler, Vite, TanStack Router (file routes, client only) | React 19.3, Vite 8, Router 1.170 |
 | Design system | basalt-ui, profile `app` in `apps/room`, profile `tokens` in `apps/site` | 3.x, see "basalt-ui" |
 | Marketing site | Astro, static output, MDX content collections | 7.4 |

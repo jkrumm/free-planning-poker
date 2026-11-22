@@ -5,12 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "PORT=7740 bun --watch src/main.ts",
-    "build": "bun build src/main.ts --target=bun --outdir=dist"
+    "build": "bun build src/main.ts --target=bun --outdir=dist",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
+    "db:migrate": "bun scripts/migrate.ts"
   },
   "dependencies": {
+    "drizzle-orm": "0.45.4",
     "elysia": "2.0.0-rc.3",
     "exact-mirror": "1.2.7",
     "openapi-types": "12.1.3",
     "typebox": "1.4.7"
+  },
+  "devDependencies": {
+    "@fpp/test-kit": "workspace:*",
+    "drizzle-kit": "0.31.11"
   }
 }
