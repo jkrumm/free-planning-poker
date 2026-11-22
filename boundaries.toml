@@ -1,5 +1,5 @@
 # The repo map of docs/v9/ARCHITECTURE.md (Repo map) and the module classes of docs/v9/ENGINEERING.md (What a script
-# enforces), as data. scripts/boundaries.ts reads it in `make check-fast`. A directory under apps/, packages/ or e2e/
+# enforces), as data. scripts/boundaries.ts reads it in `make check-fast`. A directory under apps/ or packages/, e2e/ or arena/
 # that is not listed here fails the check: a new module states its arrows when it is created.
 #
 # imports: workspace packages the module may import. types: packages it may import types from, and nothing else.
@@ -23,6 +23,12 @@ imports = ["@fpp/room-core", "@fpp/telemetry"]
 [[module]]
 path = "apps/arena"
 package = "@fpp/arena"
+imports = ["@fpp/table", "@fpp/room-core"]
+
+# The table arena's entries, one workspace package for all of them (docs/v9/TABLE-BRIEF.md).
+[[module]]
+path = "arena"
+package = "@fpp/arena-entries"
 imports = ["@fpp/table", "@fpp/room-core"]
 
 [[module]]

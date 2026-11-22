@@ -30,8 +30,10 @@ const fonts = [
 const padding = 72
 const contentWidth = socialImageSize.width - 2 * padding
 
+// `key` makes a node a React element to the type checker, which satori's signature asks for once React's types are installed.
 type Node = {
   type: string
+  key: null
   props: { style?: Record<string, string | number>; children?: Node[] | string }
 }
 
@@ -48,6 +50,7 @@ function clamp(text: string, max: number): string {
 function template(input: { siteName: string; title: string; description: string }): Node {
   const box = (style: Record<string, string | number>, children: Node[] | string): Node => ({
     type: 'div',
+    key: null,
     props: { style: { display: 'flex', ...style }, children },
   })
   return box(

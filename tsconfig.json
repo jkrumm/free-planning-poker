@@ -9,5 +9,6 @@
     "packages/*/test",
     "packages/*/scripts",
     "scripts"
-  ]
+  ],
+  "exclude": ["apps/arena", "packages/table", "arena", "e2e"]
 }

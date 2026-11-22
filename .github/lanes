@@ -6,3 +6,5 @@ every: .github bun.lock package.json bunfig.toml tsconfig.base.json
 app: packages/room-core packages/room-client packages/table packages/telemetry packages/test-kit apps/api apps/room e2e
 # site: the marketing site, its content and the changelog that /roadmap reads at build time.
 site: apps/site CHANGELOG.md
+# arena: the table's contract and scenarios, the gallery, the entries, the scorecard, and the scenario helper they play through.
+arena: packages/table apps/arena arena e2e/arena packages/room-core/src/sim

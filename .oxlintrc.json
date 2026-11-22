@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "import", "unicorn", "promise", "oxc"],
+  "plugins": ["typescript", "import", "unicorn", "promise", "oxc", "react"],
   "categories": {
     "correctness": "error",
     "suspicious": "error"
@@ -30,6 +30,15 @@
             "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
           }
         ]
+      }
+    ],
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": ["**/*.css"]
       }
     ]
   },
@@ -76,9 +85,82 @@
       }
     },
     {
-      "files": ["commitlint.config.ts", "apps/site/astro.config.ts"],
+      "files": [
+        "commitlint.config.ts",
+        "apps/site/astro.config.ts",
+        "apps/arena/vite.config.ts",
+        "e2e/arena/playwright.config.ts",
+        "e2e/arena/setup.ts",
+        "e2e/arena/report.ts",
+        "arena/css-modules.d.ts"
+      ],
       "rules": {
         "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["packages/table/**", "arena/**", "apps/arena/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["effect/unstable", "effect/unstable/*"],
+                "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+              },
+              {
+                "group": ["elysia", "elysia/*", "@elysia/*"],
+                "message": "Elysia is imported in apps/api/src/http and apps/api/src/ws only (docs/v9/ARCHITECTURE.md, Server)."
+              },
+              {
+                "group": ["effect", "effect/*", "@effect/*"],
+                "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
+              },
+              {
+                "group": ["@fpp/room-client", "@fpp/room-client/*"],
+                "message": "A table takes a view and reports intents; it never imports the room client (docs/v9/ENGINEERING.md, React)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["arena/entries/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["effect/unstable", "effect/unstable/*"],
+                "message": "Nothing from effect/unstable: it changes without a major (docs/v9/ARCHITECTURE.md, Stack)."
+              },
+              {
+                "group": ["elysia", "elysia/*", "@elysia/*"],
+                "message": "Elysia is imported in apps/api/src/http and apps/api/src/ws only (docs/v9/ARCHITECTURE.md, Server)."
+              },
+              {
+                "group": ["effect", "effect/*", "@effect/*"],
+                "message": "Effect is imported in apps/api/src/app, src/db and src/jobs only (docs/v9/ENGINEERING.md, Code patterns)."
+              },
+              {
+                "group": [
+                  "@fpp/room-client",
+                  "@fpp/room-client/*",
+                  "@fpp/telemetry",
+                  "@fpp/telemetry/*"
+                ],
+                "message": "An entry imports only the table contract, @fpp/room-core/types and /view, React and its own files (docs/v9/TABLE-BRIEF.md)."
+              },
+              {
+                "group": ["@fpp/room-core/server", "@fpp/room-core/sim", "@fpp/room-core/protocol"],
+                "message": "An entry imports @fpp/room-core/types and /view only: the rules stay on the server (docs/v9/TABLE-BRIEF.md)."
+              }
+            ]
+          }
+        ]
       }
     }
   ]

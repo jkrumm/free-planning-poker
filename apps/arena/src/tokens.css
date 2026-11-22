@@ -1,0 +1,125 @@
+/*
+ * The arena's tokens until v9-ui-foundation installs basalt-ui 3 and its tokens replace this file. The names are
+ * basalt-ui 3's (`--basalt-<role>`), so an entry written against them keeps working when the real values arrive;
+ * the four game tokens (`--fpp-*`) are this repo's and derive from them. This file is the one place in the arena
+ * where a colour is written as a value: entries use the variables only (the scorecard's colour rule).
+ *
+ * The host sets data-theme="light|dark" and data-motion="full|reduced" on the box an entry renders in.
+ */
+
+.arena-stage,
+.arena-chrome {
+  --basalt-font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --basalt-font-head: var(--basalt-font-sans);
+  --basalt-font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --basalt-weight-body: 400;
+  --basalt-weight-medium: 500;
+  --basalt-weight-strong: 650;
+  --basalt-text-xs: 0.75rem;
+  --basalt-text-sm: 0.8125rem;
+  --basalt-text-md: 0.9375rem;
+  --basalt-text-base: 1rem;
+  --basalt-text-lg: 1.125rem;
+  --basalt-text-display: 1.875rem;
+  --basalt-radius-card: 12px;
+  --basalt-radius-inset: 8px;
+  --basalt-radius-ctrl: 8px;
+  --basalt-radius-chip: 6px;
+  --basalt-hit: 44px;
+
+  --basalt-dur-fast: 150ms;
+  --basalt-dur-base: 250ms;
+  --basalt-dur-slow: 400ms;
+  --basalt-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --basalt-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --basalt-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --basalt-spring: 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  --basalt-spring-bouncy: 500ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  --basalt-stagger: 30ms;
+}
+
+.arena-stage[data-theme='light'],
+.arena-chrome[data-theme='light'] {
+  color-scheme: light;
+  --basalt-canvas: #f6f6f4;
+  --basalt-inset: #fbfbfa;
+  --basalt-card: #ffffff;
+  --basalt-raised: #ffffff;
+  --basalt-surface: var(--basalt-canvas);
+  --basalt-ink: #1b1c1e;
+  --basalt-ink-muted: #55585e;
+  --basalt-ink-faint: #64686f;
+  --basalt-hairline: color-mix(in srgb, var(--basalt-ink) 9%, transparent);
+  --basalt-input: color-mix(in srgb, var(--basalt-ink) 34%, transparent);
+  --basalt-hover: color-mix(in srgb, var(--basalt-ink) 5%, transparent);
+  --basalt-selected: color-mix(in srgb, var(--basalt-ink) 9%, transparent);
+  --basalt-scrim: color-mix(in srgb, var(--basalt-ink) 40%, transparent);
+  --basalt-brand: #1f5fbf;
+  --basalt-brand-fill: #2a6fdb;
+  --basalt-on-brand: #ffffff;
+  --basalt-good: #1d7a46;
+  --basalt-warn: #9a5b00;
+  --basalt-bad: #b3261e;
+  --basalt-info: #1f5fbf;
+  --basalt-shadow-raised: 0 1px 2px color-mix(in srgb, var(--basalt-ink) 14%, transparent);
+  --basalt-shadow-overlay: 0 8px 24px color-mix(in srgb, var(--basalt-ink) 18%, transparent);
+
+  --fpp-felt: #2f6b4f;
+  --fpp-card-face: var(--basalt-card);
+  --fpp-card-back: var(--basalt-brand-fill);
+  --fpp-glow: color-mix(in srgb, var(--basalt-brand-fill) 45%, transparent);
+}
+
+.arena-stage[data-theme='dark'],
+.arena-chrome[data-theme='dark'] {
+  color-scheme: dark;
+  --basalt-canvas: #141517;
+  --basalt-inset: #101113;
+  --basalt-card: #1c1d20;
+  --basalt-raised: #24262a;
+  --basalt-surface: var(--basalt-canvas);
+  --basalt-ink: #ecedef;
+  --basalt-ink-muted: #a9acb2;
+  --basalt-ink-faint: #81858c;
+  --basalt-hairline: color-mix(in srgb, var(--basalt-ink) 12%, transparent);
+  --basalt-input: color-mix(in srgb, var(--basalt-ink) 38%, transparent);
+  --basalt-hover: color-mix(in srgb, var(--basalt-ink) 7%, transparent);
+  --basalt-selected: color-mix(in srgb, var(--basalt-ink) 12%, transparent);
+  --basalt-scrim: color-mix(in srgb, #000000 60%, transparent);
+  --basalt-brand: #8ab4f8;
+  --basalt-brand-fill: #2a6fdb;
+  --basalt-on-brand: #ffffff;
+  --basalt-good: #6fcf97;
+  --basalt-warn: #f2b45a;
+  --basalt-bad: #f28b82;
+  --basalt-info: #8ab4f8;
+  --basalt-shadow-raised: 0 1px 2px color-mix(in srgb, #000000 50%, transparent);
+  --basalt-shadow-overlay: 0 8px 24px color-mix(in srgb, #000000 60%, transparent);
+
+  --fpp-felt: #1f4a37;
+  --fpp-card-face: var(--basalt-raised);
+  --fpp-card-back: var(--basalt-brand-fill);
+  --fpp-glow: color-mix(in srgb, var(--basalt-brand) 40%, transparent);
+}
+
+/* Reduced motion, by the person's setting in the room or by the system: every duration is zero, as in basalt-ui. */
+.arena-stage[data-motion='reduced'] {
+  --basalt-dur-fast: 0ms;
+  --basalt-dur-base: 0ms;
+  --basalt-dur-slow: 0ms;
+  --basalt-spring: 0ms linear;
+  --basalt-spring-bouncy: 0ms linear;
+  --basalt-stagger: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-stage {
+    --basalt-dur-fast: 0ms;
+    --basalt-dur-base: 0ms;
+    --basalt-dur-slow: 0ms;
+    --basalt-spring: 0ms linear;
+    --basalt-spring-bouncy: 0ms linear;
+    --basalt-stagger: 0ms;
+  }
+}

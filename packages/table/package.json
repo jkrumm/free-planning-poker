@@ -1,0 +1,16 @@
+{
+  "name": "@fpp/table",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./contract": "./src/contract.ts",
+    "./scenarios": "./src/scenarios.ts"
+  },
+  "dependencies": {
+    "@fpp/room-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0"
+  }
+}

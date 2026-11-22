@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run indexnow factory-files bun-version lanes deploy verify logs
+.PHONY: help check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score indexnow factory-files bun-version lanes deploy verify logs
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover. Overridable so `verify` can be pointed at another host.
@@ -34,7 +34,7 @@ check-fast: ## Before every push: format, lint, types, boundaries, unit tests, f
 	@$(MAKE) --no-print-directory bun-version
 	@$(call step,format (oxfmt --check),bunx --no-install oxfmt --check >/dev/null || bunx --no-install oxfmt --check)
 	@$(call step,lint (oxlint),bunx --no-install oxlint --deny-warnings)
-	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json)
+	@$(call step,types (tsc),bunx --no-install tsc --noEmit -p tsconfig.json && bunx --no-install tsc --noEmit -p tsconfig.dom.json && bunx --no-install tsc --noEmit -p e2e/tsconfig.json)
 	@$(call step,boundaries (scripts/boundaries.ts),bun scripts/boundaries.ts)
 	@$(call step,unit tests (bun test),bun test $(call JUNIT,unit) --path-ignore-patterns='$(SERVER_TESTS)' --path-ignore-patterns='$(SITE_TESTS)')
 	@$(MAKE) --no-print-directory factory-files
@@ -62,6 +62,22 @@ site: ## Build apps/site for production and beta, then test the output (lane sit
 site-run:
 	@$(call step,site build (production, beta, fixtures),ASTRO_TELEMETRY_DISABLED=1 bun run --filter '@fpp/site' build)
 	@$(call step,site tests,bun test apps/site $(call JUNIT,site))
+
+# The table arena (docs/v9/ARENA.md): the gallery with every entry under arena/entries, and one entry's scorecard.
+arena: ## Build the table arena's gallery (apps/arena/dist) and render every entry through every scenario
+	@$(call step,arena build (vite),bun run --filter '@fpp/arena' build)
+	@$(call step,arena entries render every scenario,bun test apps/arena $(call JUNIT,arena))
+
+# The scorecard: static checks, then Playwright in the bundled headless shell, in a factory slot where there is one.
+# Writes arena/scores/$(ENTRY)/index.html and score.json; exits non-zero when a rule of the floor fails. About 3 min.
+arena-score: ## Score one table entry: make arena-score ENTRY=<name> (writes arena/scores/<name>/)
+	@test -n "$(ENTRY)" || { echo "usage: make arena-score ENTRY=<name>"; exit 2; }
+	@test -f "arena/entries/$(ENTRY)/index.tsx" || { echo "no entry at arena/entries/$(ENTRY)/index.tsx"; exit 2; }
+	@$(MAKE) --no-print-directory arena
+	@rm -rf "arena/scores/$(ENTRY)"
+	@$(call step,arena static checks,bun apps/arena/scripts/static-score.ts $(ENTRY))
+	@$(call step,arena browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium ffmpeg >/dev/null)
+	@$(call step,arena scorecard (playwright),$(call slot,arena-score) env ARENA_ENTRY=$(ENTRY) e2e/node_modules/.bin/playwright test -c e2e/arena/playwright.config.ts)
 
 # The plan and the project file must parse; skipped where the factory CLI is not installed (CI).
 factory-files:

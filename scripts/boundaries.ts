@@ -164,15 +164,17 @@ async function sourceFiles(dir: string): Promise<string[]> {
   return nested.flat()
 }
 
-/** The module directories that exist: every directory under apps/ and packages/, and e2e/. */
+/** The module directories that exist: every directory under apps/ and packages/, and e2e/ and arena/. */
 async function moduleDirs(root: string): Promise<string[]> {
   const dirs: string[] = []
   for (const parent of ['apps', 'packages']) {
     const entries = await readdir(join(root, parent), { withFileTypes: true }).catch(() => [])
     for (const entry of entries) if (entry.isDirectory()) dirs.push(`${parent}/${entry.name}`)
   }
-  const e2e = await readdir(join(root, 'e2e')).catch(() => undefined)
-  if (e2e) dirs.push('e2e')
+  for (const single of ['e2e', 'arena']) {
+    const entries = await readdir(join(root, single)).catch(() => undefined)
+    if (entries) dirs.push(single)
+  }
   return dirs
 }
 

@@ -1,0 +1,120 @@
+/* The gallery's own chrome: plain, on the arena's tokens, usable on a phone. */
+
+html,
+body {
+  margin: 0;
+}
+
+.arena-chrome {
+  min-block-size: 100vh;
+  box-sizing: border-box;
+  padding: 12px;
+  background: var(--basalt-canvas);
+  color: var(--basalt-ink);
+  font-family: var(--basalt-font-sans);
+  font-size: var(--basalt-text-md);
+}
+
+.arena-head h1 {
+  margin: 0 0 8px;
+  font-size: var(--basalt-text-lg);
+  font-weight: var(--basalt-weight-strong);
+}
+
+.arena-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.arena-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--basalt-text-xs);
+  color: var(--basalt-ink-muted);
+}
+
+.arena-controls select,
+.arena-transport button {
+  min-block-size: var(--basalt-hit);
+  min-inline-size: var(--basalt-hit);
+  border: 1px solid var(--basalt-input);
+  border-radius: var(--basalt-radius-ctrl);
+  background: var(--basalt-raised);
+  color: var(--basalt-ink);
+  font: inherit;
+  font-size: var(--basalt-text-md);
+  padding-inline: 8px;
+}
+
+.arena-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block: 12px;
+}
+
+.arena-transport input[type='range'] {
+  flex: 1 1 200px;
+  min-block-size: var(--basalt-hit);
+}
+
+.arena-about {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: var(--basalt-text-sm);
+  color: var(--basalt-ink-muted);
+}
+
+.arena-about a {
+  color: var(--basalt-brand);
+}
+
+.arena-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arena-stages-row {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.arena-frame {
+  overflow: hidden;
+  border-radius: var(--basalt-radius-inset);
+  box-shadow: 0 0 0 1px var(--basalt-hairline);
+}
+
+/* The box an entry renders in: exactly the container's size, nothing leaks out, its own container for queries. */
+.arena-stage {
+  position: relative;
+  overflow: hidden;
+  transform-origin: 0 0;
+  container-type: size;
+  background: var(--basalt-canvas);
+  color: var(--basalt-ink);
+  font-family: var(--basalt-font-sans);
+}
+
+.arena-bare {
+  margin: 0;
+}
+
+.arena-bare .arena-frame {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.arena-problem {
+  margin: 0;
+  padding: 16px;
+  color: var(--basalt-bad);
+  font-family: var(--basalt-font-sans);
+}
