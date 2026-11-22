@@ -1,6 +1,6 @@
 # apps/api/src/ws
 
-The room socket: `bun.transport.ts` is the transport port on `Bun.serve`'s native handler, the winner of the bake-off (`docs/v9/evidence/transport.md`); `edge.ts` holds the upgrade check, the socket options and the outgoing validation; `clock.ts` is the clock port. Rule `transport.md` has the constraints; what follows is what only work here needs.
+The room socket: `bun.transport.ts` is the transport port on `Bun.serve`'s native handler, the winner of the bake-off (`docs/v9/evidence/transport.md`); `edge.ts` holds the upgrade check, the socket options, the outgoing validation and `peers`, the peer address of each HTTP request (Elysia's `handle` takes no context, so the adapter records it per `Request` for `clientOf`, which the message routes' limits read); `clock.ts` is the clock port. Rule `transport.md` has the constraints; what follows is what only work here needs.
 
 - **Prove a change with the contract suite**, `bun test apps/api/test/contract` (half a second, real sockets on a free port; server tier, so `make check-fast` skips it). A bump of Bun or Elysia passes it in the same pull request, and a Bun bump also passes `bun apps/api/scripts/stop-after-close.ts` (a stop that hangs after server-side closes, Bun issue 36223).
 - **The drain on SIGTERM** is `main.ts` calling `Api.drain` (health 503), then `RoomServer.stop(DRAIN_DEADLINE_MS)`, then `Api.close`. Prove a change to it with `bun test apps/api/test/handoff` (two real processes on one Postgres, about 2 s).

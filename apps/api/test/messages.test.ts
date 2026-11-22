@@ -17,16 +17,27 @@ afterEach(async () => {
   for (const stop of stops.splice(0)) await stop()
 })
 
+/** The client each message reached the API under. */
+const seen: string[] = []
+
 async function start(
   clientIpHeader?: string,
 ): Promise<{ room: Started; door: Awaited<ReturnType<typeof startUpstream>> }> {
   const door = await startUpstream(await freePort())
-  const messages = createMessages({
+  seen.length = 0
+  const sending = createMessages({
     gateway: undefined,
     door: { url: door.url, secret: 'door-token' },
     now: Date.now,
     failed: () => {},
   })
+  const messages = {
+    ...sending,
+    feedback: (input: Parameters<typeof sending.feedback>[0], client: string) => {
+      seen.push(client)
+      return sending.feedback(input, client)
+    },
+  }
   const room = await startServer('bun', await freePort(), {
     messages,
     ...(clientIpHeader === undefined ? {} : { clientIpHeader }),
@@ -66,6 +77,15 @@ test('without a named header the socket peer is the client', async () => {
   const { room } = await start()
   for (let sent = 0; sent < 3; sent++) expect((await send(room, {})).status).toBe(200)
   expect((await send(room, { 'cf-connecting-ip': '203.0.113.2' })).status).toBe(429)
+})
+
+test('the key is the socket peer without a header, and the header when one is named', async () => {
+  const bare = await start()
+  expect((await send(bare.room, { 'cf-connecting-ip': '203.0.113.2' })).status).toBe(200)
+  expect(seen).toEqual(['127.0.0.1'])
+  const behind = await start('cf-connecting-ip')
+  expect((await send(behind.room, { 'cf-connecting-ip': '203.0.113.2' })).status).toBe(200)
+  expect(seen).toEqual(['203.0.113.2'])
 })
 
 test('a body past the server cap never reaches a route', async () => {
