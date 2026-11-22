@@ -147,10 +147,11 @@ describe('votes and the reveal', () => {
     const { room, players } = table(2)
     const old = current(room).id
     vote(room, players[0]!, '3')
+    vote(room, players[1]!, '8')
     reveal(room, players[0]!)
     expectRejected(vote(room, players[1]!, '5', old), 'round_closed')
     expectRejected(vote(room, players[1]!, '5', room.clock.newId()), 'round_unknown')
-    revote(room, players[0]!)
+    expect(types(revote(room, players[0]!))).toEqual(['poker.roundStarted'])
     expectRejected(vote(room, players[1]!, '5', old), 'round_closed')
   })
 

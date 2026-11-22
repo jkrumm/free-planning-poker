@@ -19,7 +19,7 @@ The room's rules as pure functions, and the protocol every browser and server sp
 
 ## Changing a rule
 
-- A decide file never changes state: it returns `DomainEvent[]` or `{ reject }` with a reason from `NACK_REASONS`. State changes only in an evolve function, and `evolveRounds` and `evolveKernel` serve the server's state and a client's view alike, so a change there keeps property (f) (`evolveView` equals `project`) true by construction.
+- A decide file never changes state: it returns `DomainEvent[]` or `{ reject }` with a reason from `NACK_REASONS`. The room changes only in an evolve function (`step` adds nothing but the accepted command's id to `applied`), and `evolveRounds` and `evolveKernel` serve the server's state and a client's view alike, so a change there keeps property (f) (`evolveView` equals `project`) true by construction.
 - Time and ids come from `ctx` only. A new id is `ctx.newId()`, called in `decide`, never in `evolve`.
 - A new command or event touches `types.ts`, `schema.ts`, `names.ts`, its decide and evolve case, a fixture under `fixtures/v1/` (hand-written; the v1 files are frozen once v1 is released), and a section of `docs/v9/protocol.md`. `test/protocol.test.ts` names what is missing.
 - A second activity is a new directory beside `poker/`; the kernel only learns what `KernelActivity` asks.
