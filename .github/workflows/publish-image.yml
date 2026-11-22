@@ -1,0 +1,79 @@
+name: Publish image
+
+# The image users self-host with (deploy/compose.yml, https://free-planning-poker.com/self-hosting), published to this repository's
+# GitHub Container Registry as ghcr.io/jkrumm/free-planning-poker. Tags:
+#   sha-<7 characters>  every build, the commit it was built from
+#   latest              the newest build of master, from a push to master and from a release
+#   <version>, <major>.<minor>   a release (release.yml calls this workflow with the tag it made)
+# The package is public: selfhost.yml pulls it with no login. amd64 only; the arm64 build is a row of nightly.yml's own.
+# Nothing here deploys anything: the beta host's roll-out is v9-next-deploy's.
+on:
+  push:
+    branches: [master]
+  workflow_call:
+    inputs:
+      ref:
+        description: The tag or commit to build (a release's tag); the pushed commit by default
+        type: string
+        default: ''
+      version:
+        description: The release version, e.g. 9.0.0; empty for a push to master
+        type: string
+        default: ''
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One publish at a time, in order, so the newest master is the one `latest` ends on.
+concurrency:
+  group: publish-image
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - id: tags
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          short=$(git rev-parse --short=7 HEAD)
+          tags="ghcr.io/jkrumm/free-planning-poker:sha-$short,ghcr.io/jkrumm/free-planning-poker:latest"
+          if [ -n "$VERSION" ]; then
+            tags="$tags,ghcr.io/jkrumm/free-planning-poker:$VERSION,ghcr.io/jkrumm/free-planning-poker:${VERSION%.*}"
+          fi
+          {
+            echo "short=$short"
+            echo "tags=$tags"
+          } >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          platforms: linux/amd64
+          build-args: OTEL_SERVICE_VERSION=${{ steps.tags.outputs.short }}
+          # The label links the package to this repository, which is what lets a public repository's package be public.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ steps.tags.outputs.short }}
+            org.opencontainers.image.licenses=AGPL-3.0-only
+          tags: ${{ steps.tags.outputs.tags }}
+          push: true
+          cache-from: type=gha,scope=fpp-api
+          cache-to: type=gha,scope=fpp-api,mode=max
