@@ -1,23 +1,72 @@
 ---
 import Base from '../layouts/base.astro'
+import { next } from '../data/next.ts'
+import changelog from '../../../../CHANGELOG.md?raw'
+import { parseChangelog } from '../lib/changelog.ts'
+import { strings } from '../strings.en.ts'
+
+// The newest five releases, with their compare links. Older releases are one click away on GitHub, because the
+// full changelog would outgrow the page budget (12 kB gzip, apps/site/AGENTS.md).
+const shownReleases = 5
+const releases = parseChangelog(changelog).slice(0, shownReleases)
 ---
 
 <Base
   title="Roadmap"
-  description="What comes next for Free Planning Poker, and how to contribute or suggest a feature."
+  description="What comes next for Free Planning Poker, the latest releases, and how to contribute or suggest a feature."
 >
   <h1>Roadmap</h1>
-  <p>
-    As I am working on this project on my own for now, I have only created a Wunderlist board to keep track of the
-    tasks I want to implement. Below you can see the current state.
-  </p>
+  <p>Below is what comes next, and the latest releases, read from the changelog when the site was built.</p>
+
+  <h2>What is next</h2>
+  <dl>
+    {
+      next.map((item) => (
+        <>
+          <dt>{item.title}</dt>
+          <dd>{item.summary}</dd>
+        </>
+      ))
+    }
+  </dl>
+
+  <h2>Releases</h2>
+  {
+    releases.map((release) => (
+      <section>
+        <h3>
+          {release.compare ? <a href={release.compare}>{release.version}</a> : release.version}{' '}
+          <time datetime={release.date}>{release.date}</time>
+        </h3>
+        {release.sections.map((section) => (
+          <>
+            {section.title && <h4>{section.title}</h4>}
+            <ul>
+              {section.items.map((item) => (
+                <li>
+                  {item.text}
+                  {item.commit && (
+                    <>
+                      {' '}(<a href={item.commit.href}>{item.commit.sha}</a>)
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        ))}
+      </section>
+    ))
+  }
+  <p><a href={strings.releases.href}>All releases on GitHub</a></p>
+
+  <h2>Contribute</h2>
   <p>
     Free Planning Poker is an open-source project, and I am always happy to receive contributions from the users of
-    this app. If you want to help, feel free reach out to me or to create a pull request on GitHub.
+    this app. If you want to help, feel free to reach out to me or to create a pull request on GitHub.
   </p>
   <p>
-    If you have any feature suggestions or want to report a bug, feel free to use the contact form or create an issue
-    on GitHub.
+    If you have a feature suggestion or want to report a bug, use the contact form or create an issue on GitHub.
   </p>
   <p>
     <a href="/contact">Contact</a>
