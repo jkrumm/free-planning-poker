@@ -6,7 +6,7 @@
  *   bun apps/arena/scripts/static-score.ts <entry>
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
+import { dirname, join, relative, resolve, sep } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import react from '@vitejs/plugin-react'
 import { build, type Rollup } from 'vite'
@@ -102,7 +102,8 @@ for (const file of files) {
     const line = source.slice(0, match.index).split('\n').length
     if (specifier.startsWith('.')) {
       const target = resolve(dirname(join(dir, file)), specifier)
-      if (relative(dir, target).startsWith('..'))
+      const inside = relative(dir, target)
+      if (inside === '..' || inside.startsWith(`..${sep}`))
         leaks.push({ file, line, specifier, why: 'reaches outside the entry directory' })
     } else if (FORBIDDEN.test(specifier))
       leaks.push({ file, line, specifier, why: 'not part of the table contract' })
