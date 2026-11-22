@@ -1,0 +1,1 @@
+ALTER TABLE "fpp"."round" ADD COLUMN "summary" jsonb;

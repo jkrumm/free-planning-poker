@@ -15,6 +15,13 @@
       "when": 1795366127085,
       "tag": "0001_dazzling_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795366788717,
+      "tag": "0002_round_summary",
+      "breakpoints": true
     }
   ]
 }
