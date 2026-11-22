@@ -10,6 +10,7 @@ import {
   sectionsOf,
   textOf,
 } from './output.ts'
+import { executableIn } from './scripts.ts'
 
 describe.each(realOutputs)('legal pages, build %s', (output) => {
   const root = outputRoot(output)
@@ -77,10 +78,11 @@ describe.each(realOutputs)('legal pages, build %s', (output) => {
     expect(missing).toEqual([])
   })
 
-  test('only the contact page carries a script', async () => {
+  // JSON-LD blocks are data, not scripts (scripts.ts), so a page with structured data still has none.
+  test('only the contact page carries an executable script', async () => {
     const withScript: string[] = []
     for (const page of (await listFiles(root)).filter((file) => file.endsWith('.html'))) {
-      if (/<script\b/.test(await readText(root, page))) withScript.push(page)
+      if (executableIn(page, await readText(root, page)).length > 0) withScript.push(page)
     }
     expect(withScript).toEqual(['contact.html'])
   })
