@@ -11,7 +11,9 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "arena",
+    "e2e"
   ],
   "type": "module",
   "scripts": {

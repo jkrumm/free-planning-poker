@@ -9,3 +9,6 @@ coverage/
 .env*.local
 .envrc
 .idea/
+# Scorecards of the table arena: written by make arena-score, never committed.
+arena/scores/
+test-results/

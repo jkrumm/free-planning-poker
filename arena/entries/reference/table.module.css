@@ -1,0 +1,157 @@
+/* Plain boxes on the arena's tokens; no colour is written here as a value. */
+
+.table {
+  box-sizing: border-box;
+  block-size: 100%;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--basalt-canvas);
+  color: var(--basalt-ink);
+  font-family: var(--basalt-font-sans);
+  font-size: var(--basalt-text-md);
+}
+
+.head {
+  display: grid;
+  gap: 2px;
+}
+
+.topic {
+  margin: 0;
+  font-size: var(--basalt-text-lg);
+  font-weight: var(--basalt-weight-strong);
+}
+
+.state {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--basalt-ink-muted);
+}
+
+.center {
+  padding: 8px;
+  border: 1px dashed var(--basalt-input);
+  border-radius: var(--basalt-radius-ctrl);
+}
+
+.seats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.seat {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--basalt-hairline);
+  border-radius: var(--basalt-radius-ctrl);
+  background: var(--basalt-card);
+  min-inline-size: 0;
+}
+
+.seat[data-status='away'],
+.seat[data-status='reconnecting'],
+.seat[data-status='spectator'] {
+  color: var(--basalt-ink-faint);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--basalt-weight-medium);
+}
+
+.status {
+  font-size: var(--basalt-text-xs);
+  color: var(--basalt-ink-muted);
+}
+
+.back,
+.card {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 44px;
+  border-radius: var(--basalt-radius-chip);
+}
+
+.back {
+  background: var(--fpp-card-back);
+}
+
+.card {
+  border: 1px solid var(--basalt-input);
+  background: var(--fpp-card-face);
+  font-weight: var(--basalt-weight-strong);
+}
+
+.flip {
+  animation-name: flip;
+  animation-fill-mode: backwards;
+}
+
+@keyframes flip {
+  from {
+    transform: rotateY(90deg);
+  }
+  to {
+    transform: rotateY(0deg);
+  }
+}
+
+.effect {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 4px;
+}
+
+.spread {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions,
+.hand,
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions button,
+.hand button,
+.reactions button {
+  min-block-size: var(--basalt-hit);
+  min-inline-size: var(--basalt-hit);
+  padding-inline: 10px;
+  border: 1px solid var(--basalt-input);
+  border-radius: var(--basalt-radius-ctrl);
+  background: var(--basalt-raised);
+  color: var(--basalt-ink);
+  font: inherit;
+}
+
+.choice[aria-pressed='true'] {
+  background: var(--basalt-brand-fill);
+  color: var(--basalt-on-brand);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--basalt-brand);
+  outline-offset: 2px;
+}

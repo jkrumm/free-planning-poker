@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["bun"]
+  },
+  "include": [
+    "apps/arena/src",
+    "apps/arena/scripts",
+    "apps/arena/vite.config.ts",
+    "packages/table/src",
+    "arena"
+  ]
+}
