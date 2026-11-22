@@ -11,7 +11,7 @@ How the rewrite is staged and what each row builds. The rows the factory runs ar
 - **Priority 1.** Every row is filed at queue priority 1, above the default 0 of the owner's other projects (his ruling of 2026-11-21: the rewrite ranks above WeatherOrb and below basalt-ui, whose Issues are raised by hand).
 - **Planned ahead, corrected later.** Stages 2 to 4 were written as rows on 2026-11-21, before any code of the rewrite existed. Each has one correction row (`v9-plan-table`, `v9-plan-site`, `v9-plan-launch`): it reads what was measured, fixes the facts of the rows not yet started, notes the ones already running, and changes nothing that still holds.
 - **Width before depth.** A row waits only for what it reads. After `v9-room-runtime` the server, the client and the arena's harness run side by side; the site starts after the setup for agents; after the room's shell the rows of the interface each own one directory.
-- **The setup for agents comes before features.** `v9-agent-setup` follows the foundation, and every row that builds v9's features follows it. Each later row keeps the setup current in its own pull request.
+- **The setup for agents comes before features.** `v9-agent-setup` builds on the foundation's output (on master) and does not wait for the foundation's Issue to close, and every row that builds v9's features follows it. Each later row keeps the setup current in its own pull request.
 - **The arena's entries are not rows.** The owner runs them in sessions of his own, with several directions and several labs' models (`ARENA.md`, written by `v9-table-arena`).
 - **Text the owner must read is a draft.** Cluster guides, the glossary, comparison pages, `/data`, blog posts and the translated landing pages are merged with `draft: true`: the beta host shows them, production does not until he removes the flag.
 - v1 lives on the branch `v1` from the row `v9-freeze-v1` on. One row touches v1 before that: `v9-umami-on-v1` adds a script tag.
@@ -37,7 +37,7 @@ Exit: Playwright passes against the shipped image on a pull request, including a
 | `v9-umami-on-v1` | Umami's script on v1's pages, so its history starts now | lead | `v9-gate-1` |
 | `v9-freeze-v1` | v1 on its own branch with its own deploys; `master` cleared | opus | umami-on-v1 |
 | `v9-foundation` | tooling, check tiers, CI, decks, the API's health route on Elysia 2, a short AGENTS.md | opus | freeze-v1 |
-| `v9-agent-setup` | the complete setup for agents: AGENTS.md, path-scoped rules, the pull request template, the README, proven by a cold read | opus | foundation |
+| `v9-agent-setup` | the complete setup for agents: AGENTS.md, path-scoped rules, the pull request template, the README, proven by a cold read | opus | gate (reads the foundation's output on master) |
 | `v9-dev-host` (dotfiles) | `fpp-next.test` with production's path split, database `fpp` on the mini | light | gate |
 | `v9-vps-postgres` (vps) | schema and role `fpp`, secret | lead | gate |
 | `v9-room-core` | protocol with named activities, `decide`, `evolve` and `project` with topics, final value and roles, the result contract, property tests, `protocol.md` | opus | agent-setup |

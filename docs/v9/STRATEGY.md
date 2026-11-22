@@ -95,7 +95,7 @@ Your answers of 2026-11-20 to the open choices and to the points where the plan 
 | Further activities | Inside this product | Unchanged: one product, one room, activities as modules |
 | Trackers without accounts | Keys stay in the browser; we store ticket references only (2026-11-21) | No connector table and no stored token, ever. A connection is held by the browser that made it (`ARCHITECTURE.md`, "Built for what comes next") |
 | The invite | No QR code (2026-11-21) | The link and the share sheet |
-| Before implementation | A thorough setup for agents and the factory first | A row of its own, `v9-agent-setup`, after the foundation and before every row that builds a feature of v9: `AGENTS.md`, path-scoped rules, the pull request template, the README, proven by a cold read |
+| Before implementation | A thorough setup for agents and the factory first | A row of its own, `v9-agent-setup`, on the foundation's output and before every row that builds a feature of v9: `AGENTS.md`, path-scoped rules, the pull request template, the README, proven by a cold read |
 
 Five smaller questions were still open when the later stages were planned. Each is settled with the cautious default, and each is one line to overturn:
 
