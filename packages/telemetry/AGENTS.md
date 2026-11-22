@@ -8,6 +8,7 @@ The names every telemetry signal carries, and the facades that send them. Rule `
 |-|-|
 | `src/names.ts` | pure: services, resource attributes, `ATTR`, `EVENT`, `SPAN`, `METRIC` and `METRIC_LABELS` (the labels each metric may carry) |
 | `src/umami.ts` | pure: the registry of Umami's events and their properties; a property is a boolean or a closed list |
+| `src/umami-script.ts` | pure: the two script tags (the `data-before-send` hook, then the tracker from `/api/u/p.js`) that the site's base layout and the room's `vite.config.ts` both render; `beforeSend` is shipped as its own text, so it stays one self-contained function |
 | `src/facade.server.ts` | the only import of OpenTelemetry: `createServerTelemetry` builds spans, metrics, log records, `recordError`, `recordEvent` |
 | `src/facade.browser.ts` | `track(event, data)` for `window.umami`; browser telemetry (errors, connection state) joins it in `v9-browser-telemetry` |
 | `src/facade.memory.ts` | in-memory exporters and `leaksIn`, for tests only |
@@ -15,6 +16,7 @@ The names every telemetry signal carries, and the facades that send them. Rule `
 ## Rules that are easy to miss
 
 - **A new name goes into the registry first**, then is emitted. `test/names.test.ts` fails on a registered name or any `fpp.` literal in another package, and on an OpenTelemetry import there; oxlint refuses the import too.
+- **An Umami event is named by `UMAMI_EVENT`**, never a literal: `track(UMAMI_EVENT.voteCast, { activity: 'poker' })`. A room's page title is its name and a room path holds its slug, so `beforeSend` rewrites both; the hook changes with its test (`test/umami-script.test.ts`), which also runs the shipped text.
 - **No SDK without an endpoint.** `createServerTelemetry` builds nothing when `endpoint` is undefined and no exporter is given: calls run, nothing is recorded or sent. Never default an endpoint to localhost.
 - **An error is exported by its type and its stack frames, never its message**: a database error's message holds the row. Add context as `component` and `action`, not as text.
 - **A metric label comes from `METRIC_LABELS`**: the SDK's view drops any other attribute before export. A room is its numeric id and a seat its index, on spans only, never on a metric.

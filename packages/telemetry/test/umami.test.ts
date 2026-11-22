@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { track } from '../src/facade.browser.ts'
-import { bucketOf, COUNT_BUCKETS, UMAMI, type UmamiEvent } from '../src/umami.ts'
+import { bucketOf, COUNT_BUCKETS, UMAMI, UMAMI_EVENT, type UmamiEvent } from '../src/umami.ts'
 
 /** A property named like what Umami must never hold: a vote, a display name, a room name or slug, a code, a key. */
 const FORBIDDEN =
@@ -20,9 +20,28 @@ const EVENTS = [
   'embed_loaded',
 ]
 
+/** The properties that are neither a boolean nor a non-empty closed list of short lower-case values, as `event.property`. */
+function freeProperties(registry: Record<string, Record<string, unknown>>): string[] {
+  const free: string[] = []
+  for (const [event, properties] of Object.entries(registry))
+    for (const [name, property] of Object.entries(properties)) {
+      const closed =
+        property === 'boolean' ||
+        (Array.isArray(property) &&
+          property.length > 0 &&
+          property.every((value) => typeof value === 'string' && /^[a-z0-9+-]{1,12}$/.test(value)))
+      if (!closed) free.push(`${event}.${name}`)
+    }
+  return free
+}
+
 describe('the registry of Umami events', () => {
   test('it holds the events of Measurement and no other', () => {
     expect(Object.keys(UMAMI).toSorted()).toEqual(EVENTS.toSorted())
+  })
+
+  test('the constants name every event of the registry once', () => {
+    expect(Object.values<string>(UMAMI_EVENT).toSorted()).toEqual(Object.keys(UMAMI).toSorted())
   })
 
   test('no property is named like a vote value, a display name, a slug or an access code', () => {
@@ -49,12 +68,15 @@ describe('the registry of Umami events', () => {
   })
 
   test('every property is a boolean or a closed list of short lower-case values: no free string', () => {
-    for (const properties of Object.values(UMAMI))
-      for (const property of Object.values(properties as Record<string, unknown>)) {
-        if (property === 'boolean') continue
-        expect(Array.isArray(property)).toBe(true)
-        for (const value of property as string[]) expect(value).toMatch(/^[a-z0-9+-]{1,12}$/)
-      }
+    expect(freeProperties(UMAMI)).toEqual([])
+  })
+
+  test('a planted free-string property fails that check', () => {
+    expect(freeProperties({ planted: { note: 'string' } })).toEqual(['planted.note'])
+    expect(freeProperties({ planted: { note: [] } })).toEqual(['planted.note'])
+    expect(freeProperties({ planted: { note: ['a free sentence'] } })).toEqual(['planted.note'])
+    expect(freeProperties({ planted: { note: String } })).toEqual(['planted.note'])
+    expect(freeProperties({ planted: { flag: 'boolean', kind: ['a', 'b-c', '2-4'] } })).toEqual([])
   })
 
   test('an event inside a room names its activity', () => {
