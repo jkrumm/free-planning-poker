@@ -1,0 +1,43 @@
+---
+import type { VsData } from '../lib/entry-schema.ts'
+import { sourceLabel } from '../lib/vs.ts'
+import { strings } from '../strings.en.ts'
+
+interface Props {
+  tool: VsData['tool']
+  facts: VsData['facts']
+}
+
+const { tool, facts } = Astro.props
+const isoDay = (date: Date) => date.toISOString().slice(0, 10)
+const ahead = { them: tool.name, us: strings.vs.ourName, even: strings.vs.even }
+---
+
+<table>
+  <caption>{strings.vs.caption.replace('{tool}', tool.name)}</caption>
+  <thead>
+    <tr>
+      <th scope="col">{strings.vs.topicHeading}</th>
+      <th scope="col">{tool.name}</th>
+      <th scope="col">{strings.vs.ourName}</th>
+      <th scope="col">{strings.vs.aheadHeading}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      facts.map((fact) => (
+        <tr>
+          <th scope="row">{fact.topic}</th>
+          <td>
+            <p>{fact.claim}</p>
+            <p>
+              {strings.vs.readOn} <time datetime={isoDay(fact.read)}>{isoDay(fact.read)}</time>{', '}<a href={fact.source}>{sourceLabel(fact.source)}</a>
+            </p>
+          </td>
+          <td>{fact.ours}</td>
+          <td>{ahead[fact.ahead]}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

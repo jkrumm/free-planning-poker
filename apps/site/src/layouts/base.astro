@@ -20,6 +20,8 @@ const robots = draft || noindex ? 'noindex, nofollow' : 'index, follow'
 const year = new Date().getFullYear()
 // /blog exists only while this build shows a post (src/pages/blog), so the footer links it on the same condition.
 const blogVisible = (await sectionEntries('blog')).length > 0
+// /vs is the same: no index page, so no link, while the build shows no comparison.
+const vsVisible = (await sectionEntries('vs')).length > 0
 ---
 
 <!doctype html>
@@ -57,6 +59,7 @@ const blogVisible = (await sectionEntries('blog')).length > 0
         <ul>
           {strings.footerPages.map((item) => <li><a href={item.href}>{item.title}</a></li>)}
           {blogVisible && <li><a href={strings.blog.href}>{strings.blog.title}</a></li>}
+          {vsVisible && <li><a href={strings.vs.href}>{strings.vs.indexTitle}</a></li>}
         </ul>
         <ul>
           {strings.footerLegal.map((item) => <li><a href={item.href}>{item.title}</a></li>)}

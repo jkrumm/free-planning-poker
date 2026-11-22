@@ -47,5 +47,20 @@ export const strings = {
       docs: 'Docs',
     },
   },
+  vs: {
+    ourName: 'Free Planning Poker',
+    href: '/vs',
+    indexTitle: 'Comparisons',
+    indexDescription:
+      'Free Planning Poker next to the tools teams weigh it against: what each one says on its own pages, with the day it was read and a link to the page.',
+    checked: 'Checked on {day}',
+    checkedNote:
+      "Every fact about {tool} below was read on the day given, from {tool}'s own page, and each row links that page. The column for Free Planning Poker describes release 9.0.0.",
+    caption: 'What {tool} says about itself, and what Free Planning Poker does on the same point',
+    topicHeading: 'Topic',
+    aheadHeading: 'Ahead',
+    even: 'Even',
+    readOn: 'Read on',
+  },
   backToTop: 'Back to Top',
 } as const
