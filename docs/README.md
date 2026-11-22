@@ -12,6 +12,8 @@ One line per file under `docs/`. v9 is the contract for `master`; the files mark
 | `v9/ARCHITECTURE.md` | what the system is: invariants, topology, repo map, stack, room model, protocol, server, data model, HTTP API, client, measurement, testing, cutover |
 | `v9/protocol.md` | the exact room protocol: frames, commands, events, rejection reasons, close codes, the view, the result contract |
 | `v9/ENGINEERING.md` | how work goes: where v1 lives, targets, code patterns, what a script enforces, local checks, CI, the factory, basalt-ui |
+| `v9/TABLE-BRIEF.md` | the brief every table arena entry gets, complete on its own: the contract, the floor, the tokens, how to run the gallery and the scorecard, how to submit |
+| `v9/ARENA.md` | the owner's runbook for the arena: starting an entry, the directions, scoring, the gallery, closing the arena |
 | `v9/UX.md` | what the product does: principles, the room, flows, the reveal, motion and sound, the table arena, accessibility, copy, languages, the site, what changes for a v1 user |
 | `v9/STRATEGY.md` | why each choice was made and what was rejected, with the owner's rulings and comments by date |
 | `v9/PLAN.md` | the rules, seats and four stages of the plan in prose |

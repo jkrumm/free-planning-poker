@@ -209,7 +209,7 @@ A lead that lost time to something the files did not say adds the missing line i
 | Run everything | `bun run dev`: Astro on 7738, Vite on 7739, the API on 7740 with hot reload. One address, `https://fpp-next.test`, splits paths as production does |
 | A database | `fpp` on the mini's Postgres. `bun run db:migrate`, `db:reset`, and `db:seed`, which writes a room with a year of rounds so the insights have something to show |
 | A full table without colleagues | `bun run bots --room <address> --seats 12`: bots join an existing local room through `@fpp/room-client`, vote, reveal, drop and return. Flags: `--behaviour` (quick, lurker, sleeper, spectator, mixed), `--speed`, `--origin`, `--code` |
-| Every state of the table | the arena, driven by the simulator: entry, seat count, round state, presence, deck, width, reduced motion |
+| Every state of the table | the arena, driven by the simulator: entry, seat count, round state, presence, container, theme, reduced motion |
 | Replay a failure | `bun run sim --seed <n>` prints the same trace every time |
 | A server restart mid-round | restart the API: rooms come back from their snapshot, so hot reload never costs a test session |
 | The shipped artefact | `make v9-up`: the image and Postgres from `deploy/compose.yml` |

@@ -42,14 +42,15 @@ The API container serves the SPA it was built with, so client and server ship as
 
 ## Repo map
 
-Nine modules. The dependency arrows only point down this table.
+Ten modules. The dependency arrows only point down this table.
 
 | Path | Package | Holds | May import |
 |-|-|-|-|
 | `apps/site` | `@fpp/site` | Astro marketing site, content collections, the landing demo island | `@fpp/table`, `@fpp/room-core`, `@fpp/telemetry` |
 | `apps/room` | `@fpp/room` | Vite SPA: routes, room shell, settings, insights, PWA, embed mode | `@fpp/table`, `@fpp/room-client`, `@fpp/room-core`, `@fpp/telemetry` |
 | `apps/api` | `@fpp/api` | Elysia HTTP API, WebSocket room server, Postgres access, jobs, static serving of the SPA. Effect is allowed in `src/app`, `src/db` and `src/jobs` only | `@fpp/room-core`, `@fpp/telemetry` |
-| `apps/arena` | `@fpp/arena` | The table arena, later the playground: every table entry side by side, driven by the simulator, with the scenario matrix and the scorecard (`UX.md`, "The table arena") | `@fpp/table`, `@fpp/room-core` |
+| `apps/arena` | `@fpp/arena` | The table arena, later the playground: every table entry side by side, driven by the simulator, with the scenario matrix and the scorecard (`UX.md`, "The table arena"; `TABLE-BRIEF.md`, `ARENA.md`) | `@fpp/table`, `@fpp/room-core` |
+| `arena` | `@fpp/arena-entries` | The arena's entries, one directory each under `arena/entries`, in one workspace package so a new entry needs no install | `@fpp/table`, `@fpp/room-core` |
 | `packages/table` | `@fpp/table` | The game surface as React components: seats, cards, reveal, results, motion, sound. Takes a room view and callbacks; knows no transport | `@fpp/room-core` (types) |
 | `packages/room-client` | `@fpp/room-client` | Headless client: connection state machine, pending commands, resume, storage of seat tokens. No React, no DOM beyond `WebSocket` and storage ports | `@fpp/room-core` |
 | `packages/room-core` | `@fpp/room-core` | Protocol schemas and types, the room kernel (seats, roles, presence, access, topics) and the activity `poker` as `decide`, `evolve` and `project`, decks, the room runtime (handshake, seat tokens, resume, presence, limits) behind ports, and the deterministic simulator with bots (`@fpp/room-core/sim`) | nothing in the workspace |
@@ -87,7 +88,7 @@ Not used, with the reason in one clause: Preact (Base UI and Motion run on it on
 
 basalt-ui 3.0.0 is not published on 2026-11-18 and its plan forbids installing an unpublished build. Stage 1 therefore builds everything that has no look: core, server, client, a plain HTML room, E2E, deploy. The first row of stage 2 installs basalt 3.x and starts only when npm serves it.
 
-basalt covers the chrome: dialogs, sheets, menus, forms, toasts, the settings and insights screens, charts through `basalt-ui/charts`. The game surface in `packages/table` is bespoke: it positions seats and cards from room state, which basalt's `primitive-bypass` lint denies outside its geometry seam. The arena row establishes how a table entry passes basalt's lint (an app composite, or a seam basalt adds). Colours come from basalt tokens through a small set of game tokens (felt, card face, card back, glow); no colour literal appears in a component.
+basalt covers the chrome: dialogs, sheets, menus, forms, toasts, the settings and insights screens, charts through `basalt-ui/charts`. The game surface in `packages/table` is bespoke: it positions seats and cards from room state, which basalt's `primitive-bypass` lint denies outside its geometry seam. The arena was built before basalt-ui 3: its entries use basalt-ui 3's token names from a token file of the arena's own, and how a table passes basalt's lint waits for the seam basalt adds (basalt-ui Issue 2530), which `v9-ui-foundation` installs. Colours come from basalt tokens through a small set of game tokens (felt, card face, card back, glow); no colour literal appears in a component.
 
 A gap found in basalt-ui is filed in basalt-ui and fixed there, never patched here. `ENGINEERING.md`, "Working with basalt-ui", has the rule and the list of what v9 needs from 3.x.
 
