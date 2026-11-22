@@ -37,6 +37,10 @@ ENV NODE_ENV=production
 RUN bun run --filter '@fpp/room' build \
  && bun run --filter '@fpp/api' build
 
+# The modes the runtime stage ships, set here because a checkout's umask (0600 files) would otherwise reach the image.
+# Not `COPY --chmod=...X` in the runtime stage: the built-in BuildKit of Docker 28 drops the execute bit of a copied
+# directory (`drw-r--r--`), and the migrator then cannot read `drizzle/meta`. A plain `COPY --from` keeps these modes.
+RUN chmod -R u=rwX,go=rX /app/apps/api/dist/main.js /app/apps/api/drizzle /app/apps/room/dist
 FROM oven/bun:${BUN_VERSION}-alpine AS runtime
 WORKDIR /app
 
@@ -46,11 +50,11 @@ ENV NODE_ENV=production \
     MIGRATE_ON_START=true \
     MIGRATIONS_DIR=/app/drizzle
 
-# Owned by root and read-only to the user the process runs as (the base image's `bun`, uid 1000). The mode is set
-# here because a checkout's umask (0600 files) would otherwise reach the image.
-COPY --chmod=u=rwX,go=rX --from=build /app/apps/api/dist/main.js /app/main.js
-COPY --chmod=u=rwX,go=rX --from=build /app/apps/api/drizzle /app/drizzle
-COPY --chmod=u=rwX,go=rX --from=build /app/apps/room/dist /app/room
+# Owned by root and read-only to the user the process runs as (the base image's `bun`, uid 1000); the modes come from
+# the build stage.
+COPY --from=build /app/apps/api/dist/main.js /app/main.js
+COPY --from=build /app/apps/api/drizzle /app/drizzle
+COPY --from=build /app/apps/room/dist /app/room
 
 # The commit the image was built from, as the estate's service.version (the short hash, or local). Last, so a new
 # commit rebuilds one metadata layer and not the copies above.
