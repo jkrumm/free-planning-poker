@@ -58,9 +58,26 @@ jobs:
         env:
           PG_BIN_DIR: /usr/lib/postgresql/18/bin
 
+  # make site: builds apps/site for production and beta, then tests the output (scripts, links, page budgets, the draft rule).
+  # Astro runs on Bun (bunx --bun), so no Node setup. Runs only when lane site changed; the gate counts a skip as passed.
+  site:
+    needs: lanes
+    if: needs.lanes.outputs.site == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: make site
+
   # The required check. It runs whatever happened before it and is red when a needed job failed or was cancelled.
   ci:
-    needs: [lanes, check]
+    needs: [lanes, check, site]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
