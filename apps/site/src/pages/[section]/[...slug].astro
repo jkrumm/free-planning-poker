@@ -1,38 +1,114 @@
 ---
 import { render } from 'astro:content'
 import type { GetStaticPaths } from 'astro'
+import DefinedTerm from '../../components/schema/defined-term.astro'
+import DefinedTermSet from '../../components/schema/defined-term-set.astro'
 import Base from '../../layouts/base.astro'
-import { sectionEntries, sections } from '../../lib/entries.ts'
+import { sectionEntries, sections, visibleEntry } from '../../lib/entries.ts'
 import { strings } from '../../strings.en.ts'
+
+const glossaryIndex = {
+  title: 'Glossary',
+  description:
+    'Short definitions of the terms a team looks up when it estimates: story points, the Fibonacci sequence, spread, consensus and more.',
+}
+
+type Link = { title: string; href: string }
 
 // One route file for every collection: /guides/x, /glossary/x, /vs/x, /blog/x, /docs/x. A section with nothing to
 // show in this build gets no index page either (an empty list is a thin page), and a draft has a route on beta only.
 export const getStaticPaths = (async () => {
   const paths = []
   for (const section of sections) {
-    const entries = await sectionEntries(section)
+    // The glossary lists alphabetically, every other section newest first.
+    const found = await sectionEntries(section)
+    const entries =
+      section === 'glossary'
+        ? found.toSorted((a, b) => a.data.title.localeCompare(b.data.title, 'en'))
+        : found
     if (entries.length === 0) continue
-    paths.push({ params: { section, slug: undefined }, props: { section, entry: undefined, entries } })
+    paths.push({ params: { section, slug: undefined }, props: { section, entry: undefined, entries, related: [], cluster: undefined } })
     for (const entry of entries) {
-      paths.push({ params: { section, slug: entry.id }, props: { section, entry, entries } })
+      // Links between entries are built only for targets this build shows, so no published page links a draft.
+      const related: Link[] = []
+      let cluster: Link | undefined
+      if (section === 'glossary') {
+        for (const id of (await visibleEntry('glossary', entry.id))?.data.related ?? []) {
+          const target = await visibleEntry('glossary', id)
+          if (target) related.push({ title: target.data.title, href: `/glossary/${id}` })
+        }
+        const guideId = (await visibleEntry('glossary', entry.id))?.data.guide
+        const guide = guideId ? await visibleEntry('guides', guideId) : undefined
+        if (guide) cluster = { title: guide.data.title, href: `/guides/${guide.id}` }
+      }
+      paths.push({ params: { section, slug: entry.id }, props: { section, entry, entries, related, cluster } })
     }
   }
   return paths
 }) satisfies GetStaticPaths
 
-const { section, entry, entries } = Astro.props
+const { section, entry, entries, related, cluster } = Astro.props
 const Content = entry ? (await render(entry)).Content : undefined
+const isoDay = (date: Date) => date.toISOString().slice(0, 10)
 ---
 
 {
   entry && Content ? (
     <Base title={entry.data.title} description={entry.data.description} draft={entry.data.draft}>
+      {section === 'glossary' && (
+        <DefinedTerm
+          slot="structured-data"
+          name={entry.data.title}
+          description={entry.data.description}
+          path={`/glossary/${entry.id}`}
+          setPath="/glossary"
+        />
+      )}
       <article>
         <h1>{entry.data.title}</h1>
         <p>
-          <time datetime={entry.data.published.toISOString()}>{entry.data.published.toISOString().slice(0, 10)}</time>
+          <time datetime={entry.data.published.toISOString()}>{isoDay(entry.data.published)}</time>
+          {
+            entry.data.updated && (
+              <>
+                {' • '}
+                {strings.updatedLabel} <time datetime={entry.data.updated.toISOString()}>{isoDay(entry.data.updated)}</time>
+              </>
+            )
+          }
         </p>
         <Content />
+        {
+          section === 'glossary' && related.length > 0 && (
+            <nav aria-label={strings.relatedTerms}>
+              <h2>{strings.relatedTerms}</h2>
+              <ul>
+                {related.map((link) => (
+                  <li>
+                    <a href={link.href}>{link.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )
+        }
+        {
+          section === 'glossary' && (
+            <nav aria-label={strings.inTheGuide}>
+              <h2>{strings.inTheGuide}</h2>
+              <ul>
+                <li>
+                  <a href="/guide">{strings.pillarGuide}</a>
+                </li>
+                {cluster && (
+                  <li>
+                    <a href={cluster.href}>{cluster.title}</a>
+                  </li>
+                )}
+              </ul>
+            </nav>
+          )
+        }
         {
           entry.data.questions.length > 0 && (
             <section>
@@ -49,6 +125,35 @@ const Content = entry ? (await render(entry)).Content : undefined
           )
         }
       </article>
+    </Base>
+  ) : section === 'glossary' ? (
+    <Base title={glossaryIndex.title} description={glossaryIndex.description}>
+      <DefinedTermSet
+        slot="structured-data"
+        name={glossaryIndex.title}
+        description={glossaryIndex.description}
+        path="/glossary"
+        terms={entries.map((item) => ({
+          name: item.data.title,
+          description: item.data.description,
+          path: `/glossary/${item.id}`,
+        }))}
+      />
+      <h1>{glossaryIndex.title}</h1>
+      <p>{glossaryIndex.description}</p>
+      <dl>
+        {
+          entries.map((item) => (
+            <>
+              <dt>
+                <a href={`/glossary/${item.id}`}>{item.data.title}</a>
+                {item.data.draft && ` (${strings.draftLine})`}
+              </dt>
+              <dd>{item.data.description}</dd>
+            </>
+          ))
+        }
+      </dl>
     </Base>
   ) : (
     <Base title={section} description={`${section}: every published page of Free Planning Poker.`}>
