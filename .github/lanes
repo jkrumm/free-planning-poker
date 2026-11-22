@@ -4,5 +4,5 @@
 every: .github bun.lock package.json bunfig.toml tsconfig.base.json
 # app: the core, the API, the client, the table, the room app, and the end-to-end suite that drives them.
 app: packages/room-core packages/room-client packages/table packages/telemetry packages/test-kit apps/api apps/room e2e
-# site: the marketing site and its content.
-site: apps/site
+# site: the marketing site, its content and the changelog that /roadmap reads at build time.
+site: apps/site CHANGELOG.md
