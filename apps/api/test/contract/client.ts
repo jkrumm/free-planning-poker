@@ -118,13 +118,47 @@ export async function join(url: string, input: Hello, headers: Record<string, st
   return { client, welcome }
 }
 
-/** The status line of a WebSocket upgrade request, sent over a plain TCP socket so nothing rewrites its headers. */
+/** The status line of an HTTP/1.x response to a request head, read as the bytes arrive. */
+export async function statusOf(port: number, head: string[]): Promise<number> {
+  return new Promise((resolve, reject) => {
+    let text = ''
+    void Bun.connect({
+      hostname: '127.0.0.1',
+      port,
+      socket: {
+        open(socket) {
+          socket.write(head.join('\r\n'))
+        },
+        data(socket, data) {
+          text += data.toString()
+          const match = /^HTTP\/1\.[01] (\d{3})/.exec(text)
+          if (match === null) return
+          resolve(Number(match[1]))
+          socket.end()
+        },
+        close() {
+          reject(new Error('closed before a status line'))
+        },
+        error(_socket, error) {
+          reject(error)
+        },
+      },
+    })
+  })
+}
+
+/** The status of an HTTP/1.0 request with no Host header, the form a plain health check sends. */
+export function plainStatus(port: number, path: string): Promise<number> {
+  return statusOf(port, [`GET ${path} HTTP/1.0`, '', ''])
+}
+
+/** The status of a WebSocket upgrade request, sent over a plain TCP socket so nothing rewrites its headers. */
 export async function upgradeStatus(
   port: number,
   path: string,
   origin: string | null,
 ): Promise<number> {
-  const lines = [
+  return statusOf(port, [
     `GET ${path} HTTP/1.1`,
     `Host: 127.0.0.1:${port}`,
     'Upgrade: websocket',
@@ -134,27 +168,5 @@ export async function upgradeStatus(
     ...(origin === null ? [] : [`Origin: ${origin}`]),
     '',
     '',
-  ]
-  return new Promise((resolve, reject) => {
-    let text = ''
-    void Bun.connect({
-      hostname: '127.0.0.1',
-      port,
-      socket: {
-        open(socket) {
-          socket.write(lines.join('\r\n'))
-        },
-        data(socket, data) {
-          text += data.toString()
-          const match = /^HTTP\/1\.1 (\d{3})/.exec(text)
-          if (match === null) return
-          resolve(Number(match[1]))
-          socket.end()
-        },
-        error(_socket, error) {
-          reject(error)
-        },
-      },
-    })
-  })
+  ])
 }

@@ -62,20 +62,24 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
     // The largest body is a message of two thousand characters; Bun's default would take 128 MB from anyone.
     maxRequestBodySize: MAX_BODY_BYTES,
     ...(options.hostname === undefined ? {} : { hostname: options.hostname }),
-    async fetch(request, bun) {
+    async fetch(incoming, bun) {
+      // Bun gives a relative request.url when the client sent no Host (HTTP/1.0 health checks); every reader below takes an absolute one.
+      const request = incoming.url.startsWith('/')
+        ? new Request(new URL(`http://localhost${incoming.url}`), incoming)
+        : incoming
       if (slugOfPath(new URL(request.url).pathname) === undefined) {
-        peers.set(request, bun.requestIP(request)?.address ?? '')
+        peers.set(request, bun.requestIP(incoming)?.address ?? '')
         return (await options.spa?.(request)) ?? http.handle(request)
       }
       const admission = await admit(request, {
         origins,
         rooms: options.rooms,
         clientIpHeader: options.clientIpHeader,
-        peer: bun.requestIP(request)?.address ?? '',
+        peer: bun.requestIP(incoming)?.address ?? '',
       })
       if (!admission.ok) return admission.response
       const data: Data = { id: crypto.randomUUID(), room: admission.room, ip: admission.ip }
-      if (bun.upgrade(request, { data })) return undefined
+      if (bun.upgrade(incoming, { data })) return undefined
       return new Response('expected a WebSocket upgrade', { status: 426 })
     },
     websocket: {
