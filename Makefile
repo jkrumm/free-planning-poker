@@ -26,10 +26,16 @@ SERVER_TESTS = **/*.server.test.ts
 # Effect's type-aware lint rules (effecttsgo/*) run only through effect-tsgo's patched oxlint, over the three folders where Effect lives.
 EFFECT_DIRS = apps/api/src/app apps/api/src/db apps/api/src/jobs
 
-# The v9 stack (deploy/compose.yml): the API image with the room app, and PostgreSQL 18. Docker is driven from these
-# targets only. A lead starts the stack inside a slot (`factory slot run -- make v9-up`), never from a bare shell.
+# The v9 stack (deploy/compose.yml, the file users self-host with, and deploy/compose.build.yml, which builds the image from
+# this checkout): the API image with the room app, and PostgreSQL 18. Docker is driven from these targets only. A lead starts
+# the stack inside a slot (`factory slot run -- make v9-up`), never from a bare shell.
 V9_PROJECT ?= fpp-v9
-V9_COMPOSE = docker compose -p $(V9_PROJECT) -f deploy/compose.yml
+V9_COMPOSE = docker compose -p $(V9_PROJECT) -f deploy/compose.yml -f deploy/compose.build.yml
+# The self-hosting file has no default for its two secrets; a local stack gets these values (never a deployment's). The suite
+# (e2e/suite/run.ts) and a caller's environment override them.
+export POSTGRES_PASSWORD ?= fpp-local
+export VISITOR_KEY ?= local-visitor-key-change-it-0000000
+export FPP_IMAGE ?= fpp-api:local
 # CI loads the built image and starts it with V9_UP_FLAGS=--no-build; locally the stack builds its own.
 V9_UP_FLAGS ?= --build
 export FPP_PORT ?= 7740

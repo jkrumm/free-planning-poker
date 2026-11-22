@@ -1,0 +1,11 @@
+# Builds the API image from this checkout instead of pulling the published one (make v9-image, make v9-up, make e2e). Layered
+# over compose.yml by the Makefile; a self-hoster never needs it. The image is named by FPP_IMAGE, which the Makefile sets to
+# fpp-api:local.
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      args:
+        OTEL_SERVICE_VERSION: ${OTEL_SERVICE_VERSION:-local}
