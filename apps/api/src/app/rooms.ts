@@ -35,10 +35,13 @@ import type { RoomDirectory } from '../ws/edge.ts'
 
 const NUMBER_ONLY = /^\d+$/
 
+/** Words the room app's own addresses take: `/room/new` creates a room, so a team may not book it. */
+const RESERVED_NAMES: ReadonlySet<string> = new Set(['new'])
+
 /** A name as the rule has it (3 to 30 of a-z, 0-9 and -, one letter at least), exactly as typed, or undefined. */
 export function parseName(input: string): Slug | undefined {
   const slug = parseSlug(input)
-  return slug === input && !NUMBER_ONLY.test(slug) ? slug : undefined
+  return slug === input && !NUMBER_ONLY.test(slug) && !RESERVED_NAMES.has(slug) ? slug : undefined
 }
 
 /** `count` numbers of `NUMBER_DIGITS` digits, each uniformly drawn from `bytes`. */

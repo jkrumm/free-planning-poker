@@ -108,7 +108,7 @@ A room has an id (bigint), one or two addresses that lead to it (a six-digit num
 | Deck | Data, not code: an id and ordered cards, each with a label and a number or none (`?`, break). T-shirt sizes map onto the Fibonacci numbers (XS 1, S 2, M 3, L 5, XL 8, XXL 13), so the results of every deck compare |
 | Settings | deck, auto reveal, reveal countdown, timer |
 | Access | `open` or `locked`. A locked room has an access code, which the interface calls the room's password: typed by whoever locks the room, or generated. It is shown to every seat and carried in the fragment of every invite link, and it is checked when a seat is minted |
-| Address | What stands in the URL after `/room/`. Either a number (six digits, drawn for every new room) or a name (3 to 30 characters of `a-z`, `0-9` and `-` with at least one letter, booked by the team) |
+| Address | What stands in the URL after `/room/`. Either a number (six digits, drawn for every new room) or a name (3 to 30 characters of `a-z`, `0-9` and `-` with at least one letter, booked by the team; `new` is reserved, it is the address that creates a room) |
 | Activity | What the room is doing. 9.0.0 has one, `poker`. Seats, roles, presence, access and the topic queue belong to the room and outlive any activity |
 
 Rules the reducer enforces:

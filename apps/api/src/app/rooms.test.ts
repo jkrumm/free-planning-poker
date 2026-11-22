@@ -5,7 +5,17 @@ import { drawNumbers, parseName } from './rooms.ts'
 test('a name follows the rule exactly as typed, and is never a number', () => {
   for (const name of ['team-alpha', 'abc', 'a1b', 'x'.repeat(30), 'sprint-42'])
     expect(parseName(name)).toBe(name as never)
-  for (const name of ['Team-Alpha', ' abc', 'ab', 'x'.repeat(31), '123456', '1234', 'a b', 'café'])
+  for (const name of [
+    'Team-Alpha',
+    ' abc',
+    'ab',
+    'x'.repeat(31),
+    '123456',
+    '1234',
+    'a b',
+    'café',
+    'new',
+  ])
     expect(parseName(name)).toBeUndefined()
 })
 
