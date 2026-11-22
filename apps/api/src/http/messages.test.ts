@@ -270,10 +270,21 @@ describe('an upstream that fails', () => {
 })
 
 describe("the timeouts are v1's", () => {
-  test('seven seconds for the gateway, five for the door', async () => {
-    const { GATEWAY_TIMEOUT_MS, DOOR_TIMEOUT_MS } = await import('../app/messages.ts')
-    expect(GATEWAY_TIMEOUT_MS).toBe(7000)
-    expect(DOOR_TIMEOUT_MS).toBe(5000)
+  test('a request asks for seven seconds to the gateway and five to the door', async () => {
+    const gateway = await upstream()
+    const door = await upstream()
+    const asked: number[] = []
+    const app = appWith({
+      gateway: { url: gateway.url, secret: 's' },
+      door: { url: door.url, secret: 's' },
+      timeout: (ms) => {
+        asked.push(ms)
+        return AbortSignal.timeout(ms)
+      },
+    })
+    expect((await post(app, '/contact', contact)).status).toBe(200)
+    expect((await post(app, '/feedback', feedback)).status).toBe(200)
+    expect(asked).toEqual([7000, 5000])
   })
 })
 

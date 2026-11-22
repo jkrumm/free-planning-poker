@@ -22,6 +22,8 @@ export type MessagesOptions = {
   /** An upstream that failed, once, for the telemetry boundary: never given the message, address or subject. */
   readonly failed: (error: unknown, at: { component: string; action: string }) => void
   readonly fetch?: typeof fetch
+  /** The signal that ends a request after `ms`; a test replaces it to see which timeout a route asks for. */
+  readonly timeout?: (ms: number) => AbortSignal
   readonly timeouts?: { readonly gateway?: number; readonly door?: number }
   readonly limits?: {
     readonly perClient?: number
@@ -47,7 +49,7 @@ export function createMessages(options: MessagesOptions): MessagesApi {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: `Bearer ${input.secret}` },
         body: JSON.stringify(input.body),
-        signal: AbortSignal.timeout(input.timeoutMs),
+        signal: (options.timeout ?? AbortSignal.timeout)(input.timeoutMs),
       })
       // The answer's body is never read: nothing it says is ours to relay or log.
       void response.body?.cancel()
