@@ -1,8 +1,11 @@
 import { afterAll, beforeAll, expect, test } from 'bun:test'
+import { freePort } from '@fpp/test-kit/port'
 import { startPostgres, type PostgresCluster } from '@fpp/test-kit/postgres'
 import { ENV } from '../../test/support.ts'
+import { startUpstream } from '../../test/upstream.ts'
 import { parseEnv } from '../env.ts'
 import { createApiTelemetry } from '../telemetry.ts'
+import { serveBun } from '../ws/bun.transport.ts'
 import { composeApi } from './compose.ts'
 
 let cluster: PostgresCluster
@@ -33,5 +36,44 @@ test('the environment reaches the room server: origins and the client address he
   } finally {
     await behindProxy.close()
     await direct.close()
+  }
+})
+
+test('the upstream variables reach their own route: contact to the gateway, feedback to the door', async () => {
+  const gateway = await startUpstream(await freePort())
+  const door = await startUpstream(await freePort())
+  const origin = 'https://next.free-planning-poker.com'
+  const api = await compose({
+    PORT: String(await freePort()),
+    ALLOWED_ORIGINS: origin,
+    EMAIL_GATEWAY_URL: gateway.url,
+    EMAIL_GATEWAY_SECRET_KEY: 'gateway-secret',
+    FACTORY_FEEDBACK_URL: `${door.url}/feedback/free-planning-poker`,
+    FACTORY_FEEDBACK_TOKEN: 'door-token',
+  })
+  const server = await serveBun({ ...api.options, hostname: '127.0.0.1' })
+  const post = (path: string, body: unknown) =>
+    fetch(`http://127.0.0.1:${server.port}/api${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin },
+      body: JSON.stringify(body),
+    })
+  try {
+    const email = { email: 'ada@example.com', subject: 'A question' }
+    expect((await post('/contact', email)).status).toBe(200)
+    expect((await post('/feedback', { title: 'A title', version: '9', route: '/' })).status).toBe(
+      200,
+    )
+    expect(gateway.received.map((got) => [got.path, got.authorization])).toEqual([
+      ['/fpp', 'Bearer gateway-secret'],
+    ])
+    expect(door.received.map((got) => [got.path, got.authorization])).toEqual([
+      ['/feedback/free-planning-poker', 'Bearer door-token'],
+    ])
+  } finally {
+    await server.stop()
+    await api.close()
+    await gateway.stop()
+    await door.stop()
   }
 })

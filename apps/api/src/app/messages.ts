@@ -5,14 +5,13 @@
  * self-hosted install. Both routes share one kind of limit (`rate-limit.ts`), each with its own window: v1's contact
  * form had none and an open endpoint that writes to the owner's inbox is the one to fill it.
  */
+import type { Upstream } from '../env.ts'
 import type { ContactInput, FeedbackInput, MessagesApi, SendResult } from '../http/messages.ts'
 import { FEEDBACK_LIMITS } from '../http/messages.ts'
 import { createRateLimit } from './rate-limit.ts'
 
 export const GATEWAY_TIMEOUT_MS = 7_000
 export const DOOR_TIMEOUT_MS = 5_000
-
-export type Upstream = { readonly url: string; readonly secret: string }
 
 export type MessagesOptions = {
   /** `EMAIL_GATEWAY_URL` and its secret; `url` is the gateway's base, the route appends `/fpp`. */
