@@ -59,7 +59,7 @@ Test files are exempt from the class rules, not from the arrows. `scripts/bounda
 | 7739 | the room app (Vite) |
 | 7740 | the API; `bun run dev` starts it with `--watch` |
 
-Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port. Behind a proxy, `CLIENT_IP_HEADER` names the single-valued header the edge overwrites with the client's address (`cf-connecting-ip` behind Cloudflare, never `x-forwarded-for`), so the per-address limit on wrong access codes counts clients and not the proxy; unset, the socket's peer address counts.
+Agents never start these servers. The API opens a room socket only for an `Origin` listed in `ALLOWED_ORIGINS` (comma-separated); unset, it allows `https://fpp-next.test`, `http://localhost:7739` and its own port. Behind a proxy, `CLIENT_IP_HEADER` names the single-valued header the edge overwrites with the client's address (`cf-connecting-ip` behind Cloudflare, never `x-forwarded-for`), so the per-address limit on wrong access codes counts clients and not the proxy; unset, the socket's peer address counts. `POST /api/contact` and `POST /api/feedback` need the same `Origin` list and send through `EMAIL_GATEWAY_URL` with `EMAIL_GATEWAY_SECRET_KEY`, and `FACTORY_FEEDBACK_URL` with `FACTORY_FEEDBACK_TOKEN`; a route whose two variables are not both set answers 503, so a local API sends nothing unless you set them (`apps/api/.env.tpl`).
 
 ## CI
 

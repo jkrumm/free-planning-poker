@@ -16,9 +16,22 @@ export type Env = {
   readonly environment: 'prod' | 'dev'
   /** Postgres (`DATABASE_URL`): rooms, their addresses, snapshots and history. */
   readonly databaseUrl: string
+  /**
+   * The mail gateway behind `POST /api/contact` (`EMAIL_GATEWAY_URL`, the base URL, and `EMAIL_GATEWAY_SECRET_KEY`); unset,
+   * or only one of the two, the route answers 503.
+   */
+  readonly emailGateway: Upstream | undefined
+  /**
+   * The factory's door behind `POST /api/feedback` (`FACTORY_FEEDBACK_URL`, the full URL with the app, and
+   * `FACTORY_FEEDBACK_TOKEN`); unset, or only one of the two, the route answers 503.
+   */
+  readonly feedbackDoor: Upstream | undefined
   /** The server secret of the device hash in `visitor_day` (`VISITOR_KEY`, at least 32 characters). */
   readonly visitorKey: string
 }
+
+/** Where a message goes and what proves us to it. */
+export type Upstream = { readonly url: string; readonly secret: string }
 
 /** A shorter key than this is refused: it would make the device hash guessable. */
 const VISITOR_KEY_MIN = 32
@@ -37,6 +50,25 @@ function originOf(text: string): string | undefined {
   } catch {
     return undefined
   }
+}
+
+/** An upstream from its two variables: both set or it is off; a URL that is no http(s) URL is a typo, refused at startup. */
+function upstreamOf(
+  source: Readonly<Record<string, string | undefined>>,
+  names: { readonly url: string; readonly secret: string },
+): Upstream | undefined {
+  const url = source[names.url]?.trim() ?? ''
+  const secret = source[names.secret]?.trim() ?? ''
+  if (url === '' || secret === '') return undefined
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error(`${names.url} must be an http(s) URL`)
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:')
+    throw new Error(`${names.url} must be an http(s) URL`)
+  return { url: url.replace(/\/+$/, ''), secret }
 }
 
 export function parseEnv(source: Readonly<Record<string, string | undefined>>): Env {
@@ -68,6 +100,14 @@ export function parseEnv(source: Readonly<Record<string, string | undefined>>): 
     clientIpHeader: source.CLIENT_IP_HEADER?.trim().toLowerCase() || undefined,
     otlpEndpoint: source.OTEL_EXPORTER_OTLP_ENDPOINT?.trim() || undefined,
     environment: source.NODE_ENV === 'production' ? 'prod' : 'dev',
+    emailGateway: upstreamOf(source, {
+      url: 'EMAIL_GATEWAY_URL',
+      secret: 'EMAIL_GATEWAY_SECRET_KEY',
+    }),
+    feedbackDoor: upstreamOf(source, {
+      url: 'FACTORY_FEEDBACK_URL',
+      secret: 'FACTORY_FEEDBACK_TOKEN',
+    }),
     databaseUrl,
     visitorKey,
   }

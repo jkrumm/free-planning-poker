@@ -12,6 +12,8 @@ import type { ServerWebSocket } from 'bun'
 import {
   admit,
   encode,
+  MAX_BODY_BYTES,
+  peers,
   type RoomServer,
   type RoomServerOptions,
   slugOfPath,
@@ -57,9 +59,14 @@ export async function serveBun(options: RoomServerOptions): Promise<RoomServer> 
 
   const server = Bun.serve<Data>({
     port: options.port,
+    // The largest body is a message of two thousand characters; Bun's default would take 128 MB from anyone.
+    maxRequestBodySize: MAX_BODY_BYTES,
     ...(options.hostname === undefined ? {} : { hostname: options.hostname }),
     async fetch(request, bun) {
-      if (slugOfPath(new URL(request.url).pathname) === undefined) return http.handle(request)
+      if (slugOfPath(new URL(request.url).pathname) === undefined) {
+        peers.set(request, bun.requestIP(request)?.address ?? '')
+        return http.handle(request)
+      }
       const admission = await admit(request, {
         origins,
         rooms: options.rooms,

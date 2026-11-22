@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { historyRoutes } from './history.ts'
+import { type MessagesApi, messageRoutes } from './messages.ts'
 import { type RoomsApi, roomRoutes } from './rooms.ts'
 import { type StatsApi, statsRoutes } from './stats.ts'
 
@@ -19,6 +20,11 @@ export function createApp(deps: {
   readonly build: BuildInfo
   readonly rooms: RoomsApi
   readonly stats: StatsApi
+  readonly messages: MessagesApi
+  /** `ALLOWED_ORIGINS`: the origins whose pages may post a message. */
+  readonly origins: ReadonlySet<string>
+  /** The client a request comes from, for the limits on messages. */
+  readonly client: (request: Request) => string
   readonly health: () => Promise<Health>
 }) {
   return new Elysia({ prefix: '/api' })
@@ -43,6 +49,7 @@ export function createApp(deps: {
     .use(roomRoutes(deps.rooms))
     .use(historyRoutes(deps.rooms))
     .use(statsRoutes(deps.stats))
+    .use(messageRoutes({ api: deps.messages, origins: deps.origins, client: deps.client }))
 }
 
 /** The API's type for Eden (`treaty<App>`): what a client imports from `@fpp/api/app`, types only. */

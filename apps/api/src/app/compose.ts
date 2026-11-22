@@ -10,11 +10,13 @@ import { acquireDatabase } from '../db/resilience.ts'
 import { postgresStore } from '../db/store.ts'
 import type { Env } from '../env.ts'
 import { createApp } from '../http/app.ts'
+import { clientOf } from '../ws/edge.ts'
 import { expiryJob } from '../jobs/expiry.ts'
 import { rollupJob } from '../jobs/rollup.ts'
 import type { ApiTelemetry } from '../telemetry.ts'
 import { timerClock } from '../ws/clock.ts'
 import type { RoomServerOptions } from '../ws/edge.ts'
+import { createMessages } from './messages.ts'
 import { postgresRooms } from './rooms.ts'
 import { postgresStats } from './stats.ts'
 import { systemIds, systemSecrets } from './system.ts'
@@ -75,6 +77,13 @@ const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
       tablesOpen: () => runtime?.stats().rooms ?? 0,
       failed: failed('stats', 'read'),
     })
+    const messages = createMessages({
+      gateway: env.emailGateway,
+      door: env.feedbackDoor,
+      now: deps.now,
+      failed: (error, at) => server.recordError(error, at, 'high'),
+    })
+    const origins = new Set(env.origins)
     const options: RoomServerOptions = {
       port: env.port,
       origins: env.origins,
@@ -85,6 +94,9 @@ const compose = (env: Env, deps: Deps, state: { draining: boolean }) =>
           build: { version: env.version, commit: env.commit },
           rooms: rooms.api,
           stats,
+          messages,
+          origins,
+          client: clientOf(env.clientIpHeader),
           health: () => (state.draining ? Promise.resolve('draining') : rooms.health()),
         })
       },
