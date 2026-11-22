@@ -43,7 +43,7 @@ Before changing `src/components/schema`, `src/layouts/base.astro` or `src/integr
 
 ## The glossary
 
-`src/content/glossary` holds at most 15 terms (`src/lib/glossary.test.ts`); the title is the term, and the first sentence of the body must contain it. A link from one entry to another goes through `entryPath` or `visibleEntry` in `src/lib/entries.ts`, or `components/term-link.astro` in a page: frontmatter `related` and `guide` become links only where the target is shown in the build, so no published page links a draft and a missing cluster page leaves no broken link. `guide` names a cluster entry id of `guideClusters` (`src/lib/entry-schema.ts`). DefinedTerm and DefinedTermSet are `components/schema/defined-term*.astro` over typed builders; the JSON-LD serialiser is `components/schema/json-ld.ts`.
+`src/content/glossary` holds at most 15 terms (`src/lib/glossary.test.ts`); the title is the term, and the first sentence of the body must contain it. A link from one entry to another goes through `visibleEntry` in `src/lib/entries.ts`: frontmatter `related` and `guide` become links only where the target is shown in the build, so no published page links a draft and a missing cluster page leaves no broken link. `guide` names a cluster entry id of `guideClusters` (`src/lib/entry-schema.ts`). DefinedTerm and DefinedTermSet are `components/schema/defined-term*.astro` over typed builders; the JSON-LD serialiser is `components/schema/json-ld.ts`.
 
 ## The guides
 

@@ -33,15 +33,10 @@ export async function pillarEntry(): Promise<SectionEntry<'guides'>> {
   return entry as unknown as SectionEntry<'guides'>
 }
 
-/** One entry of a section if this build shows it. A link from one page to another entry goes through here or entryPath. */
+/** One entry of a section if this build shows it. A link from one page to another entry goes through here. */
 export async function visibleEntry<S extends Section>(
   section: S,
   id: string,
 ): Promise<SectionEntry<S> | undefined> {
   return (await sectionEntries(section)).find((entry) => entry.id === id)
-}
-
-/** The path of an entry this build shows, else undefined: a published page never links a draft, and no link is broken. */
-export async function entryPath(section: Section, id: string): Promise<string | undefined> {
-  return (await visibleEntry(section, id)) === undefined ? undefined : `/${section}/${id}`
 }
