@@ -43,7 +43,7 @@ export type RoomState = {
   /** The queue in display order. Exactly one topic is `active`. */
   readonly topics: readonly Topic[]
   readonly activity: PokerState
-  /** Keys (`<seat>:<id>`) of the latest applied commands, newest last: a repeat is acknowledged and changes nothing. */
+  /** Keys (`<seat>:<id>`) of the latest accepted commands, newest last, kept by `step`: a repeat is acknowledged and changes nothing. */
   readonly applied: readonly string[]
 }
 
@@ -62,16 +62,14 @@ export type Rejection = { readonly reject: NackReason }
 
 /**
  * An event as the server applies it. It equals the published event except `poker.voted`, which carries the card;
- * `publish` drops it before anything leaves the server. `cmd` tags the first event of a command with its key, so
- * `evolve` records the command as applied.
+ * `publish` drops it before anything leaves the server.
  */
-export type DomainEvent = (
+export type DomainEvent =
   | Exclude<Event, { readonly type: 'poker.voted' }>
   | {
       readonly type: 'poker.voted'
       readonly payload: { readonly round: RoundId; readonly seat: SeatIndex; readonly card: Card }
     }
-) & { readonly cmd?: string }
 
 /** One vote as `round_vote` stores it: the seat's index, never its name. */
 export type RoundVote = {

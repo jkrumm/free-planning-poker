@@ -1,6 +1,6 @@
 {
   "frame": "evt",
-  "seq": 42,
+  "seq": 41,
   "type": "seat.left",
   "payload": {
     "seat": 1

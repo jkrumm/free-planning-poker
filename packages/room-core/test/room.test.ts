@@ -169,7 +169,7 @@ describe('votes and the reveal', () => {
     const before = room.state
     const again = vote(room, players[0]!, '8')
     expect(again.ok && again.events).toEqual([])
-    expect(room.state).toBe(before)
+    expect(room.state.activity).toBe(before.activity)
   })
 
   test('a reveal needs one vote', () => {
@@ -185,7 +185,7 @@ describe('votes and the reveal', () => {
     const before = room.state
     const second = reveal(room, players[1]!, round)
     expect(second.ok && second.events).toEqual([])
-    expect(room.state).toBe(before)
+    expect({ ...room.state, applied: [] }).toEqual({ ...before, applied: [] })
   })
 
   test('before the reveal a seat sees its own card and only that others voted', () => {
@@ -269,6 +269,15 @@ describe('the final value', () => {
     })
   })
 
+  test('an agreed decision also wins over voting again on its round', () => {
+    const { room, players } = table(2)
+    vote(room, players[0]!, '5')
+    vote(room, players[1]!, '5')
+    reveal(room, players[0]!)
+    expectRejected(revote(room, players[0]!), 'topic_decided')
+    expect(types(settle(room, players[0]!, '8'))).toEqual(['topic.decided'])
+  })
+
   test('decide, then vote again on the same round: the second is refused', () => {
     const { room, players } = table(2)
     vote(room, players[0]!, '3')
@@ -282,6 +291,7 @@ describe('the final value', () => {
   test('vote again, then decide on the old round: the second is refused', () => {
     const { room, players } = table(2)
     vote(room, players[0]!, '3')
+    vote(room, players[1]!, '8')
     reveal(room, players[0]!)
     const round = current(room).id
     revote(room, players[1]!, round)
@@ -360,6 +370,17 @@ describe('the topic queue', () => {
     expectRejected(add(room, players[0]!, 'one too many'), 'queue_full')
   })
 
+  test('an update that changes nothing publishes nothing', () => {
+    const { room, players } = table(1)
+    add(room, players[0]!, 'A')
+    const topic = room.state.topics[1]!
+    const same = send(room, players[0]!, {
+      type: 'topic.update',
+      payload: { topic: topic.id, title: topic.title, url: topic.url, ref: topic.ref },
+    })
+    expect(same.ok && same.events).toEqual([])
+  })
+
   test('move and update', () => {
     const { room, players } = table(1)
     add(room, players[0]!, 'A', 'B')
@@ -402,6 +423,28 @@ describe('a repeated command', () => {
     )
     expect(again.ok && again.duplicate).toBe(true)
     expect(room.state).toBe(before)
+    expect(current(room).votes[0]!.card.label).toBe('8')
+  })
+
+  test('a command that changed nothing is remembered too, so its repeat cannot undo a later one', () => {
+    const { room, players } = table(1)
+    const round = current(room).id
+    vote(room, players[0]!, '5')
+    const noop = send(
+      room,
+      players[0]!,
+      { type: 'poker.vote', payload: { round, card: '5' } },
+      'c1',
+    )
+    expect(noop.ok && noop.events).toEqual([])
+    send(room, players[0]!, { type: 'poker.vote', payload: { round, card: '8' } }, 'c2')
+    const resent = send(
+      room,
+      players[0]!,
+      { type: 'poker.vote', payload: { round, card: '5' } },
+      'c1',
+    )
+    expect(resent.ok && resent.duplicate).toBe(true)
     expect(current(room).votes[0]!.card.label).toBe('8')
   })
 
@@ -571,7 +614,7 @@ describe('settings, title, access and address', () => {
     const { room, players } = table(1)
     settings(room, players[0]!, { deck: DECKS['t-shirt'] })
     expect(current(room).deck.id).toBe('t-shirt')
-    vote(room, players[0]!, 'M')
+    vote(room, players[0]!, '?')
     settings(room, players[0]!, {
       deck: parseDeck({
         id: 'custom',

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseTopicLine, parseTopicLines } from '../src/paste.ts'
+import { TopicInputSchema } from '../src/protocol/schema.ts'
 
 type Case = { case: string; line: string; topic: unknown }
 const CASES: Case[] = JSON.parse(
@@ -35,7 +36,10 @@ describe('parseTopicLines', () => {
     expect(parseTopicLines(text)).toHaveLength(200)
   })
 
-  test('a title is cut at 300 characters', () => {
+  test('a title is cut at 300 UTF-16 units, the unit of the schema, never inside a character', () => {
     expect(parseTopicLine('x'.repeat(400))?.title).toHaveLength(300)
+    const emoji = parseTopicLine('🎉'.repeat(200))?.title ?? ''
+    expect(emoji.length).toBe(300)
+    expect(TopicInputSchema.safeParse({ title: emoji, url: null, ref: null }).success).toBe(true)
   })
 })

@@ -17,8 +17,8 @@
       {
         "seat": 1,
         "card": {
-          "label": "5",
-          "value": 5
+          "label": "8",
+          "value": 8
         }
       }
     ],
@@ -46,12 +46,17 @@
         "attempt": 1,
         "deck": "fibonacci",
         "voters": 2,
-        "consensus": true,
+        "consensus": false,
         "distribution": [
           {
             "label": "5",
             "value": 5,
-            "count": 2
+            "count": 1
+          },
+          {
+            "label": "8",
+            "value": 8,
+            "count": 1
           }
         ]
       }

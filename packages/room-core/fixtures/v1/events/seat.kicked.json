@@ -1,6 +1,6 @@
 {
   "frame": "evt",
-  "seq": 41,
+  "seq": 40,
   "type": "seat.kicked",
   "payload": {
     "seat": 2,

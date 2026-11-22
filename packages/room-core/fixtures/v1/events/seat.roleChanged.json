@@ -1,6 +1,6 @@
 {
   "frame": "evt",
-  "seq": 40,
+  "seq": 39,
   "type": "seat.roleChanged",
   "payload": {
     "seat": 2,
