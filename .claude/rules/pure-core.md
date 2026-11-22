@@ -28,5 +28,5 @@ Logic that can only be tested through a socket cannot be replayed, and a hidden 
 
 - `scripts/boundaries.ts` in `make check-fast` resolves every import of a pure file and scans its source for the globals above; `scripts/boundaries.test.ts` plants one violation of each kind.
 - oxlint refuses `effect` and `elysia` outside their folders.
-- The core tests in `make check-fast` run `check(state)` after every step of 1,000 generated sessions, with the fast-check property "no other seat's value before reveal"; 200 simulator seeds join them from `v9-room-runtime` on.
+- The core tests in `make check-fast` run `check(state)` after every step of 1,000 generated sessions, with the fast-check property "no other seat's value before reveal", and 200 simulator seeds check the runtime's invariants after every step (`src/sim/invariants.ts`).
 - `packages/room-core/test/purity.test.ts` fails on `Date.now`, `Math.random`, `setTimeout`, `setInterval`, `WebSocket` or `fetch` anywhere under `src` outside `sim/`, comments included.

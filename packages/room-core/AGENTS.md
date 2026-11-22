@@ -14,7 +14,8 @@ The room's rules as pure functions, and the protocol every browser and server sp
 | `src/project.ts` | `project` and `publish`, the only ways out of the server: the vote redaction lives here |
 | `src/view.ts` | `evolveView`, `withOwnVote`, selectors |
 | `src/result.ts`, `src/paste.ts`, `src/check.ts` | result contract builders, the paste parser, the invariants |
-| `src/sim/` | the seeded clock and UUID v7 source; the simulator joins it in `v9-room-runtime` |
+| `src/runtime/` | `createRoomRuntime(ports)`: handshake, seat tokens, the lock and its limits, reclaim, resume, presence, heartbeat, snapshots. `ports.ts` holds every port; `limits.ts` the numbers; it reaches the reducer only through `step` and `project` |
+| `src/sim/` | `@fpp/room-core/sim`: the seeded clock, scheduler and network, the in-memory adapters of every port, the bots, the invariants (`invariants.ts`) and `simulate`. `scripts/sim.ts` is its command line, outside `src` because it reads argv |
 | `*.entry.ts` | the entries of `package.json` `exports`. `/types` and `/view` must stay free of Zod and of `decide`: `test/bundle.test.ts` builds them and checks |
 
 ## Changing a rule
@@ -27,5 +28,7 @@ The room's rules as pure functions, and the protocol every browser and server sp
 ## Tests
 
 - `test/properties.test.ts` plays 1,000 generated sessions and asserts properties (a) to (k) after every step. A failure prints `{ seed, path }`; replay with `fc.assert(..., { seed, path, endOnFailure: true })` before fixing, then keep the counterexample as a test in `test/room.test.ts`.
-- It is the most expensive file in `make check-fast` (2 to 7 s of CPU, more on a loaded host). Grow its generator, not its run count, and keep the run count at 1,000.
+- It is the second most expensive file in `make check-fast` (2 to 7 s of CPU, more on a loaded host). Grow its generator, not its run count, and keep the run count at 1,000.
 - `test/room.test.ts` holds the rules one by one; `test/support.ts` gives a room on a seeded clock.
+- `test/sim.test.ts` runs 200 simulator seeds and is now the costliest file (about 10 s on a loaded mini, budget 30 s). Keep the seeds at 200 and a seed under 50 ms: profile with `bun --cpu-prof` before adding a check that serialises a whole view or snapshot per frame. A failing seed: skill `sim-replay`.
+- A runtime rule gets a test in `test/runtime.test.ts`, and an invariant in `src/sim/invariants.ts` when the simulator can break it. A change to the bots, the network or the checker changes every trace: run `bun run sim --seeds 1000` before pushing it.
