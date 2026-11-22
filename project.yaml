@@ -1,4 +1,5 @@
-# How the factory ships this project (software-factory docs/project.md).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jkrumm/software-factory/master/schema/project.schema.json
+# How the factory ships this project (software-factory docs/project.md). Where migrations live and run: AGENTS.md and .claude/rules/migrations.md.
 apiVersion: factory/v2
 name: free-planning-poker
 deploy:
@@ -7,13 +8,14 @@ deploy:
     - { name: prod, host: vps, verify: make verify } # probes web, server and analytics health
   hold: 10m # kept for the v9 deploys of the beta host; a master push changes nothing in production today
 ship:
-  - { via: pr } # master branch protection requires a PR and the check `ci`, see AGENTS.md §Shipping
+  - { via: pr } # master branch protection requires a PR and the check `ci`, see AGENTS.md §Deploy
 # A lead runs check-fast before each push; CI's `check` job runs `make check` on the pull request head (hosted runners: the repo is public).
 checks: { fast: make check-fast, full: make check, ci: true }
 budgets:
   fast: 60s # docs/v9/ENGINEERING.md Targets: check-fast warm on the mini in 60 s at most, so leads run it before every push
 steps:
   # The server tier: each test starts a private PostgreSQL cluster from PG_BIN_DIR (the step image has PostgreSQL 16; CI proves 18).
+  # remote: true because it needs nothing the step image lacks: bun of packageManager and the PostgreSQL 16 binaries.
   test-server: { make: test-server, remote: true }
 lanes:
   browser: 2 # v9 rows that run Playwright (docs/plan.yaml: end-to-end suite, table arena); two Chromium suites beside other leads is what the mini's memory carries

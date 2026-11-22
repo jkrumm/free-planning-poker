@@ -1,6 +1,6 @@
 # Shipping, CI and releases
 
-Read this before changing CI workflows, branch settings, releases or deploy wiring. The ship path (PR, merge, verify) is in `AGENTS.md` §Shipping.
+Read this before changing CI workflows, branch settings, releases or deploy wiring. The ship path (PR, merge, verify) is in `AGENTS.md` §Deploy.
 
 ## Two branches
 
