@@ -38,7 +38,7 @@ services:
       context: ../load/proxy
       dockerfile_inline: |
         FROM haproxy:3.0.31-alpine
-        COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
+        COPY --chmod=0644 haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
     depends_on:
       api:
         condition: service_healthy
@@ -54,7 +54,7 @@ services:
       context: ../load/k6
       dockerfile_inline: |
         FROM grafana/k6:2.4.0
-        COPY . /scripts
+        COPY --chmod=0755 . /scripts
     cpus: 3
     mem_limit: 1g
     restart: 'no'
