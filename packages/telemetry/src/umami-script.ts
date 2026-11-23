@@ -31,7 +31,7 @@ export type SendPayload = {
  *
  * It ships as text (`beforeSendScript`), so it is one self-contained function: it uses nothing outside its own body.
  */
-export function beforeSend(_type: string, payload: SendPayload): SendPayload | false {
+export function beforeSend(type: string, payload: SendPayload): SendPayload | false {
   // Inside the function on purpose: the whole of it is shipped as text, so nothing may live outside its body.
   // oxlint-disable-next-line unicorn/consistent-function-scoping
   const clean = (value: unknown): unknown => {
@@ -47,7 +47,7 @@ export function beforeSend(_type: string, payload: SendPayload): SendPayload | f
   payload.url = url
   payload.referrer = clean(payload.referrer)
   if (typeof url === 'string' && url.endsWith('/room/:slug')) payload.title = 'Room'
-  if (typeof url === 'string' && payload.name === undefined) {
+  if (type === 'event' && typeof url === 'string' && payload.name === undefined) {
     const seen = globalThis as { fppLastView?: string }
     const view = `${url} <- ${String(payload.referrer)}`
     if (seen.fppLastView === view) return false
