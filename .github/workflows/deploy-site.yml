@@ -5,8 +5,8 @@ name: Deploy site
 # no Worker for /room*, /_room/* and /api/* (they fall through to the tunnel and the API) and runs wrangler deploy, then
 # make indexnow (which skips on the beta target) and make verify-next. v1's site on Vercel is not touched.
 #
-# Auth: the repository secrets CLOUDFLARE_API_TOKEN (the token fpp-site-deploy: Workers Scripts edit on the account,
-# Workers Routes edit on the zone) and CLOUDFLARE_ACCOUNT_ID, seeded from 1Password (docs/shipping.md, Site).
+# Auth: the repository secrets CLOUDFLARE_API_TOKEN (cf-deploy, the shared CI deploy token: Workers Scripts edit,
+# Workers Routes edit, Zone read) and CLOUDFLARE_ACCOUNT_ID, seeded from 1Password (docs/shipping.md, Site).
 #
 # The paths are lane site of .github/lanes plus the root manifests the build installs from: a path filter cannot read
 # that file, so a change to the lane goes here too. No required check lives in this workflow, so a filter is safe.
