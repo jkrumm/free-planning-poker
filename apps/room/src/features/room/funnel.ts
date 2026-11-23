@@ -20,7 +20,7 @@ export type Funnel = {
  * decision is sent by the seat that issued the command (the reveal for a unanimous one, the settle for a chosen
  * value), when the view shows its result; an automatic reveal has no such seat and sends none.
  */
-export function createFunnel(): Funnel {
+export function createFunnel(later: (run: () => void) => void): Funnel {
   let latest: View | null = null
   let joined = false
   let voted = false
@@ -53,8 +53,9 @@ export function createFunnel(): Funnel {
         topic?.final?.decidedBy === 'agreed' ? revealedBy.has(round.id) : settledBy.has(round.id)
       if (topic?.final && caused) {
         const how = topic.final.decidedBy === 'agreed' ? 'unanimous' : 'settled'
+        // Later than the reveal it follows: sent in the same tick, the two reach Umami in either order.
         once(`decided:${round.id}:${how}`, () =>
-          track(UMAMI_EVENT.topicDecided, { activity: 'poker', how }),
+          later(() => track(UMAMI_EVENT.topicDecided, { activity: 'poker', how })),
         )
       }
     }

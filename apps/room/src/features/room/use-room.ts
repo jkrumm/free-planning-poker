@@ -9,6 +9,9 @@ import { useMemo, useSyncExternalStore } from 'react'
 import { type AppEnv, useAppEnv } from '../../app-env.tsx'
 import { createFunnel } from './funnel.ts'
 
+/** How long after a reveal its decision is sent to Umami, so the funnel sees them in order. */
+const DECISION_AFTER_REVEAL_MS = 300
+
 const CONNECTING: RoomClientState = {
   status: 'connecting',
   view: null,
@@ -47,7 +50,9 @@ function roomStore(env: AppEnv, slug: string) {
   let client: RoomClient | null = null
   let listeners = 0
   let unwatch: (() => void) | null = null
-  const funnel = createFunnel()
+  const funnel = createFunnel(
+    (run) => void env.ports.timers.setTimeout(run, DECISION_AFTER_REVEAL_MS),
+  )
   const open = (): RoomClient => {
     const code = codeOf(env.hash())
     return createRoomClient({
