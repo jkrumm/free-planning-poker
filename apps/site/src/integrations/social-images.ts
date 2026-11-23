@@ -15,7 +15,7 @@ const entities: Record<string, string> = {
 }
 
 /** The content of `<meta property="<property>" content="...">`, entities decoded. */
-export function metaProperty(html: string, property: string): string | undefined {
+function metaProperty(html: string, property: string): string | undefined {
   const match = new RegExp(`<meta property="${property}" content="([^"]*)"`).exec(html)
   return match?.[1]?.replace(/&(?:amp|lt|gt|quot|#39);/g, (entity) => entities[entity] ?? entity)
 }

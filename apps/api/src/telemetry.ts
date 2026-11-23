@@ -23,7 +23,7 @@ export type ApiTelemetry = {
 }
 
 /** The service version of the estate's contract: the short commit hash, or `local` for a build with none. */
-export const versionOf = (env: Pick<Env, 'commit'>) =>
+const versionOf = (env: Pick<Env, 'commit'>) =>
   env.commit === 'unknown' || env.commit === '' ? 'local' : env.commit.slice(0, 7)
 
 export function createApiTelemetry(

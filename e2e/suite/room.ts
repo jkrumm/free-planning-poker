@@ -121,7 +121,7 @@ export const test = base.extend<Fixtures>({
 })
 
 /** The seats of the table, as one page shows them. */
-export const seatRows = (page: Page): Locator => page.getByTestId('seat')
+const seatRows = (page: Page): Locator => page.getByTestId('seat')
 
 /** The row of the seat named `name` on this page. */
 export const seatOf = (page: Page, name: string): Locator =>

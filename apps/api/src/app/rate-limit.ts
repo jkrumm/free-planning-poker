@@ -9,9 +9,9 @@ export type RateLimit = {
   readonly take: (client: string) => number | undefined
 }
 
-export const WINDOW_MS = 10 * 60 * 1000
-export const PER_CLIENT = 3
-export const OVERALL = 30
+const WINDOW_MS = 10 * 60 * 1000
+const PER_CLIENT = 3
+const OVERALL = 30
 
 export function createRateLimit(options: {
   readonly now: () => number

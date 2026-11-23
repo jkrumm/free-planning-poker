@@ -19,7 +19,7 @@ import type { SeatIndex } from '../values.ts'
 
 const reject = (reason: Rejection['reject']): Rejection => ({ reject: reason })
 
-export const currentRound = (state: RoomState): Round => {
+const currentRound = (state: RoomState): Round => {
   const round = roundOf(state, state.activity.current)
   if (round === undefined) throw new Error('a room has a current round')
   return round
@@ -38,7 +38,7 @@ export const hasReveal = (state: RoomState, topic: TopicId): boolean =>
   state.activity.rounds.some((round) => round.topic === topic && round.state === 'revealed')
 
 /** Every active player has voted, and there is at least one. Away and disconnected seats never block. */
-export function allActiveVoted(state: RoomState, round: Round): boolean {
+function allActiveVoted(state: RoomState, round: Round): boolean {
   const active = state.seats.filter((seat) => seat.role === 'player' && seat.presence === 'active')
   return (
     active.length > 0 &&

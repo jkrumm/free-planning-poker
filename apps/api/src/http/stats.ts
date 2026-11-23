@@ -9,7 +9,7 @@ import type { Static } from 'typebox'
 /** How long a browser or the edge may reuse an answer, and how long the process reuses its own. */
 export const STATS_MAX_AGE_SECONDS = 60
 /** Beyond the max age an answer may be served while a fresh one is fetched. */
-export const STATS_STALE_WHILE_REVALIDATE_SECONDS = 300
+const STATS_STALE_WHILE_REVALIDATE_SECONDS = 300
 export const STATS_CACHE_CONTROL = `public, max-age=${STATS_MAX_AGE_SECONDS}, stale-while-revalidate=${STATS_STALE_WHILE_REVALIDATE_SECONDS}`
 
 /** The contract's version: a field added keeps it, a field changed or removed raises it. */
@@ -25,7 +25,7 @@ const Span = t.Object({
 
 const Change = t.Union([t.Number(), t.Null()])
 
-export const StatsBody = t.Object({
+const StatsBody = t.Object({
   version: t.Literal(STATS_VERSION),
   /** ISO 8601: when the figures were read from the rollups (the rollups themselves are rolled hourly). */
   computedAt: t.String(),

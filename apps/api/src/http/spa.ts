@@ -8,7 +8,7 @@ import { join, normalize, resolve, sep } from 'node:path'
 
 export type Spa = (request: Request) => Promise<Response | undefined>
 
-export const ASSET_PREFIX = '/_room/'
+const ASSET_PREFIX = '/_room/'
 const SHELL = /^\/room(\/.*)?$/
 
 /** Vite's names carry a hash of the content: `index-DQEltZwA.js`. */

@@ -11,7 +11,7 @@ import { visibleText } from './output.ts'
  * Where Google asks for more than we emit, the table lists what we always emit: Google's SoftwareApplication also wants
  * an aggregateRating or a review, which is left out on purpose until real ratings exist.
  */
-export const requiredProperties: Record<string, string[]> = {
+const requiredProperties: Record<string, string[]> = {
   Organization: ['name', 'url'],
   WebSite: ['name', 'url'],
   SoftwareApplication: ['name', 'applicationCategory', 'operatingSystem', 'offers.price'],

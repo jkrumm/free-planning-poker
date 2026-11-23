@@ -36,7 +36,7 @@ export const METRIC = {
 
 export type MetricName = (typeof METRIC)[keyof typeof METRIC]
 
-export const METRICS: readonly MetricSpec[] = [
+const METRICS: readonly MetricSpec[] = [
   {
     name: METRIC.rounds,
     dimension: null,

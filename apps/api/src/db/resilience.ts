@@ -7,7 +7,7 @@ import { Data, Effect, Schedule, type Scope } from 'effect'
 import { createDb, type Db, type DbClient } from './client.ts'
 
 /** Postgres could not be reached, or a statement took longer than `STATEMENT_TIMEOUT`. */
-export class DbUnavailable extends Data.TaggedError('DbUnavailable')<{ readonly cause: unknown }> {}
+class DbUnavailable extends Data.TaggedError('DbUnavailable')<{ readonly cause: unknown }> {}
 
 /** A statement failed for a reason other than the connection: a bug, reported once, never retried. */
 export class DbDefect extends Data.TaggedError('DbDefect')<{ readonly cause: unknown }> {}
@@ -15,7 +15,7 @@ export class DbDefect extends Data.TaggedError('DbDefect')<{ readonly cause: unk
 export type DbError = DbUnavailable | DbDefect
 
 /** Longest wait on one statement or transaction before it counts as an outage. */
-export const STATEMENT_TIMEOUT = '10 seconds'
+const STATEMENT_TIMEOUT = '10 seconds'
 
 /** SQLSTATE class 08 (connection exception), 57P01 to 57P03 (the server shut down or is starting). */
 const CONNECTION_STATE = /^(08|57P0[123])/
@@ -54,7 +54,7 @@ export const retryWhileDown = <A, R>(effect: Effect.Effect<A, DbError, R>) =>
   Effect.retry(effect, { schedule: backoff, while: outage })
 
 /** How long someone waiting on an answer (a claim, an HTTP route) waits out an outage before being told. */
-export const BRIEF_WAIT = '2 seconds'
+const BRIEF_WAIT = '2 seconds'
 
 /** For a caller who is waiting: retried for `BRIEF_WAIT`, then the outage is the answer. */
 export const retryBriefly = <A, R>(effect: Effect.Effect<A, DbError, R>) =>

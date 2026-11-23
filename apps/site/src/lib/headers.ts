@@ -14,7 +14,7 @@ export const securityHeaders = {
 } as const
 
 /** The beta host is kept out of search on every path; the production build carries no robots header. */
-export const betaRobots = { 'X-Robots-Tag': 'noindex' } as const
+const betaRobots = { 'X-Robots-Tag': 'noindex' } as const
 
 /**
  * The `_headers` file of a build: one rule for every path. Workers static assets apply it to every file they serve,

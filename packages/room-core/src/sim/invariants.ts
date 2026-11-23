@@ -72,7 +72,7 @@ export function foreignCards(view: View): string[] {
 }
 
 /** Structural equality of plain data, key order ignored. */
-export function same(a: unknown, b: unknown): boolean {
+function same(a: unknown, b: unknown): boolean {
   if (a === b) return true
   if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
   if (Array.isArray(a)) {

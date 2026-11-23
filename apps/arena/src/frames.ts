@@ -7,7 +7,7 @@ import type { TableEffect } from '@fpp/table/contract'
 import type { Scenario } from '@fpp/table/scenarios'
 
 /** How long the host keeps an effect in the stream after it arrives. */
-export const EFFECT_MS = 2000
+const EFFECT_MS = 2000
 
 const played = new Map<string, readonly ScriptFrame[]>()
 

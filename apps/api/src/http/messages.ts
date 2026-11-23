@@ -8,7 +8,7 @@
 import { Elysia, ParseError, t, ValidationError } from 'elysia'
 
 /** v1's limits (`contact.router.ts`, `packages/shared/src/feedback.ts`); the site's form prints the contact ones. */
-export const CONTACT_LIMITS = {
+const CONTACT_LIMITS = {
   name: { max: 50 },
   email: { max: 70 },
   subject: { min: 3, max: 100 },

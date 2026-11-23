@@ -223,7 +223,7 @@ export const EXPECTED: Record<string, DayFigures> = {
   },
 }
 
-export const VISITOR_KEY = 'a-test-key-that-is-long-enough-000000'
+const VISITOR_KEY = 'a-test-key-that-is-long-enough-000000'
 
 const valueOf = (label: string): number | null => {
   if (label === '?') return null

@@ -16,7 +16,7 @@ import { parseSlug, type ServerFrame, type Slug } from '@fpp/room-core/types'
 import type { App } from '../http/app.ts'
 import type { Spa } from '../http/spa.ts'
 
-export const WS_PREFIX = '/api/ws/'
+const WS_PREFIX = '/api/ws/'
 
 /** The largest HTTP request body the server reads: the longest message (feedback, 2,000 characters) fits many times over. */
 export const MAX_BODY_BYTES = 64 * 1024
@@ -128,7 +128,7 @@ export async function admit(
  * address the edge overwrites (`cf-connecting-ip`); a list a client can prepend to, such as `x-forwarded-for`, is
  * no source for it.
  */
-export function clientIp(request: Request, header: string | undefined, peer: string): string {
+function clientIp(request: Request, header: string | undefined, peer: string): string {
   const named = header === undefined ? undefined : request.headers.get(header)?.trim()
   return named === undefined || named === '' ? peer : named
 }

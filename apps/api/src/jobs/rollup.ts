@@ -9,7 +9,7 @@ import { type ComputeDay, firstDayToRoll, rollupDay } from '../db/rollups.ts'
 import { daysFrom } from '../db/stat-calendar.ts'
 import { utcDay } from '../db/visitors.ts'
 
-export const ROLLUP_EVERY = '1 hour'
+const ROLLUP_EVERY = '1 hour'
 
 export type RollupDeps = {
   readonly database: Database
@@ -37,7 +37,7 @@ export const rollupTick = (deps: RollupDeps) =>
   })
 
 /** A tick whose failure is reported and answered with nothing rolled: the next tick runs anyway. */
-export const rollupOnce = (deps: RollupDeps & { readonly failed: (error: unknown) => void }) =>
+const rollupOnce = (deps: RollupDeps & { readonly failed: (error: unknown) => void }) =>
   rollupTick(deps).pipe(
     Effect.catch((error) =>
       Effect.sync(() => {

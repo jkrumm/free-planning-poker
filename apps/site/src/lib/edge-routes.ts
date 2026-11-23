@@ -3,7 +3,7 @@
  * with no Worker: the most specific route wins, so these send their requests past Workers to the tunnel and Traefik,
  * while the Worker's `<host>/*` route takes everything else.
  */
-export const apiPaths = ['/room*', '/_room/*', '/api/*'] as const
+const apiPaths = ['/room*', '/_room/*', '/api/*'] as const
 
 /** A Workers route as the Cloudflare API lists it; `script` is absent or empty on a route with no Worker. */
 export type Route = { id: string; pattern: string; script?: string | null }

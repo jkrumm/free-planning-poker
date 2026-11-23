@@ -94,7 +94,7 @@ export async function computeDay(db: Executor, day: string): Promise<StatRow[]> 
 }
 
 /** Replaces the rows the job owns for `day`; rows of another owner stay. Run it inside a transaction. */
-export async function replaceDay(
+async function replaceDay(
   tx: Executor,
   args: { readonly day: string; readonly rows: readonly StatRow[] },
 ): Promise<void> {
@@ -153,7 +153,7 @@ export async function firstDayToRoll(db: Executor, today: string): Promise<strin
 }
 
 /** Weeks of the `weeks` list, and the days of the heatmap and the week-over-week figures. */
-export const WEEKS_SHOWN = 52
+const WEEKS_SHOWN = 52
 
 export type WeekFigures = {
   readonly rounds: number

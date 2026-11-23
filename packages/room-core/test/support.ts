@@ -8,7 +8,7 @@ import { seededClock, type SeededClock } from '../src/sim/clock.ts'
 import type { RoomState } from '../src/state.ts'
 import { parseSlug, type SeatIndex } from '../src/values.ts'
 
-export const SLUG = parseSlug('team-alpha')!
+const SLUG = parseSlug('team-alpha')!
 
 export type Room = { state: RoomState; clock: SeededClock; ids: number }
 

@@ -15,7 +15,7 @@ export interface Release {
   sections: ChangelogSection[]
 }
 
-export class ChangelogError extends Error {
+class ChangelogError extends Error {
   line: number
 
   constructor(line: number, reason: string, text: string) {

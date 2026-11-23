@@ -55,7 +55,7 @@ export function fakeClock(start = 1_700_000_000_000): FakeClock {
   }
 }
 
-export class FakeSocket implements SocketLike {
+class FakeSocket implements SocketLike {
   onopen: SocketLike['onopen'] = null
   onmessage: SocketLike['onmessage'] = null
   onclose: SocketLike['onclose'] = null
