@@ -8,6 +8,7 @@ One line per file under `docs/`. v9 is the contract for `master`; the files mark
 |-|-|
 | `plan.yaml` | the rows factory leads build v9 from; wins over `v9/PLAN.md` |
 | `development.md` | toolchain and versions, check tiers, the test kit, boundaries, ports, CI and why it keeps no cache |
+| `site-content.md` | the rules for the site's comparisons, glossary and guides, read on reach from `apps/site/AGENTS.md` |
 | `shipping.md` | the two branches, fixing and redeploying v1, Vercel, branch protection, releases, verify and monitor |
 | `v9/ARCHITECTURE.md` | what the system is: invariants, topology, repo map, stack, room model, protocol, server, data model, HTTP API, client, measurement, testing, cutover |
 | `v9/protocol.md` | the exact room protocol: frames, commands, events, rejection reasons, close codes, the view, the result contract |
