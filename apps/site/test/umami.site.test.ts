@@ -41,9 +41,16 @@ describe.each(['fixture-production', 'fixture-beta'] as const)(
       expect(script).toBeDefined()
       const host: Record<string, unknown> = {}
       new Function('window', script ?? '')(host)
-      const hook = host[BEFORE_SEND_GLOBAL] as (type: string, payload: SendPayload) => SendPayload
-      expect(hook('event', { url: '/room/team-alpha#code' }).url).toBe('/room/:slug')
-      expect(hook('event', { url: '/room/123456?x=1' }).url).toBe('/room/:slug')
+      const hook = host[BEFORE_SEND_GLOBAL] as (
+        type: string,
+        payload: SendPayload,
+      ) => SendPayload | false
+      expect(hook('event', { url: '/room/team-alpha#code', referrer: '/a' })).toMatchObject({
+        url: '/room/:slug',
+      })
+      expect(hook('event', { url: '/room/123456?x=1', referrer: '/b' })).toMatchObject({
+        url: '/room/:slug',
+      })
     })
   },
 )

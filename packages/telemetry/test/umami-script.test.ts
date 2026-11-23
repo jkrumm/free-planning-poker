@@ -57,6 +57,12 @@ describe.each([
     })
     expect(view('/room/other', 'https://x.example/room/team-alpha')).toBe(false)
     expect(view('/room/other', '/room/new')).toMatchObject({ url: '/room/:slug' })
+    expect(hook('error', { url: '/room/other', referrer: '/room/new' })).toMatchObject({
+      url: '/room/:slug',
+    })
+    expect(hook('error', { url: '/room/other', referrer: '/room/new' })).toMatchObject({
+      url: '/room/:slug',
+    })
     expect(hook('event', { url: '/room/other', name: 'vote_cast' })).toMatchObject({
       name: 'vote_cast',
     })
