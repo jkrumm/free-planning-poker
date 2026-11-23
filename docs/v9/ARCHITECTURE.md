@@ -36,7 +36,7 @@ These cannot be retrofitted. A change to one is a plan change with the owner's v
 | `/api/*` | `apps/api` | HTTP API, and the WebSocket at `/api/ws/<slug>`. |
 | `/api/u/*` | Umami on the VPS, through Traefik | The tracker script and its collect endpoint on our own origin (`TRACKER_SCRIPT_NAME`, `COLLECT_API_ENDPOINT`), so the browser contacts no second host. |
 
-The split is made at the Cloudflare edge: a Worker route on `/*`, and narrower routes with no Worker for `/room*`, `/_room/*` and `/api/*` that fall through to the tunnel and Traefik. This is proven on the beta host before anything depends on it (stage 3, row `v9-edge-routing` in `PLAN.md`); the fallback is the Worker proxying those paths with `fetch`, which also carries WebSocket upgrades. Until cutover the whole of v9 runs on `https://next.free-planning-poker.com` with `X-Robots-Tag: noindex`.
+The split is made at the Cloudflare edge: a Worker route on `/*`, and narrower routes with no Worker for `/room*`, `/_room/*` and `/api/*` that fall through to the tunnel and Traefik. Proven on the beta host on 2026-11-23 (row `v9-edge-routing`, `evidence/edge-routing.md`): the routes with no Worker carry `/room*`, `/_room/*`, `/api/*` and the WebSocket, so the fallback (the Worker proxying those paths with `fetch`) is not built. `apps/site/scripts/edge-routes.ts` keeps those routes. Until cutover the whole of v9 runs on `https://next.free-planning-poker.com` with `X-Robots-Tag: noindex`.
 
 The API container serves the SPA it was built with, so client and server ship as one image and one version. The same image with a Postgres container is the self-hosting story and the system under test in E2E.
 

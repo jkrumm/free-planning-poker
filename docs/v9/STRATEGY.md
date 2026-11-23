@@ -280,9 +280,9 @@ Every merged row deploys to the beta host, so "what does it look like now" alway
 
 ## What it costs
 
-No new paid service is planned. One billing question is open.
+No new paid service is planned.
 
-- **Site:** the Workers free tier. The pages are static assets with no Worker code; whether the free plan bills asset requests is measured in stage 3 (`v9-edge-routing`). If it does, the static files move to your own bucket behind your CDN, the one your image tool already uses.
+- **Site:** the Workers free tier. The pages are static assets with no Worker code, and asset requests are neither billed nor counted toward the free plan's 100,000 Worker requests a day, as measured on 2026-11-23 (`evidence/edge-routing.md`). Adding Worker code or Workers Caching would change that.
 - **Servers:** the API, Postgres, Umami and ClickStack are on the VPS already. The rewrite removes four containers (MariaDB, v1's server, the analytics service and its updater) and Vercel, and adds one.
 - **Work:** 78 rows. Sixteen start on `opus`, fifty-four on `lead`, eight on `light`. The arena's entries cost what the sessions you start for them cost.
 
