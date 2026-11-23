@@ -256,12 +256,20 @@ describe('what the room tells Umami (docs/v9/ARCHITECTURE.md, Measurement; rule 
 
   type Call = readonly [event: string, data: Record<string, unknown>]
   const calls: Call[] = []
+  /** The simulated time of each call, from the clock of the world a test sets in `now`. */
+  const times: number[] = []
+  let now: (() => number) | null = null
   const host = globalThis as { umami?: unknown }
 
   beforeEach(() => {
     calls.length = 0
+    times.length = 0
+    now = null
     host.umami = {
-      track: (event: string, data: Record<string, unknown>) => calls.push([event, data]),
+      track: (event: string, data: Record<string, unknown>) => {
+        calls.push([event, data])
+        times.push(now?.() ?? 0)
+      },
     }
   })
 
@@ -326,8 +334,9 @@ describe('what the room tells Umami (docs/v9/ARCHITECTURE.md, Measurement; rule 
     await ben.unmount()
   })
 
-  test('a unanimous reveal sends the reveal and the decision', async () => {
+  test('a unanimous reveal sends the reveal and, later, the decision', async () => {
     const world = createWorld({ slug: SLUG })
+    now = world.clock.now
     const ann = await openSeat(world, { path: `/room/${SLUG}`, ip: '10.1.0.3', profile: NAMES[0]! })
     const ben = await openSeat(world, { path: `/room/${SLUG}`, ip: '10.1.0.4', profile: NAMES[1]! })
     const card = (seat: typeof ann) =>
@@ -344,6 +353,8 @@ describe('what the room tells Umami (docs/v9/ARCHITECTURE.md, Measurement; rule 
       ['round_revealed', true],
       ['topic_decided', 'unanimous'],
     ])
+    // Sent in the same tick the two reach Umami in either order, and the funnel reads them in order.
+    expect(times.at(-1)! - times.at(-2)!).toBeGreaterThanOrEqual(300)
     expectRegistered()
     await ann.unmount()
     await ben.unmount()
