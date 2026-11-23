@@ -32,7 +32,8 @@ export const options: Options = {
     'fanout_ms{phase:steady}': [`p(99)<${THRESHOLDS.fanoutP99Ms}`],
     // Declared so the summary carries it; the handoff's own latency is reported, not held to a threshold.
     'fanout_ms{phase:handoff}': [],
-    votes_missing: ['count==0'],
+    // A missing vote cannot be made good later: the run ends there instead of playing out its remaining minutes.
+    votes_missing: [{ threshold: 'count==0', abortOnFail: true }],
     errors: [`rate<${THRESHOLDS.errorRate}`],
   },
   summaryTrendStats: TREND_STATS,
