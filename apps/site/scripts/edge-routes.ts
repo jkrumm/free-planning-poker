@@ -3,8 +3,8 @@ import { siteOrigin } from '../src/lib/site.ts'
 
 // Makes the zone hold a Workers route with no Worker for /room*, /_room/* and /api/* of one host, so those paths reach
 // the API through the tunnel while the Worker serves the rest (docs/shipping.md, Site). Idempotent: run before every
-// wrangler deploy, so the Worker's <host>/* route never exists without them. Reads CLOUDFLARE_API_TOKEN (Workers
-// Routes edit on the zone) from the environment and prints no token, id or account.
+// wrangler deploy, so the Worker's <host>/* route never exists without them. Reads CLOUDFLARE_API_TOKEN (cf-deploy:
+// Workers Routes edit and Zone read) from the environment and prints no token, id or account.
 
 const api = 'https://api.cloudflare.com/client/v4'
 
