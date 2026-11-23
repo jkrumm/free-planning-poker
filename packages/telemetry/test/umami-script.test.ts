@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import {
   BEFORE_SEND_GLOBAL,
   beforeSend,
@@ -10,17 +10,26 @@ import {
 const ID = '123e4567-e89b-42d3-a456-426614174000'
 
 /** The hook as the page runs it: the inline script's text, evaluated alone. */
-function shipped(): (type: string, payload: SendPayload) => SendPayload {
+function shipped(): (type: string, payload: SendPayload) => SendPayload | false {
   const host: Record<string, unknown> = {}
   new Function('window', beforeSendScript())(host)
-  return host[BEFORE_SEND_GLOBAL] as (type: string, payload: SendPayload) => SendPayload
+  return host[BEFORE_SEND_GLOBAL] as (type: string, payload: SendPayload) => SendPayload | false
 }
 
 describe.each([
   ['the function', beforeSend],
   ['the script as shipped', shipped()],
 ])('before-send, %s', (_name, hook) => {
-  const send = (url: string, extra: SendPayload = {}) => hook('event', { url, ...extra }).url
+  beforeEach(() => {
+    delete (globalThis as { fppLastView?: unknown }).fppLastView
+  })
+  /** Every call has its own address, so no call is a repeat unless the test says so. */
+  let n = 0
+  const send = (url: string, extra: SendPayload = {}) => {
+    const sent = hook('event', { url, referrer: `https://from.example/${++n}`, ...extra })
+    return sent === false ? false : sent.url
+  }
+  const view = (url: string, referrer?: string) => hook('event', { url, referrer })
 
   test('a room path is /room/:slug, with no query and no fragment', () => {
     expect(send('/room/team-alpha#code')).toBe('/room/:slug')
@@ -39,19 +48,38 @@ describe.each([
     expect(send('/rooms/x')).toBe('/rooms/x')
   })
 
+  test('a page view that repeats the last one with the same referrer is cancelled; an event never is', () => {
+    expect(view('/room/new')).toMatchObject({ url: '/room/new' })
+    expect(view('/room/team-alpha#code')).toMatchObject({ url: '/room/:slug' })
+    expect(view('/room/team-alpha')).toBe(false)
+    expect(view('/room/other', 'https://x.example/room/team-alpha')).toMatchObject({
+      url: '/room/:slug',
+    })
+    expect(view('/room/other', 'https://x.example/room/team-alpha')).toBe(false)
+    expect(view('/room/other', '/room/new')).toMatchObject({ url: '/room/:slug' })
+    expect(hook('event', { url: '/room/other', name: 'vote_cast' })).toMatchObject({
+      name: 'vote_cast',
+    })
+    expect(hook('event', { url: '/room/other', name: 'vote_cast' })).toMatchObject({
+      name: 'vote_cast',
+    })
+  })
+
   test('the referrer is cleaned the same way', () => {
-    expect(hook('event', { referrer: 'https://x.example/room/team-alpha#code' }).referrer).toBe(
-      'https://x.example/room/:slug',
-    )
-    expect(hook('event', { referrer: 'https://search.example/?q=a#b' }).referrer).toBe(
-      'https://search.example/',
-    )
+    expect(hook('event', { referrer: 'https://x.example/room/team-alpha#code' })).toMatchObject({
+      referrer: 'https://x.example/room/:slug',
+    })
+    expect(hook('event', { referrer: 'https://search.example/?q=a#b' })).toMatchObject({
+      referrer: 'https://search.example/',
+    })
   })
 
   test('the title of a room, which is its name, becomes Room; another title stays', () => {
     expect(send('/room/team-alpha', { title: 'Team Alpha' })).toBe('/room/:slug')
-    expect(hook('event', { url: '/room/team-alpha', title: 'Team Alpha' }).title).toBe('Room')
-    expect(hook('event', { url: '/guide', title: 'Guide' }).title).toBe('Guide')
+    expect(
+      hook('event', { url: '/room/team-alpha', title: 'Team Alpha', name: 'x' }),
+    ).toMatchObject({ title: 'Room' })
+    expect(hook('event', { url: '/guide', title: 'Guide' })).toMatchObject({ title: 'Guide' })
   })
 
   test('the payload is returned, with what the hook does not read untouched', () => {
@@ -63,7 +91,7 @@ describe.each([
       name: 'room_created',
       data: { activity: 'poker' },
     })
-    expect(hook('identify', { data: { a: 1 } } as SendPayload).url).toBeUndefined()
+    expect(hook('identify', { data: { a: 1 } } as SendPayload)).toMatchObject({ url: undefined })
   })
 })
 

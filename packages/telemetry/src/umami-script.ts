@@ -23,9 +23,15 @@ export type SendPayload = {
  * a name), no address carries a query or a fragment (an access code rides in the fragment), and the page title of a
  * room, which is the room's name, becomes "Room" (as on v1). `/room` and `/room/new` are routes, not rooms, and stay.
  *
+ * A page view with the same cleaned address and referrer as the last one is cancelled: `/room/new` replaces itself
+ * with the room's address, the tracker sends one page view per history change, and by send time both read the room's
+ * address (counted twice for the person who creates a room). A real navigation moves the referrer, so it is never a
+ * repeat. The last view is kept on `globalThis`, as the function has no scope of its own to keep it in and the module
+ * reads no clock. An event (a payload with a `name`) is never cancelled.
+ *
  * It ships as text (`beforeSendScript`), so it is one self-contained function: it uses nothing outside its own body.
  */
-export function beforeSend(_type: string, payload: SendPayload): SendPayload {
+export function beforeSend(_type: string, payload: SendPayload): SendPayload | false {
   // Inside the function on purpose: the whole of it is shipped as text, so nothing may live outside its body.
   // oxlint-disable-next-line unicorn/consistent-function-scoping
   const clean = (value: unknown): unknown => {
@@ -41,6 +47,12 @@ export function beforeSend(_type: string, payload: SendPayload): SendPayload {
   payload.url = url
   payload.referrer = clean(payload.referrer)
   if (typeof url === 'string' && url.endsWith('/room/:slug')) payload.title = 'Room'
+  if (typeof url === 'string' && payload.name === undefined) {
+    const seen = globalThis as { fppLastView?: string }
+    const view = `${url} <- ${String(payload.referrer)}`
+    if (seen.fppLastView === view) return false
+    seen.fppLastView = view
+  }
   return payload
 }
 
