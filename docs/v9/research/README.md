@@ -1,6 +1,6 @@
 # Research behind the v9 decisions
 
-Twenty-six cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19, r18 to r24 from 2026-11-20 and r25 and r26 from 2026-11-21, each batch after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
+Twenty-seven cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026-11-19, r18 to r24 from 2026-11-20, r25 and r26 from 2026-11-21 and r27 from 2026-11-23, each batch after the owner's comments on the strategy report. Each file is one run's report, its unverified items and its sources. The decisions drawn from them are in `../STRATEGY.md` and `../ARCHITECTURE.md`; where a report and those files disagree, those files win, because they weigh the reports against each other and against this repo.
 
 | Run | Topic | Status | Grounded citations |
 |-|-|-|-|
@@ -30,5 +30,6 @@ Twenty-six cited research runs: r01 to r14 from 2026-11-18, r15 to r17 from 2026
 | [r24](r24-i18n.md) | Languages from day one: catalogue, routing, workflow | ok | 20/20 |
 | [r25](r25-astro7-i18n.md) | Astro 7: language routing for a partly translated static site | partial | 8/12 |
 | [r26](r26-tracker-browser.md) | Tracker access from a browser, without a stored credential | ok | 18/18 |
+| [r27](r27-effect-by-layer.md) | Effect 4 by layer, revisited | ok | 27/28 |
 
 Version numbers are as read on the day of the run. Check a version with `agw web package <name>` before pinning it.
