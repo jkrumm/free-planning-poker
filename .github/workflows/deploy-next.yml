@@ -58,7 +58,7 @@ jobs:
           # The two Umami values are public (the website id is in v1's page source); the hostname changes at the cutover.
           build_args: |
             OTEL_SERVICE_VERSION=${{ steps.version.outputs.short_sha }}
-            FPP_UMAMI_WEBSITE_ID=f6265c6d-d6dd-42b9-9cd7-5bbb19ab4619
+            FPP_UMAMI_WEBSITE_ID=2c456a08-9a68-41e9-aece-b59250f9b6e6
             FPP_UMAMI_DOMAINS=next.free-planning-poker.com
           dockerfile: apps/api/Dockerfile
           context: .
