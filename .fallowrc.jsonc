@@ -3,10 +3,11 @@
   // lingui CLI or a Vite config loads them by path, or they are run by hand
   // as the file header or docs/v9/evidence says.
   "entry": [
-    // Make targets: build (budget), import-v1, indexnow, arena-score (static-score)
+    // Make targets: build (budget), import-v1, indexnow, arena-score (static-score), site-deploy (edge-routes)
     "apps/room/scripts/budget.ts",
     "apps/api/scripts/import-v1.ts",
     "apps/site/scripts/indexnow.ts",
+    "apps/site/scripts/edge-routes.ts",
     "apps/arena/scripts/static-score.ts",
     // Make target load: the orchestrator, and the scenario k6 runs in its container
     "load/run.ts",
