@@ -30,11 +30,11 @@ import type { ClientPorts, SocketConstructor, SocketLike } from '../src/ports.ts
 import type { RoomClient } from '../src/client.ts'
 import { memoryStorage, signalsOf } from './support.ts'
 
-export const ROOM = '1'
+const ROOM = '1'
 export const ADDRESS = '482913'
 
 /** A WebSocket whose other end is the simulator's network, as the runtime sees any socket. */
-export function simSockets(net: Network, ip: string): SocketConstructor {
+function simSockets(net: Network, ip: string): SocketConstructor {
   return function (this: unknown, _url: string): SocketLike {
     const socket: SocketLike = {
       onopen: null,

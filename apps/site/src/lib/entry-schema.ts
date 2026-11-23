@@ -19,7 +19,7 @@ export const vsAhead = ['them', 'us', 'even'] as const
  * One fact about another product: what its own page says, the address of that page and the day it was read there.
  * `ours` is what release 9.0.0 does on the same point.
  */
-export const vsFactSchema = z.object({
+const vsFactSchema = z.object({
   topic: z.string(),
   claim: z.string(),
   source: z.url(),

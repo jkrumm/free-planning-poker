@@ -94,7 +94,7 @@ const V1_CARDS: ReadonlySet<string> = new Set(DECKS[V1_DECK].cards.map((card) =>
  * A UUID v7 that is the same for the same v1 row: the reveal time is its timestamp, as in an id v9 mints, and the rest
  * comes from SHA-256 of what it stands for.
  */
-export function stableUuid7(ms: number, seed: string): string {
+function stableUuid7(ms: number, seed: string): string {
   const bytes = new Uint8Array(16)
   let time = Math.max(0, Math.floor(ms))
   for (let i = 5; i >= 0; i -= 1) {

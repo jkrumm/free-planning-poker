@@ -23,7 +23,7 @@ import { postgresStats } from './stats.ts'
 import { systemIds, systemSecrets } from './system.ts'
 
 /** How long closing the scope waits for snapshot and history writes still in flight. */
-export const FLUSH_WAIT = '5 seconds'
+const FLUSH_WAIT = '5 seconds'
 
 export type Api = {
   readonly options: RoomServerOptions

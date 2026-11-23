@@ -7,10 +7,10 @@ import { type Database, retryWhileDown } from '../db/resilience.ts'
 import { sweepSnapshots } from '../db/rooms.ts'
 import { deleteEstimatingDaysBefore } from '../db/visitors.ts'
 
-export const SWEEP_EVERY = '1 hour'
+const SWEEP_EVERY = '1 hour'
 
 /** One sweep; what it deleted. An outage waits, a bug is reported and the next sweep runs anyway. */
-export const sweepOnce = (deps: {
+const sweepOnce = (deps: {
   readonly database: Database
   readonly now: () => Date
   readonly failed: (error: unknown) => void

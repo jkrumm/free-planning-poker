@@ -36,14 +36,14 @@ const ROOM = '1'
 const LOCALES = resolve(import.meta.dirname, '../../../packages/i18n/locales')
 
 /** The catalogue files of the package as lazy imports, as `import.meta.glob` hands them to the app. */
-export const catalogues: Catalogues = Object.fromEntries(
+const catalogues: Catalogues = Object.fromEntries(
   readdirSync(LOCALES, { recursive: true })
     .map(String)
     .filter((name) => name.endsWith('.po'))
     .map((name) => [name, () => import(join(LOCALES, name))]),
 )
 
-export const memoryStorage = (): StorageLike => {
+const memoryStorage = (): StorageLike => {
   const values = new Map<string, string>()
   return {
     getItem: (key) => values.get(key) ?? null,

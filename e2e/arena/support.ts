@@ -33,7 +33,7 @@ export type ScenarioInfo = {
   readonly reveal: number | null
 }
 
-export const hashOf = (state: State) => {
+const hashOf = (state: State) => {
   const params = new URLSearchParams({
     entry: ENTRY,
     scenario: state.scenario,

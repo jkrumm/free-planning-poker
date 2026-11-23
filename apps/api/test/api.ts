@@ -23,7 +23,7 @@ export async function prepare(url: string): Promise<DbClient> {
   return client
 }
 
-export const envFor = (url: string, port: number) => ({
+const envFor = (url: string, port: number) => ({
   ...ENV,
   DATABASE_URL: url,
   PORT: String(port),

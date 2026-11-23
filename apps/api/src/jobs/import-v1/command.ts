@@ -29,7 +29,7 @@ import {
 import { readV1 } from './v1-reader.ts'
 
 /** Rows per transaction; each batch stays far below Postgres's 65,535 parameters and `STATEMENT_TIMEOUT`. */
-export const BATCH = { rooms: 1000, rounds: 1000, rows: 5000 } as const
+const BATCH = { rooms: 1000, rounds: 1000, rows: 5000 } as const
 
 export type ImportOptions = {
   /** The dump file (`Bun.file`); a name ending in `.gz` is gunzipped. */
@@ -77,7 +77,7 @@ export type ImportReport = {
 export class ImportRefused extends Data.TaggedError('ImportRefused')<{ readonly rooms: number }> {}
 
 /** The dump could not be read: not a v1 dump, not in UTC, or cut short. */
-export class DumpUnreadable extends Data.TaggedError('DumpUnreadable')<{
+class DumpUnreadable extends Data.TaggedError('DumpUnreadable')<{
   readonly cause: unknown
 }> {}
 
@@ -160,7 +160,7 @@ const checkTarget = (
     } satisfies Plan
   })
 
-export const importV1 = (options: ImportOptions, database: Database) => {
+const importV1 = (options: ImportOptions, database: Database) => {
   const run = <A>(work: (db: Db) => Promise<A>) => retryWhileDown(database.run(work))
   return Effect.gen(function* () {
     const phases: { phase: string; ms: number }[] = []

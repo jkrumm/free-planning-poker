@@ -10,8 +10,8 @@ import type { ContactInput, FeedbackInput, MessagesApi, SendResult } from '../ht
 import { FEEDBACK_LIMITS } from '../http/messages.ts'
 import { createRateLimit } from './rate-limit.ts'
 
-export const GATEWAY_TIMEOUT_MS = 7_000
-export const DOOR_TIMEOUT_MS = 5_000
+const GATEWAY_TIMEOUT_MS = 7_000
+const DOOR_TIMEOUT_MS = 5_000
 
 export type MessagesOptions = {
   /** `EMAIL_GATEWAY_URL` and its secret; `url` is the gateway's base, the route appends `/fpp`. */
