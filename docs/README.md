@@ -24,7 +24,7 @@ One line per file under `docs/`. v9 is the contract for `master`; the files mark
 | `v9/evidence/transport.md` | the transport bake-off: three WebSocket adapters measured, `Bun.serve`'s native handler kept |
 | `v9/evidence/load.md` | 500 rooms and 5,000 sockets under k6, a handoff under load, the nightly guard: the numbers and how to read them |
 | `v9/evidence/import-rehearsal.md` | the v1 import: how names, rounds and daily counts come over, and its timed run on a production dump against v1's own counts |
-| `v9/research/README.md` | the index of the 26 research runs with their status; `STRATEGY.md` and `ARCHITECTURE.md` win where a report disagrees |
+| `v9/research/README.md` | the index of the 27 research runs with their status; `STRATEGY.md` and `ARCHITECTURE.md` win where a report disagrees |
 | `v9/research/r01-sync-engines.md` | sync engines and multiplayer backends |
 | `v9/research/r02-netcode-patterns.md` | game-networking patterns for low-tick rooms |
 | `v9/research/r03-marketing-framework.md` | Astro against TanStack Start for the marketing site |
@@ -51,6 +51,7 @@ One line per file under `docs/`. v9 is the contract for `master`; the files mark
 | `v9/research/r24-i18n.md` | languages from day one: catalogue, routing, workflow |
 | `v9/research/r25-astro7-i18n.md` | Astro 7 language routing for a partly translated static site |
 | `v9/research/r26-tracker-browser.md` | tracker access from a browser without a stored credential |
+| `v9/research/r27-effect-by-layer.md` | Effect 4 layer by layer, revisited: why the split holds and what reopens it |
 
 ## v1, for reference
 

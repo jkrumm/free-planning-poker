@@ -85,7 +85,7 @@ Your answers of 2026-11-20 to the open choices and to the points where the plan 
 | Who runs a room | Everyone. A room has no owner | No room key, no admin, no facilitator flag. Every player reveals, settles, kicks, locks and names the room |
 | What a new room is called | A six-digit number, as in v1: digits work in every language | Numbers are the default address. A name is a booking a team makes. Both return to the pool when unused (`ARCHITECTURE.md`, "Room model") |
 | The lock | A password people type or let the room generate. It need not be secure; a device that got in once remembers it | Typed or generated, stored readable, carried in the link, kept in the device's storage |
-| Runtime and framework | Bun and Elysia 2. Which socket path, including Effect's, is still open: compare them | A bake-off of three candidates in `v9-api-ws`. Elysia wins a tie. Effect stays in the API's adapters and jobs. Decided on 2026-11-22: `Bun.serve`'s native handler, by the lowest 99th percentile (`evidence/transport.md`) |
+| Runtime and framework | Bun and Elysia 2. Which socket path, including Effect's, is still open: compare them | A bake-off of three candidates in `v9-api-ws`. Elysia wins a tie. Effect stays in the API's adapters and jobs. Decided on 2026-11-22: `Bun.serve`'s native handler, by the lowest 99th percentile (`evidence/transport.md`); the reason that carries it is in "Your rulings of 2026-11-23" |
 | The table arena | Not in the usual factory loop. Later, with several directions and several labs' models | The factory builds the harness. Entries are made in sessions you start; the pick is still a gate |
 | Planning of the later stages | Ahead, as far as it can be known today; no Spec on the way (confirmed 2026-11-21) | Written out on 2026-11-21: every stage is rows in `docs/plan.yaml`. Three correction rows stay, one per stage, each fixing what the stage before measured differently |
 | Languages | From the beginning, on the landing page and in the room; more than two (2026-11-21) | A message catalogue from the first screen. The room ships in English, German, Spanish, French and Simplified Chinese; the landing page is built in the same five (`research/r24`, `r25`) |
@@ -106,6 +106,17 @@ Five smaller questions were still open when the later stages were planned. Each 
 | Self-hosting at 9.0.0 | One compose file, proven on a clean machine by a nightly run | `v9-selfhost` |
 | The first activities after launch | A confidence vote, then dot voting, then the wheel. None is a row yet | `PLAN.md`, "After launch" |
 | basalt-ui 3 | Rows with a look wait until npm serves 3.x; nothing installs an unpublished build | `v9-ui-foundation`, `v9-site-look` |
+
+## Your rulings of 2026-11-23
+
+You questioned three stage-1 decisions: Effect only in the API's I/O, Bun's socket over Elysia's, and two validators. Each row keeps the decision, states the reason that actually carries it, and names what reopens it. A trigger that fires is a row in `docs/plan.yaml`, not a side effect of another row. `research/r27` is the deep run behind the Effect rows.
+
+| Question | Decision | The reason that carries it | Revisit when |
+|-|-|-|-|
+| Effect in the room logic, client and server | Unchanged: Effect stays in `apps/api/src/app`, `src/db` and `src/jobs` | Fit, not maturity. The core does no I/O for Effect to manage. The wire protocol (a `seq` per room, resume, a view per seat, `fx` without `seq`) is no request and response, so Effect RPC would be fought, not used. The simulator replays the client and the room loop from a seed, which an Effect runtime would have to preserve. Effect pins exactly, so an API tagged unstable costs work only at a bump: stability alone is no argument either way | The simulator finds a timer or cleanup race in the room loop that a plain fix does not end: a spike row ports the loop to a per-room Effect scope and keeps every seed deterministic. Or the client's reconnect code outgrows what the simulator covers |
+| The WebSocket path | `Bun.serve`'s native handler stays | Not the latency: Elysia's p99 was 1.2 times Bun's, and at 30 seats a reader would not notice. What decides it: on rc.3 Elysia's socket parses every JSON frame before the handler (#1911), runs `beforeHandle` on every message, closes a socket above 256 frames in flight with 1013, and has three open reports (#1933, #2017, #1716). Behind the transport port a swap is about a day | Elysia 2.0 is stable with #1911 fixed, or Effect tags `SocketServer` stable: the candidate joins `ADAPTERS` in `apps/api/test/contract/harness.ts`, runs the contract suite and `bake-off.ts`, and Elysia wins a tie |
+| TypeBox next to Zod | Kept | They validate different things: Zod 4 the socket frames in room-core, which depends on no framework; TypeBox the HTTP routes, where Eden's types and the OpenAPI output are native. Where HTTP carries a room-core shape, its type comes from room-core (`t.Unsafe<RevealedResult>` in `apps/api/src/http/history.ts`), so nothing is defined twice | Elysia 2.0 is stable and Eden's types and OpenAPI are proven with Zod schemas: the HTTP routes may move to Zod |
+| Validation in the browser | No schema library in the bundle | Commands are built from room-core's types; what a person types goes through the value-object parsers of `@fpp/room-core/types`, the same rules the server applies; the server validates every frame and refuses a bad one with a typed reason. An error on the server raises `fpp-api errors`, which the factory receives as an Issue | Refused frames from real clients appear in `fpp-api`'s logs |
 
 ## Where the research disagrees with the brief
 
@@ -132,7 +143,7 @@ Effect 4.0 has been stable since 2026-09-30. It earns its place where code waits
 | Postgres store, jobs, startup and drain | yes | Retries, schedules and ordered release become declarations |
 | Webhook relay, after launch | yes, the strongest case | A retry rule per status code, bounded concurrency, timeouts, typed failures |
 
-That is narrower than you proposed. What you want from it, stability and testability, comes here from a pure core and a simulator that replays any failure from a seed. Effect adds to it where the system touches the outside.
+That is narrower than you proposed. What you want from it, stability and testability, comes here from a pure core and a simulator that replays any failure from a seed. Effect adds to it where the system touches the outside. Revisited on 2026-11-23 with a deeper run (`research/r27`): the split holds, for the reasons and with the triggers in "Your rulings of 2026-11-23".
 
 **The WebSocket path** is decided in the row that builds the transport. Bun is the runtime and Elysia 2 the HTTP framework in every case. Three candidates each implement the same port in about 150 lines: Elysia 2's `.ws`, Bun's native handler and Effect's socket server. All run the frame fixtures, the close codes, the drain, a slow consumer and a burst of 2,000 sockets. The numbers are recorded, the winner stays, the others are deleted. Elysia wins a tie, because one framework for both is what you prefer.
 
