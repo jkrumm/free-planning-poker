@@ -50,7 +50,7 @@ export type Api = {
 }
 
 /** Starts the built API on `port` against `databaseUrl`, and resolves once it listens (it logs `on port` last). */
-export function startApi(options: {
+function startApi(options: {
   readonly port: number
   readonly databaseUrl: string
   readonly visitorKey: string
