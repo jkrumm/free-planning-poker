@@ -129,7 +129,7 @@ A rule that can be checked is a check, not a sentence. All of these run in `make
 |-|-|-|
 | On commit (lefthook) | oxfmt check and oxlint on staged files | 2 s |
 | Before every push | `make check-fast`: format check, lint, types, boundaries, core tests, 200 simulator seeds, the unit tests of every package | 60 s |
-| On demand | `make check`: `check-fast` plus the server and fault tests against Postgres and the build. `make e2e` and `make load` are separate targets that need Docker and run through `factory slot run` | CI runs `make check` and the end-to-end suite on every pull request; a lead reruns a heavy suite locally only to reproduce a CI failure. The load test is nightly and on demand, never part of the gate |
+| On demand | `make check`: `check-fast` plus the server and fault tests against Postgres and the build. `make e2e` (native processes on a private Postgres, no Docker) and `make load` (Docker) are separate targets that run through `factory slot run` | CI runs `make check` and the end-to-end suite on every pull request; a lead reruns a heavy suite locally only to reproduce a CI failure. The load test is nightly and on demand, never part of the gate |
 
 Every test target writes a JUnit file to `$FACTORY_JUNIT_DIR` when that variable is set, and no JUnit file when it is not. The factory sets it inside a slot, so it measures duration and flake rate per step; CI and a bare local run skip the report.
 
@@ -142,7 +142,7 @@ One workflow, `ci.yml`, on pull requests and on pushes to `master`. Hosted runne
 | `lanes` | always | reads `.github/lanes` and the diff, outputs one boolean per lane | 20 s |
 | `check` | always | `make check`, whose server tests each start a private PostgreSQL 18 cluster from the PGDG binaries (`.github/postgres.sh`), then size-limit | 3 min |
 | `image` | lane `app` | builds the API image with the GitHub cache backend, one scope per image; hands it on as an artifact | 3 min warm, up to 10 cold |
-| `e2e` (2 shards) | lane `app` | loads the image, starts `deploy/compose.yml`, runs Playwright in Chromium with blob reports and a trace on first retry | 4 min |
+| `e2e` (2 shards) | lane `app` | loads the image, starts `deploy/compose.yml` (`E2E_MODE=image`), runs Playwright in Chromium with blob reports and a trace on first retry | 4 min |
 | `e2e-report` | after `e2e` | merges the blobs into one HTML report and writes annotations | 1 min |
 | `site` | lane `site`, from stage 3 | builds the Astro site, checks links and the page budgets | 2 min |
 | `ci` | always | fails if any needed job failed or was cancelled. The only required check | 10 s |
