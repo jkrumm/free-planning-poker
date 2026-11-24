@@ -92,7 +92,15 @@ jobs:
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
-      - run: e2e/node_modules/.bin/playwright install --with-deps --only-shell chromium ffmpeg
+      - id: playwright
+        run: echo "version=$(jq -r '.devDependencies["@playwright/test"]' e2e/package.json)" >> "$GITHUB_OUTPUT"
+      - id: browser
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-headless-shell-ffmpeg
+      - if: steps.browser.outputs.cache-hit != 'true'
+        run: e2e/node_modules/.bin/playwright install --only-shell chromium ffmpeg
       - run: .github/arena.sh
         env:
           EVENT: ${{ github.event_name }}
@@ -171,7 +179,16 @@ jobs:
           name: fpp-api-image
           path: ${{ runner.temp }}
       - run: docker load --input "${{ runner.temp }}/fpp-api.tar"
-      - run: e2e/node_modules/.bin/playwright install --with-deps --only-shell chromium
+      # The bundled headless shell is cached per Playwright version; the install runs on a miss only.
+      - id: playwright
+        run: echo "version=$(jq -r '.devDependencies["@playwright/test"]' e2e/package.json)" >> "$GITHUB_OUTPUT"
+      - id: browser
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-headless-shell
+      - if: steps.browser.outputs.cache-hit != 'true'
+        run: e2e/node_modules/.bin/playwright install --only-shell chromium
       - run: bun e2e/suite/run.ts --shard=${{ matrix.shard }}/2
         env:
           E2E_NO_BUILD: '1'
