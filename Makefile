@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help load check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta site-deploy indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-logs v9-replace-api v9-smoke v9-size
+.PHONY: help load check-fast check fmt fmt-check lint types boundaries test test-server build site site-run arena arena-score e2e e2e-beta site-deploy indexnow factory-files bun-version lanes deploy verify verify-production verify-next logs import-v1 v1-mariadb v9-image v9-image-perms v9-up v9-down v9-sweep v9-logs v9-replace-api v9-smoke v9-size
 
 # Public production hostnames of v1, which runs from the branch v1 until the
 # cutover, and the beta host, where every push that touches lane app rolls out (deploy-next.yml).
@@ -122,6 +122,10 @@ v9-size: ## Print the image's size, uncompressed and as a gzipped `docker save` 
 v9-down: ## Remove the v9 stack with its database volume
 	@$(V9_COMPOSE) down --volumes --remove-orphans
 
+# A run that was killed never reached its cleanup. A stack older than two hours (a run takes minutes) is removed; never fatal.
+v9-sweep: ## Remove fpp-e2e-* stacks older than two hours, left by a killed image-mode run
+	@bun e2e/suite/sweep.ts
+
 v9-logs: ## The last 200 lines of every container of the v9 stack
 	@$(V9_COMPOSE) logs --no-color --tail=200
 
@@ -153,11 +157,12 @@ arena-score: ## Score one table entry: make arena-score ENTRY=<name> (writes are
 	@$(call step,arena browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium ffmpeg >/dev/null)
 	@$(call step,arena scorecard (playwright),$(call slot,arena-score) env ARENA_ENTRY=$(ENTRY) e2e/node_modules/.bin/playwright test -c e2e/arena/playwright.config.ts)
 
-# The end-to-end suite (e2e/suite, lane app): one browser context per seat against the image users self-host. e2e/suite/run.ts builds
-# the image, starts its own stack on a port the system picks, runs Playwright in the bundled headless shell and removes the
-# stack; arguments go to Playwright: make e2e E2E_ARGS='--grep "reload"'. CI starts it with E2E_NO_BUILD and the loaded image.
+# The end-to-end suite (e2e/suite, lane app): one browser context per seat against a stack of its own on a port the system picks. e2e/suite/run.ts
+# builds the room app and the API and runs them as plain processes on a private PostgreSQL (E2E_MODE=native, the default: no Docker
+# engine). E2E_MODE=image builds and starts the image users self-host (deploy/compose.yml), as CI does with E2E_NO_BUILD and the
+# loaded image. Arguments go to Playwright: make e2e E2E_ARGS='--grep "reload"'.
 E2E_ARGS ?=
-e2e: ## End-to-end suite against a stack of its own, in a slot (about 20 s of tests plus the image build; E2E_ARGS to Playwright)
+e2e: ## End-to-end suite against a stack of its own, in a slot (native, no Docker; E2E_MODE=image for the image; E2E_ARGS to Playwright)
 	@$(call step,e2e browser (headless shell),e2e/node_modules/.bin/playwright install --only-shell chromium >/dev/null)
 	@$(call step,e2e suite (stack + playwright),$(call slot,e2e) bun e2e/suite/run.ts $(E2E_ARGS))
 
