@@ -123,4 +123,4 @@ A row that adds a lane job (`image`, `e2e`, `site`) gives it `if: needs.lanes.ou
 | 1 (the cache was still empty) | 0.69 s | 0.72 s (a miss) |
 | 2 | 2.59 s | 3.08 s, plus 1 s for the restore step |
 
-A restored cache did not beat a cold install, so CI keeps none beyond the Bun binary that `setup-bun` caches. Measure again when the install passes 15 s.
+A restored cache did not beat a cold install, so CI keeps none beyond the Bun binary that `setup-bun` caches and the Playwright browser: `e2e` and `arena` restore `~/.cache/ms-playwright` with `actions/cache`, keyed on the Playwright version, and install the browser on a miss only. Measure the Bun cache again when the install passes 15 s.
