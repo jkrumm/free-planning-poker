@@ -273,6 +273,8 @@ Default: AlwaysOn. 100% of traces sampled. Appropriate for low-traffic personal 
 
 ## 12. Apply-to-fpp checklist
 
+> **Note (2026-11-25):** This checklist is the 2026-05-19 pre-migration plan for `apps/server`, which the repo no longer has. The Bun API is `apps/api` (service `fpp-api`); it records errors through `recordError` in `packages/telemetry/src/facade.server.ts`, called from `apps/api/src/app/compose.ts`. No Sentry wrapper exists.
+
 For fpp-server, copy this structure:
 
 - [ ] Create `apps/server/src/telemetry.ts` — resource (service.name=`fpp-server`, service.version from package.json, deployment.environment from `NODE_ENV`), `BatchSpanProcessor` + OTLP exporter, `BatchLogRecordProcessor` + OTLP log exporter, exported `tracer`, `log` helper.
