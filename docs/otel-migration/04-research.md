@@ -6,11 +6,13 @@
 
 ---
 
+> **Note (2026-11-25):** The Next.js row below and §1 are the 2026-05-19 plan for a Next.js web app that was never built. The web app is `apps/site` (Astro 7.4, static); the producers today are `apps/site` and `apps/api`, with the exporter in `packages/telemetry`.
+
 ## 0. Executive snapshot
 
 | Service | SDK choice | Auto-instrumentation viability | Exporter |
 |-|-|-|-|
-| Next.js 16 (Vercel) | `@vercel/otel` 2.1.2 + OTel JS SDK 2.x | Strong — Pages Router root spans auto-emit | OTLP HTTP only (`:4318`) |
+| apps/site (Astro 7, static) and apps/api (Bun + Elysia) | `@fpp/telemetry/browser`, `@fpp/telemetry/server` (over `@opentelemetry/*`) | Browser: errors and connection state only; server: Elysia plugin | OTLP proto (`@opentelemetry/exporter-trace-otlp-proto`) |
 | Bun + Elysia 1.4 | `@elysiajs/opentelemetry` 1.4.12 + OTel JS SDK 2.x | Partial — Elysia plugin OK, Node auto-instrumentations unreliable on Bun | OTLP HTTP or gRPC |
 | FastAPI (Python 3.14) | `opentelemetry-sdk` 1.42.0 + `opentelemetry-instrumentation-fastapi` 0.63b0 | Strong (manual `instrument_app()`) — `opentelemetry-bootstrap` broken with `uv` | OTLP gRPC preferred |
 
@@ -36,7 +38,7 @@
 
 `experimental.instrumentationHook` was removed in Next.js 15+. Delete from `next.config.js`. Next.js 16 auto-detects `instrumentation.ts`.
 
-**Vercel cold start:** **never** `BatchSpanProcessor` in serverless. `@vercel/otel` does the right thing. **Never** `@opentelemetry/exporter-trace-otlp-grpc` — pulls in Node stream APIs that break Edge builds. Use `@opentelemetry/exporter-trace-otlp-http`, port 4318.
+**Vercel cold start:** **never** `BatchSpanProcessor` in serverless. `@vercel/otel` does the right thing. **Never** `@opentelemetry/exporter-trace-otlp-grpc` — pulls in Node stream APIs that break Edge builds. The 2026-05-19 recommendation was `@opentelemetry/exporter-trace-otlp-http`, port 4318; the code uses `@opentelemetry/exporter-trace-otlp-proto` (`packages/telemetry/package.json`).
 
 ### 1.2 Auto-emitted Pages Router spans
 
