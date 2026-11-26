@@ -4,7 +4,7 @@
  * browser contexts held about 4.5 GiB, and what they add is the room's fan-out to thirty seats, which a socket proves.
  */
 import { card, everyone, expect, expectRevealed, test, vote } from './room.ts'
-import { joinBySocket } from './socket.ts'
+import { joinBySocket, type SocketSeat } from './socket.ts'
 
 const CROWD = 30
 const baseURL = process.env['E2E_BASE_URL'] ?? ''
@@ -14,12 +14,14 @@ test('thirty players in one room vote and reveal', async ({ room }) => {
   const { seats, slug } = await room(1)
   const [first] = seats
   if (first === undefined) throw new Error('the first seat')
-  const crowd = await Promise.all(
-    Array.from({ length: CROWD - 1 }, (_, index) =>
-      joinBySocket({ baseURL, slug, name: `Seat ${index + 2}` }),
-    ),
-  )
+  // Seats are collected as they arrive, so a refused join still closes the seats that took theirs.
+  const crowd: SocketSeat[] = []
   try {
+    await Promise.all(
+      Array.from({ length: CROWD - 1 }, async (_, index) => {
+        crowd.push(await joinBySocket({ baseURL, slug, name: `Seat ${index + 2}` }))
+      }),
+    )
     await expect(first.page.getByTestId('seat')).toHaveCount(CROWD)
 
     const cards = ['3', '5', '8'] as const
