@@ -28,6 +28,8 @@ const image = build ? `fpp-api:e2e-${process.pid}` : (process.env['E2E_IMAGE'] ?
 const env = {
   ...process.env,
   E2E_MODE: mode,
+  // A local run is measured against the slot's memory budget (2 GiB): two workers peak at 2.1 GiB, one at 1.3 GiB. CI's hosted runners keep two.
+  E2E_WORKERS: process.env['E2E_WORKERS'] ?? (mode === 'native' ? '1' : '2'),
   E2E_BASE_URL: baseURL,
   V9_PROJECT: `fpp-e2e-${process.pid}`,
   FPP_PORT: String(port),
