@@ -1,6 +1,8 @@
 // Browser-side OTEL: @hyperdx/browser wraps web SDK + session replay +
 // Web Vitals + React error boundary attachment, and injects W3C
 // traceparent into fetches matching tracePropagationTargets.
+// The SDK records window errors and unhandled rejections itself: add no
+// global listener here, it would count every error twice.
 import HyperDX from '@hyperdx/browser';
 
 import { env } from 'fpp/env';
@@ -38,18 +40,3 @@ HyperDX.init({
   advancedNetworkCapture: false,
   maskAllInputs: true,
 });
-
-// Global error handlers — HyperDX hooks window error/unhandledrejection
-// internally, but we keep a thin layer for parity with the prior setup.
-if (typeof window !== 'undefined') {
-  window.addEventListener('unhandledrejection', (event) => {
-    HyperDX.recordException(
-      event.reason instanceof Error
-        ? event.reason
-        : new Error(String(event.reason)),
-    );
-  });
-  window.addEventListener('error', (event) => {
-    if (event.error) HyperDX.recordException(event.error);
-  });
-}
