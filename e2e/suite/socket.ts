@@ -2,7 +2,7 @@
  * A seat that takes its place over the room's WebSocket with no browser: the protocol's `hello`, `cmd` and `evt`
  * frames as docs/v9/protocol.md names them. A crowd test uses it for the seats whose page it does not need to look at:
  * a context holds about 140 MiB of renderer, so a table of thirty pages is the whole memory figure of the suite
- * (rules/browser.md), while a socket is a few kilobytes. Node's own WebSocket, because a Playwright worker runs on Node.
+ * (rules/browser.md), while a socket is a few kilobytes. Node's own WebSocket and Promise.withResolvers (Node 22 or newer), because a Playwright worker runs on Node.
  */
 
 export type RevealedVote = { readonly seat: number; readonly card: { readonly label: string } }
