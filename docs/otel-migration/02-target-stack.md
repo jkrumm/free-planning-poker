@@ -36,9 +36,8 @@ Why split: Traefik 3.x has unfixed bugs around env-var substitution in static YA
 
 **Implication for fpp:**
 
-- `fpp-server` (Docker on VPS) → `http://clickstack:4319`, no auth.
-- `fpp-analytics` (Docker on VPS) → `http://clickstack:4319`, no auth.
-- `apps/web` (Vercel, external) → `https://otel.jkrumm.com` with `authorization` header.
+- `fpp-api` and `fpp-room` (the API image on VPS) → `http://clickstack:4319`, no auth.
+- `apps/site` (browser) → `https://otel.jkrumm.com` with `authorization` header.
 - Browser SDK → same-origin route via Traefik label on the fpp host (or cross-origin to `otel.jkrumm.com` with bearer; same-origin avoids CORS preflight).
 
 ---
@@ -121,7 +120,7 @@ Query via `docker exec clickstack clickhouse-client`. The `/otel` skill in `~/.c
 | argo-api | `clickstack:4319` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `argo-api` |
 | argo-dashboard (browser) | same-origin via Traefik label | `VITE_HYPERDX_API_KEY` | varies |
 
-fpp will add: `free-planning-poker` (web), `fpp-server` (Bun), `fpp-analytics` (Python).
+fpp will add: `fpp-api` (apps/api), `fpp-room` (apps/room), `fpp-site` (apps/site), per `packages/telemetry/src/names.ts`. Each name is registered in the vps repo's `observability/services.yaml`.
 
 ---
 
@@ -142,8 +141,8 @@ Rotation: generate in HyperDX UI → Team Settings → API Keys → update 1Pass
 
 ```text
                                                          ┌─────────────────┐
-                                                         │  Vercel         │
-                                                         │  apps/web       │
+                                                         │  Browser        │
+                                                         │  apps/site      │
                                                          └────────┬────────┘
                                                                   │
                                                                   │ HTTPS + bearer
@@ -166,7 +165,7 @@ Rotation: generate in HyperDX UI → Team Settings → API Keys → update 1Pass
                        │  │traef│  │rollhook │  │argo-api│ │
                        │  └─────┘  └─────────┘  └────────┘ │
                        │  ┌──────────┐  ┌──────────────┐   │
-                       │  │fpp-server│  │fpp-analytics │← NEW
+                       │  │fpp-api   │  │fpp-room      │← NEW
                        │  └──────────┘  └──────────────┘   │
                        └──────────────────────────────┘
 ```
@@ -176,7 +175,7 @@ Rotation: generate in HyperDX UI → Team Settings → API Keys → update 1Pass
 ## Pre-flight checklist (before Phase 1 of PRD)
 
 - [ ] Confirm `clickstack` container is up: `ssh vps "docker ps --filter name=clickstack"`.
-- [ ] Confirm `fpp-server` + `fpp-analytics` are on `monitoring-net` (or add them in `vps/apps/fpp/compose.yml`).
+- [ ] Confirm `fpp-api` + `fpp-room` are on `monitoring-net` (or add them in `vps/apps/fpp/compose.yml`).
 - [ ] Set 30-day TTL on `otel_traces` and `otel_logs` to bound disk growth.
 - [ ] Generate new HyperDX ingestion key dedicated to fpp web (`op://vps/fpp/HYPERDX_INGESTION_KEY`). Reusing argo's key is acceptable for v1 but separate keys make rotation surgical.
 - [ ] Add `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319` to `.env.tpl` files (server, analytics).
